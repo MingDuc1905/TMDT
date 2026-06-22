@@ -1,0 +1,87 @@
+﻿
+@{
+    ViewBag.Title = "LichSuDatHang";
+    Layout = "~/Views/Shared/_LayoutPageHome.cshtml";
+    List<ShipFood.Models.tbDonHang> donHangs = ViewBag.donHangs;
+}
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Fastship - Khám phá, đặt hàng, giao tân nơi</title>
+    <!-- Favicon icon -->
+    <link href="~/Source/Restaurant/vendor/datatables/css/jquery.dataTables.min.css" rel="stylesheet" />
+    <link href="~/Source/Restaurant/css/style-restaurant.css" rel="stylesheet" />
+
+</head>
+<div class="container-fluid" style=" margin-top: 150px;">
+    <div class="form-head d-flex mb-3 align-items-start">
+        <div class="mr-auto d-none d-lg-block">
+            <h2 class="text-black font-w600 mb-0">Đơn đặt hàng</h2>
+            <p class="mb-0">Lịch sử đơn hàng</p>
+        </div>
+
+    </div>
+    <div class="row">
+        <div class="col-12">
+            <div class="table-responsive">
+                <table id="example5" class="display mb-4 dataTablesCard" style="min-width: 845px">
+                    <thead>
+                        <tr>
+                            <th>Ngày đặt</th>
+                            <th>Khách hàng</th>
+                            <th>Tổng tiền</th>
+                            <th>Trạng thái</th>
+                            <th>Ghi chú</th>
+                            <th style=" width: 40px;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var i in donHangs)
+                        {
+                            <tr>
+                                <td>@i.ngaydathang.Value.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>@i.tbThongTinDatHang.tennguoinhan</td>
+                                <td>@Math.Round(Double.Parse(i.tongtien.ToString())) VNĐ</td>
+                                @if (i.trangthai.Equals("Đã hủy"))
+                                {
+                                    <td><span class="btn btn-sm light btn-danger fs-16">@i.trangthai</span></td>
+                                }
+                                @if (!i.trangthai.Equals("Đã hủy"))
+                                {
+                                    <td><span class="btn btn-sm light btn-success fs-16">@i.trangthai</span></td>
+                                }
+                                <td>@i.ghichu</td>
+                                <td style="padding:20px">
+                                    <a href="~/Cart/ChiTietDonHang?id=@i.madh"><span style="width:115px" class="btn btn-sm light btn-secondary fs-16">Chi tiết</span></a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="~/Source/Restaurant/vendor/global/global.min.js"></script>
+<script src="~/Source/Restaurant/vendor/bootstrap-select/dist/js/bootstrap-select.min.js"></script>
+<script src="~/Source/Restaurant/js/custom.min.js"></script>
+<script src="~/Source/Restaurant/js/deznav-init.js"></script>
+
+<!-- Datatable -->
+<script src="~/Source/Restaurant/vendor/datatables/js/jquery.dataTables.min.js"></script>
+
+<script>
+    (function ($) {
+        var table = $('#example5').DataTable({
+            searching: false,
+            paging: true,
+            select: false,
+            //info: false,
+            lengthChange: false,
+        });
+        $('#example tbody').on('click', 'tr', function () {
+            var data = table.row(this).data();
+        });
+    })(jQuery);
+</script>

@@ -1,0 +1,164 @@
+﻿
+@{
+    ViewBag.Title = "ChiTietDonHang";
+    Layout = "~/Views/Shared/_LayoutPageHome.cshtml";
+    ShipFood.Models.tbDonHang donHang = ViewBag.donHang;
+    ShipFood.Models.tbUser user = (ShipFood.Models.tbUser)Session["user"];
+
+}
+
+
+<!DOCTYPE html>
+<html lang="zxx">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="description" content="Ogani Template">
+    <meta name="keywords" content="Ogani, unica, creative, html">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Ogani | Template</title>
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;400;600;900&display=swap" rel="stylesheet">
+
+    <!-- Css Styles -->
+    <link href="~/Source/Cart/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/Source/Cart/css/font-awesome.min.css" type="text/css">
+    <link rel="stylesheet" href="~/Source/Cart/css/elegant-icons.css" type="text/css">
+    <link rel="stylesheet" href="~/Source/Cart/css/jquery-ui.min.css" type="text/css">
+    <link rel="stylesheet" href="~/Source/Cart/css/owl.carousel.min.css" type="text/css">
+    <link rel="stylesheet" href="~/Source/Cart/css/slicknav.min.css" type="text/css">
+    <link rel="stylesheet" href="~/Source/Cart/css/style.css" type="text/css">
+</head>
+
+<body>
+    <!-- Breadcrumb Section Begin -->
+    <section style="margin-top:200px" class="breadcrumb-section set-bg" data-setbg="https://localhost:44363/Source/Restaurant/images/card/2.png">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12 text-center">
+                    <div class="breadcrumb__text">
+                        <h2 style="color:green">Checkout</h2>
+                        <div class="breadcrumb__option">
+                            <a href="~/Home">Trang chủ</a>
+                            <span>Checkout</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Breadcrumb Section End -->
+    <!-- Checkout Section Begin -->
+    <section class="checkout spad">
+        <div class="container">
+            <div class="checkout__form">
+                <h4>Thông tin chi tiết đơn hàng</h4>
+
+                <form>
+                    <div class="row">
+                        <div class="col-lg-8 col-md-6 formInfor">
+                            <div class="row">
+                                <div class="col-lg-12">
+                                    <div class="checkout__input">
+                                        <p><strong>Họ tên người nhận</strong></p>
+                                        <input disabled name="hoten" value="@donHang.tbThongTinDatHang.tennguoinhan" placeholder="Nhập họ tên người nhận" type="text">
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="checkout__input">
+                                    <p><strong>Địa chỉ</strong></p>
+                                    <div style="margin-bottom:10px"></div>
+                                    <div style="margin-top:10px" class="checkout__input">
+                                        <div>
+                                            <input disabled required style="margin-bottom:10px" type="text" value="@donHang.tbThongTinDatHang.diachi" placeholder="Nhập địa chỉ cụ thể" class="checkout__input__add" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-lg-12">
+                                    <div class="checkout__input">
+                                        <p><strong>Số điện thoại</strong></p>
+                                        <input name="SDT" disabled value="@donHang.tbThongTinDatHang.sdt" placeholder="Nhập số điện thoại" type="text">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="checkout__input">
+                                <p><strong>Ghi chú đơn hàng</strong></p>
+                                <input type="text" disabled name="note" value="@donHang.ghichu">
+                            </div>
+                            <div class="checkout__input">
+                                <p><strong>Shipper</strong></p>
+                                <input style=" width: 65%; display: inline-block;" type="text" disabled name="note" value="@(donHang.tbShipper != null ? donHang.tbShipper.tenshipper + " - " +donHang.tbShipper.tbUser.sdt : "Trống")">
+                                @if (user.loaitaikhoan.Equals("Khách hàng"))
+                                {
+                                    <a style=" border-radius: 10px; padding: 5px; display: inline-block; background-color: #8fc68f;" class="" href="@Url.Action("NhanTin", "Home")">
+                                        <i class="lni lni-facebook-messenger"></i>
+                                        <p style="margin-bottom: 0;">Chat ngay!</p>
+                                    </a>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4 col-md-6" style="margin:20px auto">
+                            <div class="checkout__order">
+                                <h4>Đơn hàng (@donHang.trangthai)</h4>
+                                <div class="checkout__order__products">Món ăn <span>Tổng tiền</span></div>
+                                <ul>
+                                    @foreach (var i in donHang.tbChiTietDonHang)
+                                    {
+                                        <li>@i.tbMonAn.tenmon (@i.soluong) <span>@Math.Round(Double.Parse((i.tbMonAn.giatien * i.soluong).ToString())) VNĐ</span></li>
+                                    }
+                                </ul>
+                                <div class="checkout__order__total">Tổng tiền món <span>@Math.Round(Double.Parse(donHang.tongtien.ToString())) VNĐ</span></div>
+                                <div class="checkout__order__total">Phí ship <span>15000 VNĐ</span></div>
+                                <div class="checkout__order__total">Tổng <span>@Math.Round(Double.Parse((donHang.tongtien + 15000).ToString())) VNĐ</span></div>
+
+                                <div class="row">
+                                    <div class="col-lg-12">
+                                        <div class="checkout__input">
+                                            <p><strong>Phương thức thanh toán</strong></p>
+
+                                            <input name="SDT" disabled value="@donHang.tbLoaiHinhThanhToan.tenhinhthuc" placeholder="Nhập số điện thoại" type="text">
+
+                                        </div>
+                                    </div>
+                                </div>
+                                @if (user.loaitaikhoan.Equals("Quán ăn") && donHang.trangthai.Equals("Đã đặt"))
+                                {
+                                    <div class="row">
+                                        <div class="col-lg-12">
+                                            <a href="~/Restaurant/nhandon/@donHang.madh"><button class="btn btn-success">Nhận đơn</button></a>
+                                            <a href="~/Restaurant/huydon/@donHang.madh"><button class="btn btn-danger">Huỷ đơn</button></a>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+    <!-- Checkout Section End -->
+    <!-- Js Plugins -->
+    <script src="~/Source/Cart/js/jquery-3.3.1.min.js"></script>
+    <script src="~/Source/Cart/js/bootstrap.min.js"></script>
+    <script src="~/Source/Cart/js/jquery-ui.min.js"></script>
+    <script src="~/Source/Cart/js/jquery.slicknav.js"></script>
+    <script src="~/Source/Cart/js/mixitup.min.js"></script>
+    <script src="~/Source/Cart/js/owl.carousel.min.js"></script>
+    <script src="~/Source/Cart/js/main.js"></script>
+    <script src="~/Source/Cart/js/checkout.js"></script>
+</body>
+
+</html>
+
+<script type="text/javascript">
+    function redirectToPage() {
+        window.location.href = "https://localhost:44363/Home/NhanTin";
+    }
+</script>

@@ -1,0 +1,176 @@
+﻿@{
+    ViewBag.Title = "Discount";
+    Layout = "~/Views/Shared/_LayoutPageRestaurant.cshtml";
+    List<ShipFood.Models.tbMonAnKhuyenMai> khuyenMais = ViewBag.khuyenMais;
+    List<ShipFood.Models.tbKhuyenMai> maKM = ViewBag.maKM;
+    List<ShipFood.Models.tbMonAn> monAns = ViewBag.monAns;
+}
+
+    <div class="container-fluid">
+        <div class="row page-titles mx-0">
+            <div class="col-sm-6 p-md-0">
+                <div class="welcome-text">
+                    <h4>Mã khuyến mãi</h4>
+                </div>
+            </div>
+        </div>
+        <!-- row -->
+
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title">Danh sách mã khuyến mãi</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-responsive-md">
+                                <thead>
+                                    <tr>
+                                        <th><strong>Mã KM</strong></th>
+                                        <th><strong>Tên món</strong></th>
+                                        <th><strong>Trạng thái</strong></th>
+                                        <th><strong>Số lượng</strong></th>
+                                        <th style="width:100px"><strong>Giảm giá</strong></th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var i in khuyenMais)
+                                    {
+                                        <tr>
+                                            <td><strong>@i.makm</strong></td>
+                                            <td>@i.tbMonAn.tenmon</td>
+                                            <td><span class="badge light badge-success">@i.trangthai</span></td>
+                                            <td>@i.soluong</td>
+                                            <td>@i.phantramgiam %</td>
+                                            @*<td>20</td>*@
+                                            @*<td>
+                                                <div class="dropdown">
+                                                    <button type="button" class="btn btn-success light sharp" data-toggle="dropdown">
+                                                        <svg width="20px" height="20px" viewBox="0 0 24 24" version="1.1">
+                                                            <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                                                <rect x="0" y="0" width="24" height="24" />
+                                                                <circle fill="#000000" cx="5" cy="12" r="2" />
+                                                                <circle fill="#000000" cx="12" cy="12" r="2" />
+                                                                <circle fill="#000000" cx="19" cy="12" r="2" />
+                                                            </g>
+                                                        </svg>
+                                                    </button>
+                                                    <div class="dropdown-menu">
+                                                        <a class="dropdown-item" href="#">Chỉnh sửa</a>
+                                                        <a class="dropdown-item" href="#">Xóa</a>
+                                                    </div>
+                                                </div>
+                                            </td>*@
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title">Thêm ưu đãi</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-validation">
+                            <form class="form-valide" action="~/Restaurant/Discount" method="post">
+                                <div class="row">
+                                    <div class="col-xl-6">
+                                        <div class="form-group row">
+                                            <label class="col-lg-4 col-form-label" for="val-username">
+                                                Mã khuyến mãi
+                                                <span class="text-danger">*</span>
+                                            </label>
+                                            <div class="col-lg-6">
+                                                <select class="form-control" id="val-mon" name="makm">
+                                                    <option value="">Chọn mã khuyến mãi</option>
+                                                    @foreach (var i in maKM)
+                                                    {
+                                                        <option value="@i.makm">@i.makm</option>
+                                                    }
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="form-group row">
+                                            <label class="col-lg-4 col-form-label" for="val-mon">
+                                                Món khuyến mãi
+                                                <span class="text-danger">*</span>
+                                            </label>
+                                            <div class="col-lg-6">
+                                                <select class="form-control" id="val-mon" name="mamon">
+                                                    <option value="">Chọn món</option>
+                                                    @foreach (var i in monAns)
+                                                    {
+                                                        <option value="@i.mamon">@i.tenmon</option>
+                                                    }
+                                                </select>
+                                            </div>
+                                        </div>
+                                        @*<div class="form-group row">
+                                            <label class="col-lg-4 col-form-label" for="val-password">
+                                                Ngày khuyến mãi
+                                                <span class="text-danger">*</span>
+                                            </label>
+                                            <div class="col-lg-6 example">
+                                                <input class="form-control input-daterange-datepicker"
+                                                       type="datetime-local"
+                                                       name="daterange"
+                                                       value="" />
+                                            </div>
+                                        </div>*@
+                                        <div class="form-group row">
+                                            <label class="col-lg-4 col-form-label" for="val-skill">
+                                                Trạng thái
+                                                <span class="text-danger">*</span>
+                                            </label>
+                                            <div class="col-lg-6">
+                                                <select class="form-control" id="val-skill" name="trangthai">
+                                                    <option value="">Chọn trạng thái</option>
+                                                    <option value="Còn hạn">Còn hạn</option>
+                                                    <option value="Hết hạn">Hết hạn</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="form-group row">
+                                            <label class="col-lg-4 col-form-label" for="val-number">
+                                                % Khuyến mãi <span class="text-danger">*</span>
+                                            </label>
+                                            <div class="col-lg-6">
+                                                <input type="text"
+                                                       class="form-control"
+                                                       id="val-number"
+                                                       name="phantramgiam"
+                                                       placeholder="Nhập % khuyến mãi" />
+                                            </div>
+                                        </div>
+                                        <div class="form-group row">
+                                            <label class="col-lg-4 col-form-label" for="val-number">
+                                                Số lượng mã <span class="text-danger">*</span>
+                                            </label>
+                                            <div class="col-lg-6">
+                                                <input type="text"
+                                                       class="form-control"
+                                                       id="val-number"
+                                                       name="soluong"
+                                                       placeholder="Nhập số lượng" />
+                                            </div>
+                                        </div>
+                                        <div class="form-group row">
+                                            <div class="col-lg-8 ml-auto">
+                                                <button type="submit" class="btn btn-primary">Thêm mã</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>

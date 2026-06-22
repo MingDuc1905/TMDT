@@ -1,0 +1,74 @@
+﻿@model List<ShipFood.Models.tbDanhMuc>
+@{
+    ViewBag.Title = "Category";
+    Layout = "~/Views/Shared/_LayoutPageAmin.cshtml";
+}
+
+<div class="content-body">
+    <div class="container-fluid">
+
+            <div class="row g-3 mb-4 align-items-center justify-content-between">
+                <div class="col-auto">
+                    <h2 class="app-page-title mb-0">Danh mục</h2>
+                </div>
+                <div class="col-auto">
+                    <div class="page-utilities">
+                        <div class="row g-2 justify-content-start justify-content-md-end align-items-center">
+                            <div class="col-auto">
+                                <form class="docs-search-form row gx-1 align-items-center" onsubmit="search(); return false;">
+                                    <div class="col-auto">
+                                        <input type="text" id="search-query" name="timkiem" class="form-control search-docs" placeholder="Tìm kiếm">
+                                    </div>
+                                    <div class="col-auto">
+                                        <button type="submit" class="btn btn-primary">Tìm kiếm</button>
+                                    </div>
+                                    <div class="col-auto">
+                                        <a class="btn btn-primary" href="@Url.Action("CreateCategory","Admin")">Thêm danh mục</a>
+                                    </div>
+                                </form>
+
+                            </div><!--//col-->
+                            
+                        </div><!--//row-->
+                    </div><!--//table-utilities-->
+                </div><!--//col-auto-->
+            </div><!--//row-->
+
+            <div class="tab-content" id="orders-table-tab-content">
+                <div class="tab-pane fade show active" id="orders-all" role="tabpanel" aria-labelledby="orders-all-tab">
+                    <div class="app-card app-card-orders-table shadow-sm mb-5">
+                        <div class="card" id="baiviet-list">
+                            @{ Html.RenderPartial("_ListCategory", Model); }
+                        </div>
+                        
+                    </div><!--//app-card-->
+                </div><!--//tab-pane-->
+            </div><!--//tab-content-->
+
+  
+    </div>
+</div>
+<script>
+
+    function search() {
+        loadContent();
+    }
+    function loadContent() {
+        var searchQuery = $('#search-query').val();
+
+        $.ajax({
+            url: '@Url.Action("GetListCategory", "Admin")',
+            type: 'GET',
+            data: {
+                timkiem: searchQuery
+            },
+            success: function (response) {
+                $('#baiviet-list').html(response);
+            },
+            error: function () {
+                alert('Đã xảy ra lỗi khi tải danh sách bài đăng.');
+            }
+        });
+    }
+
+</script>

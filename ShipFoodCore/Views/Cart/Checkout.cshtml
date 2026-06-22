@@ -1,0 +1,359 @@
+﻿
+@{
+    ViewBag.Title = "Checkout";
+    Layout = "~/Views/Shared/_LayoutPageHome.cshtml";
+    ShipFood.Models.Cart cart = ViewBag.cart;
+    ShipFood.Models.City city = new ShipFood.Models.City();
+    List<ShipFood.Models.tbLoaiHinhThanhToan> lhtt = ViewBag.phuongthuctt;
+    List<ShipFood.Models.tbThongTinDatHang> ttdh = ViewBag.diachicosan;
+}
+
+<!DOCTYPE html>
+<html lang="zxx">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="description" content="Ogani Template">
+    <meta name="keywords" content="Ogani, unica, creative, html">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Ogani | Template</title>
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;400;600;900&display=swap" rel="stylesheet">
+
+    <!-- Css Styles -->
+    <link href="~/Source/Cart/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/Source/Cart/css/font-awesome.min.css" type="text/css">
+    <link rel="stylesheet" href="~/Source/Cart/css/elegant-icons.css" type="text/css">
+    <link rel="stylesheet" href="~/Source/Cart/css/jquery-ui.min.css" type="text/css">
+    <link rel="stylesheet" href="~/Source/Cart/css/owl.carousel.min.css" type="text/css">
+    <link rel="stylesheet" href="~/Source/Cart/css/slicknav.min.css" type="text/css">
+    <link rel="stylesheet" href="~/Source/Cart/css/style.css" type="text/css">
+</head>
+
+<body>
+    <!-- Breadcrumb Section Begin -->
+    <section style="margin-top:200px" class="breadcrumb-section set-bg" data-setbg="https://localhost:44363/Source/Restaurant/images/card/2.png">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12 text-center">
+                    <div class="breadcrumb__text">
+                        <h2 style="color:green">Checkout</h2>
+                        <div class="breadcrumb__option">
+                            <a href="~/Home">Trang chủ</a>
+                            <span>Checkout</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Breadcrumb Section End -->
+    <!-- Checkout Section Begin -->
+    <section class="checkout spad">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <h6 style="height:50px;border:1px solid #6AB963;color:black;margin-bottom:20px">
+                        <form style="font-weight:800">
+                            <input type="radio" name="RadioAddressType" id="new" checked /><span style="margin:20px 20px 20px 5px;color:black">Nhập thông tin giao hàng mới</span>
+                            <input type="radio" name="RadioAddressType" id="current" /><span style="margin: 20px 20px 20px 5px; color: black">Lấy địa chỉ hiện tại</span>
+                            <input type="radio" name="RadioAddressType" id="available" /><span style="margin: 20px 20px 20px 5px; color: black ">Chọn địa chỉ có sẵn</span>
+                        </form>
+
+                    </h6>
+                    
+                </div>
+            </div>
+            <div class="checkout__form">
+                <h4>Thông tin chi tiết đơn hàng</h4>
+                
+                <!-- Thông báo lỗi từ TempData -->
+                @if (TempData["CartError"] != null)
+                {
+                    <div class="alert alert-danger">@TempData["CartError"]</div>
+                }
+
+                <form id="paymentForm">
+                    @Html.AntiForgeryToken()
+                    <div class="selectGroup hidden">
+                        @if (ttdh.Count == 0)
+                        {
+                            <strong>Bạn chưa có địa chỉ nào</strong>
+                        }
+
+                        @if (ttdh.Count != 0)
+                        {
+                            <select name="mattdh">
+                                <option >Chọn thông tin đặt hàng</option>
+                                @foreach (var i in ttdh)
+                                {
+                                    <option value="@i.mattdh">@i.sdt - @i.tennguoinhan - @i.diachi</option>
+                                }
+                            </select>
+                        }
+
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-8 col-md-6 formInfor">
+                            <div class="row">
+                                <div class="col-lg-12">
+                                    <div class="checkout__input">
+                                        <p><strong>Họ tên người nhận</strong> <span>*</span></p>
+                                        <input name="hoten" id="input-hoten" placeholder="Nhập họ tên người nhận" type="text">
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="checkout__input">
+                                    <p>Địa chỉ<span> *</span> </p>
+                                    <div style="margin-bottom:10px"><strong>@city.nameCity</strong></div>
+                                    <div>
+                                        <select style=" width: 100%;" name="quan">
+                                            @foreach (var i in city.districts)
+                                            {
+                                                <option style="width:600px;" value="@i.nameDistrict">@i.nameDistrict</option>
+                                            }
+                                        </select>
+                                    </div>
+                                    <div style="margin-top:10px" class="checkout__input">
+                                        <div>
+                                            <input style="margin-bottom:10px" type="text" name="diachicuthe" placeholder="Nhập địa chỉ cụ thể" class="checkout__input__add">
+                                            <input type="text" name="diachiadd" placeholder="Số tầng, Số phòng,....">
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                            </div>
+                            <div class="row">
+                                <div class="col-lg-12">
+                                    <div class="checkout__input">
+                                        <p><strong>Số điện thoại</strong><span>*</span></p>
+                                        <input name="SDT" id="input-sdt" placeholder="Nhập số điện thoại" type="text">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="checkout__input">
+                                <p><strong>Ghi chú đơn hàng</strong><span></span></p>
+                                <input type="text" name="note"
+                                       placeholder="Ghi chú đơn hàng">
+                            </div>
+
+                            <!-- Khu vực hiển thị nội dung theo phương thức thanh toán -->
+                            <div id="payment-info-area" class="mt-3 p-3" style="border: 1px solid #e0e0e0; border-radius: 8px; display: none;">
+                            </div>
+
+                            <div class="checkout__input__checkbox">
+                                <label for="diff-acc">
+                                    Tôi xác nhận thông tin trên là đúng
+                                    <input type="checkbox" id="diff-acc">
+                                    <span class="checkmark"></span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4 col-md-6" style="margin:20px auto">
+                            <div class="checkout__order">
+                                <h4>Đơn hàng</h4>
+                                <div class="checkout__order__products">Món ăn <span>Tổng tiền</span></div>
+                                <ul>
+                                    @foreach (var i in cart.monAns)
+                                    {
+                                        <li>@i.tenmon (@i.soLuong) <span>@((i.soLuong * i.giatien)?.ToString("N0")) VNĐ</span></li>
+                                    }
+                                </ul>
+                                <div class="checkout__order__total">Tổng tiền món <span>@cart.tongTien?.ToString("N0") VNĐ</span></div>
+                                <div class="checkout__order__total">Phí ship <span>15000 VNĐ</span></div>
+                                <div class="checkout__order__total">Tổng <span>@((cart.tongTien + 15000)?.ToString("N0")) VNĐ</span></div>
+
+                                @foreach (var i in lhtt)
+                                {
+                                    <div style="margin-top:5px;padding: 5px; border: 1px solid; display: flex;">
+                                        <label style="margin:0px;width:100%">
+                                            <span class="checkmark"></span>
+                                            <input name="pttt" type="radio" value="@i.mahttt" class="payment-method" data-name="@i.tenhinhthuc">
+                                            @i.tenhinhthuc
+                                        </label>
+                                    </div>
+                                }
+
+                                <!-- Khu vực nút test (chế độ mô phỏng) -->
+                                <div id="test-mode-area" class="mt-3" style="display: none;">
+                                    <hr />
+                                    <p class="text-muted small"><i class="fas fa-flask"></i> Chế độ kiểm thử:</p>
+                                    <div class="d-flex gap-2">
+                                        <button type="button" class="btn btn-success btn-sm flex-fill" onclick="submitPayment('success')">
+                                            <i class="fas fa-check"></i> Thành công
+                                        </button>
+                                        <button type="button" class="btn btn-danger btn-sm flex-fill" onclick="submitPayment('failure')">
+                                            <i class="fas fa-times"></i> Thất bại
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <button type="button" id="btn-submit-payment" class="site-btn" onclick="submitPayment('success')" style="display:none;">
+                                    Xác nhận đặt hàng
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+    <!-- Checkout Section End -->
+    <!-- Js Plugins -->
+    <script src="~/Source/Cart/js/jquery-3.3.1.min.js"></script>
+    <script src="~/Source/Cart/js/bootstrap.min.js"></script>
+    <script src="~/Source/Cart/js/jquery-ui.min.js"></script>
+    <script src="~/Source/Cart/js/jquery.slicknav.js"></script>
+    <script src="~/Source/Cart/js/mixitup.min.js"></script>
+    <script src="~/Source/Cart/js/owl.carousel.min.js"></script>
+    <script src="~/Source/Cart/js/main.js"></script>
+    <script src="~/Source/Cart/js/checkout.js"></script>
+    <script>
+        // Mock Payment System
+        $(document).ready(function () {
+            $('.payment-method').change(function () {
+                var methodName = $(this).data('name');
+                var area = $('#payment-info-area');
+                var testArea = $('#test-mode-area');
+                var submitBtn = $('#btn-submit-payment');
+
+                area.show();
+
+                if (methodName.includes('Tiền mặt') || methodName.includes('COD')) {
+                    area.html('<div class="text-center py-4">\n                            <div style="width: 70px;height: 70px;margin: 0 auto 12px;background: linear-gradient(135deg, #28a745, #20c997);border-radius: 50%;display: flex;align-items: center;justify-content: center;">\n                                <i class="fas fa-money-bill-wave" style="font-size: 32px; color: white;"></i>\n                            </div>\n                            <h5 style="font-weight: 700; color: #28a745;">Thanh toán khi nhận hàng</h5>\n                            <div style="background: #f8fff8; border: 1px solid #c3e6cb; border-radius: 10px; padding: 12px; margin-top: 10px;">\n                                <i class="fas fa-info-circle text-success me-1"></i>\n                                <span class="text-muted">Vui lòng chuẩn bị sẵn số tiền mặt chính xác khi shipper giao hàng.</span>\n                            </div>\n                        </div>');
+                    testArea.hide();
+                    submitBtn.hide();
+                } else if (methodName.includes('Chuyển khoản')) {
+                    area.html('<div class="text-center py-3">\n                            <div style="width: 70px;height: 70px;margin: 0 auto 12px;background: linear-gradient(135deg, #007bff, #17a2b8);border-radius: 50%;display: flex;align-items: center;justify-content: center;">\n                                <i class="fas fa-university" style="font-size: 32px; color: white;"></i>\n                            </div>\n                            <h5 style="font-weight: 700; color: #007bff;">Chuyển khoản ngân hàng</h5>\n                            <div style="background: linear-gradient(145deg, #f8f9ff, #eef1ff); border: 1px solid #d0d7ff; border-radius: 12px; padding: 14px; margin-top: 10px; text-align: left;">\n                                <div class="d-flex justify-content-between mb-2"><span class="text-muted">Ngân hàng:</span><strong>Vietcombank</strong></div>\n                                <div class="d-flex justify-content-between mb-2"><span class="text-muted">Số TK:</span><strong style="color: #e74c3c; letter-spacing: 1px;">1234 5678 9012</strong></div>\n                                <div class="d-flex justify-content-between mb-2"><span class="text-muted">Chủ TK:</span><strong>FASTSHIP CO., LTD</strong></div>\n                                <div class="d-flex justify-content-between"><span class="text-muted">Nội dung:</span><strong id="transfer-content" style="color: #e74c3c;">DH[MaDonHang]</strong></div>\n                            </div>\n                            <div class="mt-3">\n                                <div style="width:140px;height:140px;margin:0 auto;background:white;display:flex;align-items:center;justify-content:center;border:2px solid #d0d7ff;border-radius:12px;box-shadow:0 4px 15px rgba(0,0,0,0.06);">\n                                    <div class="text-center">\n                                        <i class="fas fa-qrcode" style="font-size:56px;color:#007bff;"></i>\n                                        <p class="small text-muted mb-0 mt-1">QR Mô phỏng</p>\n                                    </div>\n                                </div>\n                                <p class="text-muted small mt-2"><i class="fas fa-camera me-1"></i>Quét mã để thanh toán</p>\n                            </div>\n                        </div>');
+                    testArea.show();
+                    submitBtn.hide();
+                }
+            });
+
+            // Kích hoạt radio đầu tiên nếu chưa chọn
+            if ($('.payment-method:checked').length === 0) {
+                $('.payment-method').first().prop('checked', true).trigger('change');
+            } else {
+                $('.payment-method:checked').trigger('change');
+            }
+        });
+
+        function submitPayment(testResult) {
+            // Validate form
+            var hoten = $('#input-hoten').val().trim();
+            var sdt = $('#input-sdt').val().trim();
+            var diachi = $('input[name="diachicuthe"]').val().trim();
+            var pttt = $('input[name="pttt"]:checked').val();
+
+            if (hoten === '') { alert('Vui lòng nhập họ tên người nhận'); return; }
+            if (sdt === '') { alert('Vui lòng nhập số điện thoại'); return; }
+            if (!pttt) { alert('Vui lòng chọn phương thức thanh toán'); return; }
+            if (!$('#diff-acc').is(':checked')) { alert('Vui lòng xác nhận thông tin trên là đúng'); return; }
+
+            var isAvailable = $('#available').is(':checked');
+            if (!isAvailable && diachi === '') {
+                alert('Vui lòng nhập địa chỉ giao hàng');
+                return;
+            }
+
+            // Disable nút
+            $('button[onclick]').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Đang xử lý...');
+
+            // Thu thập dữ liệu form
+            var formData = {
+                hoten: hoten,
+                quan: $('select[name="quan"]').val(),
+                diachicuthe: diachi,
+                diachiadd: $('input[name="diachiadd"]').val(),
+                SDT: sdt,
+                note: $('textarea[name="note"]').val(),
+                pttt: parseInt(pttt),
+                mattdh: $('select[name="mattdh"]').val(),
+                testResult: testResult
+            };
+
+            // Gọi API thanh toán
+            $.ajax({
+                url: '@Url.Action("ProcessPayment", "Payment")',
+                type: 'POST',
+                data: formData,
+                headers: {
+                    'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function (response) {
+                    if (response.success) {
+                        showPaymentPopup(
+                            'success',
+                            '<i class="fas fa-check-circle text-success" style="font-size: 48px;"></i>',
+                            '<h4>Đặt hàng thành công!</h4>',
+                            '<p class="text-muted">' + response.message + '</p>',
+                            '<a href="~/Cart/LichSuDatHang" class="btn btn-success">Xem lịch sử đơn hàng</a>'
+                        );
+                    } else {
+                        showPaymentPopup(
+                            'error',
+                            '<i class="fas fa-times-circle text-danger" style="font-size: 48px;"></i>',
+                            '<h4>Thanh toán thất bại</h4>',
+                            '<p class="text-muted">' + response.message + '</p>',
+                            '<button class="btn btn-warning" onclick="location.reload()">Thử lại</button>'
+                        );
+                    }
+                },
+                error: function () {
+                    showPaymentPopup(
+                        'error',
+                        '<i class="fas fa-exclamation-triangle text-danger" style="font-size: 48px;"></i>',
+                        '<h4>Lỗi hệ thống</h4>',
+                        '<p class="text-muted">Đã xảy ra lỗi khi xử lý thanh toán. Vui lòng thử lại sau.</p>',
+                        '<button class="btn btn-warning" onclick="location.reload()">Thử lại</button>'
+                    );
+                },
+                complete: function () {
+                    $('button[onclick]').prop('disabled', false).html('Hoàn tất');
+                }
+            });
+        }
+
+        function showPaymentPopup(type, icon, title, message, actionBtn) {
+            // Xóa popup cũ nếu có
+            $('#payment-popup-overlay').remove();
+
+            var bgColor = type === 'success' ? '#d4edda' : '#f8d7da';
+            var borderColor = type === 'success' ? '#c3e6cb' : '#f5c6cb';
+
+            var overlay = $('<div id="payment-popup-overlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;"></div>');
+            var popup = $('<div style="background:white;border-radius:16px;padding:40px;text-align:center;max-width:400px;box-shadow:0 10px 40px rgba(0,0,0,0.2);animation:popIn 0.3s ease;">');
+            
+            popup.append(icon);
+            popup.append(title);
+            popup.append(message);
+            popup.append(actionBtn);
+            
+            // Thêm style animation
+            if (!$('#popup-style').length) {
+                $('head').append('<style id="popup-style">@@keyframes popIn{0%{transform:scale(0.8);opacity:0}100%{transform:scale(1);opacity:1}}</style>');
+            }
+
+            overlay.append(popup);
+            $('body').append(overlay);
+
+            // Đóng popup khi click ra ngoài
+            overlay.click(function (e) {
+                if (e.target === this) {
+                    if (type === 'success') {
+                        window.location.href = '@Url.Action("LichSuDatHang", "Cart")';
+                    } else {
+                        $(this).remove();
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+
+</html>
+

@@ -1,0 +1,68 @@
+﻿
+@{
+    ViewBag.Title = "QuanLyShipper";
+    Layout = "~/Views/Shared/_LayoutPageAmin.cshtml";
+    List<ShipFood.Models.tbShipper> datas = ViewBag.datas;
+}
+
+<div class="content-body">
+    <div class="container-fluid">
+
+        <div class="app-card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-bordered first">
+                    <thead>
+                        <tr>
+                            <th class="cell" style="text-align: center;">ID</th>
+                            <th class="cell" style="text-align: center;">Họ tên</th>
+                            <th class="cell" style="text-align: center;">Username</th>
+                            <th class="cell" style="text-align: center;">Trạng thái</th>
+                            <th style="text-align: center; width: 100px ;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var i in datas)
+                        {
+                            <tr>
+                                <td style="text-align: center;" class="cell">#@i.userid</td>
+                                <td class="cell"><span class="truncate">@i.tenshipper</span></td>
+                                <td class="cell">@i.tbUser.username</td>
+                                <td style="text-align: center;" class="cell">@(i.tbUser.trangthai == 2 ? "Đang bị khoá" : (i.tbUser.trangthai == 1 ? "Đang hoạt động" : (i.tbUser.trangthai == 0 ? "Đang chờ duyệt" : "")))</td>
+                                <td style="text-align: center;">
+                                    @if (i.tbUser.trangthai == 0)
+                                    {
+                                        <a style="color: red" href="~/Admin/Duyet?id=@i.userid">
+                                            <button style="width: 130px; padding: 4px 24px; " class="btn btn-success">Duyệt</button>
+                                        </a>
+                                        <a style="color: red" href="~/Admin/Huy?id=@i.userid">
+                                            <button style="width: 130px; padding: 4px 24px; " class="btn btn-danger">Huỷ</button>
+                                        </a>
+
+                                    }
+
+                                    @if (i.tbUser.trangthai == 1)
+                                    {
+                                        <a style="color: red" href="~/Admin/LockOrUnLock?id=@i.userid">
+                                            <button style="width: 130px; padding: 4px 24px; " class="btn btn-danger">Khoá</button>
+                                        </a>
+                                    }
+                                    @if (i.tbUser.trangthai == 2)
+                                    {
+                                        <a style="color: red" href="~/Admin/LockOrUnLock?id=@i.userid">
+                                            <button style="width: 130px; padding: 4px 24px; " class="btn btn-success">Mở khoá</button>
+                                        </a>
+                                    }
+                                </td>
+                            </tr>
+                        }
+
+
+                    </tbody>
+                </table>
+            </div><!--//table-responsive-->
+
+        </div><!--//app-card-body-->
+
+
+    </div>
+</div>

@@ -1,0 +1,17 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_LayoutPageRestaurant.cshtml";
+    ShipFood.Models.dbFoodyEntities db = new ShipFood.Models.dbFoodyEntities();
+    ShipFood.Models.tbQuanAn QuanAn = ((ShipFood.Models.tbUser)Session["user"]).tbQuanAn;
+}
+
+<div class="container-fluid">
+    <div class="form-head d-flex mb-3 align-items-start">
+        <div class="mr-auto d-none d-lg-block">
+            <h2 class="text-black font-w600 mb-0">Thống kê</h2>
+            <p class="mb-0">Xin chào quản lí @QuanAn.tenquanan</p>
+        </div>
+    </div>
+    
+</div>

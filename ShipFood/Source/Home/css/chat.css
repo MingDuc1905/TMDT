@@ -1,0 +1,93 @@
+
+
+.content {
+    display: flex;
+    flex-direction: column;
+}
+:root {
+    ---gray: hwb(0 95% 5%);
+    ---gray-2: #F7F7F7;
+    --green: #1C6323;
+    --blue: #237DFF;
+    --white: #fff;
+    --black: #202020;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+
+
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+
+.app-content {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    position: relative;
+    padding: 0px 20px 0px 20px;
+}
+
+.chatbox-nt {
+    height: 450px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    padding: 15px;
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+.meesage {
+    padding: 0.75em;
+    width: max-content;
+    max-width: 60%;
+    height: max-content;
+}
+
+    .meesage.other {
+        background-color: antiquewhite;
+        border-radius: 1em 1em 1em 0;
+    }
+
+    .meesage.own {
+        background-color: var(--blue);
+        color: var(--white);
+        border-radius: 1em 1em 0 1em;
+        align-self: end;
+    }
+    
+.messageTyper {
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    padding: 10px;
+    background: #fff;
+    border-top: 1px solid #ddd;
+}
+
+.search__field {
+    flex-grow: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-right: 10px;
+}
+
+.button-send {
+    padding: 10px 20px;
+    border: none;
+    background: #007bff;
+    color: #fff;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+    .button-send img {
+        vertical-align: middle;
+        margin-left: 5px;
+    }

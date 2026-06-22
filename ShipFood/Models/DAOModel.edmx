@@ -1,0 +1,1288 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+    <Schema Namespace="dbFoodyModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        <EntityType Name="tbAdmin">
+          <Key>
+            <PropertyRef Name="userid" />
+          </Key>
+          <Property Name="userid" Type="int" Nullable="false" />
+          <Property Name="tenadmin" Type="nvarchar" MaxLength="50" Nullable="false" />
+        </EntityType>
+        <EntityType Name="tbChiTietDonHang">
+          <Key>
+            <PropertyRef Name="mactdh" />
+          </Key>
+          <Property Name="mactdh" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="madh" Type="int" />
+          <Property Name="mamon" Type="int" />
+          <Property Name="soluong" Type="int" />
+          <Property Name="dongia" Type="money" />
+        </EntityType>
+        <EntityType Name="tbDanhGia">
+          <Key>
+            <PropertyRef Name="madg" />
+          </Key>
+          <Property Name="madg" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="mactdh" Type="int" />
+          <Property Name="diemdanhgia" Type="int" />
+          <Property Name="nhanxet" Type="nvarchar" MaxLength="500" />
+          <Property Name="hinhanh" Type="varchar" MaxLength="100" />
+        </EntityType>
+        <EntityType Name="tbDanhMuc">
+          <Key>
+            <PropertyRef Name="madanhmuc" />
+          </Key>
+          <Property Name="madanhmuc" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="tendanhmuc" Type="nvarchar" MaxLength="100" Nullable="false" />
+          <Property Name="mota" Type="nvarchar" MaxLength="250" />
+          <Property Name="hinhanh" Type="varchar" MaxLength="100" />
+        </EntityType>
+        <EntityType Name="tbDonHang">
+          <Key>
+            <PropertyRef Name="madh" />
+          </Key>
+          <Property Name="madh" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="maquan" Type="int" />
+          <Property Name="mattdh" Type="int" />
+          <Property Name="ngaydathang" Type="datetime" />
+          <Property Name="trangthai" Type="nvarchar" MaxLength="50" />
+          <Property Name="tongtien" Type="money" />
+          <Property Name="hinhthucthanhtoan" Type="int" />
+          <Property Name="ghichu" Type="nvarchar" MaxLength="200" />
+          <Property Name="makhuyenmai" Type="int" />
+          <Property Name="phiship" Type="money" />
+          <Property Name="phidichvu" Type="money" />
+          <Property Name="ngaygiaohang" Type="datetime" />
+          <Property Name="ngaythanhtoan" Type="datetime" />
+          <Property Name="mashipper" Type="int" />
+        </EntityType>
+        <EntityType Name="tbKhachHang">
+          <Key>
+            <PropertyRef Name="userid" />
+          </Key>
+          <Property Name="userid" Type="int" Nullable="false" />
+          <Property Name="tenkh" Type="nvarchar" MaxLength="50" Nullable="false" />
+        </EntityType>
+        <EntityType Name="tbKhuyenMai">
+          <Key>
+            <PropertyRef Name="makm" />
+          </Key>
+          <Property Name="makm" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="tenkm" Type="nvarchar" MaxLength="100" Nullable="false" />
+          <Property Name="mota" Type="nvarchar" MaxLength="500" />
+          <Property Name="loaikm" Type="nvarchar" MaxLength="200" Nullable="false" />
+          <Property Name="phantramgiam" Type="int" />
+          <Property Name="dieukien" Type="nvarchar" MaxLength="500" />
+          <Property Name="ngaybatdau" Type="datetime" />
+          <Property Name="ngayketthuc" Type="datetime" />
+        </EntityType>
+        <EntityType Name="tbLoaiHinhThanhToan">
+          <Key>
+            <PropertyRef Name="mahttt" />
+          </Key>
+          <Property Name="mahttt" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="tenhinhthuc" Type="nvarchar" MaxLength="100" Nullable="false" />
+          <Property Name="mota" Type="nvarchar" MaxLength="500" />
+        </EntityType>
+        <EntityType Name="tbMonAn">
+          <Key>
+            <PropertyRef Name="mamon" />
+          </Key>
+          <Property Name="mamon" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="tenmon" Type="nvarchar" MaxLength="100" Nullable="false" />
+          <Property Name="mota" Type="nvarchar" MaxLength="500" />
+          <Property Name="giatien" Type="money" />
+          <Property Name="hinhanh" Type="varchar" MaxLength="50" />
+          <Property Name="maquanan" Type="int" />
+          <Property Name="madanhmuc" Type="int" />
+        </EntityType>
+        <EntityType Name="tbMonAnKhuyenMai">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="makm" Type="int" />
+          <Property Name="mamon" Type="int" />
+          <Property Name="soluong" Type="int" />
+          <Property Name="trangthai" Type="nvarchar" MaxLength="50" />
+          <Property Name="phantramgiam" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="tbQuanAn">
+          <Key>
+            <PropertyRef Name="userid" />
+          </Key>
+          <Property Name="userid" Type="int" Nullable="false" />
+          <Property Name="tenquanan" Type="nvarchar" MaxLength="100" Nullable="false" />
+          <Property Name="diachi" Type="nvarchar" MaxLength="250" Nullable="false" />
+          <Property Name="toado" Type="geography" />
+          <Property Name="soluotdanhgia" Type="int" />
+          <Property Name="diemdanhgia" Type="decimal" Precision="18" Scale="0" />
+          <Property Name="trangthai" Type="nvarchar" MaxLength="50" />
+          <Property Name="hinhanh" Type="varchar" MaxLength="100" />
+        </EntityType>
+        <EntityType Name="tbShipper">
+          <Key>
+            <PropertyRef Name="userid" />
+          </Key>
+          <Property Name="userid" Type="int" Nullable="false" />
+          <Property Name="tenshipper" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="diachi" Type="nvarchar" MaxLength="250" Nullable="false" />
+          <Property Name="toado" Type="geography" />
+          <Property Name="diemdanhgia" Type="decimal" Precision="18" Scale="0" />
+          <Property Name="soluotdanhgia" Type="int" />
+          <Property Name="trangthai" Type="nvarchar" MaxLength="50" />
+          <Property Name="hinhanh" Type="varchar" MaxLength="100" />
+        </EntityType>
+        <EntityType Name="tbThongTinDatHang">
+          <Key>
+            <PropertyRef Name="mattdh" />
+          </Key>
+          <Property Name="mattdh" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="sdt" Type="varchar" MaxLength="11" Nullable="false" />
+          <Property Name="diachi" Type="nvarchar" MaxLength="250" Nullable="false" />
+          <Property Name="toado" Type="geography" Nullable="false" />
+          <Property Name="tennguoinhan" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="userid" Type="int" />
+        </EntityType>
+        <EntityType Name="tbTinNhan">
+          <Key>
+            <PropertyRef Name="matn" />
+          </Key>
+          <Property Name="matn" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="madh" Type="int" />
+          <Property Name="noidung" Type="nvarchar" MaxLength="500" />
+          <Property Name="mashipper" Type="int" />
+          <Property Name="makh" Type="int" />
+        </EntityType>
+        <EntityType Name="tbUser">
+          <Key>
+            <PropertyRef Name="userid" />
+          </Key>
+          <Property Name="userid" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="username" Type="varchar" MaxLength="50" Nullable="false" />
+          <Property Name="pwd" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="loaitaikhoan" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="sdt" Type="varchar" MaxLength="11" Nullable="false" />
+          <Property Name="vitien" Type="money" />
+          <Property Name="email" Type="varchar" MaxLength="50" Nullable="false" />
+          <Property Name="trangthai" Type="int" Nullable="false" />
+        </EntityType>
+        <Association Name="FK__tbAdmin__userid__59063A47">
+          <End Role="tbUser" Type="Self.tbUser" Multiplicity="1" />
+          <End Role="tbAdmin" Type="Self.tbAdmin" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="tbUser">
+              <PropertyRef Name="userid" />
+            </Principal>
+            <Dependent Role="tbAdmin">
+              <PropertyRef Name="userid" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__tbChiTiet__mamon__59FA5E80">
+          <End Role="tbMonAn" Type="Self.tbMonAn" Multiplicity="0..1" />
+          <End Role="tbChiTietDonHang" Type="Self.tbChiTietDonHang" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="tbMonAn">
+              <PropertyRef Name="mamon" />
+            </Principal>
+            <Dependent Role="tbChiTietDonHang">
+              <PropertyRef Name="mamon" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__tbChiTietD__madh__5AEE82B9">
+          <End Role="tbDonHang" Type="Self.tbDonHang" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="tbChiTietDonHang" Type="Self.tbChiTietDonHang" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="tbDonHang">
+              <PropertyRef Name="madh" />
+            </Principal>
+            <Dependent Role="tbChiTietDonHang">
+              <PropertyRef Name="madh" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__tbDanhGia__mactd__5BE2A6F2">
+          <End Role="tbChiTietDonHang" Type="Self.tbChiTietDonHang" Multiplicity="0..1" />
+          <End Role="tbDanhGia" Type="Self.tbDanhGia" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="tbChiTietDonHang">
+              <PropertyRef Name="mactdh" />
+            </Principal>
+            <Dependent Role="tbDanhGia">
+              <PropertyRef Name="mactdh" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__tbDonHang__hinht__5CD6CB2B">
+          <End Role="tbLoaiHinhThanhToan" Type="Self.tbLoaiHinhThanhToan" Multiplicity="0..1" />
+          <End Role="tbDonHang" Type="Self.tbDonHang" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="tbLoaiHinhThanhToan">
+              <PropertyRef Name="mahttt" />
+            </Principal>
+            <Dependent Role="tbDonHang">
+              <PropertyRef Name="hinhthucthanhtoan" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__tbDonHang__makhu__5DCAEF64">
+          <End Role="tbKhuyenMai" Type="Self.tbKhuyenMai" Multiplicity="0..1" />
+          <End Role="tbDonHang" Type="Self.tbDonHang" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="tbKhuyenMai">
+              <PropertyRef Name="makm" />
+            </Principal>
+            <Dependent Role="tbDonHang">
+              <PropertyRef Name="makhuyenmai" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__tbDonHang__maqua__5EBF139D">
+          <End Role="tbQuanAn" Type="Self.tbQuanAn" Multiplicity="0..1" />
+          <End Role="tbDonHang" Type="Self.tbDonHang" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="tbQuanAn">
+              <PropertyRef Name="userid" />
+            </Principal>
+            <Dependent Role="tbDonHang">
+              <PropertyRef Name="maquan" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__tbDonHang__mashi__5FB337D6">
+          <End Role="tbShipper" Type="Self.tbShipper" Multiplicity="0..1" />
+          <End Role="tbDonHang" Type="Self.tbDonHang" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="tbShipper">
+              <PropertyRef Name="userid" />
+            </Principal>
+            <Dependent Role="tbDonHang">
+              <PropertyRef Name="mashipper" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__tbDonHang__mattd__60A75C0F">
+          <End Role="tbThongTinDatHang" Type="Self.tbThongTinDatHang" Multiplicity="0..1" />
+          <End Role="tbDonHang" Type="Self.tbDonHang" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="tbThongTinDatHang">
+              <PropertyRef Name="mattdh" />
+            </Principal>
+            <Dependent Role="tbDonHang">
+              <PropertyRef Name="mattdh" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__tbKhachHa__useri__619B8048">
+          <End Role="tbUser" Type="Self.tbUser" Multiplicity="1" />
+          <End Role="tbKhachHang" Type="Self.tbKhachHang" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="tbUser">
+              <PropertyRef Name="userid" />
+            </Principal>
+            <Dependent Role="tbKhachHang">
+              <PropertyRef Name="userid" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__tbMonAn__madanhm__628FA481">
+          <End Role="tbDanhMuc" Type="Self.tbDanhMuc" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="tbMonAn" Type="Self.tbMonAn" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="tbDanhMuc">
+              <PropertyRef Name="madanhmuc" />
+            </Principal>
+            <Dependent Role="tbMonAn">
+              <PropertyRef Name="madanhmuc" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__tbMonAn__maquana__6383C8BA">
+          <End Role="tbQuanAn" Type="Self.tbQuanAn" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="tbMonAn" Type="Self.tbMonAn" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="tbQuanAn">
+              <PropertyRef Name="userid" />
+            </Principal>
+            <Dependent Role="tbMonAn">
+              <PropertyRef Name="maquanan" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__tbMonAnKh__mamon__6477ECF3">
+          <End Role="tbMonAn" Type="Self.tbMonAn" Multiplicity="0..1" />
+          <End Role="tbMonAnKhuyenMai" Type="Self.tbMonAnKhuyenMai" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="tbMonAn">
+              <PropertyRef Name="mamon" />
+            </Principal>
+            <Dependent Role="tbMonAnKhuyenMai">
+              <PropertyRef Name="mamon" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__tbMonAnKhu__makm__656C112C">
+          <End Role="tbKhuyenMai" Type="Self.tbKhuyenMai" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="tbMonAnKhuyenMai" Type="Self.tbMonAnKhuyenMai" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="tbKhuyenMai">
+              <PropertyRef Name="makm" />
+            </Principal>
+            <Dependent Role="tbMonAnKhuyenMai">
+              <PropertyRef Name="makm" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__tbQuanAn__userid__66603565">
+          <End Role="tbUser" Type="Self.tbUser" Multiplicity="1" />
+          <End Role="tbQuanAn" Type="Self.tbQuanAn" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="tbUser">
+              <PropertyRef Name="userid" />
+            </Principal>
+            <Dependent Role="tbQuanAn">
+              <PropertyRef Name="userid" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__tbShipper__useri__6754599E">
+          <End Role="tbUser" Type="Self.tbUser" Multiplicity="1" />
+          <End Role="tbShipper" Type="Self.tbShipper" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="tbUser">
+              <PropertyRef Name="userid" />
+            </Principal>
+            <Dependent Role="tbShipper">
+              <PropertyRef Name="userid" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__tbThongTi__useri__68487DD7">
+          <End Role="tbKhachHang" Type="Self.tbKhachHang" Multiplicity="0..1" />
+          <End Role="tbThongTinDatHang" Type="Self.tbThongTinDatHang" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="tbKhachHang">
+              <PropertyRef Name="userid" />
+            </Principal>
+            <Dependent Role="tbThongTinDatHang">
+              <PropertyRef Name="userid" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__tbTinNhan__madh__693CA210">
+          <End Role="tbDonHang" Type="Self.tbDonHang" Multiplicity="0..1" />
+          <End Role="tbTinNhan" Type="Self.tbTinNhan" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="tbDonHang">
+              <PropertyRef Name="madh" />
+            </Principal>
+            <Dependent Role="tbTinNhan">
+              <PropertyRef Name="madh" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__tbTinNhan__makh__6A30C649">
+          <End Role="tbKhachHang" Type="Self.tbKhachHang" Multiplicity="0..1" />
+          <End Role="tbTinNhan" Type="Self.tbTinNhan" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="tbKhachHang">
+              <PropertyRef Name="userid" />
+            </Principal>
+            <Dependent Role="tbTinNhan">
+              <PropertyRef Name="makh" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__tbTinNhan__mashi__6B24EA82">
+          <End Role="tbShipper" Type="Self.tbShipper" Multiplicity="0..1" />
+          <End Role="tbTinNhan" Type="Self.tbTinNhan" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="tbShipper">
+              <PropertyRef Name="userid" />
+            </Principal>
+            <Dependent Role="tbTinNhan">
+              <PropertyRef Name="mashipper" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Function Name="Func_TinhKC" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo" ReturnType="float">
+          <Parameter Name="from" Type="geography" Mode="In" />
+          <Parameter Name="to" Type="geography" Mode="In" />
+        </Function>
+        <EntityContainer Name="dbFoodyModelStoreContainer">
+          <EntitySet Name="tbAdmin" EntityType="Self.tbAdmin" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="tbChiTietDonHang" EntityType="Self.tbChiTietDonHang" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="tbDanhGia" EntityType="Self.tbDanhGia" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="tbDanhMuc" EntityType="Self.tbDanhMuc" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="tbDonHang" EntityType="Self.tbDonHang" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="tbKhachHang" EntityType="Self.tbKhachHang" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="tbKhuyenMai" EntityType="Self.tbKhuyenMai" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="tbLoaiHinhThanhToan" EntityType="Self.tbLoaiHinhThanhToan" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="tbMonAn" EntityType="Self.tbMonAn" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="tbMonAnKhuyenMai" EntityType="Self.tbMonAnKhuyenMai" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="tbQuanAn" EntityType="Self.tbQuanAn" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="tbShipper" EntityType="Self.tbShipper" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="tbThongTinDatHang" EntityType="Self.tbThongTinDatHang" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="tbTinNhan" EntityType="Self.tbTinNhan" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="tbUser" EntityType="Self.tbUser" Schema="dbo" store:Type="Tables" />
+          <AssociationSet Name="FK__tbAdmin__userid__59063A47" Association="Self.FK__tbAdmin__userid__59063A47">
+            <End Role="tbUser" EntitySet="tbUser" />
+            <End Role="tbAdmin" EntitySet="tbAdmin" />
+          </AssociationSet>
+          <AssociationSet Name="FK__tbChiTiet__mamon__59FA5E80" Association="Self.FK__tbChiTiet__mamon__59FA5E80">
+            <End Role="tbMonAn" EntitySet="tbMonAn" />
+            <End Role="tbChiTietDonHang" EntitySet="tbChiTietDonHang" />
+          </AssociationSet>
+          <AssociationSet Name="FK__tbChiTietD__madh__5AEE82B9" Association="Self.FK__tbChiTietD__madh__5AEE82B9">
+            <End Role="tbDonHang" EntitySet="tbDonHang" />
+            <End Role="tbChiTietDonHang" EntitySet="tbChiTietDonHang" />
+          </AssociationSet>
+          <AssociationSet Name="FK__tbDanhGia__mactd__5BE2A6F2" Association="Self.FK__tbDanhGia__mactd__5BE2A6F2">
+            <End Role="tbChiTietDonHang" EntitySet="tbChiTietDonHang" />
+            <End Role="tbDanhGia" EntitySet="tbDanhGia" />
+          </AssociationSet>
+          <AssociationSet Name="FK__tbDonHang__hinht__5CD6CB2B" Association="Self.FK__tbDonHang__hinht__5CD6CB2B">
+            <End Role="tbLoaiHinhThanhToan" EntitySet="tbLoaiHinhThanhToan" />
+            <End Role="tbDonHang" EntitySet="tbDonHang" />
+          </AssociationSet>
+          <AssociationSet Name="FK__tbDonHang__makhu__5DCAEF64" Association="Self.FK__tbDonHang__makhu__5DCAEF64">
+            <End Role="tbKhuyenMai" EntitySet="tbKhuyenMai" />
+            <End Role="tbDonHang" EntitySet="tbDonHang" />
+          </AssociationSet>
+          <AssociationSet Name="FK__tbDonHang__maqua__5EBF139D" Association="Self.FK__tbDonHang__maqua__5EBF139D">
+            <End Role="tbQuanAn" EntitySet="tbQuanAn" />
+            <End Role="tbDonHang" EntitySet="tbDonHang" />
+          </AssociationSet>
+          <AssociationSet Name="FK__tbDonHang__mashi__5FB337D6" Association="Self.FK__tbDonHang__mashi__5FB337D6">
+            <End Role="tbShipper" EntitySet="tbShipper" />
+            <End Role="tbDonHang" EntitySet="tbDonHang" />
+          </AssociationSet>
+          <AssociationSet Name="FK__tbDonHang__mattd__60A75C0F" Association="Self.FK__tbDonHang__mattd__60A75C0F">
+            <End Role="tbThongTinDatHang" EntitySet="tbThongTinDatHang" />
+            <End Role="tbDonHang" EntitySet="tbDonHang" />
+          </AssociationSet>
+          <AssociationSet Name="FK__tbKhachHa__useri__619B8048" Association="Self.FK__tbKhachHa__useri__619B8048">
+            <End Role="tbUser" EntitySet="tbUser" />
+            <End Role="tbKhachHang" EntitySet="tbKhachHang" />
+          </AssociationSet>
+          <AssociationSet Name="FK__tbMonAn__madanhm__628FA481" Association="Self.FK__tbMonAn__madanhm__628FA481">
+            <End Role="tbDanhMuc" EntitySet="tbDanhMuc" />
+            <End Role="tbMonAn" EntitySet="tbMonAn" />
+          </AssociationSet>
+          <AssociationSet Name="FK__tbMonAn__maquana__6383C8BA" Association="Self.FK__tbMonAn__maquana__6383C8BA">
+            <End Role="tbQuanAn" EntitySet="tbQuanAn" />
+            <End Role="tbMonAn" EntitySet="tbMonAn" />
+          </AssociationSet>
+          <AssociationSet Name="FK__tbMonAnKh__mamon__6477ECF3" Association="Self.FK__tbMonAnKh__mamon__6477ECF3">
+            <End Role="tbMonAn" EntitySet="tbMonAn" />
+            <End Role="tbMonAnKhuyenMai" EntitySet="tbMonAnKhuyenMai" />
+          </AssociationSet>
+          <AssociationSet Name="FK__tbMonAnKhu__makm__656C112C" Association="Self.FK__tbMonAnKhu__makm__656C112C">
+            <End Role="tbKhuyenMai" EntitySet="tbKhuyenMai" />
+            <End Role="tbMonAnKhuyenMai" EntitySet="tbMonAnKhuyenMai" />
+          </AssociationSet>
+          <AssociationSet Name="FK__tbQuanAn__userid__66603565" Association="Self.FK__tbQuanAn__userid__66603565">
+            <End Role="tbUser" EntitySet="tbUser" />
+            <End Role="tbQuanAn" EntitySet="tbQuanAn" />
+          </AssociationSet>
+          <AssociationSet Name="FK__tbShipper__useri__6754599E" Association="Self.FK__tbShipper__useri__6754599E">
+            <End Role="tbUser" EntitySet="tbUser" />
+            <End Role="tbShipper" EntitySet="tbShipper" />
+          </AssociationSet>
+          <AssociationSet Name="FK__tbThongTi__useri__68487DD7" Association="Self.FK__tbThongTi__useri__68487DD7">
+            <End Role="tbKhachHang" EntitySet="tbKhachHang" />
+            <End Role="tbThongTinDatHang" EntitySet="tbThongTinDatHang" />
+          </AssociationSet>
+          <AssociationSet Name="FK__tbTinNhan__madh__693CA210" Association="Self.FK__tbTinNhan__madh__693CA210">
+            <End Role="tbDonHang" EntitySet="tbDonHang" />
+            <End Role="tbTinNhan" EntitySet="tbTinNhan" />
+          </AssociationSet>
+          <AssociationSet Name="FK__tbTinNhan__makh__6A30C649" Association="Self.FK__tbTinNhan__makh__6A30C649">
+            <End Role="tbKhachHang" EntitySet="tbKhachHang" />
+            <End Role="tbTinNhan" EntitySet="tbTinNhan" />
+          </AssociationSet>
+          <AssociationSet Name="FK__tbTinNhan__mashi__6B24EA82" Association="Self.FK__tbTinNhan__mashi__6B24EA82">
+            <End Role="tbShipper" EntitySet="tbShipper" />
+            <End Role="tbTinNhan" EntitySet="tbTinNhan" />
+          </AssociationSet>
+        </EntityContainer>
+      </Schema></edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema Namespace="dbFoodyModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+        <EntityContainer Name="dbFoodyEntities" annotation:LazyLoadingEnabled="true">
+          <EntitySet Name="tbAdmins" EntityType="dbFoodyModel.tbAdmin" />
+          <EntitySet Name="tbChiTietDonHangs" EntityType="dbFoodyModel.tbChiTietDonHang" />
+          <EntitySet Name="tbDanhGias" EntityType="dbFoodyModel.tbDanhGia" />
+          <EntitySet Name="tbDanhMucs" EntityType="dbFoodyModel.tbDanhMuc" />
+          <EntitySet Name="tbDonHangs" EntityType="dbFoodyModel.tbDonHang" />
+          <EntitySet Name="tbKhachHangs" EntityType="dbFoodyModel.tbKhachHang" />
+          <EntitySet Name="tbKhuyenMais" EntityType="dbFoodyModel.tbKhuyenMai" />
+          <EntitySet Name="tbLoaiHinhThanhToans" EntityType="dbFoodyModel.tbLoaiHinhThanhToan" />
+          <EntitySet Name="tbMonAns" EntityType="dbFoodyModel.tbMonAn" />
+          <EntitySet Name="tbMonAnKhuyenMais" EntityType="dbFoodyModel.tbMonAnKhuyenMai" />
+          <EntitySet Name="tbQuanAns" EntityType="dbFoodyModel.tbQuanAn" />
+          <EntitySet Name="tbShippers" EntityType="dbFoodyModel.tbShipper" />
+          <EntitySet Name="tbThongTinDatHangs" EntityType="dbFoodyModel.tbThongTinDatHang" />
+          <EntitySet Name="tbTinNhans" EntityType="dbFoodyModel.tbTinNhan" />
+          <EntitySet Name="tbUsers" EntityType="dbFoodyModel.tbUser" />
+          <AssociationSet Name="FK__tbAdmin__userid__59063A47" Association="dbFoodyModel.FK__tbAdmin__userid__59063A47">
+            <End Role="tbUser" EntitySet="tbUsers" />
+            <End Role="tbAdmin" EntitySet="tbAdmins" />
+          </AssociationSet>
+          <AssociationSet Name="FK__tbChiTiet__mamon__59FA5E80" Association="dbFoodyModel.FK__tbChiTiet__mamon__59FA5E80">
+            <End Role="tbMonAn" EntitySet="tbMonAns" />
+            <End Role="tbChiTietDonHang" EntitySet="tbChiTietDonHangs" />
+          </AssociationSet>
+          <AssociationSet Name="FK__tbChiTietD__madh__5AEE82B9" Association="dbFoodyModel.FK__tbChiTietD__madh__5AEE82B9">
+            <End Role="tbDonHang" EntitySet="tbDonHangs" />
+            <End Role="tbChiTietDonHang" EntitySet="tbChiTietDonHangs" />
+          </AssociationSet>
+          <AssociationSet Name="FK__tbDanhGia__mactd__5BE2A6F2" Association="dbFoodyModel.FK__tbDanhGia__mactd__5BE2A6F2">
+            <End Role="tbChiTietDonHang" EntitySet="tbChiTietDonHangs" />
+            <End Role="tbDanhGia" EntitySet="tbDanhGias" />
+          </AssociationSet>
+          <AssociationSet Name="FK__tbMonAn__madanhm__628FA481" Association="dbFoodyModel.FK__tbMonAn__madanhm__628FA481">
+            <End Role="tbDanhMuc" EntitySet="tbDanhMucs" />
+            <End Role="tbMonAn" EntitySet="tbMonAns" />
+          </AssociationSet>
+          <AssociationSet Name="FK__tbDonHang__hinht__5CD6CB2B" Association="dbFoodyModel.FK__tbDonHang__hinht__5CD6CB2B">
+            <End Role="tbLoaiHinhThanhToan" EntitySet="tbLoaiHinhThanhToans" />
+            <End Role="tbDonHang" EntitySet="tbDonHangs" />
+          </AssociationSet>
+          <AssociationSet Name="FK__tbDonHang__makhu__5DCAEF64" Association="dbFoodyModel.FK__tbDonHang__makhu__5DCAEF64">
+            <End Role="tbKhuyenMai" EntitySet="tbKhuyenMais" />
+            <End Role="tbDonHang" EntitySet="tbDonHangs" />
+          </AssociationSet>
+          <AssociationSet Name="FK__tbDonHang__maqua__5EBF139D" Association="dbFoodyModel.FK__tbDonHang__maqua__5EBF139D">
+            <End Role="tbQuanAn" EntitySet="tbQuanAns" />
+            <End Role="tbDonHang" EntitySet="tbDonHangs" />
+          </AssociationSet>
+          <AssociationSet Name="FK__tbDonHang__mashi__5FB337D6" Association="dbFoodyModel.FK__tbDonHang__mashi__5FB337D6">
+            <End Role="tbShipper" EntitySet="tbShippers" />
+            <End Role="tbDonHang" EntitySet="tbDonHangs" />
+          </AssociationSet>
+          <AssociationSet Name="FK__tbDonHang__mattd__60A75C0F" Association="dbFoodyModel.FK__tbDonHang__mattd__60A75C0F">
+            <End Role="tbThongTinDatHang" EntitySet="tbThongTinDatHangs" />
+            <End Role="tbDonHang" EntitySet="tbDonHangs" />
+          </AssociationSet>
+          <AssociationSet Name="FK__tbTinNhan__madh__693CA210" Association="dbFoodyModel.FK__tbTinNhan__madh__693CA210">
+            <End Role="tbDonHang" EntitySet="tbDonHangs" />
+            <End Role="tbTinNhan" EntitySet="tbTinNhans" />
+          </AssociationSet>
+          <AssociationSet Name="FK__tbKhachHa__useri__619B8048" Association="dbFoodyModel.FK__tbKhachHa__useri__619B8048">
+            <End Role="tbUser" EntitySet="tbUsers" />
+            <End Role="tbKhachHang" EntitySet="tbKhachHangs" />
+          </AssociationSet>
+          <AssociationSet Name="FK__tbThongTi__useri__68487DD7" Association="dbFoodyModel.FK__tbThongTi__useri__68487DD7">
+            <End Role="tbKhachHang" EntitySet="tbKhachHangs" />
+            <End Role="tbThongTinDatHang" EntitySet="tbThongTinDatHangs" />
+          </AssociationSet>
+          <AssociationSet Name="FK__tbTinNhan__makh__6A30C649" Association="dbFoodyModel.FK__tbTinNhan__makh__6A30C649">
+            <End Role="tbKhachHang" EntitySet="tbKhachHangs" />
+            <End Role="tbTinNhan" EntitySet="tbTinNhans" />
+          </AssociationSet>
+          <AssociationSet Name="FK__tbMonAnKhu__makm__656C112C" Association="dbFoodyModel.FK__tbMonAnKhu__makm__656C112C">
+            <End Role="tbKhuyenMai" EntitySet="tbKhuyenMais" />
+            <End Role="tbMonAnKhuyenMai" EntitySet="tbMonAnKhuyenMais" />
+          </AssociationSet>
+          <AssociationSet Name="FK__tbMonAn__maquana__6383C8BA" Association="dbFoodyModel.FK__tbMonAn__maquana__6383C8BA">
+            <End Role="tbQuanAn" EntitySet="tbQuanAns" />
+            <End Role="tbMonAn" EntitySet="tbMonAns" />
+          </AssociationSet>
+          <AssociationSet Name="FK__tbMonAnKh__mamon__6477ECF3" Association="dbFoodyModel.FK__tbMonAnKh__mamon__6477ECF3">
+            <End Role="tbMonAn" EntitySet="tbMonAns" />
+            <End Role="tbMonAnKhuyenMai" EntitySet="tbMonAnKhuyenMais" />
+          </AssociationSet>
+          <AssociationSet Name="FK__tbQuanAn__userid__66603565" Association="dbFoodyModel.FK__tbQuanAn__userid__66603565">
+            <End Role="tbUser" EntitySet="tbUsers" />
+            <End Role="tbQuanAn" EntitySet="tbQuanAns" />
+          </AssociationSet>
+          <AssociationSet Name="FK__tbShipper__useri__6754599E" Association="dbFoodyModel.FK__tbShipper__useri__6754599E">
+            <End Role="tbUser" EntitySet="tbUsers" />
+            <End Role="tbShipper" EntitySet="tbShippers" />
+          </AssociationSet>
+          <AssociationSet Name="FK__tbTinNhan__mashi__6B24EA82" Association="dbFoodyModel.FK__tbTinNhan__mashi__6B24EA82">
+            <End Role="tbShipper" EntitySet="tbShippers" />
+            <End Role="tbTinNhan" EntitySet="tbTinNhans" />
+          </AssociationSet>
+        </EntityContainer>
+        <EntityType Name="tbAdmin">
+          <Key>
+            <PropertyRef Name="userid" />
+          </Key>
+          <Property Name="userid" Type="Int32" Nullable="false" />
+          <Property Name="tenadmin" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="tbUser" Relationship="dbFoodyModel.FK__tbAdmin__userid__59063A47" FromRole="tbAdmin" ToRole="tbUser" />
+        </EntityType>
+        <EntityType Name="tbChiTietDonHang">
+          <Key>
+            <PropertyRef Name="mactdh" />
+          </Key>
+          <Property Name="mactdh" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="madh" Type="Int32" />
+          <Property Name="mamon" Type="Int32" />
+          <Property Name="soluong" Type="Int32" />
+          <Property Name="dongia" Type="Decimal" Precision="19" Scale="4" />
+          <NavigationProperty Name="tbMonAn" Relationship="dbFoodyModel.FK__tbChiTiet__mamon__59FA5E80" FromRole="tbChiTietDonHang" ToRole="tbMonAn" />
+          <NavigationProperty Name="tbDonHang" Relationship="dbFoodyModel.FK__tbChiTietD__madh__5AEE82B9" FromRole="tbChiTietDonHang" ToRole="tbDonHang" />
+          <NavigationProperty Name="tbDanhGias" Relationship="dbFoodyModel.FK__tbDanhGia__mactd__5BE2A6F2" FromRole="tbChiTietDonHang" ToRole="tbDanhGia" />
+        </EntityType>
+        <EntityType Name="tbDanhGia">
+          <Key>
+            <PropertyRef Name="madg" />
+          </Key>
+          <Property Name="madg" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="mactdh" Type="Int32" />
+          <Property Name="diemdanhgia" Type="Int32" />
+          <Property Name="nhanxet" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="hinhanh" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+          <NavigationProperty Name="tbChiTietDonHang" Relationship="dbFoodyModel.FK__tbDanhGia__mactd__5BE2A6F2" FromRole="tbDanhGia" ToRole="tbChiTietDonHang" />
+        </EntityType>
+        <EntityType Name="tbDanhMuc">
+          <Key>
+            <PropertyRef Name="madanhmuc" />
+          </Key>
+          <Property Name="madanhmuc" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="tendanhmuc" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="mota" Type="String" MaxLength="250" FixedLength="false" Unicode="true" />
+          <Property Name="hinhanh" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+          <NavigationProperty Name="tbMonAns" Relationship="dbFoodyModel.FK__tbMonAn__madanhm__628FA481" FromRole="tbDanhMuc" ToRole="tbMonAn" />
+        </EntityType>
+        <EntityType Name="tbDonHang">
+          <Key>
+            <PropertyRef Name="madh" />
+          </Key>
+          <Property Name="madh" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="maquan" Type="Int32" />
+          <Property Name="mattdh" Type="Int32" />
+          <Property Name="ngaydathang" Type="DateTime" Precision="3" />
+          <Property Name="trangthai" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="tongtien" Type="Decimal" Precision="19" Scale="4" />
+          <Property Name="hinhthucthanhtoan" Type="Int32" />
+          <Property Name="ghichu" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Name="makhuyenmai" Type="Int32" />
+          <Property Name="phiship" Type="Decimal" Precision="19" Scale="4" />
+          <Property Name="phidichvu" Type="Decimal" Precision="19" Scale="4" />
+          <Property Name="ngaygiaohang" Type="DateTime" Precision="3" />
+          <Property Name="ngaythanhtoan" Type="DateTime" Precision="3" />
+          <Property Name="mashipper" Type="Int32" />
+          <NavigationProperty Name="tbChiTietDonHangs" Relationship="dbFoodyModel.FK__tbChiTietD__madh__5AEE82B9" FromRole="tbDonHang" ToRole="tbChiTietDonHang" />
+          <NavigationProperty Name="tbLoaiHinhThanhToan" Relationship="dbFoodyModel.FK__tbDonHang__hinht__5CD6CB2B" FromRole="tbDonHang" ToRole="tbLoaiHinhThanhToan" />
+          <NavigationProperty Name="tbKhuyenMai" Relationship="dbFoodyModel.FK__tbDonHang__makhu__5DCAEF64" FromRole="tbDonHang" ToRole="tbKhuyenMai" />
+          <NavigationProperty Name="tbQuanAn" Relationship="dbFoodyModel.FK__tbDonHang__maqua__5EBF139D" FromRole="tbDonHang" ToRole="tbQuanAn" />
+          <NavigationProperty Name="tbShipper" Relationship="dbFoodyModel.FK__tbDonHang__mashi__5FB337D6" FromRole="tbDonHang" ToRole="tbShipper" />
+          <NavigationProperty Name="tbThongTinDatHang" Relationship="dbFoodyModel.FK__tbDonHang__mattd__60A75C0F" FromRole="tbDonHang" ToRole="tbThongTinDatHang" />
+          <NavigationProperty Name="tbTinNhans" Relationship="dbFoodyModel.FK__tbTinNhan__madh__693CA210" FromRole="tbDonHang" ToRole="tbTinNhan" />
+        </EntityType>
+        <EntityType Name="tbKhachHang">
+          <Key>
+            <PropertyRef Name="userid" />
+          </Key>
+          <Property Name="userid" Type="Int32" Nullable="false" />
+          <Property Name="tenkh" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="tbUser" Relationship="dbFoodyModel.FK__tbKhachHa__useri__619B8048" FromRole="tbKhachHang" ToRole="tbUser" />
+          <NavigationProperty Name="tbThongTinDatHangs" Relationship="dbFoodyModel.FK__tbThongTi__useri__68487DD7" FromRole="tbKhachHang" ToRole="tbThongTinDatHang" />
+          <NavigationProperty Name="tbTinNhans" Relationship="dbFoodyModel.FK__tbTinNhan__makh__6A30C649" FromRole="tbKhachHang" ToRole="tbTinNhan" />
+        </EntityType>
+        <EntityType Name="tbKhuyenMai">
+          <Key>
+            <PropertyRef Name="makm" />
+          </Key>
+          <Property Name="makm" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="tenkm" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="mota" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="loaikm" Type="String" Nullable="false" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Name="phantramgiam" Type="Int32" />
+          <Property Name="dieukien" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="ngaybatdau" Type="DateTime" Precision="3" />
+          <Property Name="ngayketthuc" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="tbDonHangs" Relationship="dbFoodyModel.FK__tbDonHang__makhu__5DCAEF64" FromRole="tbKhuyenMai" ToRole="tbDonHang" />
+          <NavigationProperty Name="tbMonAnKhuyenMais" Relationship="dbFoodyModel.FK__tbMonAnKhu__makm__656C112C" FromRole="tbKhuyenMai" ToRole="tbMonAnKhuyenMai" />
+        </EntityType>
+        <EntityType Name="tbLoaiHinhThanhToan">
+          <Key>
+            <PropertyRef Name="mahttt" />
+          </Key>
+          <Property Name="mahttt" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="tenhinhthuc" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="mota" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="tbDonHangs" Relationship="dbFoodyModel.FK__tbDonHang__hinht__5CD6CB2B" FromRole="tbLoaiHinhThanhToan" ToRole="tbDonHang" />
+        </EntityType>
+        <EntityType Name="tbMonAn">
+          <Key>
+            <PropertyRef Name="mamon" />
+          </Key>
+          <Property Name="mamon" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="tenmon" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="mota" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="giatien" Type="Decimal" Precision="19" Scale="4" />
+          <Property Name="hinhanh" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="maquanan" Type="Int32" />
+          <Property Name="madanhmuc" Type="Int32" />
+          <NavigationProperty Name="tbChiTietDonHangs" Relationship="dbFoodyModel.FK__tbChiTiet__mamon__59FA5E80" FromRole="tbMonAn" ToRole="tbChiTietDonHang" />
+          <NavigationProperty Name="tbDanhMuc" Relationship="dbFoodyModel.FK__tbMonAn__madanhm__628FA481" FromRole="tbMonAn" ToRole="tbDanhMuc" />
+          <NavigationProperty Name="tbQuanAn" Relationship="dbFoodyModel.FK__tbMonAn__maquana__6383C8BA" FromRole="tbMonAn" ToRole="tbQuanAn" />
+          <NavigationProperty Name="tbMonAnKhuyenMais" Relationship="dbFoodyModel.FK__tbMonAnKh__mamon__6477ECF3" FromRole="tbMonAn" ToRole="tbMonAnKhuyenMai" />
+        </EntityType>
+        <EntityType Name="tbMonAnKhuyenMai">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="makm" Type="Int32" />
+          <Property Name="mamon" Type="Int32" />
+          <Property Name="soluong" Type="Int32" />
+          <Property Name="trangthai" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="phantramgiam" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="tbKhuyenMai" Relationship="dbFoodyModel.FK__tbMonAnKhu__makm__656C112C" FromRole="tbMonAnKhuyenMai" ToRole="tbKhuyenMai" />
+          <NavigationProperty Name="tbMonAn" Relationship="dbFoodyModel.FK__tbMonAnKh__mamon__6477ECF3" FromRole="tbMonAnKhuyenMai" ToRole="tbMonAn" />
+        </EntityType>
+        <EntityType Name="tbQuanAn">
+          <Key>
+            <PropertyRef Name="userid" />
+          </Key>
+          <Property Name="userid" Type="Int32" Nullable="false" />
+          <Property Name="tenquanan" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="diachi" Type="String" Nullable="false" MaxLength="250" FixedLength="false" Unicode="true" />
+          <Property Name="toado" Type="Geography" />
+          <Property Name="soluotdanhgia" Type="Int32" />
+          <Property Name="diemdanhgia" Type="Decimal" Precision="18" Scale="0" />
+          <Property Name="trangthai" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="hinhanh" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+          <NavigationProperty Name="tbDonHangs" Relationship="dbFoodyModel.FK__tbDonHang__maqua__5EBF139D" FromRole="tbQuanAn" ToRole="tbDonHang" />
+          <NavigationProperty Name="tbMonAns" Relationship="dbFoodyModel.FK__tbMonAn__maquana__6383C8BA" FromRole="tbQuanAn" ToRole="tbMonAn" />
+          <NavigationProperty Name="tbUser" Relationship="dbFoodyModel.FK__tbQuanAn__userid__66603565" FromRole="tbQuanAn" ToRole="tbUser" />
+        </EntityType>
+        <EntityType Name="tbShipper">
+          <Key>
+            <PropertyRef Name="userid" />
+          </Key>
+          <Property Name="userid" Type="Int32" Nullable="false" />
+          <Property Name="tenshipper" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="diachi" Type="String" Nullable="false" MaxLength="250" FixedLength="false" Unicode="true" />
+          <Property Name="toado" Type="Geography" />
+          <Property Name="diemdanhgia" Type="Decimal" Precision="18" Scale="0" />
+          <Property Name="soluotdanhgia" Type="Int32" />
+          <Property Name="trangthai" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="hinhanh" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+          <NavigationProperty Name="tbDonHangs" Relationship="dbFoodyModel.FK__tbDonHang__mashi__5FB337D6" FromRole="tbShipper" ToRole="tbDonHang" />
+          <NavigationProperty Name="tbUser" Relationship="dbFoodyModel.FK__tbShipper__useri__6754599E" FromRole="tbShipper" ToRole="tbUser" />
+          <NavigationProperty Name="tbTinNhans" Relationship="dbFoodyModel.FK__tbTinNhan__mashi__6B24EA82" FromRole="tbShipper" ToRole="tbTinNhan" />
+        </EntityType>
+        <EntityType Name="tbThongTinDatHang">
+          <Key>
+            <PropertyRef Name="mattdh" />
+          </Key>
+          <Property Name="mattdh" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="sdt" Type="String" Nullable="false" MaxLength="11" FixedLength="false" Unicode="false" />
+          <Property Name="diachi" Type="String" Nullable="false" MaxLength="250" FixedLength="false" Unicode="true" />
+          <Property Name="toado" Type="Geography" Nullable="false" />
+          <Property Name="tennguoinhan" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="userid" Type="Int32" />
+          <NavigationProperty Name="tbDonHangs" Relationship="dbFoodyModel.FK__tbDonHang__mattd__60A75C0F" FromRole="tbThongTinDatHang" ToRole="tbDonHang" />
+          <NavigationProperty Name="tbKhachHang" Relationship="dbFoodyModel.FK__tbThongTi__useri__68487DD7" FromRole="tbThongTinDatHang" ToRole="tbKhachHang" />
+        </EntityType>
+        <EntityType Name="tbTinNhan">
+          <Key>
+            <PropertyRef Name="matn" />
+          </Key>
+          <Property Name="matn" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="madh" Type="Int32" />
+          <Property Name="noidung" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="mashipper" Type="Int32" />
+          <Property Name="makh" Type="Int32" />
+          <NavigationProperty Name="tbDonHang" Relationship="dbFoodyModel.FK__tbTinNhan__madh__693CA210" FromRole="tbTinNhan" ToRole="tbDonHang" />
+          <NavigationProperty Name="tbKhachHang" Relationship="dbFoodyModel.FK__tbTinNhan__makh__6A30C649" FromRole="tbTinNhan" ToRole="tbKhachHang" />
+          <NavigationProperty Name="tbShipper" Relationship="dbFoodyModel.FK__tbTinNhan__mashi__6B24EA82" FromRole="tbTinNhan" ToRole="tbShipper" />
+        </EntityType>
+        <EntityType Name="tbUser">
+          <Key>
+            <PropertyRef Name="userid" />
+          </Key>
+          <Property Name="userid" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="username" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="pwd" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="loaitaikhoan" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="sdt" Type="String" Nullable="false" MaxLength="11" FixedLength="false" Unicode="false" />
+          <Property Name="vitien" Type="Decimal" Precision="19" Scale="4" />
+          <Property Name="email" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="trangthai" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="tbAdmin" Relationship="dbFoodyModel.FK__tbAdmin__userid__59063A47" FromRole="tbUser" ToRole="tbAdmin" />
+          <NavigationProperty Name="tbKhachHang" Relationship="dbFoodyModel.FK__tbKhachHa__useri__619B8048" FromRole="tbUser" ToRole="tbKhachHang" />
+          <NavigationProperty Name="tbQuanAn" Relationship="dbFoodyModel.FK__tbQuanAn__userid__66603565" FromRole="tbUser" ToRole="tbQuanAn" />
+          <NavigationProperty Name="tbShipper" Relationship="dbFoodyModel.FK__tbShipper__useri__6754599E" FromRole="tbUser" ToRole="tbShipper" />
+        </EntityType>
+        <Association Name="FK__tbAdmin__userid__59063A47">
+          <End Type="dbFoodyModel.tbUser" Role="tbUser" Multiplicity="1" />
+          <End Type="dbFoodyModel.tbAdmin" Role="tbAdmin" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="tbUser">
+              <PropertyRef Name="userid" />
+            </Principal>
+            <Dependent Role="tbAdmin">
+              <PropertyRef Name="userid" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__tbChiTiet__mamon__59FA5E80">
+          <End Type="dbFoodyModel.tbMonAn" Role="tbMonAn" Multiplicity="0..1" />
+          <End Type="dbFoodyModel.tbChiTietDonHang" Role="tbChiTietDonHang" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="tbMonAn">
+              <PropertyRef Name="mamon" />
+            </Principal>
+            <Dependent Role="tbChiTietDonHang">
+              <PropertyRef Name="mamon" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__tbChiTietD__madh__5AEE82B9">
+          <End Type="dbFoodyModel.tbDonHang" Role="tbDonHang" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="dbFoodyModel.tbChiTietDonHang" Role="tbChiTietDonHang" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="tbDonHang">
+              <PropertyRef Name="madh" />
+            </Principal>
+            <Dependent Role="tbChiTietDonHang">
+              <PropertyRef Name="madh" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__tbDanhGia__mactd__5BE2A6F2">
+          <End Type="dbFoodyModel.tbChiTietDonHang" Role="tbChiTietDonHang" Multiplicity="0..1" />
+          <End Type="dbFoodyModel.tbDanhGia" Role="tbDanhGia" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="tbChiTietDonHang">
+              <PropertyRef Name="mactdh" />
+            </Principal>
+            <Dependent Role="tbDanhGia">
+              <PropertyRef Name="mactdh" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__tbMonAn__madanhm__628FA481">
+          <End Type="dbFoodyModel.tbDanhMuc" Role="tbDanhMuc" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="dbFoodyModel.tbMonAn" Role="tbMonAn" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="tbDanhMuc">
+              <PropertyRef Name="madanhmuc" />
+            </Principal>
+            <Dependent Role="tbMonAn">
+              <PropertyRef Name="madanhmuc" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__tbDonHang__hinht__5CD6CB2B">
+          <End Type="dbFoodyModel.tbLoaiHinhThanhToan" Role="tbLoaiHinhThanhToan" Multiplicity="0..1" />
+          <End Type="dbFoodyModel.tbDonHang" Role="tbDonHang" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="tbLoaiHinhThanhToan">
+              <PropertyRef Name="mahttt" />
+            </Principal>
+            <Dependent Role="tbDonHang">
+              <PropertyRef Name="hinhthucthanhtoan" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__tbDonHang__makhu__5DCAEF64">
+          <End Type="dbFoodyModel.tbKhuyenMai" Role="tbKhuyenMai" Multiplicity="0..1" />
+          <End Type="dbFoodyModel.tbDonHang" Role="tbDonHang" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="tbKhuyenMai">
+              <PropertyRef Name="makm" />
+            </Principal>
+            <Dependent Role="tbDonHang">
+              <PropertyRef Name="makhuyenmai" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__tbDonHang__maqua__5EBF139D">
+          <End Type="dbFoodyModel.tbQuanAn" Role="tbQuanAn" Multiplicity="0..1" />
+          <End Type="dbFoodyModel.tbDonHang" Role="tbDonHang" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="tbQuanAn">
+              <PropertyRef Name="userid" />
+            </Principal>
+            <Dependent Role="tbDonHang">
+              <PropertyRef Name="maquan" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__tbDonHang__mashi__5FB337D6">
+          <End Type="dbFoodyModel.tbShipper" Role="tbShipper" Multiplicity="0..1" />
+          <End Type="dbFoodyModel.tbDonHang" Role="tbDonHang" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="tbShipper">
+              <PropertyRef Name="userid" />
+            </Principal>
+            <Dependent Role="tbDonHang">
+              <PropertyRef Name="mashipper" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__tbDonHang__mattd__60A75C0F">
+          <End Type="dbFoodyModel.tbThongTinDatHang" Role="tbThongTinDatHang" Multiplicity="0..1" />
+          <End Type="dbFoodyModel.tbDonHang" Role="tbDonHang" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="tbThongTinDatHang">
+              <PropertyRef Name="mattdh" />
+            </Principal>
+            <Dependent Role="tbDonHang">
+              <PropertyRef Name="mattdh" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__tbTinNhan__madh__693CA210">
+          <End Type="dbFoodyModel.tbDonHang" Role="tbDonHang" Multiplicity="0..1" />
+          <End Type="dbFoodyModel.tbTinNhan" Role="tbTinNhan" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="tbDonHang">
+              <PropertyRef Name="madh" />
+            </Principal>
+            <Dependent Role="tbTinNhan">
+              <PropertyRef Name="madh" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__tbKhachHa__useri__619B8048">
+          <End Type="dbFoodyModel.tbUser" Role="tbUser" Multiplicity="1" />
+          <End Type="dbFoodyModel.tbKhachHang" Role="tbKhachHang" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="tbUser">
+              <PropertyRef Name="userid" />
+            </Principal>
+            <Dependent Role="tbKhachHang">
+              <PropertyRef Name="userid" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__tbThongTi__useri__68487DD7">
+          <End Type="dbFoodyModel.tbKhachHang" Role="tbKhachHang" Multiplicity="0..1" />
+          <End Type="dbFoodyModel.tbThongTinDatHang" Role="tbThongTinDatHang" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="tbKhachHang">
+              <PropertyRef Name="userid" />
+            </Principal>
+            <Dependent Role="tbThongTinDatHang">
+              <PropertyRef Name="userid" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__tbTinNhan__makh__6A30C649">
+          <End Type="dbFoodyModel.tbKhachHang" Role="tbKhachHang" Multiplicity="0..1" />
+          <End Type="dbFoodyModel.tbTinNhan" Role="tbTinNhan" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="tbKhachHang">
+              <PropertyRef Name="userid" />
+            </Principal>
+            <Dependent Role="tbTinNhan">
+              <PropertyRef Name="makh" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__tbMonAnKhu__makm__656C112C">
+          <End Type="dbFoodyModel.tbKhuyenMai" Role="tbKhuyenMai" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="dbFoodyModel.tbMonAnKhuyenMai" Role="tbMonAnKhuyenMai" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="tbKhuyenMai">
+              <PropertyRef Name="makm" />
+            </Principal>
+            <Dependent Role="tbMonAnKhuyenMai">
+              <PropertyRef Name="makm" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__tbMonAn__maquana__6383C8BA">
+          <End Type="dbFoodyModel.tbQuanAn" Role="tbQuanAn" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="dbFoodyModel.tbMonAn" Role="tbMonAn" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="tbQuanAn">
+              <PropertyRef Name="userid" />
+            </Principal>
+            <Dependent Role="tbMonAn">
+              <PropertyRef Name="maquanan" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__tbMonAnKh__mamon__6477ECF3">
+          <End Type="dbFoodyModel.tbMonAn" Role="tbMonAn" Multiplicity="0..1" />
+          <End Type="dbFoodyModel.tbMonAnKhuyenMai" Role="tbMonAnKhuyenMai" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="tbMonAn">
+              <PropertyRef Name="mamon" />
+            </Principal>
+            <Dependent Role="tbMonAnKhuyenMai">
+              <PropertyRef Name="mamon" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__tbQuanAn__userid__66603565">
+          <End Type="dbFoodyModel.tbUser" Role="tbUser" Multiplicity="1" />
+          <End Type="dbFoodyModel.tbQuanAn" Role="tbQuanAn" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="tbUser">
+              <PropertyRef Name="userid" />
+            </Principal>
+            <Dependent Role="tbQuanAn">
+              <PropertyRef Name="userid" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__tbShipper__useri__6754599E">
+          <End Type="dbFoodyModel.tbUser" Role="tbUser" Multiplicity="1" />
+          <End Type="dbFoodyModel.tbShipper" Role="tbShipper" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="tbUser">
+              <PropertyRef Name="userid" />
+            </Principal>
+            <Dependent Role="tbShipper">
+              <PropertyRef Name="userid" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__tbTinNhan__mashi__6B24EA82">
+          <End Type="dbFoodyModel.tbShipper" Role="tbShipper" Multiplicity="0..1" />
+          <End Type="dbFoodyModel.tbTinNhan" Role="tbTinNhan" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="tbShipper">
+              <PropertyRef Name="userid" />
+            </Principal>
+            <Dependent Role="tbTinNhan">
+              <PropertyRef Name="mashipper" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+      </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+      <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+        <EntityContainerMapping StorageEntityContainer="dbFoodyModelStoreContainer" CdmEntityContainer="dbFoodyEntities">
+          <EntitySetMapping Name="tbAdmins">
+            <EntityTypeMapping TypeName="dbFoodyModel.tbAdmin">
+              <MappingFragment StoreEntitySet="tbAdmin">
+                <ScalarProperty Name="tenadmin" ColumnName="tenadmin" />
+                <ScalarProperty Name="userid" ColumnName="userid" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="tbChiTietDonHangs">
+            <EntityTypeMapping TypeName="dbFoodyModel.tbChiTietDonHang">
+              <MappingFragment StoreEntitySet="tbChiTietDonHang">
+                <ScalarProperty Name="dongia" ColumnName="dongia" />
+                <ScalarProperty Name="soluong" ColumnName="soluong" />
+                <ScalarProperty Name="mamon" ColumnName="mamon" />
+                <ScalarProperty Name="madh" ColumnName="madh" />
+                <ScalarProperty Name="mactdh" ColumnName="mactdh" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="tbDanhGias">
+            <EntityTypeMapping TypeName="dbFoodyModel.tbDanhGia">
+              <MappingFragment StoreEntitySet="tbDanhGia">
+                <ScalarProperty Name="hinhanh" ColumnName="hinhanh" />
+                <ScalarProperty Name="nhanxet" ColumnName="nhanxet" />
+                <ScalarProperty Name="diemdanhgia" ColumnName="diemdanhgia" />
+                <ScalarProperty Name="mactdh" ColumnName="mactdh" />
+                <ScalarProperty Name="madg" ColumnName="madg" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="tbDanhMucs">
+            <EntityTypeMapping TypeName="dbFoodyModel.tbDanhMuc">
+              <MappingFragment StoreEntitySet="tbDanhMuc">
+                <ScalarProperty Name="hinhanh" ColumnName="hinhanh" />
+                <ScalarProperty Name="mota" ColumnName="mota" />
+                <ScalarProperty Name="tendanhmuc" ColumnName="tendanhmuc" />
+                <ScalarProperty Name="madanhmuc" ColumnName="madanhmuc" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="tbDonHangs">
+            <EntityTypeMapping TypeName="dbFoodyModel.tbDonHang">
+              <MappingFragment StoreEntitySet="tbDonHang">
+                <ScalarProperty Name="mashipper" ColumnName="mashipper" />
+                <ScalarProperty Name="ngaythanhtoan" ColumnName="ngaythanhtoan" />
+                <ScalarProperty Name="ngaygiaohang" ColumnName="ngaygiaohang" />
+                <ScalarProperty Name="phidichvu" ColumnName="phidichvu" />
+                <ScalarProperty Name="phiship" ColumnName="phiship" />
+                <ScalarProperty Name="makhuyenmai" ColumnName="makhuyenmai" />
+                <ScalarProperty Name="ghichu" ColumnName="ghichu" />
+                <ScalarProperty Name="hinhthucthanhtoan" ColumnName="hinhthucthanhtoan" />
+                <ScalarProperty Name="tongtien" ColumnName="tongtien" />
+                <ScalarProperty Name="trangthai" ColumnName="trangthai" />
+                <ScalarProperty Name="ngaydathang" ColumnName="ngaydathang" />
+                <ScalarProperty Name="mattdh" ColumnName="mattdh" />
+                <ScalarProperty Name="maquan" ColumnName="maquan" />
+                <ScalarProperty Name="madh" ColumnName="madh" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="tbKhachHangs">
+            <EntityTypeMapping TypeName="dbFoodyModel.tbKhachHang">
+              <MappingFragment StoreEntitySet="tbKhachHang">
+                <ScalarProperty Name="tenkh" ColumnName="tenkh" />
+                <ScalarProperty Name="userid" ColumnName="userid" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="tbKhuyenMais">
+            <EntityTypeMapping TypeName="dbFoodyModel.tbKhuyenMai">
+              <MappingFragment StoreEntitySet="tbKhuyenMai">
+                <ScalarProperty Name="ngayketthuc" ColumnName="ngayketthuc" />
+                <ScalarProperty Name="ngaybatdau" ColumnName="ngaybatdau" />
+                <ScalarProperty Name="dieukien" ColumnName="dieukien" />
+                <ScalarProperty Name="phantramgiam" ColumnName="phantramgiam" />
+                <ScalarProperty Name="loaikm" ColumnName="loaikm" />
+                <ScalarProperty Name="mota" ColumnName="mota" />
+                <ScalarProperty Name="tenkm" ColumnName="tenkm" />
+                <ScalarProperty Name="makm" ColumnName="makm" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="tbLoaiHinhThanhToans">
+            <EntityTypeMapping TypeName="dbFoodyModel.tbLoaiHinhThanhToan">
+              <MappingFragment StoreEntitySet="tbLoaiHinhThanhToan">
+                <ScalarProperty Name="mota" ColumnName="mota" />
+                <ScalarProperty Name="tenhinhthuc" ColumnName="tenhinhthuc" />
+                <ScalarProperty Name="mahttt" ColumnName="mahttt" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="tbMonAns">
+            <EntityTypeMapping TypeName="dbFoodyModel.tbMonAn">
+              <MappingFragment StoreEntitySet="tbMonAn">
+                <ScalarProperty Name="madanhmuc" ColumnName="madanhmuc" />
+                <ScalarProperty Name="maquanan" ColumnName="maquanan" />
+                <ScalarProperty Name="hinhanh" ColumnName="hinhanh" />
+                <ScalarProperty Name="giatien" ColumnName="giatien" />
+                <ScalarProperty Name="mota" ColumnName="mota" />
+                <ScalarProperty Name="tenmon" ColumnName="tenmon" />
+                <ScalarProperty Name="mamon" ColumnName="mamon" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="tbMonAnKhuyenMais">
+            <EntityTypeMapping TypeName="dbFoodyModel.tbMonAnKhuyenMai">
+              <MappingFragment StoreEntitySet="tbMonAnKhuyenMai">
+                <ScalarProperty Name="phantramgiam" ColumnName="phantramgiam" />
+                <ScalarProperty Name="trangthai" ColumnName="trangthai" />
+                <ScalarProperty Name="soluong" ColumnName="soluong" />
+                <ScalarProperty Name="mamon" ColumnName="mamon" />
+                <ScalarProperty Name="makm" ColumnName="makm" />
+                <ScalarProperty Name="id" ColumnName="id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="tbQuanAns">
+            <EntityTypeMapping TypeName="dbFoodyModel.tbQuanAn">
+              <MappingFragment StoreEntitySet="tbQuanAn">
+                <ScalarProperty Name="hinhanh" ColumnName="hinhanh" />
+                <ScalarProperty Name="trangthai" ColumnName="trangthai" />
+                <ScalarProperty Name="diemdanhgia" ColumnName="diemdanhgia" />
+                <ScalarProperty Name="soluotdanhgia" ColumnName="soluotdanhgia" />
+                <ScalarProperty Name="toado" ColumnName="toado" />
+                <ScalarProperty Name="diachi" ColumnName="diachi" />
+                <ScalarProperty Name="tenquanan" ColumnName="tenquanan" />
+                <ScalarProperty Name="userid" ColumnName="userid" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="tbShippers">
+            <EntityTypeMapping TypeName="dbFoodyModel.tbShipper">
+              <MappingFragment StoreEntitySet="tbShipper">
+                <ScalarProperty Name="hinhanh" ColumnName="hinhanh" />
+                <ScalarProperty Name="trangthai" ColumnName="trangthai" />
+                <ScalarProperty Name="soluotdanhgia" ColumnName="soluotdanhgia" />
+                <ScalarProperty Name="diemdanhgia" ColumnName="diemdanhgia" />
+                <ScalarProperty Name="toado" ColumnName="toado" />
+                <ScalarProperty Name="diachi" ColumnName="diachi" />
+                <ScalarProperty Name="tenshipper" ColumnName="tenshipper" />
+                <ScalarProperty Name="userid" ColumnName="userid" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="tbThongTinDatHangs">
+            <EntityTypeMapping TypeName="dbFoodyModel.tbThongTinDatHang">
+              <MappingFragment StoreEntitySet="tbThongTinDatHang">
+                <ScalarProperty Name="userid" ColumnName="userid" />
+                <ScalarProperty Name="tennguoinhan" ColumnName="tennguoinhan" />
+                <ScalarProperty Name="toado" ColumnName="toado" />
+                <ScalarProperty Name="diachi" ColumnName="diachi" />
+                <ScalarProperty Name="sdt" ColumnName="sdt" />
+                <ScalarProperty Name="mattdh" ColumnName="mattdh" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="tbTinNhans">
+            <EntityTypeMapping TypeName="dbFoodyModel.tbTinNhan">
+              <MappingFragment StoreEntitySet="tbTinNhan">
+                <ScalarProperty Name="makh" ColumnName="makh" />
+                <ScalarProperty Name="mashipper" ColumnName="mashipper" />
+                <ScalarProperty Name="noidung" ColumnName="noidung" />
+                <ScalarProperty Name="madh" ColumnName="madh" />
+                <ScalarProperty Name="matn" ColumnName="matn" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="tbUsers">
+            <EntityTypeMapping TypeName="dbFoodyModel.tbUser">
+              <MappingFragment StoreEntitySet="tbUser">
+                <ScalarProperty Name="trangthai" ColumnName="trangthai" />
+                <ScalarProperty Name="email" ColumnName="email" />
+                <ScalarProperty Name="vitien" ColumnName="vitien" />
+                <ScalarProperty Name="sdt" ColumnName="sdt" />
+                <ScalarProperty Name="loaitaikhoan" ColumnName="loaitaikhoan" />
+                <ScalarProperty Name="pwd" ColumnName="pwd" />
+                <ScalarProperty Name="username" ColumnName="username" />
+                <ScalarProperty Name="userid" ColumnName="userid" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+        </EntityContainerMapping>
+      </Mapping>
+    </edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </Connection>
+    <Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+        <DesignerProperty Name="EnablePluralization" Value="True" />
+        <DesignerProperty Name="IncludeForeignKeysInModel" Value="true" />
+        <DesignerProperty Name="UseLegacyProvider" Value="false" />
+        <DesignerProperty Name="CodeGenerationStrategy" Value="None" />
+      </DesignerInfoPropertySet>
+    </Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <Diagrams></Diagrams>
+  </Designer>
+</edmx:Edmx>

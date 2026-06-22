@@ -1,0 +1,132 @@
+﻿
+@{
+    ViewBag.Title = "PostTaiKhoan";
+    Layout = "~/Views/Shared/_LayoutPageAmin.cshtml";
+    ShipFood.Models.City city = new ShipFood.Models.City();
+    String hoten = ViewBag.hoten;
+    String quan = ViewBag.quan;
+    String diachicuthe = ViewBag.diachicuthe;
+    String diachiadd = ViewBag.diachiadd;
+    String fileAnh = ViewBag.fileAnh;
+    ShipFood.Models.tbUser user = ViewBag.user;
+}
+
+<div class="content-body">
+    <div class="container-fluid">
+        <section class="blog_area">
+            <div class="container">
+                <form action="~/Admin/PostTaiKhoan" method="post" enctype="multipart/form-data">
+                    <div style="display: flex; flex-wrap: wrap; justify-content: space-around; " class="form-horizontal">
+                        <div style="width:100%">
+                            <h4><strong>Thông tin tài khoản</strong></h4>
+                            <hr />
+                        </div>
+                        @if (user.userid != null)
+                        {
+                            <input type="hidden" name="userid" value="@user.userid" />
+                        }
+                        <div style="width:45%" class="form-group">
+                            <label>Tên tài khoản</label>
+                            <input type="text" value="@user.username" name="username" placeholder="Username" />
+                        </div>
+                        <div style="width:45%" class="form-group">
+                            <label>Mật khẩu</label>
+                            <input type="password" value="@user.pwd" name="pwd" placeholder="Password" />
+                        </div>
+                        <div style="width:45%" class="form-group">
+                            <label>Số điện thoại</label>
+                            <input type="text" value="@user.sdt" name="sdt" placeholder="Số điện thoại" />
+                        </div>
+                        <div style="width:45%" class="form-group">
+                            <label>Email</label>
+                            <input type="email" value="@user.email" name="email" placeholder="Email" />
+                        </div>
+                        <div style="width:45%" class="form-group">
+                            <label>Loại tài khoản</label>
+                            <div style="display: inline-block; background: white;">
+                                <select style=" width: 100%;" name="loaitaikhoan">
+                                    <option @(user.loaitaikhoan!= null && user.loaitaikhoan.Equals("Khách hàng") ? "selected" : "") style="width:100%;" value="Khách hàng">Khách hàng</option>
+                                    <option @(user.loaitaikhoan!= null &&user.loaitaikhoan.Equals("Shipper") ? "selected" : "") style="width: 100%;" value="Shipper">Shipper</option>
+                                    <option @(user.loaitaikhoan!= null &&user.loaitaikhoan.Equals("Quán ăn") ? "selected" : "") style="width: 100%;" value="Quán ăn">Quán ăn</option>
+                                    <option @(user.loaitaikhoan!= null &&user.loaitaikhoan.Equals("Admin") ? "selected" : "") style="width: 100%;" value="Admin">Admin</option>
+                                </select>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div style="display: flex; flex-wrap: wrap; justify-content: space-around; " class="form-horizontal">
+                        <div style="width:100%">
+                            <h4><strong>Thông tin cá nhân</strong></h4>
+                            <hr />
+                        </div>
+                        <div style="width:95%" class="form-group">
+                            <label>Họ tên</label>
+                            <input value="@hoten" type="text" name="hoten" placeholder="Họ tên" />
+                        </div>
+                        <div style="width:95%" class="form-group">
+                            <label style="display:block">Địa chỉ</label>
+                            <div style="display:inline-block;background:white;">
+                                <select style=" width: 100%;" name="quan">
+                                    @foreach (var i in city.districts)
+                                    {
+                                        <option @(quan.Equals(i.nameDistrict) ? "selected" : "") style="width:600px;" value="@i.nameDistrict">@i.nameDistrict</option>
+                                    }
+                                </select>
+                            </div> - <strong>@city.nameCity</strong>
+                        </div>
+                        <div style="width:95%" class="form-group">
+                            <input required style="margin-bottom:10px" value="@diachicuthe" type="text" name="diachicuthe" placeholder="Nhập địa chỉ cụ thể" class="checkout__input__add">
+                            <input type="text" name="diachiadd" value="@diachiadd" placeholder="Số tầng, Số phòng,....">
+                        </div>
+                        <div style="width:95%">
+                            <div style="width:45%" class="form-group">
+                                <label>Avatar</label>
+                                <input id="hinh-anh" style=" padding: 12px;" type="file" name="fileAnh" />
+                            </div>
+                            <div style="width:45%" class="form-group">
+                                <div style=" margin: 30px auto; border: 1px solid; display:inline-block" id="bg_add">
+                                    <img width="300" height="300" src="@(fileAnh == null ? "https://inkythuatso.com/uploads/thumbnails/800/2023/03/9-anh-dai-dien-trang-inkythuatso-03-15-27-03.jpg" : "~/Source/images/Avatar/"+fileAnh)" />
+                                </div>
+                            </div>
+                        </div>
+                        <div style="width:-1%;margin-bottom:100px" class="form-group">
+                            <div class="col-update">
+                                <input type="submit" value="Xác nhận" class="btn-update" />
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                </form>
+            </div><!--//container-fluid-->
+        </section>
+    </div>
+</div>
+
+
+<script type="text/javascript">
+    function uploadImage() {
+        var fileInput = document.getElementById('hinh-anh');
+        var file = fileInput.files[0];
+        var imageType = /image.*/;
+
+        if (file.type.match(imageType)) {
+            var reader = new FileReader();
+
+            reader.onload = function (e) {
+                var img = new Image();
+                img.src = reader.result;
+                img.width = 300;
+                img.height = 300;
+                var imagePreview = document.getElementById('bg_add');
+                imagePreview.innerHTML = '';
+                imagePreview.appendChild(img);
+            }
+
+            reader.readAsDataURL(file);
+        }
+        else {
+            alert('Chỉ chấp nhận file hình ảnh');
+        }
+    }
+    document.getElementById('hinh-anh').addEventListener('change', uploadImage);</script>

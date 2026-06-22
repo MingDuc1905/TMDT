@@ -1,0 +1,65 @@
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace ShipFood.Models;
+
+[Table("tbDonHang")]
+public partial class tbDonHang
+{
+    [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public int madh { get; set; }
+
+    public int? maquan { get; set; }
+    public int? mattdh { get; set; }
+
+    public DateTime? ngaydathang { get; set; }
+
+    [MaxLength(50)]
+    public string? trangthai { get; set; }
+
+    [Column(TypeName = "money")]
+    public decimal? tongtien { get; set; }
+
+    public int? hinhthucthanhtoan { get; set; }
+
+    [MaxLength(200)]
+    public string? ghichu { get; set; }
+
+    public int? makhuyenmai { get; set; }
+
+    [Column(TypeName = "money")]
+    public decimal? phiship { get; set; }
+
+    [Column(TypeName = "money")]
+    public decimal? phidichvu { get; set; }
+
+    public DateTime? ngaygiaohang { get; set; }
+
+    public DateTime? ngaythanhtoan { get; set; }
+
+    public int? mashipper { get; set; }
+
+    // Navigation
+    [ForeignKey("maquan")]
+    public virtual tbQuanAn? tbQuanAn { get; set; }
+
+    [ForeignKey("mattdh")]
+    public virtual tbThongTinDatHang? tbThongTinDatHang { get; set; }
+
+    [ForeignKey("hinhthucthanhtoan")]
+    public virtual tbLoaiHinhThanhToan? tbLoaiHinhThanhToan { get; set; }
+
+    [ForeignKey("makhuyenmai")]
+    public virtual tbKhuyenMai? tbKhuyenMai { get; set; }
+
+    [ForeignKey("mashipper")]
+    public virtual tbShipper? tbShipper { get; set; }
+
+    public virtual ICollection<tbChiTietDonHang> tbChiTietDonHangs { get; set; } = new HashSet<tbChiTietDonHang>();
+    public virtual ICollection<tbTinNhan> tbTinNhans { get; set; } = new HashSet<tbTinNhan>();
+
+    // Singular aliases for backward compatibility
+    [NotMapped]
+    public ICollection<tbChiTietDonHang> tbChiTietDonHang => tbChiTietDonHangs;
+}

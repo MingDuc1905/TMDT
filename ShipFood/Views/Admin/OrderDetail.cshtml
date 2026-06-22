@@ -1,0 +1,177 @@
+﻿@model ShipFood.Models.tbDonHang
+@{
+    ViewBag.Title = "OrderDetail";
+    Layout = "~/Views/Shared/_LayoutPageAmin.cshtml";
+}
+@{List<ShipFood.Models.tbChiTietDonHang> listchitietdon = ViewBag.chitietdonhang; }
+<div class="content-body">
+    <!-- row -->
+    <div class="container-fluid">
+        <div class="form-head d-flex mb-3 align-items-start">
+            <div class="mr-auto d-none d-lg-block">
+                <h2 class="text-black font-w600 mb-0">Mã đơn hàng #@Model.madh</h2>
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="javascript:void(0)" class="text-primary">Shiper</a></li>
+                    <li class="breadcrumb-item active"><a href="javascript:void(0)">Chi tiết đơn hàng</a></li>
+                </ol>
+            </div>
+
+        </div>
+        <div class="row">
+            <div class="col-xl-3 col-xxl-3 col-lg-12 col-md-12">
+                <div class="row">
+                    <div class="col-xl-12 col-lg-6">
+                        <div class="card h-auto">
+                            <div class="card-body text-center">
+                                <img src="~/Source/Restaurant/images/profile/@Model.tbQuanAn.hinhanh" width="150" class="rounded-circle mb-4" alt="" />
+                                <h4 class="mb-3 text-black font-w600">@Model.tbQuanAn.tenquanan</h4>
+                                <a href="#" class="btn btn-primary light btn-xs">@Model.tbQuanAn.diachi</a>
+                            </div>
+                            <div class="card bg-secondary sticky mb-0">
+                                <div class="card-header border-0 pb-0">
+                                    <h5 class="card-title text-white mt-2">Ghi chú</h5>
+                                </div>
+                                <div class="card-body pt-3">
+                                    <p class="fs-14 op7 text-white">@Model.ghichu</p>
+                                </div>
+                                <div class="card-footer border-0 py-4 bg-warning rounded-xl">
+                                    <div class="media align-items-center">
+                                        <img class="mr-3 img-fluid rounded-circle"
+                                             width="50"
+                                             src="~/Source/Restaurant/images/delivery.png"
+                                             alt="DexignZone" />
+                                        <div class="media-body">
+                                            <h5 class="my-0 text-white">Địa chỉ: @Model.tbThongTinDatHang.diachi</h5>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-9 col-xxl-9 col-lg-12 col-md-12">
+                <div class="row">
+                    <div class="col-xl-12">
+                        <div class="card">
+                            <div class="card-body pt-2">
+                                <div class="table-responsive">
+                                    <table class="table items-table">
+                                        <tr>
+                                            <th >Món ăn</th>
+                                            <th >Số lượng</th>
+                                            <th >Giá</th>
+                                            <th >Tổng giá</th>
+                                        </tr>
+                                        @foreach(var item in listchitietdon) { 
+                                    <tr>
+                                        <td>
+                                            <div class="media">
+                                                <img class="mr-3 img-fluid rounded"
+                                                     width="85"
+                                                     src="~/Source/Home/img/@item.tbMonAn.hinhanh"
+                                                     alt="DexignZone" />
+                                                <div class="media-body">
+                                                    <small class="mt-0 mb-1 text-primary font-w500">@item.tbMonAn.tbDanhMuc.tendanhmuc</small>
+                                                    <p class="mt-0 mb-2 text-black mb-4">@item.tbMonAn.tenmon</p>
+                                                    <div class="star-review fs-14">
+                                                        <i class="fa fa-star text-orange"></i>
+                                                        <i class="fa fa-star text-orange"></i>
+                                                        <i class="fa fa-star text-orange"></i>
+                                                        <i class="fa fa-star text-gray"></i>
+                                                        <i class="fa fa-star text-gray"></i>
+                                                        <span class="ml-3 text-dark">451 Đánh giá</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <p class="my-0 text-secondary font-w600">x @item.soluong</p>
+                                        </td>
+                                        <td>
+                                            <p class="my-0 text-secondary font-w600">@item.dongia.Value.ToString("N0") VNĐ</p>
+                                        </td>
+                                        <td>
+                                            @{ var tonggia = item.soluong * item.dongia;}
+                                            <p class="my-0 text-secondary font-w600">@tonggia.Value.ToString("N0") VNĐ</p>
+                                        </td>
+                                    </tr>
+                                        }
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="row mx-0">
+                                    <div class="thanhtoan col-lg-3 text-center">
+                                        <small>Trả quán</small>
+                                        @{var traquan = Model.tongtien - Model.phiship;}
+                                        <p>@traquan.Value.ToString("N0") VNĐ</p>
+                                    </div>
+                                    <div class="thanhtoan col-lg-3 text-center">
+                                        <small>Khuyễn mãi</small>
+                                        <p></p>
+                                    </div>
+                                    <div class="thanhtoan col-lg-3 text-center">
+                                        <small>Phí ship</small>
+                                        <p>@Model.phiship.Value.ToString("N0") VNĐ</p>
+                                    </div>
+                                    <div class="thanhtoan col-lg-3 text-center">
+                                        <small>Thu khách</small>
+                                        <p>@Model.tongtien.Value.ToString("N0") VNĐ</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="full-map-area mb-4">
+                                    <img src="~/Source/Shipper/images/map-2.png" alt="" />
+                                    <a href="javascript:void(0);" class="btn btn-danger btn-xs">Xem map</a>
+                                    <i class="flaticon-381-location-4"></i>
+                                </div>
+                                <div class="d-flex mx-0">
+                                        
+                                    <div class="media align-items-center col-md-4 col-lg-6 px-0 mb-3 mb-md-0">
+                                        <div class="media-body">
+                                            <h4 class="my-0 text-black">@Model.tbThongTinDatHang.tennguoinhan</h4>
+                                            <small>ID 412455</small>
+                                        </div>
+                                    </div>
+                                    <div class="iconbox col-md-4 col-lg-3 mb-3 mb-md-0">
+                                        <i class="las la-phone"></i>
+                                        <small>Khách hàng</small>
+                                        <p class="my-0 text-black">@Model.tbThongTinDatHang.sdt</p>
+                                    </div>
+                                    <div class="iconbox col-md-4 col-lg-3 mb-3 mb-md-0">
+                                        <i class="las la-phone"></i>
+                                        <small>Tài xế</small>
+                                        <p>@Model.tbShipper.tbUser.sdt</p>
+                                    </div>
+                                    <div class="iconbox col-md-4 col-lg-3 mb-3 mb-md-0">
+                                        <i class="las la-phone"></i>
+                                        <small>Quán ăn</small>
+                                        <p>@Model.tbQuanAn.tbUser.sdt</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-12">
+                        <div class="form-group row">
+                            <div class="col-lg-8 ml-auto">
+                                <a class="btn btn-primary" href="@Url.Action("Order","Admin")">Trở về</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

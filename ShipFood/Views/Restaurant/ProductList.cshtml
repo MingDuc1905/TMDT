@@ -1,0 +1,71 @@
+﻿@{
+    ViewBag.Title = "ProductList";
+    Layout = "~/Views/Shared/_LayoutPageRestaurant.cshtml";
+    List<ShipFood.Models.DataAnalytic> datas = ViewBag.datas;
+}
+
+<div class="container-fluid">
+    <div class="row page-titles mx-0">
+        <div class="col-sm-6 p-md-0">
+            <div class="welcome-text">
+                <h4>Xin chào, chào mừng trở lại!</h4>
+            </div>
+        </div>
+        <div class="col-sm-6 p-md-0 justify-content-sm-end mt-2 mt-sm-0 d-flex">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="javascript:void(0)">Cửa hàng</a></li>
+                <li class="breadcrumb-item active"><a href="javascript:void(0)">Thực đơn</a></li>
+            </ol>
+        </div>
+    </div>
+    <div class="row">
+        
+        @foreach (var i in datas)
+        {
+            <div class="col-lg-12 col-xl-6">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row m-b-30">
+                            <div class="col-md-5 col-xxl-12">
+                                <div class="new-arrival-product mb-4 mb-xxl-4 mb-md-0">
+                                    <div class="new-arrivals-img-contnent">
+                                        <img class="img-fluid" src="~/Source/images/MonAn/@i.hinhAnh" alt="" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-7 col-xxl-12">
+                                <div class="new-arrival-content position-relative">
+                                    <a href="~/Restaurant/ProductDetail/@i.maMonAn"><h4>@i.tenMonAn</h4></a>
+                                    <p class="price">@Math.Round(Double.Parse(i.giaTien.ToString())) VNĐ</p>
+                                    <p>
+                                        Tình trạng:
+                                        <span class="item"> Còn món <i class="fa fa-check-circle text-success"></i></span>
+                                    </p>
+                                    <p>Mã món: <span class="item">@i.maMonAn</span></p>
+                                    <p>Dạnh mục: <span class="item">@i.tenDanhMuc</span></p>
+                                    <div class="comment-review star-rating text-right">
+                                        <ul>
+                                            @for (int index = 1; index <= i.diemDanhGia; index++)
+                                            {
+                                                <i class="fa fa-star text-orange"></i>
+                                            }
+                                            @for (int index = 1; index <= 5 - i.diemDanhGia; index++)
+                                            {
+                                                <i class="fa fa-star text-gray"></i>
+                                            }
+                                        </ul>
+                                        <span class="review-text">(@i.soDanhGia Đánh giá)</span>
+                                    </div>
+                                </div>
+                                <div style="display:flex">
+                                    <a style="margin:auto" href="~/Restaurant/XoaMonAn/@i.maMonAn"><button style="width:140px" type="submit" class="btn btn-warning">Xoá</button></a>
+                                    <a style="margin:auto" href="~/Restaurant/ProductDetail/@i.maMonAn"><button style="width:140px" type="submit" class="btn btn-primary">Chỉnh sửa</button></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>

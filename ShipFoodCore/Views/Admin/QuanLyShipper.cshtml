@@ -1,0 +1,112 @@
+﻿
+@{
+    ViewBag.Title = "QuanLyShipper";
+    Layout = "~/Views/Shared/_LayoutPageAmin.cshtml";
+    List<ShipFood.Models.tbShipper> datas = ViewBag.datas;
+}
+
+<div class="content-body">
+    <div class="container-fluid">
+
+        @if (TempData["AdminSuccess"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                @TempData["AdminSuccess"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+        @if (TempData["AdminError"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                @TempData["AdminError"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <div class="row g-3 mb-4 align-items-center justify-content-between">
+            <div class="col-auto">
+                <h2 class="app-page-title mb-0">Quản lý Shipper</h2>
+            </div>
+            <div class="col-auto">
+                <div class="page-utilities">
+                    <div class="row g-2 justify-content-start justify-content-md-end align-items-center">
+                        <div class="col-auto">
+                            <input type="text" id="search-sh" class="form-control search-docs" placeholder="Tìm kiếm shipper..." onkeyup="filterShipper()" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="app-card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-bordered first" id="sh-table">
+                    <thead>
+                        <tr>
+                            <th class="cell" style="text-align: center;">ID</th>
+                            <th class="cell" style="text-align: center;">Họ tên</th>
+                            <th class="cell" style="text-align: center;">Username</th>
+                            <th class="cell" style="text-align: center;">Trạng thái</th>
+                            <th style="text-align: center; width: 100px;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var i in datas)
+                        {
+                            <tr>
+                                <td style="text-align: center;" class="cell">#@i.userid</td>
+                                <td class="cell"><span class="truncate">@i.tenshipper</span></td>
+                                <td class="cell">@i.tbUser.username</td>
+                                <td style="text-align: center;" class="cell">@(i.tbUser.trangthai == 2 ? "Đang bị khoá" : (i.tbUser.trangthai == 1 ? "Đang hoạt động" : (i.tbUser.trangthai == 0 ? "Đang chờ duyệt" : "")))</td>
+                                <td style="text-align: center;">
+                                    @if (i.tbUser.trangthai == 0)
+                                    {
+                                        <a href="~/Admin/Duyet?id=@i.userid">
+                                            <button style="width: 80px; padding: 4px 12px;" class="btn btn-success">Duyệt</button>
+                                        </a>
+                                        <a href="~/Admin/Huy?id=@i.userid">
+                                            <button style="width: 80px; padding: 4px 12px;" class="btn btn-danger">Huỷ</button>
+                                        </a>
+                                    }
+
+                                    @if (i.tbUser.trangthai == 1)
+                                    {
+                                        <a href="~/Admin/LockOrUnLock?id=@i.userid">
+                                            <button style="width: 80px; padding: 4px 12px;" class="btn btn-danger">Khoá</button>
+                                        </a>
+                                    }
+                                    @if (i.tbUser.trangthai == 2)
+                                    {
+                                        <a href="~/Admin/LockOrUnLock?id=@i.userid">
+                                            <button style="width: 80px; padding: 4px 12px;" class="btn btn-success">Mở khoá</button>
+                                        </a>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div><!--//table-responsive-->
+        </div><!--//app-card-body-->
+    </div>
+</div>
+
+<script>
+    function filterShipper() {
+        var input = document.getElementById('search-sh');
+        var filter = input.value.toUpperCase();
+        var table = document.getElementById('sh-table');
+        var tr = table.getElementsByTagName('tr');
+        for (var i = 0; i < tr.length; i++) {
+            var td = tr[i].getElementsByTagName('td');
+            var found = false;
+            for (var j = 0; j < td.length; j++) {
+                if (td[j] && td[j].textContent.toUpperCase().indexOf(filter) > -1) {
+                    found = true;
+                    break;
+                }
+            }
+            tr[i].style.display = found ? '' : 'none';
+        }
+    }
+</script>

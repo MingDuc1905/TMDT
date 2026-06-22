@@ -1,0 +1,179 @@
+﻿
+@inject ShipFood.Models.dbFoodyEntities _db
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_LayoutPageHome.cshtml";
+    var cartJson = Context.Session.GetString("cart");
+    ShipFood.Models.Cart? cart = cartJson != null ? JsonSerializer.Deserialize<ShipFood.Models.Cart>(cartJson) : null;
+    List<ShipFood.Models.tbKhuyenMai> maKMs = ViewBag.maKMs;
+}
+
+<!DOCTYPE html>
+<html lang="zxx">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="description" content="Ogani Template">
+    <meta name="keywords" content="Ogani, unica, creative, html">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Ogani | Template</title>
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;400;600;900&display=swap" rel="stylesheet">
+
+    <!-- Css Styles -->
+    <link href="~/Source/Cart/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/Source/Cart/css/font-awesome.min.css" type="text/css">
+    <link rel="stylesheet" href="~/Source/Cart/css/elegant-icons.css" type="text/css">
+    <link rel="stylesheet" href="~/Source/Cart/css/nice-select.css" type="text/css">
+    <link rel="stylesheet" href="~/Source/Cart/css/jquery-ui.min.css" type="text/css">
+    <link rel="stylesheet" href="~/Source/Cart/css/owl.carousel.min.css" type="text/css">
+    <link rel="stylesheet" href="~/Source/Cart/css/slicknav.min.css" type="text/css">
+    <link rel="stylesheet" href="~/Source/Cart/css/style.css" type="text/css">
+</head>
+
+<body>
+
+    <!-- Hero Section End -->
+    <!-- Breadcrumb Section Begin -->
+    <section style="margin-top:200px" class="breadcrumb-section set-bg" data-setbg="https://localhost:44363/Source/Restaurant/images/card/2.png">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12 text-center">
+                    <div class="breadcrumb__text">
+                        <h2 style="color:green">Cart</h2>
+                        <div class="breadcrumb__option">
+                            <a href="~/Home">Home</a>
+                            <span>Cart</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Breadcrumb Section End -->
+    <!-- Shoping Cart Section Begin -->
+    <section class="shoping-cart spad">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="shoping__cart__table">
+                        <div style="display: flex; justify-content: space-around;font-size:30px">
+                            @if (cart == null || cart.monAns.Count == 0)
+                            {
+                                <strong>Giỏ hàng trống</strong>
+                            }
+                            @if (cart != null && cart.monAns.Count != 0 && cart.maquanan != null)
+                            {
+                                <strong>@_db.tbQuanAn.Find(cart.maquanan)?.tenquanan</strong>
+                            }
+                        </div>
+                        <hr />
+                        <table>
+
+                            <thead>
+
+
+
+                                <tr>
+                                    <th class="shoping__product">Món ăn</th>
+                                    <th>Giá</th>
+                                    <th>Số lượng</th>
+                                    <th>Tổng tiền</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (cart != null)
+                                {
+                                    @foreach (var i in cart.monAns)
+                                    {
+                                        <tr>
+                                            <td class="shoping__cart__item">
+                                                <img style="width: 150px;" src="~/Source/images/MonAn/@i.hinhanh" alt="">
+                                                <h5>@i.tenmon</h5>
+                                            </td>
+                                            <td class="shoping__cart__price">
+                                                @i.giatien?.ToString("N0") VNĐ
+                                            </td>
+                                            <td class="shoping__cart__quantity">
+                                                <div class="quantity">
+                                                    <a style="color:black;font-size:15px;cursor:pointer;" class="btn-giam" data-mamon="@i.mamon">-</a>
+                                                    <span style="padding:10px" class="so-luong-@i.mamon">@i.soLuong</span>
+                                                    <a style="color:black;font-size:15px;cursor:pointer;" class="btn-tang" data-mamon="@i.mamon">+</a>
+                                                </div>
+                                            </td>
+                                            <td class="shoping__cart__total">
+                                                @((i.giatien * i.soLuong)?.ToString("N0")) VNĐ
+                                            </td>
+                                            <td class="shoping__cart__item__close">
+                                                <a href="~/Cart/XoaMon?maMonAn=@i.mamon"><span class="icon_close"></span></a>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+
+                
+                <div class="col-lg-6">
+                    <div class="shoping__checkout">
+                        <h5>Tổng tiền giỏ hàng</h5>
+                        <ul>
+                            @*<li>Tiền món <span>@cart.tongTien</span></li>*@
+                            @*<li>Tiền vận chuyển <span>@ShipFood.Utils.TinhToan.TinhTienShip()</span></li>*@
+                            <li>Tổng <span id="cart-total">@(cart?.tongTien?.ToString("N0") ?? "0") VNĐ</span></li>
+                        </ul>
+                        <a href="~/Cart/Checkout" style="background-color: black;" class="primary-btn">CHECKOUT</a>
+                        @if (TempData["CartError"] != null)
+                        {
+                            <div class="alert alert-danger mt-3" role="alert">@TempData["CartError"]</div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Shoping Cart Section End -->
+    
+    <!-- Footer Section End -->
+    <!-- Js Plugins -->
+    <script src="~/Source/Cart/js/jquery-3.3.1.min.js"></script>
+    <script src="~/Source/Cart/js/bootstrap.min.js"></script>
+    <script src="~/Source/Cart/js/jquery.nice-select.min.js"></script>
+    <script src="~/Source/Cart/js/jquery-ui.min.js"></script>
+    <script src="~/Source/Cart/js/jquery.slicknav.js"></script>
+    <script src="~/Source/Cart/js/mixitup.min.js"></script>
+    <script src="~/Source/Cart/js/owl.carousel.min.js"></script>
+    <script src="~/Source/Cart/js/main.js"></script>
+    <script>
+        // BUG-007/008: AJAX tăng/giảm số lượng - cập nhật DOM real-time không reload trang
+        // Sử dụng event delegation để tránh duplicate code và rebind
+        $(document).ready(function () {
+            $('.quantity').on('click', '.btn-tang, .btn-giam', function (e) {
+                e.preventDefault();
+                var $btn = $(this);
+                var maMonAn = $btn.data('mamon');
+                var isTang = $btn.hasClass('btn-tang');
+                var url = isTang
+                    ? '@Url.Action("TangSoLuong", "Cart")?maMonAn=' + maMonAn + '&soLuong=1'
+                    : '@Url.Action("GiamSoLuong", "Cart")?maMonAn=' + maMonAn;
+
+                // Server trả về HTML của trang Index sau redirect, dùng luôn kết quả này
+                $.get(url, function (html) {
+                    var $newDoc = $(html);
+                    $('.shoping__cart__table').html($newDoc.find('.shoping__cart__table').html());
+                    $('#cart-total').text($newDoc.find('#cart-total').text());
+                });
+            });
+        });
+    </script>
+
+</body>
+
+</html>

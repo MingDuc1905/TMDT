@@ -1,0 +1,124 @@
+﻿@model List<ShipFood.Models.tbDonHang>
+@{
+    ViewBag.Title = "LichSu";
+    Layout = "~/Views/Shared/_LayoutPageShipper.cshtml";
+}
+
+<div class="content-body">
+    <div class="container-fluid">
+        <div class="row page-titles mx-0">
+            <div class="col-sm-6 p-md-0">
+                <div class="welcome-text">
+                    <h4>Lịch sử đơn hàng</h4>
+
+                </div>
+            </div>
+
+        </div>
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm mb-0">
+                                <thead>
+                                    <tr>
+                                        <th class="align-middle">
+                                            <div class="custom-control custom-checkbox">
+                                                <input type="checkbox" class="custom-control-input" id="checkAll">
+                                                <label class="custom-control-label" for="checkAll"></label>
+                                            </div>
+                                        </th>
+                                        <th class="align-middle">Đơn hàng</th>
+                                        <th class="align-middle pr-7">Ngày</th>
+                                        <th class="align-middle" style="min-width: 12.5rem;">Giao đến</th>
+                                        <th class="align-middle text-right">Trạng thái</th>
+                                        <th class="align-middle text-right">Giá đơn</th>
+                                        <th class="no-sort"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="orders">
+                                    @foreach (var item in Model)
+                                    {
+                                    <tr class="btn-reveal-trigger">
+                                        <td class="py-2">
+                                            <div class="custom-control custom-checkbox checkbox-secondary">
+                                                <input type="checkbox" class="custom-control-input" id="checkbox2">
+                                                <label class="custom-control-label" for="checkbox2"></label>
+                                            </div>
+                                        </td>
+                                        <td class="py-2">
+                                            <a href="#">
+                                                <strong>#@item.madh</strong>
+                                                by @item.tbThongTinDatHang.tennguoinhan
+                                            </a>
+                                        </td>
+                                        <td class="py-2">@item.ngaydathang.Value.ToString("dd/MM/yyyy")</td>
+                                        <td class="py-2">
+
+                                            <p class="mb-0 text-500">@item.tbThongTinDatHang.diachi</p>
+                                        </td>
+                                        @{ if (item.trangthai.Equals("Hoàn thành"))
+                                            {
+                                                <td class="py-2 text-right">
+                                                    <span class="badge badge-success">
+                                                        Hoàn thành<span class="ml-1 fa fa-check"></span>
+                                                    </span>
+                                                </td>
+
+                                            }
+                                            else if (item.trangthai.Equals("Đã đặt"))
+                                            {
+                                                <td class="py-2 text-right">
+                                                    <span class="badge badge-primary">
+                                                        Đang xử lí<span class="ml-1 fa fa-redo"></span>
+                                                    </span>
+                                                </td>
+                                            }
+                                            else if (item.trangthai.Equals("Đã xác nhận") || item.trangthai.Equals("Đã lấy"))
+                                            {
+                                                <td class="py-2 text-right">
+                                                    <span class="badge badge-secondary">
+                                                        Đang chờ
+                                                        <span class="ml-1 fa fa-ban"></span>
+                                                    </span>
+                                                </td>
+
+                                            }
+                                            else if (item.trangthai.Equals("Đã hủy"))
+                                            {
+                                                <td class="py-2 text-right">
+                                                    <span class="badge badge-warning">
+                                                        Thất bại<span class="ml-1 fas fa-stream"></span>
+                                                    </span>
+                                                </td>
+
+                                            }
+                                        }
+                                        <td class="py-2 text-right">
+                                            @item.phiship.Value.ToString("N0") VND
+                                        </td>
+                                        <td class="py-2 text-right">
+                                            <div class="dropdown text-sans-serif">
+                                                <button class="btn btn-primary tp-btn-light sharp" type="button" id="order-dropdown-0" data-toggle="dropdown" data-boundary="viewport" aria-haspopup="true" aria-expanded="false"><span><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="18px" height="18px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></span></button>
+                                                <div class="dropdown-menu dropdown-menu-right border py-0" aria-labelledby="order-dropdown-0">
+                                                    <div class="py-2">
+                                                        <a class="dropdown-item" href="@Url.Action("OrderDetail","Shipper", new {id = item.madh })">Xem chi tiết</a>
+                                                        <div class="dropdown-divider">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

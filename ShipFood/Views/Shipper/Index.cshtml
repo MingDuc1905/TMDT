@@ -1,0 +1,98 @@
+﻿@model List<ShipFood.Models.DonHangDangLam>
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_LayoutPageShipper.cshtml";
+}
+
+<div class="content-body">
+    <div class="container-xl">
+
+        <div class="custom-tab-1">
+            <nav id="orders-table-tab" class="orders-table-tab app-nav-tabs nav shadow-sm flex-column flex-sm-row">
+                <a class="flex-sm-fill text-sm-center nav-link active" id="orders-all-tab" data-toggle="tab" href="#freepick" role="tab" aria-selected="true">FREE-PICK</a>
+                <a class="flex-sm-fill text-sm-center nav-link" id="orders-paid-tab" data-toggle="tab" href="#danhsach" role="tab" aria-selected="false">ĐƠN HÀNG</a>
+
+            </nav>
+            <div class="tab-content" id="orders-table-tab-content">
+                <div id="freepick" class="tab-pane fade active show">
+                    <div class="my-post-content pt-3">
+                        <div class="full-map-area mb-4">
+                            <!-- Đây là lấy vị trí đứng của shiper -->
+                            <img src="~/Source/Shipper/images/map-2.png" alt="" />
+                        </div>
+
+                        <div class="text-center mb-2">
+                            <a href="javascript:void()" class="btn btn-primary">Làm mới</a>
+                        </div>
+                    </div>
+                </div>
+                <div id="danhsach" class="tab-pane fade">
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="table-responsive">
+                                    <table class="table table-striped table-bordered first">
+                                        <thead style="text-align:center">
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Ngày</th>
+                                                <th>VT quán</th>
+                                                <th>VT khách hàng</th>
+                                                <th style="width:110px">Thu khách</th>
+                                                <th style="width:110px">Ship</th>
+                                                <th style="width:120px">Trạng thái</th>
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var item in Model)
+                                            {
+                                                <tr>
+                                                    <td><a class="" href="@Url.Action("OrderDetail","Shipper",  new {id = item.madh})">#@item.madh</a></td>
+
+                                                    <td>@item.ngaydathang.Value.ToString("dd/MM/yyyy")</td>
+                                                    <td>@item.diachi</td>
+                                                    <td>@item.Diachi</td>
+                                                    <td>@item.tongtien.Value.ToString("N0")</td>
+                                                    <td>@item.phiship.Value.ToString("N0")</td>
+                                                    <td><span class="btn btn-sm light btn-warning fs-16">@item.trangthai</span></td>
+
+                                                    <td>
+                                                        <div class="dropdown ml-auto text-right">
+                                                            <div class="btn-link" data-toggle="dropdown">
+                                                                <svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
+                                                                    <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                                                        <rect x="0" y="0" width="24" height="24"></rect>
+                                                                        <circle fill="#000000" cx="5" cy="12" r="2"></circle>
+                                                                        <circle fill="#000000" cx="12" cy="12" r="2"></circle>
+                                                                        <circle fill="#000000" cx="19" cy="12" r="2"></circle>
+                                                                    </g>
+                                                                </svg>
+                                                            </div>
+                                                            <div class="dropdown-menu dropdown-menu-right">
+                                                                <a class="dropdown-item" href="@Url.Action("OrderDetail","Shipper",  new {id = item.madh})">
+                                                                    <i class="las la-check-square scale5 text-primary mr-2"></i> Chấp nhận đơn
+                                                                    hàng
+                                                                </a>
+                                                                <a class="dropdown-item" href="#"><i class="las la-times-circle scale5 text-danger mr-2"></i> Từ chối đơn hàng</a>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-center mb-2">
+                        <a href="javascript:void()" class="btn btn-primary">Làm mới</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

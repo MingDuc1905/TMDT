@@ -1,0 +1,204 @@
+﻿@model ShipFood.Models.DonHangDangLam
+@{
+    ViewBag.Title = "OrderDetail";
+    Layout = "~/Views/Shared/_LayoutPageShipper.cshtml";
+}
+
+@{ List<ShipFood.Models.tbChiTietDonHang> listctdh = ViewBag.listctdh;
+    ShipFood.Models.tbDonHang dh = ViewBag.dh;
+}
+<div class="content-body">
+    <div class="container-fluid">
+        <div class="form-head d-flex mb-3 align-items-start">
+            <div class="mr-auto d-none d-lg-block">
+                <h2 class="text-black font-w600 mb-0">Mã đơn hàng #@dh.madh</h2>
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="javascript:void(0)" class="text-primary">Shiper</a></li>
+                    <li class="breadcrumb-item active"><a href="javascript:void(0)">Chi tiết đơn hàng</a></li>
+                </ol>
+            </div>
+            <div class="dropdown mb-md-3 mb-2 ml-auto">
+                <div class="btn btn-success dropdown-toggle" data-toggle="dropdown">
+                    <span>Đang chuẩn bị</span>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xl-3 col-xxl-3 col-lg-12 col-md-12">
+                <div class="row">
+                    <div class="col-xl-12 col-lg-6">
+                        <div class="card h-auto">
+                            <div class="card-body text-center">
+                                <img src="~/Source/Shipper/images/profile/jolibe.jpg" width="150" class="rounded-circle mb-4" alt="" />
+                                <h4 class="mb-3 text-black font-w600">@dh.tbQuanAn.tenquanan</h4>
+                                <a href="#" class="btn btn-primary light btn-xs">@dh.tbQuanAn.diachi</a>
+                            </div>
+                            <div class="card bg-secondary sticky mb-0">
+                                <div class="card-header border-0 pb-0">
+                                    <h5 class="card-title text-white mt-2">Ghi chú</h5>
+                                </div>
+                                <div class="card-body pt-3">
+                                    <p class="fs-14 op7 text-white">@dh.ghichu</p>
+                                </div>
+                                <div class="card-footer border-0 py-4 bg-warning rounded-xl">
+                                    <div class="media align-items-center">
+                                        <div class="media-body">
+                                            <h5 class="my-0 text-white">Địa chỉ: @dh.tbThongTinDatHang.diachi</h5>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-9 col-xxl-9 col-lg-12 col-md-12">
+                <div class="row">
+                    <div class="col-xl-12">
+                        <div class="card">
+                            <div class="card-body pt-2">
+                                <div class="table-responsive">
+                                    <table class="table items-table">
+                                        <tr>
+                                            <th class="my-0 text-black font-w500 fs-20">Món ăn</th>
+                                            <th style="width: 10%" class="my-0 text-black font-w500 fs-20">Sl</th>
+                                            <th style="width: 10%" class="my-0 text-black font-w500 fs-20">Giá</th>
+                                            <th class="my-0 text-black font-w500 fs-20">Tổng giá</th>
+                                        </tr>
+                                        @foreach (var item in listctdh)
+                                        {
+                                            <tr>
+                                                <td>
+                                                    <div class="media">
+                                                        <img class="mr-3 img-fluid rounded"
+                                                             width="85"
+                                                             src="~/Source/Home/img/@item.tbMonAn.hinhanh"
+                                                             alt="DexignZone" />
+                                                        <div class="media-body">
+                                                            <small class="mt-0 mb-1 text-primary font-w500">@item.tbMonAn.tbDanhMuc.tendanhmuc</small>
+                                                            <h5 class="mt-0 mb-2 text-black mb-4">@item.tbMonAn.tenmon</h5>
+
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <h4 class="my-0 text-secondary font-w600">@item.soluong</h4>
+                                                </td>
+                                                <td>
+                                                    <h4 class="my-0 text-secondary font-w600">@item.dongia.Value.ToString("N0")</h4>
+                                                </td>
+                                                <td>
+                                                    @{ var tonggia = item.soluong * item.dongia;}
+                                                    <h4 class="my-0 text-secondary font-w600">@tonggia.Value.ToString("N0")</h4>
+                                                </td>
+                                            </tr>
+                                                        }
+
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-center align-items-center">
+                                    <div class="thanhtoan col-lg-3 text-center">
+                                        <small>Trả quán</small>
+                                        @{var traquan = dh.tongtien - dh.phiship;}
+                                        <p>@traquan.Value.ToString("N0")</p>
+                                    </div>
+                                    <div class="thanhtoan col-lg-3 text-center">
+                                        <small>Khuyễn mãi</small>
+                                        <p></p>
+                                    </div>
+                                    <div class="thanhtoan col-lg-3 text-center">
+                                        <small>Phí ship</small>
+                                        <p>@dh.phiship.Value.ToString("N0")</p>
+                                    </div>
+                                    <div class="thanhtoan col-lg-3 text-center">
+                                        <small>Thu khách</small>
+                                        <p>@dh.tongtien.Value.ToString("N0")</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="full-map-area mb-4">
+                                    <img src="~/Source/Shipper/images/map-2.png" alt="" />
+                                    <a href="javascript:void(0);" class="btn btn-danger btn-xs">Xem map</a>
+                                    <i class="flaticon-381-location-4"></i>
+                                </div>
+                                <div class="d-flex mx-0 justify-content-between">
+                                    <div class="iconbox">
+                                        <i class="lni lni-user"></i>
+                                        <p class="my-0 text-black">@dh.tbThongTinDatHang.tennguoinhan</p>
+                                    </div>
+                                    <div class="iconbox">
+                                        <i class="las la-phone"></i>
+                                        <p>@dh.tbThongTinDatHang.sdt</p>
+                                    </div>
+                                    <div class="iconbox">
+                                        <a class="" href="@Url.Action("NhanTin", "Shipper")">
+                                            <i class="lni lni-facebook-messenger"></i>
+                                            <p>Chat ngay!</p>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-12">
+                <div class="form-group d-flex justify-content-around align-items-center">
+                    <div class="col-lg-3">
+                        <a id="btnOrdered" class="btn btn-primary w-100 disabled">Đã đặt</a>
+                    </div>
+                    <div class="arrow" style="align-self:center">
+                        <i class="fas fa-arrow-right"></i>
+                    </div>
+                    <div class="col-lg-3">
+                        <a id="btnPickup" class="btn btn-primary w-100 @(dh.trangthai == "Lấy hàng" ? "disabled" : " ") @(dh.trangthai == "Hoàn thành" ? "disabled" : " ")" onclick="updateOrderStatus('btnPickup', 'lh',@dh.madh)" >Lấy hàng</a>
+                    </div>
+                    <div class="arrow" style="align-self:center">
+                        <i class="fas fa-arrow-right"></i>
+                    </div>
+                    <div class="col-lg-3">
+                        <a id="btnComplete" class="btn btn-primary w-100 @(dh.trangthai == "Hoàn thành" ? "disabled" : " ")" onclick="updateOrderStatus('btnComplete', 'ht',@dh.madh)" >Hoàn thành</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    function updateOrderStatus(buttonId, status, id) {
+            $.ajax({
+                url: '@Url.Action("UpdateDonHang", "Shipper")', // URL của action xử lý trong controller
+                type: 'POST',
+                data: {
+                    id: id,
+                    status: status
+                },
+                success: function(response) {
+                    if (response.success) {
+                        var button = document.getElementById(buttonId);
+                        button.classList.add('disabled');
+                        button.setAttribute('disabled', 'true');
+                        button.onclick = null; // Remove the onclick event
+                    } else {
+                        alert(response.message);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error updating order status:', error);
+                    alert('Error updating order status: ' + error);
+                }
+            });
+        }
+</script>
+

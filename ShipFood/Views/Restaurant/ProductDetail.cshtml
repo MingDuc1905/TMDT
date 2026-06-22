@@ -1,0 +1,144 @@
+﻿@{
+    ViewBag.Title = "ProductDetail";
+    Layout = "~/Views/Shared/_LayoutPageRestaurant.cshtml";
+    ShipFood.Models.tbMonAn monAn = ViewBag.monAn;
+    ShipFood.Models.dbFoodyEntities db = new ShipFood.Models.dbFoodyEntities();
+    List<ShipFood.Models.tbDanhMuc> danhMucs = db.tbDanhMuc.ToList(); ;
+}
+
+<div class="container-fluid">
+    <div class="row page-titles mx-0">
+        <div class="col-sm-6 p-md-0">
+            <div class="welcome-text">
+                <h4>Chi tiết món ăn</h4>
+            </div>
+        </div>
+        <div class="col-sm-6 p-md-0 justify-content-sm-end mt-2 mt-sm-0 d-flex">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="javascript:void(0)">Cửa hàng</a></li>
+                <li class="breadcrumb-item active"><a href="javascript:void(0)">Chi tiết món</a></li>
+            </ol>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">Thêm Thực đơn</h4>
+                </div>
+                <div class="card-body">
+                    <div class="form-validation">
+                        <form class="form-valide" action="~/Restaurant/PostMonAn" method="post" enctype="multipart/form-data">
+                            <div class="row">
+                                <div class="col-xl-12">
+                                    <div class="form-group row">
+                                        <input type="hidden" name="mamon" value="@monAn.mamon" />
+                                        <label class="col-lg-4 col-form-label" for="val-username">
+                                            Tên món
+                                            <span class="text-danger">*</span>
+                                        </label>
+                                        <div class="col-lg-6">
+                                            <input type="text"
+                                                   class="form-control"
+                                                   id="val-name"
+                                                   name="tenmon"
+                                                   value="@monAn.tenmon"
+                                                   placeholder="Nhập tên món" />
+                                        </div>
+                                    </div>
+                                    <div class="form-group row">
+                                        <label class="col-lg-4 col-form-label" for="val-mon">
+                                            Danh mục
+                                            <span class="text-danger">*</span>
+                                        </label>
+                                        <div class="col-lg-6">
+                                            <select class="form-control" id="val-mon" name="madanhmuc">
+                                                <option value="">Chọn danh mục</option>
+                                                @foreach (var i in danhMucs)
+                                                {
+                                                    <option style="padding:0px" @(monAn.madanhmuc == i.madanhmuc ? "selected" : "") value="@i.madanhmuc">@i.tendanhmuc</option>
+                                                }
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="form-group row">
+                                        <label class="col-lg-4 col-form-label" for="val-price">
+                                            Giá tiền <span class="text-danger">*</span>
+                                        </label>
+                                        <div class="col-lg-6">
+                                            <input type="number"
+                                                   class="form-control"
+                                                   id="val-price"
+                                                   required
+                                                   name="giatien"
+                                                   value="@(monAn.giatien == null ? 0 : Math.Round(Double.Parse(@monAn.giatien.ToString())))"
+                                                   placeholder="Nhập giá tiền" />
+                                        </div>
+                                    </div>
+                                    <div class="form-group row">
+                                        <label class="col-lg-4 col-form-label" for="val-suggestions">
+                                            Mô tả <span class="text-danger">*</span>
+                                        </label>
+                                        <div class="col-lg-6">
+                                            <textarea class="form-control"
+                                                      id="val-suggestions"
+                                                      name="mota"
+                                                      rows="5"
+                                                      placeholder="Nhập mô tả món ăn...">@monAn.mota</textarea>
+                                        </div>
+                                    </div>
+                                    <div class="form-group row">
+                                        <label class="col-lg-4 col-form-label" for="val-price">
+                                            Hình ảnh món <span class="text-danger">*</span>
+                                        </label>
+                                        <div class="col-lg-6">
+                                            <a class="btn btn-primary light mr-1 px-3">
+                                                <input id="hinh-anh" type="file" name="fileAnh" />
+                                            </a>
+                                        </div>
+                                        <div style=" margin: 30px auto; border: 1px solid;" id="bg_add">
+                                            @if(monAn.hinhanh != null) { 
+                                                <img src="~/Source/images/MonAn/@monAn.hinhanh" width="300"/>
+                                            }
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group row">
+                                        <div class="col-lg-8 ml-auto">
+                                            <button type="submit" class="btn btn-primary">Xác nhận</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    function uploadImage() {
+        var fileInput = document.getElementById('hinh-anh');
+        var file = fileInput.files[0];
+        var imageType = /image.*/;
+
+        if (file.type.match(imageType)) {
+            var reader = new FileReader();
+
+            reader.onload = function (e) {
+                var img = new Image();
+                img.src = reader.result;
+                img.width = 300;
+                var imagePreview = document.getElementById('bg_add');
+                imagePreview.innerHTML = '';
+                imagePreview.appendChild(img);
+            }
+
+            reader.readAsDataURL(file);
+        }
+        else {
+            alert('Chỉ chấp nhận file hình ảnh');
+        }
+    }
+    document.getElementById('hinh-anh').addEventListener('change', uploadImage);</script>

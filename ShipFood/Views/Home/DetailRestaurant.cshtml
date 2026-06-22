@@ -1,0 +1,297 @@
+﻿
+@{
+    ViewBag.Title = "DetailRestaurant";
+    Layout = "~/Views/Shared/_LayoutPageHome.cshtml";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Fastship - Khám phá, đặt hàng, giao tân nơi</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <meta content="" name="keywords" />
+    <meta content="" name="description" />
+
+    <!-- Favicon -->
+    <link href="~/Source/Home/~/Source/Home/img/favicon.ico" rel="icon" />
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500&family=Lora:wght@600;700&display=swap" rel="stylesheet" />
+
+    <!-- Icon Font Stylesheet -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet" />
+
+    <!-- Libraries Stylesheet -->
+    <link href="~/Source/Home/lib/animate/animate.min.css" rel="stylesheet" />
+    <link href="~/Source/Home/lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet" />
+    <link href="~/Source/Home/css/test_details.css" rel="stylesheet" />
+    <!-- Customized Bootstrap Stylesheet -->
+    <link href="~/Source/Home/css/bootstrap.min.css" rel="stylesheet" />
+
+    <!-- Template Stylesheet -->
+    <link href="~/Source/Home/css/details.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/Source/Home/css/base.css" />
+
+    <link rel="stylesheet" href="~/Source/Home/css/font/fontawesome-free-6.1.2-web/css/all.min.css" />
+</head>
+
+<body>
+    <div class="app">
+        <div class="wrapper">
+            <div class="now-detail-restaurant clearfix">
+                <div class="container">
+                    <div class="detail-restaurant-img">
+                        <img src="~/Source/images/MonAn/@Model.hinhanh"
+                             alt="Không tìm thấy ảnh"
+                             class="" />
+                    </div>
+                    <div class="detail-restaurant-info">
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb">
+                                <li class="breadcrumb-item"><a class="breadcrumb-link" rel="nofollow" href="">Home</a></li>
+                                <li class="breadcrumb-item"><a class="breadcrumb-link" rel="nofollow" href="/da-nang">Đà Nẵng</a></li>
+                                <li class="breadcrumb-item">
+                                    <a class="breadcrumb-link" rel="nofollow" href="/">@Model.tenquanan</a>
+                                </li>
+                            </ol>
+                        </nav>
+                        <div class="kind-restaurant">
+                            <div class="tag-preferred" data-toggle="modal" data-target="#modal-preferred-merchant">
+                                <i class="fa-solid fa-thumbs-up" aria-hidden="true"></i>Yêu thích
+                            </div>
+
+                            <span>
+                                Quán ăn<span>
+                                    -<a class="link-brand"
+                                        title="Cơm Thố Thiên Phúc"
+                                        rel="nofollow"
+                                        href="/thuong-hieu/com-tho-thien-phuc">Chi nhánh</a>
+                                </span>
+                            </span>
+                        </div>
+                        <h1 class="name-restaurant">@Model.tenquanan</h1>
+                        <div class="address-restaurant">@Model.diachi</div>
+                        <div class="rating">
+                            <div class="stars">
+                                @for (int i = 0; i < (int)Model.diemdanhgia; ++i)
+                                {
+                                    <span class="full">
+                                        <i class="fas fa-star"></i>
+                                    </span>
+                                }
+                                <!-- <span class="full"><i class="fas fa-star"></i></span><span class="full"><i class="fas fa-star"></i></span><span class="full"><i class="fas fa-star"></i></span><span class="full"><i class="fas fa-star"></i></span><span class="half"><i class="fas fa-star-half-alt"></i></span> -->
+                            </div>
+                            <span class="number-rating">@Model.soluotdanhgia</span>đánh giá trên Fastship
+                        </div>
+                        <div class="view-more-rating">
+                            <a href="#"
+                               rel="noopener noreferrer nofollow"
+                               target="_blank"
+                               class="number-review">Xem thêm lượt đánh giá từ Fastship</a>
+                        </div>
+                        <div class="status-restaurant">
+                            <div class="opentime-status"><span class="stt online" title="@Model.trangthai"></span></div>
+                            <div class="time"><i class="far fa-clock"></i>07:30 - 21:30</div>
+                        </div>
+                        <div class="cost-restaurant"><i class="fas fa-dollar-sign"></i>35.000 - 75.000</div>
+                        <div class="share-social clearfix">
+                            <div class="share-social-box">
+                                <div class="fb-like"
+                                     data-layout="button"
+                                     data-action="like"
+                                     data-size="small"
+                                     data-show-faces="false"
+                                     data-share="true"
+                                     data-colorscheme="light"
+                                     data-kid-directed-site="false"></div>
+                            </div>
+                        </div>
+                        <div class="utility-restaurant clearfix">
+                            <div class="utility-item">
+                                <div class="utility-title">Phí dịch vụ</div>
+                                <div class="utility-content"><span class="txt-bold txt-red"> 0.0% Phí phục vụ </span></div>
+                                <span class="icon icon-partner-vi" data-toggle="modal" data-target="#modal-verify-merchant"></span>
+                            </div>
+                            <div class="utility-item">
+                                <div class="utility-title">Dịch vụ bởi</div>
+                                <div class="utility-content"><span class="txt-bold txt-red">Fastship</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="container relative clearfix">
+                    <div class="now-menu-restaurant" style="width:90%">
+                        <div class="menu-restaurant-tab"><div class="item active">Thực đơn</div></div>
+                        <div class="menu-restaurant-content-tab">
+                            <div class="menu-restaurant-container">
+                                <div class="menu-restaurant-category">
+                                    <div class="list-category" id="scroll-spy">
+                                        <div class="scrollbar-container ps">
+                                            @foreach (var thucdon in ViewBag.ThucDon)
+                                            {
+                                                <a href="~/Home/DetailRestaurant?idDM=@thucdon.madanhmuc&id=@ViewBag.maquan">
+                                                    <div class="item">
+                                                        <span id="-1" title="@thucdon.tendanhmuc" class="item-link active">@thucdon.tendanhmuc</span>
+                                                    </div>
+                                                </a>
+                                            }
+                                        </div>
+
+                                            <div class="ps__rail-x" style="left: 0px; bottom: 0px">
+                                                <div class="ps__thumb-x" tabindex="0" style="left: 0px; width: 0px"></div>
+                                            </div>
+                                            <div class="ps__rail-y" style="top: 0px; right: 0px">
+                                                <div class="ps__thumb-y" tabindex="0" style="top: 0px; height: 0px"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="menu-restaurant-detail" style="width:78%">
+                                    <div class="menu-restaurant-list">
+                                        <div class="search-items">
+                                            <form action="~/Home/DetailRestaurant">
+                                                <p class="input-group">
+                                                    <input type="hidden" name="id" value="@ViewBag.maquan"/>
+                                                    <i class="fas fa-search"></i><input style="width:85%" type="text" name="searchKey" placeholder="Tìm món" value="@ViewBag.searchKey" />
+                                                    <button type="submit" style="width:15%;color:white" class="btn-secondary"><strong>Tìm</strong></button>
+                                                </p>
+                                            </form>
+                                        </div>
+
+                                        <div class="menu-group"
+                                             id="section-group-menu--1"
+                                             style="height: 56px; left: 0px; position: relative; top: 0px; width: 100%">
+                                            <div class="title-menu"><strong>Danh sách món</strong></div>
+                                        </div>
+                                        @foreach (var item in ViewBag.DanhSachMonAn)
+                                        {
+                                            <div class="item-restaurant-row"
+                                                 style="display: block; height: 84px; position: relative; /* Đổi thành relative */ width: 100%; margin-bottom: 20px; ">
+                                                <div class="row">
+                                                    <div class="col-auto item-restaurant-img">
+                                                        <button class="inline">
+                                                            <img src="~/Source/Home/img/@item.hinhanh"
+                                                                 alt="Không tìm thấy ảnh"
+                                                                 width="60"
+                                                                 height="60" />
+                                                        </button>
+                                                    </div>
+                                                    <div class="col item-restaurant-info">
+                                                        <h2 class="item-restaurant-name">@item.tenmon</h2>
+                                                        <div class="item-restaurant-desc">@item.mota</div>
+                                                        <div class="item-restaurant-total">
+                                                            Đã được đặt<span class="txt-bold">&nbsp;100+&nbsp;</span>lần&nbsp;&nbsp;|&nbsp;&nbsp;<i class="fa fa-thumbs-up" aria-hidden="true"></i>&nbsp;&nbsp;3
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-auto item-restaurant-more">
+                                                        <div class="row">
+                                                            <div class="col-auto product-price">
+                                                                <div class="old-price">
+                                                                    20.000<span style="
+                                            font-weight: 400;
+                                            position: relative;
+                                            top: -9px;
+                                            font-size: 10px;
+                                            right: 0;
+                                          ">đ</span>
+                                                                </div>
+                                                                <div class="current-price">
+                                                                    @item.giatien<span style="
+                                            font-weight: 400;
+                                            position: relative;
+                                            top: -9px;
+                                            font-size: 10px;
+                                            right: 0;
+                                          ">đ</span>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-auto adding-food-cart txt-right">
+                                                                <form action="~/Cart/ThemMonAn" method="get">
+                                                                    <input name="soLuong" type="number" value="0" />
+                                                                    <input name="maMonAn" type="hidden" value="@item.mamon" />
+                                                                    <button type="submit" class="btn btn-success">Thêm</button>
+                                                                </form>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal fade modal-alert"
+                 id="modal-delivery-alert-MenuAlertModal"
+                 tabindex="-1"
+                 role="dialog"
+                 aria-hidden="true"
+                 data-backdrop="static">
+                <div class="modal-dialog modal-noti" role="document">
+                    <div class="modal-content">
+                        <span class="close" data-dismiss="modal">x</span>
+                        <div class="modal-header txt-bold font13"><span class="txt-red">Fastship</span> Thông báo</div>
+                        <div class="modal-body">
+                            <div class="col col-12">
+                                <p class="font15"><span></span></p>
+                            </div>
+                        </div>
+                        <div class="modal-footer content-right">
+                            <button type="button" class="btn btn-red" data-dismiss="modal">Ok</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal fade modal-box-image"
+                 id="modal-box-image"
+                 tabindex="-1"
+                 role="dialog"
+                 aria-hidden="true">
+                <div class="modal-dialog" role="document"><div class="res-menu-carousel"></div></div>
+            </div>
+            <div class="modal fade modal-alert"
+                 id="modal-delivery-confirm-MenuConfirmModal"
+                 tabindex="-1"
+                 role="dialog"
+                 aria-hidden="true"
+                 data-keyboard="true">
+                <div class="modal-dialog modal-lg" role="document">
+                    <div class="modal-content">
+                        <span class="close" data-dismiss="modal">x</span>
+                        <div class="modal-header txt-bold font13">
+                            <span class="txt-red">service_by_fastchip</span> Thông báo
+                        </div>
+                        <div class="modal-body"><p class="font15 max-width-750"></p></div>
+                        <div class="modal-footer content-right">
+                            <button type="button" class="btn btn-gray" data-dismiss="modal">
+                                Hủy
+                            </button><button type="button" class="btn btn-red" data-dismiss="modal">Ok</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- JavaScript Libraries -->
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/Source/Home/lib/wow/wow.min.js"></script>
+    <script src="~/Source/Home/lib/easing/easing.min.js"></script>
+    <script src="~/Source/Home/lib/waypoints/waypoints.min.js"></script>
+    <script src="~/Source/Home/lib/owlcarousel/owl.carousel.min.js"></script>
+
+    <!-- Template Javascript -->
+    <script src="~/Source/Home/js/main.js"></script>
+</body>
+</html>
+

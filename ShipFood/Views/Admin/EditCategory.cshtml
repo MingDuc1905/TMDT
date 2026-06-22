@@ -1,0 +1,46 @@
+﻿@model ShipFood.Models.tbDanhMuc
+@{
+    ViewBag.Title = "EditCategory";
+    Layout = "~/Views/Shared/_LayoutPageAmin.cshtml";
+}
+
+<div class="content-body">
+    <div class="container-fluid">
+        <section class="blog_area">
+            <div class="container">
+                @using (Html.BeginForm("EditCategory", "Admin", FormMethod.Post, new { enctype = "multipart/form-data" }))
+                {
+                    @Html.AntiForgeryToken()
+
+                <div class="form-horizontal">
+                    <h4>Danh mục mới</h4>
+                    <hr />
+                    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                    @Html.HiddenFor(model => model.madanhmuc)
+                    <div class="form-group">
+                        <label>Tên danh mục</label>
+                        @Html.EditorFor(model => model.tendanhmuc, new { htmlAttributes = new { @class = "form-input" } })
+                        @Html.ValidationMessageFor(model => model.tendanhmuc, "", new { @class = "text-danger" })
+                    </div>
+
+                    <div class="form-group">
+                        <div class="control-label col-md-2">Hình ảnh</div>
+                        <input type="file" name="hinhanh" />
+                        @Html.ValidationMessageFor(model => model.hinhanh, "", new { @class = "text-danger" })
+                    </div>
+                    <div class="form-group">
+                        <label>Nội dung</label>
+                        @Html.TextAreaFor(model => model.mota, new { @class = "form-input", @rows = "3", @id = "NoiDung" })
+                        @Html.ValidationMessageFor(model => model.mota, "", new { @class = "text-danger" })
+                    </div>
+                    <div class="form-group">
+                        <div class="col-update">
+                            <input type="submit" value="Cập nhật" class="btn-update" />
+                        </div>
+                    </div>
+                </div>
+                }
+            </div><!--//container-fluid-->
+        </section>
+    </div>
+</div>

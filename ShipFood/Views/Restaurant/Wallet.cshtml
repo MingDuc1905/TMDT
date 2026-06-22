@@ -1,0 +1,36 @@
+﻿
+@{
+    ViewBag.Title = "Wallet";
+    Layout = "~/Views/Shared/_LayoutPageRestaurant.cshtml";
+    List<ShipFood.Models.tbDonHang> donHangs = ViewBag.donHangs; 
+}
+
+    <!-- row -->
+    <div class="container-fluid">
+        <div class="form-head d-flex mb-3 align-items-start">
+            <div class="mr-auto d-none d-lg-block">
+                <h2 class="text-black font-w600 mb-0">Ví tiền</h2>
+                <p class="mb-0">Số dư: @ViewBag.soDu VND</p>
+
+            </div>
+        </div>
+        <div class="row">
+            <div class="form-group row">
+               
+            </div>
+
+        </div>
+    </div>
+    <div class="row">
+        @foreach (var i in donHangs)
+        {
+            <div class="col-lg-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title">Đơn hàng @i.madh : +@(Math.Round((double)i.tongtien, 1)) VND</h4>
+                    </div>
+                </div>
+            </div>
+        }
+        
+    </div>

@@ -1,0 +1,441 @@
+@{
+    ViewBag.Title = "Checkout";
+    Layout = "~/Views/Shared/_LayoutPageHome.cshtml";
+    ShipFood.Models.Cart cart = ViewBag.cart;
+    ShipFood.Models.City city = new ShipFood.Models.City();
+    List<ShipFood.Models.tbLoaiHinhThanhToan> lhtt = ViewBag.phuongthuctt;
+    List<ShipFood.Models.tbThongTinDatHang> ttdh = ViewBag.diachicosan;
+}
+
+<!DOCTYPE html>
+<html lang="zxx">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="description" content="Fastship - Checkout">
+    <meta name="keywords" content="Fastship, food, delivery">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Thanh toan | Fastship</title>
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;400;600;900&display=swap" rel="stylesheet">
+
+    <!-- Css Styles -->
+    <link href="~/Source/Cart/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/Source/Cart/css/font-awesome.min.css" type="text/css">
+    <link rel="stylesheet" href="~/Source/Cart/css/elegant-icons.css" type="text/css">
+    <link rel="stylesheet" href="~/Source/Cart/css/jquery-ui.min.css" type="text/css">
+    <link rel="stylesheet" href="~/Source/Cart/css/owl.carousel.min.css" type="text/css">
+    <link rel="stylesheet" href="~/Source/Cart/css/slicknav.min.css" type="text/css">
+    <link rel="stylesheet" href="~/Source/Cart/css/style.css" type="text/css">
+
+    <style>
+        /* Payment Method Cards */
+        .payment-method-card {
+            border: 2px solid #e8e8e8;
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .payment-method-card:hover,
+        .payment-method-card.selected {
+            border-color: #3CB815;
+            background: #f0faf0;
+            box-shadow: 0 4px 12px rgba(60, 184, 21, 0.15);
+        }
+        .payment-method-card input[type="radio"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #3CB815;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .payment-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+        .payment-icon.cash { background: #e8f5e9; color: #2e7d32; }
+        .payment-icon.paypal { background: #e3f0ff; color: #0070ba; }
+        .payment-icon.banking { background: #fff3e0; color: #e65100; }
+        .payment-icon.momo { background: #fce4ec; color: #d81b60; }
+        .payment-label {
+            font-weight: 600;
+            font-size: 14px;
+            color: #333;
+            flex: 1;
+        }
+        .payment-badge {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 20px;
+            background: #3CB815;
+            color: #fff;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        /* Pay Button */
+        .btn-pay {
+            display: block;
+            width: 100%;
+            padding: 14px 20px;
+            background: linear-gradient(135deg, #3CB815, #2d8f0e);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 20px;
+        }
+        .btn-pay:hover {
+            background: linear-gradient(135deg, #45c91a, #2d8f0e);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(60, 184, 21, 0.35);
+        }
+        .btn-pay:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .btn-pay .spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto;
+        }
+        .btn-pay.loading .spinner { display: inline-block; }
+        .btn-pay.loading .btn-text { display: none; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .payment-section-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #222;
+            margin-bottom: 14px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .payment-section-title i { color: #3CB815; }
+
+        .confirm-checkbox {
+            margin-top: 16px;
+            padding: 10px 14px;
+            background: #f9fdf9;
+            border-radius: 8px;
+            border: 1px solid #e8f5e9;
+        }
+        .confirm-checkbox label {
+            font-size: 13px;
+            color: #555;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            margin: 0;
+        }
+        .confirm-checkbox input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #3CB815;
+        }
+
+        .order-summary-box {
+            background: #fafafa;
+            border-radius: 14px;
+            padding: 20px;
+            border: 1px solid #f0f0f0;
+        }
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            font-size: 14px;
+        }
+        .summary-row.total {
+            border-top: 2px solid #e8e8e8;
+            padding-top: 12px;
+            margin-top: 6px;
+            font-size: 17px;
+            font-weight: 700;
+            color: #3CB815;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Breadcrumb Section Begin -->
+    <section style="margin-top:200px" class="breadcrumb-section set-bg" data-setbg="https://localhost:44363/Source/Restaurant/images/card/2.png">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12 text-center">
+                    <div class="breadcrumb__text">
+                        <h2 style="color:#3CB815;font-weight:700">Thanh toan</h2>
+                        <div class="breadcrumb__option">
+                            <a href="~/Home">Trang chu</a>
+                            <span>Thanh toan</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Breadcrumb Section End -->
+
+    <!-- Checkout Section Begin -->
+    <section class="checkout spad">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <h6 style="height:auto;min-height:50px;border:1px solid #6AB963;color:black;margin-bottom:20px;padding:12px 16px">
+                        <span style="font-weight:800;display:flex;flex-wrap:wrap;gap:10px;align-items:center">
+                            <label style="display:flex;align-items:center;gap:5px;cursor:pointer;margin:0">
+                                <input type="radio" name="RadioAddressType" id="new" checked />
+                                <span style="color:black">Thong tin moi</span>
+                            </label>
+                            <label style="display:flex;align-items:center;gap:5px;cursor:pointer;margin:0">
+                                <input type="radio" name="RadioAddressType" id="old" />
+                                <span style="color:black">Dia da co</span>
+                            </label>
+                        </span>
+                    </h6>
+
+                    <!-- Address Selection Dropdown -->
+                    <div class="selectGroup hidden">
+                        <div class="container-select">
+                            <select id="address_select">
+                                <option value="">-- Dia da co --</option>
+                                @foreach (var i in ttdh)
+                                {
+                                    <option value="@i.ID">@i.NguoiSocial, @i.Address - @i.Phone</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <form id="checkoutForm" action="~/Cart/Checkout" method="post">
+                        <div class="row">
+                            <div class="col-lg-8 col-md-6 formInfor">
+                                <div class="checkout__form">
+                                    <h4 style="font-weight:700;color:#222;margin-bottom:24px">
+                                        <i class="fa fa-file-text-o" style="color:#3CB815;margin-right:8px"></i>
+                                        Thong tin chi tiet don hang
+                                    </h4>
+                                    <div class="row">
+                                        <div class="col-lg-6">
+                                            <div class="checkout__input">
+                                                <label>Ho va Ten *</label>
+                                                <input type="text" name="hoten" placeholder="Ho va ten" value="@cart.Customer.Name">
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-6">
+                                            <div class="checkout__input">
+                                                <label>So Dien Thoai *</label>
+                                                <input type="text" name="SDT" placeholder="So dien thoai" value="@cart.Customer.Phone">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-lg-12">
+                                            <div class="checkout__input">
+                                                <label>Dia chi *</label>
+                                                <input type="text" name="diachiadd" placeholder="Dia chi cu hang" value="@cart.Customer.Address">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-lg-6">
+                                            <div class="checkout__input">
+                                                <label>Phuong *</label>
+                                                <input type="text" name="diachicuthe" placeholder="Phuong" value="@cart.Customer.Ward">
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-6">
+                                            <div class="checkout__input">
+                                                <label>Khu vuc *</label>
+                                                <input type="text" name="quan" placeholder="Khu vuc" value="@cart.Customer.District">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-lg-6">
+                                            <div class="checkout__input">
+                                                <label>Thanh pho *</label>
+                                                <input type="text" name="City" placeholder="Thanh pho" value="@cart.Customer.City">
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-6">
+                                            <div class="checkout__input">
+                                                <label>Chon tinh/TP *</label>
+                                                <select name="CityID" class="form-control">
+                                                    <option value="">-- Chon tinh/TP--</option>
+                                                    @foreach (var i in city.GetAllCity())
+                                                    {
+                                                        <option value="@i.ID">@i.Name</option>
+                                                    }
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-lg-12">
+                                            <div class="checkout__input">
+                                                <label>Ghi chu, yeu cau</label>
+                                                <textarea name="note" placeholder="Ghi chu, yeu cau" style="width:100%;height:80px;padding:10px;border:1px solid #e8e8e8;border-radius:6px"></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-lg-4 col-md-6">
+                                <div class="order-summary-box">
+                                    <h4 style="font-weight:700;color:#222;margin-bottom:16px;font-size:16px">
+                                        <i class="fa fa-shopping-cart" style="color:#3CB815;margin-right:8px"></i>
+                                        Don hang cua ban
+                                    </h4>
+                                    <div class="summary-row">
+                                        <span>Tam tinh</span>
+                                        <span>@string.Format("{0:N0} VND", cart.GetTotal() - cart.Ship.Price)</span>
+                                    </div>
+                                    <div class="summary-row">
+                                        <span>Phi van chuyen</span>
+                                        <span>@string.Format("{0:N0} VND", cart.Ship.Price)</span>
+                                    </div>
+                                    <div class="summary-row">
+                                        <span>Giam gia</span>
+                                        <span>0 VND</span>
+                                    </div>
+                                    <div class="summary-row total">
+                                        <span>Tong cong</span>
+                                        <span>@string.Format("{0:N0} VND", cart.GetTotal())</span>
+                                    </div>
+
+                                    <!-- Payment Methods -->
+                                    <div style="margin-top:24px">
+                                        <div class="payment-section-title">
+                                            <i class="fa fa-credit-card"></i>
+                                            Phuong thuc thanh toan
+                                        </div>
+                                        @{
+                                            var idx = 0;
+                                        }
+                                        @foreach (var i in lhtt)
+                                        {
+                                            var lower = (i.TenToLoaiHinh ?? "").ToLower();
+                                            var iconClass = "cash";
+                                            var faIcon = "fa-money";
+                                            var badge = "Thanh toan";
+                                            if (lower.Contains("tien mat") || lower.Contains("cash")) {
+                                                iconClass = "cash"; faIcon = "fa-money"; badge = "Tien mat";
+                                            } else if (lower.Contains("paypal") || lower.Contains("pay")) {
+                                                iconClass = "paypal"; faIcon = "fa-paypal"; badge = "PayPal";
+                                            } else if (lower.Contains("ngan hang") || lower.Contains("bank") || lower.Contains("chuyen khoan")) {
+                                                iconClass = "banking"; faIcon = "fa-university"; badge = "Chuyen khoan";
+                                            } else if (lower.Contains("momo")) {
+                                                iconClass = "momo"; faIcon = "fa-mobile"; badge = "Vi dien tu";
+                                            }
+                                            <div class="payment-method-card @(idx == 0 ? "selected" : "")" onclick="selectPayment(this)">
+                                                <input type="radio" name="pttt" value="@i.ID" @(idx == 0 ? "checked" : "") />
+                                                <div class="payment-icon @iconClass">
+                                                    <i class="fa @faIcon"></i>
+                                                </div>
+                                                <span class="payment-label">@i.TenToLoaiHinh</span>
+                                                <span class="payment-badge">@badge</span>
+                                            </div>
+                                            idx++;
+                                        }
+                                    </div>
+
+                                    <!-- Confirm Checkbox -->
+                                    <div class="confirm-checkbox">
+                                        <label>
+                                            <input type="checkbox" id="confirmInfo" />
+                                            Toi xac nhan thong tin tren la dung
+                                        </label>
+                                    </div>
+
+                                    <!-- Pay Button -->
+                                    <input type="hidden" name="mattdh" id="mattdh" value="" />
+                                    <button type="submit" class="btn-pay" id="payButton">
+                                        <span class="btn-text">
+                                            <i class="fa fa-lock" style="margin-right:8px"></i>
+                                            THANH TOAN - @string.Format("{0:N0} VND", cart.GetTotal())
+                                        </span>
+                                        <div class="spinner"></div>
+                                    </button>
+                                    <p style="text-align:center;margin-top:10px;font-size:11px;color:#999">
+                                        <i class="fa fa-lock" style="margin-right:4px"></i>
+                                        Giao dich duoc bao mat
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Checkout Section End -->
+
+    <script src="~/Source/Cart/js/jquery-3.3.0.min.js"></script>
+    <script src="~/Source/Cart/js/bootstrap.min.js"></script>
+    <script src="~/Source/Cart/js/jquery.nicescroll.min.js"></script>
+    <script src="~/Source/Cart/js/jquery-ui.min.js"></script>
+    <script src="~/Source/Cart/js/owl.carousel.min.js"></script>
+    <script src="~/Source/Cart/js/mig-user.js"></script>
+    <script src="~/Source/Cart/js/checkout.js"></script>
+    <script>
+        // Update hidden mattdh when address dropdown changes
+        document.addEventListener('DOMContentLoaded', function() {
+            var addrSelect = document.getElementById('address_select');
+            if (addrSelect) {
+                addrSelect.addEventListener('change', function() {
+                    document.getElementById('mattdh').value = this.value;
+                });
+            }
+        });
+
+        function selectPayment(el) {
+            document.querySelectorAll('.payment-method-card').forEach(function(c) { c.classList.remove('selected'); });
+            el.classList.add('selected');
+            var radio = el.querySelector('input[type="radio"]');
+            if (radio) radio.checked = true;
+        }
+
+        document.getElementById('payButton') && document.getElementById('payButton').addEventListener('click', function(e) {
+            var cb = document.getElementById('confirmInfo');
+            if (cb && !cb.checked) {
+                alert('Vui long xac nhan thong tin truoc khi thanh toan!');
+                e.preventDefault();
+                return;
+            }
+            this.classList.add('loading');
+            this.disabled = true;
+        });
+    </script>
+</body>
+</html>

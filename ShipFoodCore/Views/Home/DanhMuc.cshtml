@@ -1,0 +1,56 @@
+﻿@model List<ShipFood.Models.tbDanhMuc>
+@{
+    ViewBag.Title = "DanhMuc";
+    Layout = "~/Views/Shared/_LayoutPageHome.cshtml";
+}
+
+<!-- Page Header Start -->
+<div class="container-fluid page-header mb-5 wow fadeIn" data-wow-delay="0.1s">
+    <div class="container">
+        <h1 class="display-3 mb-3 animated slideInDown">Menu ẩm thực</h1>
+        <nav aria-label="breadcrumb animated slideInDown">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a class="text-body" href="#">Trang chủ</a></li>
+                <li class="breadcrumb-item text-dark active" aria-current="page">Danh mục</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+<!-- Page Header End -->
+<!-- Product Start -->
+<div class="container-xxl py-5">
+    <div class="container">
+        <div class="row g-0 gx-5 align-items-end">
+            <div class="col-lg-6">
+                <div class="section-header text-start mb-5 wow fadeInUp" data-wow-delay="0.1s" style="max-width: 500px;">
+                    <h1 class="display-5 mb-3">Menu ẩm thực</h1>
+                    <p>Khám phá thực đơn của chúng tôi với các món ăn đa dạng, từ khai vị đến tráng miệng, kết hợp hương vị truyền thống và sáng tạo hiện đại. Thưởng thức ngay!</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <div class="tab-content">
+        <div id="tab-1" class="tab-pane fade show p-0 active">
+            <div class="row g-4">
+                @foreach (var item in Model)
+                {
+                    <div class="col-xl-3 col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.1s">
+                        <div class="product-item">
+                            <div class="position-relative bg-light overflow-hidden">
+                                <a href="@Url.Action("SanPham", "Home", new {id = item.madanhmuc })"><img class="img-fluid w-100" style="height:250px" src="~/Source/images/Danhmuc/@item.hinhanh" alt=""></a>
+                                <div class="bg-secondary rounded text-white position-absolute start-0 top-0 m-4 py-1 px-3">New</div>
+                            </div>
+                            <div class="text-center p-4">
+                                <a class="d-block h5 mb-2" href="@Url.Action("SanPham", "Home", new {id = item.madanhmuc })">@item.tendanhmuc</a>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Product End -->

@@ -1,0 +1,182 @@
+﻿
+@{
+    ViewBag.Title = "Review";
+    Layout = "~/Views/Shared/_LayoutPageRestaurant.cshtml";
+    List<ShipFood.Models.tbDanhGia> danhgias = ViewBag.danhgias;
+}
+    <!-- row -->
+    <div class="container-fluid">
+        <div class="form-head d-flex mb-3 mb-md-4 align-items-start">
+            <div class="mr-auto d-none d-lg-block">
+                <h2 class="text-black font-w600 mb-1">Đánh giá</h2>
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="javascript:void(0)" class="text-primary">Dashboard</a></li>
+                    <li class="breadcrumb-item active"><a href="javascript:void(0)">Phản hồi khách hàng</a></li>
+                </ol>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="widget-carousel owl-carousel"
+                    @foreach(var i in danhgias) {
+                        <div class="items">
+                        <div class="bootstrap-media card p-4">
+                            <div class="media mb-4 align-items-center">
+                                <img class="mr-3 img-fluid rounded-xl" width="94" src="~/Source/images/NhanXet/pic3.jpg" alt="DexignZone" />
+                                <div class="media-body">
+                                    <h5 class="mt-0 mb-3 text-black">@i.tbChiTietDonHang.tbMonAn.tenmon</h5>
+                                    <small class="mb-0 text-primary">@i.tbChiTietDonHang.tbMonAn.tbDanhMuc.tendanhmuc</small>
+                                </div>
+                            </div>
+                            <p class="fs-18 text-black mb-4">
+                                @i.nhanxet
+                            </p>
+                            <div class="reviewer-box">
+                                <div class="media align-items-center">
+                                    <img class="mr-3 img-fluid rounded" width="55" src="~/Source/Restaurant/images/avatar/1.png" alt="DexignZone" />
+                                    <div class="media-body">
+                                        <h4 class="mt-0 mb-1 text-white">@i.tbChiTietDonHang.tbDonHang.tbThongTinDatHang.tbKhachHang.tenkh</h4>
+                                        @*<small class="mb-0 text-light">Head Marketing</small>*@
+                                    </div>
+                                    <div class="star-review">
+                                        <i class="fa fa-star text-orange"></i>
+                                        <span class="ml-2">@i.diemdanhgia</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    }
+                </div>
+            </div>
+            <div class="col-lg-8 col-xl-9">
+                <div class="card">
+                    <div class="card-header border-0 pb-0 d-sm-flex d-block">
+                        <div>
+                            <h4 class="card-title mb-1 fs-28 font-w600">Đánh giá gần đây</h4>
+                            <p class="mb-0">Đây là đánh giá của khách hàng về nhà hàng của bạn</p>
+                        </div>
+                        <div class="dropdown">
+                            <button type="button" class="btn btn-primary dropdown-toggle light fs-14" data-toggle="dropdown" aria-expanded="false">
+                                Mới nhất
+                            </button>
+                            <div class="dropdown-menu">
+                                <a class="dropdown-item" href="#">Mới nhất</a>
+                                <a class="dropdown-item" href="#">Cũ</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        
+                        @*<div class="media review-box">
+                            <img class="mr-3 img-fluid btn-rounded" width="55" src="~/Source/Restaurant/images/avatar/1.jpg" alt="DexignZone" />
+                            <div class="media-body">
+                                <h4 class="mt-0 mb-0 text-black">Sanji Lee</h4>
+                                <ul class="review-meta mb-3 d-block d-sm-flex align-items-center">
+                                    <li class="mr-3"><small>Head Marketing</small></li>
+                                    <li class="mr-3"><small>24 June 2020</small></li>
+                                    <li class="ml-auto">
+                                        <span class="badge badge-rounded badge-warning light font-w500">Xuất sắc</span>
+                                    </li>
+                                </ul>
+                                <p class="mb-3 text-secondary">
+                                    We recently had dinner with friends at David CC and we all walked away with a great experience. Good food, pleasant environment, personal attention through all the evening. Thanks to the team and we will be back!
+                                </p>
+                            </div>
+                            <div class="media-footer align-self-center">
+                                <div class="star-review text-md-center">
+                                    <span class="text-secondary">1.0</span>
+                                    <i class="fa fa-star text-primary"></i>
+                                    <i class="fa fa-star text-gray"></i>
+                                    <i class="fa fa-star text-gray"></i>
+                                    <i class="fa fa-star text-gray"></i>
+                                    <i class="fa fa-star text-gray"></i>
+                                </div>
+                            </div>
+                        </div>*@
+                    </div>
+                    <div class="card-footer border-0 text-center py-4">
+                        <a href="#" class="btn btn-primary">Đọc thêm <i class="fa fa-angle-double-down scale2 ml-2"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+<script>
+    function widgetCarousel() {
+        /*  testimonial one function by = owl.carousel.js */
+        jQuery('.widget-carousel').owlCarousel({
+            loop: false,
+            margin: 30,
+            nav: true,
+            autoplaySpeed: 3000,
+            navSpeed: 3000,
+            paginationSpeed: 3000,
+            slideSpeed: 3000,
+            smartSpeed: 3000,
+            autoplay: false,
+            dots: false,
+            navText: ['<i class="fa fa-caret-left"></i>', '<i class="fa fa-caret-right"></i>'],
+            responsive: {
+                0: {
+                    items: 1,
+                },
+
+                480: {
+                    items: 2,
+                },
+
+                1200: {
+                    items: 3,
+                },
+                1750: {
+                    items: 4,
+                },
+            },
+        });
+    }
+
+    function carouselReview() {
+        /*  testimonial one function by = owl.carousel.js */
+        jQuery('.testimonial-one').owlCarousel({
+            loop: true,
+            autoplay: true,
+            margin: 0,
+            nav: false,
+            dots: false,
+            navText: [''],
+            responsive: {
+                0: {
+                    items: 1,
+                },
+
+                480: {
+                    items: 1,
+                },
+
+                767: {
+                    items: 1,
+                },
+                1000: {
+                    items: 1,
+                },
+            },
+        });
+        /*Custom Navigation work*/
+        jQuery('#next-slide').on('click', function () {
+            $('.testimonial-one').trigger('next.owl.carousel');
+        });
+
+        jQuery('#prev-slide').on('click', function () {
+            $('.testimonial-one').trigger('prev.owl.carousel');
+        });
+        /*Custom Navigation work*/
+    }
+
+    jQuery(window).on('load', function () {
+        setTimeout(function () {
+            widgetCarousel();
+            carouselReview();
+        }, 1000);
+    });
+</script>

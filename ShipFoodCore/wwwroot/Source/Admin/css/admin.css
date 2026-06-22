@@ -1,0 +1,35 @@
+﻿.form-group {
+    margin-bottom: 1rem;
+    position: relative;
+}
+.form-group input {
+    display: block;
+    width: 100%;
+    height: calc(1.5em + 0.75rem + 20px);
+    padding: 0.375rem 0.75rem;
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.5;
+    color: #495057;
+    background-color: #fff;
+    background-clip: padding-box;
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+}
+input.col-md-12 {
+    padding-top: 10px;
+}
+
+input.btn-update {
+    color: azure;
+    width: 100px;
+    background: #35c941;
+    border-radius: 30px;
+    border: 1px solid;
+    height: 40px;
+}
+    input.btn-update:hover {
+        color: black;
+        background: #35c941;
+        border: 1px solid #35c941;
+    }

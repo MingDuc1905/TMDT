@@ -37,7 +37,7 @@ public class HomeController : BaseController
     public ActionResult Index(string? txtSearch, int? idDM)
     {
         var quanAns = db.tbQuanAn.Include(q => q.tbUser).Include(q => q.tbMonAns).ToList();
-        if (txtSearch != null)
+        if (!string.IsNullOrEmpty(txtSearch))
         {
             string searchKeyNormalized = RemoveDiacritics(txtSearch.ToLower());
             quanAns = quanAns.Where(qa =>
@@ -47,7 +47,7 @@ public class HomeController : BaseController
             ).ToList();
             ViewBag.txtSearch = txtSearch;
         }
-        if (idDM != null)
+        if (idDM != null && idDM > 0)
         {
             quanAns = quanAns.Where(qa => qa.tbMonAn.Where(ma => ma.madanhmuc == idDM).Any()).ToList();
             ViewBag.idDM = idDM;
@@ -66,7 +66,7 @@ public class HomeController : BaseController
         var danhSachMonAn = db.tbMonAn.Where(m => m.maquanan == id).Include(m => m.tbDanhMuc).ToList();
         if (idDM != null)
             danhSachMonAn = danhSachMonAn.Where(ma => ma.madanhmuc == idDM).ToList();
-        if (searchKey != null)
+        if (!string.IsNullOrEmpty(searchKey))
         {
             string searchKeyNormalized = RemoveDiacritics(searchKey.ToLower());
             danhSachMonAn = danhSachMonAn.Where(ma => RemoveDiacritics(ma.tenmon.ToLower()).Contains(searchKeyNormalized)).ToList();
@@ -81,6 +81,25 @@ public class HomeController : BaseController
             .Where(km => monAnIds.Contains(km.mamon ?? 0) && km.trangthai == "Còn hạn")
             .Include(km => km.tbKhuyenMai)
             .ToList();
+
+        // Lấy danh sách món ăn người dùng đã mua (nếu đã đăng nhập)
+        var cartSession = GetCart();
+        HashSet<int> daMuaMonAnIds = new HashSet<int>();
+        if (cartSession != null && cartSession.userid > 0)
+        {
+            var userId = cartSession.userid;
+            var mattdhIds = db.tbThongTinDatHang
+                .Where(t => t.userid == userId)
+                .Select(t => (int?)t.mattdh)
+                .ToList();
+            daMuaMonAnIds = db.tbDonHang
+                .Where(dh => mattdhIds.Contains(dh.mattdh) && dh.trangthai != "Đã hủy")
+                .SelectMany(dh => dh.tbChiTietDonHangs)
+                .Select(ct => ct.mamon ?? 0)
+                .Distinct()
+                .ToHashSet();
+        }
+        ViewBag.DaMuaMonAnIds = daMuaMonAnIds;
 
         ViewBag.ThucDon = thucDon;
         ViewBag.DanhSachMonAn = danhSachMonAn;

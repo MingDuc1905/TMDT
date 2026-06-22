@@ -17,7 +17,7 @@ public class PaymentController : BaseController
     [HttpPost]
     [ValidateAntiForgeryToken]
     public JsonResult ProcessPayment(int? mattdh, string hoten, string quan, string diachicuthe,
-        string diachiadd, string SDT, string note, int pttt, string testResult)
+        string diachiadd, string SDT, string note, int pttt, string testResult, int? makhuyenmai = null)
     {
         if (!CheckLogin())
             return Json(new { success = false, message = "Vui lòng đăng nhập" });
@@ -69,16 +69,34 @@ public class PaymentController : BaseController
             decimal tongTienMon = cart.monAns.Sum(m => (m.giatien ?? 0) * m.soLuong);
             decimal phiShip = 15000;
 
+            // Tính giảm giá nếu có mã khuyến mãi
+            decimal discountAmount = 0;
+            int? appliedCouponId = null;
+            if (makhuyenmai != null)
+            {
+                var coupon = db.tbKhuyenMai.Find(makhuyenmai);
+                if (coupon != null && (coupon.ngayketthuc == null || coupon.ngayketthuc >= DateTime.Now))
+                {
+                    int phanTram = coupon.phantramgiam ?? 0;
+                    discountAmount = tongTienMon * phanTram / 100;
+                    appliedCouponId = coupon.makm;
+                }
+            }
+
+            decimal tongCong = tongTienMon + phiShip - discountAmount;
+            if (tongCong < 0) tongCong = 0;
+
             var dh = new tbDonHang
             {
                 maquan = cart.maquanan,
                 mattdh = ttdh.mattdh,
                 ngaydathang = DateTime.Now,
                 trangthai = "Đang xử lý",
-                tongtien = tongTienMon,
+                tongtien = tongCong,
                 hinhthucthanhtoan = pttt,
                 ghichu = note,
-                phiship = phiShip
+                phiship = phiShip,
+                makhuyenmai = appliedCouponId
             };
             db.tbDonHang.Add(dh);
             db.SaveChanges();

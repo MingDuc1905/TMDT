@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using ShipFood.Models;
 
@@ -6,6 +7,11 @@ namespace ShipFood.Controllers;
 public abstract class BaseController : Controller
 {
     protected dbFoodyEntities db = null!;
+
+    private static readonly JsonSerializerOptions _jsonOptions = new()
+    {
+        ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles
+    };
 
     protected bool CheckLogin()
     {
@@ -16,12 +22,12 @@ public abstract class BaseController : Controller
     {
         var userJson = HttpContext.Session.GetString("user");
         if (userJson == null) return null;
-        return System.Text.Json.JsonSerializer.Deserialize<tbUser>(userJson);
+        return JsonSerializer.Deserialize<tbUser>(userJson, _jsonOptions);
     }
 
     protected void SetSessionUser(tbUser user)
     {
-        var userJson = System.Text.Json.JsonSerializer.Serialize(user);
+        var userJson = JsonSerializer.Serialize(user, _jsonOptions);
         HttpContext.Session.SetString("user", userJson);
     }
 
@@ -29,12 +35,12 @@ public abstract class BaseController : Controller
     {
         var cartJson = HttpContext.Session.GetString("cart");
         if (cartJson == null) return null;
-        return System.Text.Json.JsonSerializer.Deserialize<Cart>(cartJson);
+        return JsonSerializer.Deserialize<Cart>(cartJson, _jsonOptions);
     }
 
     protected void SetCart(Cart cart)
     {
-        var cartJson = System.Text.Json.JsonSerializer.Serialize(cart);
+        var cartJson = JsonSerializer.Serialize(cart, _jsonOptions);
         HttpContext.Session.SetString("cart", cartJson);
     }
 }

@@ -71,16 +71,24 @@
                 <form action="~/Home/">
                     <select style="height: 30px; color: #3CB815;" name="idDM">
                         <option value="">Tất cả</option>
-                        @{ int count = 0;
+                        @{
+                            var selectedIdDM = ViewBag.idDM;
                             foreach (var item in _db.tbDanhMuc)
                             {
-                                <option value="@item.madanhmuc" selected="@(ViewBag.idDM == item.madanhmuc)">@item.tendanhmuc</option>
+                                var isSelected = selectedIdDM != null && (int)selectedIdDM == item.madanhmuc;
+                                if (isSelected)
+                                {
+                                    <option value="@item.madanhmuc" selected>@item.tendanhmuc</option>
+                                }
+                                else
+                                {
+                                    <option value="@item.madanhmuc">@item.tendanhmuc</option>
+                                }
                             }
                         }
                     </select>
                     <input style="color: #3CB815; height: 30px; border-radius: 5px; width: 60% " type="text" value="@ViewBag.txtSearch" name="txtSearch" />
-                    <button tyle="height: 30px;border-radius:5px;" class="btn-success">Tìm kiếm</button>
-
+                    <button style="height: 30px;border-radius:5px;" class="btn-success">Tìm kiếm</button>
                 </form>
             </div>
             <div class="collapse navbar-collapse" id="navbarCollapse">

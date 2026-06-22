@@ -31,6 +31,12 @@ builder.Services.AddHttpContextAccessor();
 
 // Register Services
 builder.Services.AddScoped<ShipFood.Services.RecommendationService>();
+builder.Services.AddScoped<ShipFood.Services.GeminiService>(sp =>
+{
+    var configuration = sp.GetRequiredService<IConfiguration>();
+    var apiKey = configuration["Gemini:ApiKey"];
+    return new ShipFood.Services.GeminiService(apiKey);
+});
 
 // Add Antiforgery (hỗ trợ AJAX header token cho Mock Payment)
 builder.Services.AddAntiforgery(options =>

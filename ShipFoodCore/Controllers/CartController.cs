@@ -39,7 +39,40 @@ public class CartController : BaseController
         ViewBag.phuongthuctt = db.tbLoaiHinhThanhToan.Where(t => !t.tenhinhthuc.Contains("Paypal")).ToList();
         ViewBag.diachicosan = db.tbThongTinDatHang.Where(tt => tt.userid == user!.userid).ToList();
         ViewBag.cart = cart;
+        ViewBag.CouponList = db.tbKhuyenMai.Where(k => k.ngayketthuc == null || k.ngayketthuc >= DateTime.Now).Take(5).ToList();
         return View();
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public JsonResult CheckCoupon(string code, decimal tongTien)
+    {
+        if (string.IsNullOrWhiteSpace(code))
+            return Json(new { success = false, message = "Vui lòng nhập mã khuyến mãi" });
+
+        var coupon = db.tbKhuyenMai
+            .FirstOrDefault(k => k.tenkm.ToLower() == code.ToLower()
+                && (k.ngayketthuc == null || k.ngayketthuc >= DateTime.Now));
+
+        if (coupon == null)
+            return Json(new { success = false, message = "Mã khuyến mãi không hợp lệ hoặc đã hết hạn" });
+
+        // Kiểm tra ngày bắt đầu
+        if (coupon.ngaybatdau != null && coupon.ngaybatdau > DateTime.Now)
+            return Json(new { success = false, message = "Mã khuyến mãi chưa đến ngày áp dụng" });
+
+        // Tính tiền giảm
+        int phanTramGiam = coupon.phantramgiam ?? 0;
+        decimal discountAmount = tongTien * phanTramGiam / 100;
+
+        return Json(new
+        {
+            success = true,
+            message = $"Áp dụng mã '{coupon.tenkm}' thành công! Giảm {phanTramGiam}% ({discountAmount:N0} VNĐ)",
+            couponId = coupon.makm,
+            discountPercent = phanTramGiam,
+            discountAmount = discountAmount
+        });
     }
 
     [HttpPost]

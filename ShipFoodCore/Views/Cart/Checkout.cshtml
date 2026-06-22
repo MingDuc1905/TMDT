@@ -6,6 +6,7 @@
     ShipFood.Models.City city = new ShipFood.Models.City();
     List<ShipFood.Models.tbLoaiHinhThanhToan> lhtt = ViewBag.phuongthuctt;
     List<ShipFood.Models.tbThongTinDatHang> ttdh = ViewBag.diachicosan;
+    List<ShipFood.Models.tbKhuyenMai> couponList = ViewBag.CouponList as List<ShipFood.Models.tbKhuyenMai> ?? new List<ShipFood.Models.tbKhuyenMai>();
 }
 
 <!DOCTYPE html>
@@ -17,7 +18,7 @@
     <meta name="keywords" content="Ogani, unica, creative, html">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Ogani | Template</title>
+    <title>Checkout | Fastship</title>
 
     <!-- Google Font -->
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;400;600;900&display=swap" rel="stylesheet">
@@ -39,10 +40,10 @@
             <div class="row">
                 <div class="col-lg-12 text-center">
                     <div class="breadcrumb__text">
-                        <h2 style="color:green">Checkout</h2>
+                        <h2 style="color:green">Thanh toán</h2>
                         <div class="breadcrumb__option">
                             <a href="~/Home">Trang chủ</a>
-                            <span>Checkout</span>
+                            <span>Thanh toán</span>
                         </div>
                     </div>
                 </div>
@@ -61,9 +62,7 @@
                             <input type="radio" name="RadioAddressType" id="current" /><span style="margin: 20px 20px 20px 5px; color: black">Lấy địa chỉ hiện tại</span>
                             <input type="radio" name="RadioAddressType" id="available" /><span style="margin: 20px 20px 20px 5px; color: black ">Chọn địa chỉ có sẵn</span>
                         </form>
-
                     </h6>
-                    
                 </div>
             </div>
             <div class="checkout__form">
@@ -73,6 +72,10 @@
                 @if (TempData["CartError"] != null)
                 {
                     <div class="alert alert-danger">@TempData["CartError"]</div>
+                }
+                @if (TempData["CartSuccess"] != null)
+                {
+                    <div class="alert alert-success">@TempData["CartSuccess"]</div>
                 }
 
                 <form id="paymentForm">
@@ -86,14 +89,13 @@
                         @if (ttdh.Count != 0)
                         {
                             <select name="mattdh">
-                                <option >Chọn thông tin đặt hàng</option>
+                                <option>Chọn thông tin đặt hàng</option>
                                 @foreach (var i in ttdh)
                                 {
                                     <option value="@i.mattdh">@i.sdt - @i.tennguoinhan - @i.diachi</option>
                                 }
                             </select>
                         }
-
                     </div>
                     <div class="row">
                         <div class="col-lg-8 col-md-6 formInfor">
@@ -124,7 +126,6 @@
                                         </div>
                                     </div>
                                 </div>
-                                
                             </div>
                             <div class="row">
                                 <div class="col-lg-12">
@@ -135,16 +136,42 @@
                                 </div>
                             </div>
                             <div class="checkout__input">
-                                <p><strong>Ghi chú đơn hàng</strong><span></span></p>
-                                <input type="text" name="note"
-                                       placeholder="Ghi chú đơn hàng">
+                                <p><strong>Ghi chú đơn hàng</strong></p>
+                                <input type="text" name="note" placeholder="Ghi chú đơn hàng">
+                            </div>
+
+                            <!-- Ô nhập mã khuyến mãi -->
+                            <div class="checkout__input mt-3" style="border: 1px solid #e0e0e0; border-radius: 8px; padding: 15px;">
+                                <p><strong>🎫 Mã khuyến mãi</strong></p>
+                                <div class="input-group">
+                                    <input type="text" id="coupon-code" class="form-control" placeholder="Nhập mã giảm giá" style="border-radius: 5px 0 0 5px;">
+                                    <div class="input-group-append">
+                                        <button type="button" id="btn-apply-coupon" class="btn btn-success" style="border-radius: 0 5px 5px 0;">
+                                            <i class="fas fa-check"></i> Áp dụng
+                                        </button>
+                                    </div>
+                                </div>
+                                <div id="coupon-result" class="mt-2" style="display:none;"></div>
+                                <input type="hidden" name="makhuyenmai" id="applied-coupon-id" value="" />
+                                
+                                @if (couponList.Any())
+                                {
+                                    <div class="mt-2">
+                                        <small class="text-muted">
+                                            <i class="fas fa-tag"></i> 
+                                            Mã có sẵn: 
+                                            @string.Join(", ", couponList.Select(c => c.tenkm).Take(3))
+                                            @if (couponList.Count > 3) { <span>và @(couponList.Count - 3) mã khác...</span> }
+                                        </small>
+                                    </div>
+                                }
                             </div>
 
                             <!-- Khu vực hiển thị nội dung theo phương thức thanh toán -->
                             <div id="payment-info-area" class="mt-3 p-3" style="border: 1px solid #e0e0e0; border-radius: 8px; display: none;">
                             </div>
 
-                            <div class="checkout__input__checkbox">
+                            <div class="checkout__input__checkbox mt-3">
                                 <label for="diff-acc">
                                     Tôi xác nhận thông tin trên là đúng
                                     <input type="checkbox" id="diff-acc">
@@ -163,9 +190,16 @@
                                         <li>@i.tenmon (@i.soLuong) <span>@((i.soLuong * i.giatien)?.ToString("N0")) VNĐ</span></li>
                                     }
                                 </ul>
-                                <div class="checkout__order__total">Tổng tiền món <span>@cart.tongTien?.ToString("N0") VNĐ</span></div>
-                                <div class="checkout__order__total">Phí ship <span>15000 VNĐ</span></div>
-                                <div class="checkout__order__total">Tổng <span>@((cart.tongTien + 15000)?.ToString("N0")) VNĐ</span></div>
+                                <div class="checkout__order__total" id="order-subtotal">
+                                    Tạm tính <span id="subtotal-amount">@cart.tongTien?.ToString("N0") VNĐ</span>
+                                </div>
+                                <div class="checkout__order__total" id="order-discount" style="display:none; color: #28a745;">
+                                    Giảm giá <span id="discount-amount">-0 VNĐ</span>
+                                </div>
+                                <div class="checkout__order__total">Phí ship <span>15,000 VNĐ</span></div>
+                                <div class="checkout__order__total" style="font-weight: 700; font-size: 18px; border-top: 2px solid #e74c3c; padding-top: 10px;">
+                                    Tổng cộng <span id="order-total">@((cart.tongTien + 15000)?.ToString("N0")) VNĐ</span>
+                                </div>
 
                                 @foreach (var i in lhtt)
                                 {
@@ -240,7 +274,60 @@
             } else {
                 $('.payment-method:checked').trigger('change');
             }
+
+            // Xử lý áp dụng mã khuyến mãi
+            $('#btn-apply-coupon').click(function() {
+                applyCoupon();
+            });
+            $('#coupon-code').keypress(function(e) {
+                if (e.which === 13) {
+                    e.preventDefault();
+                    applyCoupon();
+                }
+            });
         });
+
+        function applyCoupon() {
+            var code = $('#coupon-code').val().trim();
+            var resultDiv = $('#coupon-result');
+            var couponIdInput = $('#applied-coupon-id');
+
+            if (code === '') {
+                resultDiv.html('<span class="text-danger"><i class="fas fa-exclamation-circle"></i> Vui lòng nhập mã khuyến mãi</span>').show();
+                return;
+            }
+
+            // Gọi API kiểm tra mã
+            $.ajax({
+                url: '@Url.Action("CheckCoupon", "Cart")',
+                type: 'POST',
+                data: { code: code, tongTien: @(cart?.tongTien ?? 0) },
+                headers: {
+                    'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function(response) {
+                    if (response.success) {
+                        couponIdInput.val(response.couponId);
+                        resultDiv.html('<span class="text-success"><i class="fas fa-check-circle"></i> ' + response.message + '</span>').show();
+                        
+                        // Cập nhật tổng tiền
+                        var discount = response.discountAmount || 0;
+                        var subtotal = @(cart?.tongTien ?? 0);
+                        var newTotal = subtotal - discount + 15000;
+                        if (newTotal < 0) newTotal = 0;
+                        
+                        $('#order-discount').show().find('#discount-amount').text('-' + discount.toLocaleString('vi-VN') + ' VNĐ');
+                        $('#order-total').text(newTotal.toLocaleString('vi-VN') + ' VNĐ');
+                        $('#btn-apply-coupon').prop('disabled', true).html('<i class="fas fa-check"></i> Đã áp dụng');
+                    } else {
+                        resultDiv.html('<span class="text-danger"><i class="fas fa-exclamation-circle"></i> ' + response.message + '</span>').show();
+                    }
+                },
+                error: function() {
+                    resultDiv.html('<span class="text-danger"><i class="fas fa-exclamation-circle"></i> Lỗi kết nối. Vui lòng thử lại.</span>').show();
+                }
+            });
+        }
 
         function submitPayment(testResult) {
             // Validate form
@@ -273,6 +360,7 @@
                 note: $('textarea[name="note"]').val(),
                 pttt: parseInt(pttt),
                 mattdh: $('select[name="mattdh"]').val(),
+                makhuyenmai: $('#applied-coupon-id').val() || '',
                 testResult: testResult
             };
 
@@ -291,7 +379,8 @@
                             '<i class="fas fa-check-circle text-success" style="font-size: 48px;"></i>',
                             '<h4>Đặt hàng thành công!</h4>',
                             '<p class="text-muted">' + response.message + '</p>',
-                            '<a href="~/Cart/LichSuDatHang" class="btn btn-success">Xem lịch sử đơn hàng</a>'
+                            '<a href="~/Cart/LichSuDatHang" class="btn btn-success">Xem lịch sử đơn hàng</a>',
+                            true
                         );
                     } else {
                         showPaymentPopup(
@@ -299,7 +388,8 @@
                             '<i class="fas fa-times-circle text-danger" style="font-size: 48px;"></i>',
                             '<h4>Thanh toán thất bại</h4>',
                             '<p class="text-muted">' + response.message + '</p>',
-                            '<button class="btn btn-warning" onclick="location.reload()">Thử lại</button>'
+                            '<button class="btn btn-warning" onclick="location.reload()">Thử lại</button>',
+                            false
                         );
                     }
                 },
@@ -309,7 +399,8 @@
                         '<i class="fas fa-exclamation-triangle text-danger" style="font-size: 48px;"></i>',
                         '<h4>Lỗi hệ thống</h4>',
                         '<p class="text-muted">Đã xảy ra lỗi khi xử lý thanh toán. Vui lòng thử lại sau.</p>',
-                        '<button class="btn btn-warning" onclick="location.reload()">Thử lại</button>'
+                        '<button class="btn btn-warning" onclick="location.reload()">Thử lại</button>',
+                        false
                     );
                 },
                 complete: function () {
@@ -318,12 +409,9 @@
             });
         }
 
-        function showPaymentPopup(type, icon, title, message, actionBtn) {
+        function showPaymentPopup(type, icon, title, message, actionBtn, isSuccess) {
             // Xóa popup cũ nếu có
             $('#payment-popup-overlay').remove();
-
-            var bgColor = type === 'success' ? '#d4edda' : '#f8d7da';
-            var borderColor = type === 'success' ? '#c3e6cb' : '#f5c6cb';
 
             var overlay = $('<div id="payment-popup-overlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;"></div>');
             var popup = $('<div style="background:white;border-radius:16px;padding:40px;text-align:center;max-width:400px;box-shadow:0 10px 40px rgba(0,0,0,0.2);animation:popIn 0.3s ease;">');
@@ -344,16 +432,22 @@
             // Đóng popup khi click ra ngoài
             overlay.click(function (e) {
                 if (e.target === this) {
-                    if (type === 'success') {
+                    if (isSuccess) {
                         window.location.href = '@Url.Action("LichSuDatHang", "Cart")';
                     } else {
                         $(this).remove();
                     }
                 }
             });
+            
+            // Tự động chuyển hướng sau 3 giây nếu thành công
+            if (isSuccess) {
+                setTimeout(function() {
+                    window.location.href = '@Url.Action("LichSuDatHang", "Cart")';
+                }, 3000);
+            }
         }
     </script>
 </body>
 
 </html>
-

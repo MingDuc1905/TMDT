@@ -42,7 +42,7 @@ secrets.json
 *.Development.json
 
 # ============
-# AI/Agent Tools
+# AI/Agent Tools & Skills
 # ============
 .continue/
 .aider*
@@ -51,6 +51,7 @@ secrets.json
 .roocode/
 .claude/
 .agents/
+Skill/
 
 # ============
 # Node / Frontend

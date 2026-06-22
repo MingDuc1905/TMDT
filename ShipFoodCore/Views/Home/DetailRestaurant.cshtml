@@ -93,18 +93,26 @@
                         <div class="menu-restaurant-tab"><div class="item active">Thực đơn</div></div>
                         <div class="menu-restaurant-content-tab">
                             <div class="menu-restaurant-container">
-                                <div class="menu-restaurant-category">
-                                    <div class="list-category" id="scroll-spy">
-                                        <div class="scrollbar-container ps">
-                                            @foreach (var thucdon in ViewBag.ThucDon)
-                                            {
-                                                <a href="~/Home/DetailRestaurant?idDM=@thucdon.madanhmuc&id=@ViewBag.maquan">
+                                <div class="menu-restaurant-category">                                        <div class="list-category" id="scroll-spy">
+                                            <div class="scrollbar-container ps">
+                                                <a href="~/Home/DetailRestaurant?id=@ViewBag.maquan">
                                                     <div class="item">
-                                                        <span id="-1" title="@thucdon.tendanhmuc" class="item-link active">@thucdon.tendanhmuc</span>
+                                                        <span title="Tất cả" class="item-link @(ViewBag.idDM == null ? "active" : "")">Tất cả</span>
                                                     </div>
                                                 </a>
-                                            }
-                                        </div>
+                                                @foreach (var thucdon in ViewBag.ThucDon)
+                                                {
+                                                    var searchKey = ViewBag.searchKey;
+                                                    var href = string.IsNullOrEmpty(searchKey)
+                                                        ? $"~/Home/DetailRestaurant?idDM={thucdon.madanhmuc}&id={ViewBag.maquan}"
+                                                        : $"~/Home/DetailRestaurant?idDM={thucdon.madanhmuc}&id={ViewBag.maquan}&searchKey={Uri.EscapeDataString(searchKey)}";
+                                                    <a href="@href">
+                                                        <div class="item">
+                                                            <span id="-1" title="@thucdon.tendanhmuc" class="item-link @(ViewBag.idDM == thucdon.madanhmuc ? "active" : "")">@thucdon.tendanhmuc</span>
+                                                        </div>
+                                                    </a>
+                                                }
+                                            </div>
                                         <div class="ps__rail-x" style="left: 0px; bottom: 0px"><div class="ps__thumb-x" tabindex="0" style="left: 0px; width: 0px"></div></div>
                                         <div class="ps__rail-y" style="top: 0px; right: 0px"><div class="ps__thumb-y" tabindex="0" style="top: 0px; height: 0px"></div></div>
                                     </div>
@@ -120,8 +128,22 @@
                                                 </p>
                                             </form>
                                         </div>
-                                        <div class="menu-group" id="section-group-menu--1" style="height: 56px; left: 0px; position: relative; top: 0px; width: 100%">
-                                            <div class="title-menu"><strong>Danh sách món</strong></div>
+                                        <div class="menu-group" id="section-group-menu--1" style="height: auto; left: 0px; position: relative; top: 0px; width: 100%; padding-bottom: 8px;">
+                                            <div class="title-menu" style="display: flex; justify-content: space-between; align-items: center;">
+                                                <strong>Danh sách món</strong>
+                                                @{
+                                                    var daMuaMonAnIds = ViewBag.DaMuaMonAnIds as HashSet<int>;
+                                                    var userJson = Context.Session.GetString("user");
+                                                    var isLoggedIn = !string.IsNullOrEmpty(userJson);
+                                                }
+                                                @if (isLoggedIn && daMuaMonAnIds != null && daMuaMonAnIds.Any())
+                                                {
+                                                    <label style="font-size:13px;cursor:pointer;user-select:none;">
+                                                        <input type="checkbox" id="filter-da-mua" onchange="toggleDaMuaFilter()" />
+                                                        <span style="color:#e74c3c;">❤ Đã mua</span>
+                                                    </label>
+                                                }
+                                            </div>
                                         </div>
                                         @foreach (var item in ViewBag.DanhSachMonAn)
                                         {
@@ -132,7 +154,8 @@
                                             {
                                                 giaKhuyenMai = giaGoc - (giaGoc * khuyenMai.phantramgiam / 100);
                                             }
-                                            <div class="item-restaurant-row" style="display: block; height: 84px; position: relative; width: 100%; margin-bottom: 20px;">
+                                            var daMua = daMuaMonAnIds != null && daMuaMonAnIds.Contains(item.mamon);
+                                            <div class="item-restaurant-row @(daMua ? "item-da-mua" : "")" style="display: block; height: 84px; position: relative; width: 100%; margin-bottom: 20px;">
                                                 <div class="row">
                                                     <div class="col-auto item-restaurant-img">
                                                         <button class="inline">
@@ -144,7 +167,13 @@
                                                         }
                                                     </div>
                                                     <div class="col item-restaurant-info">
-                                                        <h2 class="item-restaurant-name">@item.tenmon</h2>
+                                                        <h2 class="item-restaurant-name">
+                                                            @item.tenmon
+                                                            @if (daMua)
+                                                            {
+                                                                <span style="font-size:11px;background:#e74c3c;color:white;padding:1px 6px;border-radius:3px;margin-left:6px;">Đã mua</span>
+                                                            }
+                                                        </h2>
                                                         <div class="item-restaurant-desc">@item.mota</div>
                                                         <div class="item-restaurant-total">Đã được đặt<span class="txt-bold">&nbsp;100+&nbsp;</span>lần&nbsp;&nbsp;|&nbsp;&nbsp;<i class="fa fa-thumbs-up" aria-hidden="true"></i>&nbsp;&nbsp;3</div>
                                                     </div>
@@ -277,6 +306,24 @@
                 });
             });
         });
+
+        // Filter "Đã mua" toggle
+        function toggleDaMuaFilter() {
+            var checked = document.getElementById('filter-da-mua').checked;
+            var items = document.querySelectorAll('.item-restaurant-row');
+            items.forEach(function(item) {
+                if (checked) {
+                    // Only show items that have been purchased
+                    if (item.classList.contains('item-da-mua')) {
+                        item.style.display = 'block';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                } else {
+                    item.style.display = 'block';
+                }
+            });
+        }
     </script>
 </body>
 </html>

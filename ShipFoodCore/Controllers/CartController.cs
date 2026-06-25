@@ -36,7 +36,12 @@ public class CartController : BaseController
             return RedirectToAction("Index");
         }
 
-        ViewBag.phuongthuctt = db.tbLoaiHinhThanhToan.Where(t => !t.tenhinhthuc.Contains("Paypal")).ToList();
+        // Ch? gi? l?i ph??ng th?c thanh to�n: Ti?n m?t, Chuy?n kho?n (lo?i b? ZaloPay, MoMo, PayPal)
+        var excludedMethods = new[] { "ZaloPay", "Momo", "Paypal" };
+        ViewBag.phuongthuctt = db.tbLoaiHinhThanhToan
+            .AsEnumerable()
+            .Where(t => !excludedMethods.Any(e => t.tenhinhthuc.Contains(e, StringComparison.OrdinalIgnoreCase)))
+            .ToList();
         ViewBag.diachicosan = db.tbThongTinDatHang.Where(tt => tt.userid == user!.userid).ToList();
         ViewBag.cart = cart;
         ViewBag.CouponList = db.tbKhuyenMai.Where(k => k.ngayketthuc == null || k.ngayketthuc >= DateTime.Now).Take(5).ToList();
@@ -197,6 +202,8 @@ public class CartController : BaseController
         var user = GetCurrentUser();
         var donHangs = db.tbDonHang
             .Include(dh => dh.tbThongTinDatHang)
+            .Include(dh => dh.tbQuanAn)
+            .Include(dh => dh.tbChiTietDonHangs)
             .Where(dh => dh.tbThongTinDatHang!.userid == user!.userid)
             .OrderBy(dh => dh.ngaydathang)
             .ToList();
@@ -220,6 +227,11 @@ public class CartController : BaseController
         return View();
     }
 
+    public ActionResult FailureView()
+    {
+        return View();
+    }
+
     public ActionResult SuccessView()
     {
         var user = GetCurrentUser();
@@ -238,9 +250,14 @@ public class CartController : BaseController
         string? note = TempData["note"] as string;
 
         // Validate thông tin bắt buộc
-        if (string.IsNullOrWhiteSpace(hoten) || string.IsNullOrWhiteSpace(SDT))
+        if (string.IsNullOrWhiteSpace(hoten) || hoten.Length < 2 || hoten.Length > 100)
         {
-            TempData["CartError"] = "Vui lòng điền đầy đủ thông tin người nhận";
+            TempData["CartError"] = "Họ tên phải từ 2-100 ký tự";
+            return RedirectToAction("Checkout");
+        }
+        if (string.IsNullOrWhiteSpace(SDT) || !System.Text.RegularExpressions.Regex.IsMatch(SDT, @"^0[1-9][0-9]{8,9}$"))
+        {
+            TempData["CartError"] = "Số điện thoại không hợp lệ — phải là 10-11 số, bắt đầu bằng 0";
             return RedirectToAction("Checkout");
         }
 

@@ -247,6 +247,106 @@
     <script src="~/Source/Cart/js/main.js"></script>
     <script src="~/Source/Cart/js/checkout.js"></script>
     <script>
+        // ====== Geolocation: Lấy địa chỉ hiện tại ======
+        $(document).ready(function () {
+            $('input[name="RadioAddressType"]').change(function () {
+                if (this.id === 'current') {
+                    getCurrentLocation();
+                }
+            });
+        });
+
+        function getCurrentLocation() {
+            if (!navigator.geolocation) {
+                alert('Trình duyệt của bạn không hỗ trợ định vị. Vui lòng nhập địa chỉ thủ công.');
+                $('input[name="RadioAddressType"][id="new"]').prop('checked', true).trigger('change');
+                return;
+            }
+
+            $('#input-hoten, #input-sdt').prop('disabled', true);
+            var statusMsg = $('<div id="geo-status" class="alert alert-info"><i class="fas fa-spinner fa-spin"></i> Đang lấy vị trí của bạn...</div>');
+            $('.formInfor').prepend(statusMsg);
+
+            navigator.geolocation.getCurrentPosition(
+                function (position) {
+                    $('#geo-status').html('<i class="fas fa-check-circle text-success"></i> Đã lấy được vị trí! Đang tra cứu địa chỉ...');
+                    reverseGeocode(position.coords.latitude, position.coords.longitude);
+                },
+                function (error) {
+                    $('#geo-status').remove();
+                    $('#input-hoten, #input-sdt').prop('disabled', false);
+                    var msg = '';
+                    switch (error.code) {
+                        case error.PERMISSION_DENIED: msg = 'Bạn đã từ chối cấp quyền vị trí. Vui lòng cho phép truy cập vị trí hoặc nhập địa chỉ thủ công.'; break;
+                        case error.POSITION_UNAVAILABLE: msg = 'Không thể xác định vị trí. Vui lòng nhập địa chỉ thủ công.'; break;
+                        case error.TIMEOUT: msg = 'Quá thời gian chờ lấy vị trí. Vui lòng nhập địa chỉ thủ công.'; break;
+                        default: msg = 'Lỗi không xác định: ' + error.message; break;
+                    }
+                    alert(msg);
+                    $('input[name="RadioAddressType"][id="new"]').prop('checked', true).trigger('change');
+                },
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+            );
+        }
+
+        function reverseGeocode(lat, lng) {
+            // S? d?ng Nominatim (OpenStreetMap) free reverse geocoding
+            $.ajax({
+                url: 'https://nominatim.openstreetmap.org/reverse',
+                data: { format: 'json', lat: lat, lon: lng, addressdetails: 1, 'accept-language': 'vi' },
+                dataType: 'json',
+                timeout: 8000,
+                headers: { 'User-Agent': 'FastShipApp/1.0' },
+                success: function (data) {
+                    $('#geo-status').remove();
+                    $('#input-hoten, #input-sdt').prop('disabled', false);
+                    if (data && data.display_name) {
+                        var addr = data.address || {};
+                        // T? ?i?n ??a ch? chi ti?t t? d? li?u reverse
+                        var road = addr.road || addr.pedestrian || addr.street || '';
+                        var houseNum = addr.house_number || '';
+                        var suburb = addr.suburb || addr.neighbourhood || '';
+                        var district = addr.city_district || addr.county || '';
+                        var city = addr.city || addr.town || addr.village || '';
+                        var fullAddr = [houseNum, road, suburb].filter(Boolean).join(' ');
+
+                        // T?m qu?n/huy?n trong dropdown
+                        if (district) {
+                            var foundDistrict = district.toLowerCase();
+                            $('select[name="quan"] option').each(function () {
+                                if ($(this).val().toLowerCase().includes(foundDistrict)) {
+                                    $(this).prop('selected', true);
+                                    return false;
+                                }
+                            });
+                        }
+
+                        // ?i?n ??a ch? c? th?
+                        if (fullAddr) {
+                            $('input[name="diachicuthe"]').val(fullAddr);
+                        } else if (data.display_name) {
+                            // L?y ph?n ng?n g?n c?a display_name (b? t?nh/th?nh ph? ? cu?i)
+                            var parts = data.display_name.split(',');
+                            if (parts.length > 2) {
+                                $('input[name="diachicuthe"]').val(parts.slice(0, -2).join(',').trim());
+                            } else {
+                                $('input[name="diachicuthe"]').val(data.display_name);
+                            }
+                        }
+
+                        alert('\u2705 \u0110\u00e3 l\u1ea5y \u0111\u01b0\u1ee3c v\u1ecb tr\u00ed c\u1ee7a b\u1ea1n! Vui l\u00f2ng ki\u1ec3m tra l\u1ea1i th\u00f4ng tin \u0111\u1ecba ch\u1ec9 v\u00e0 nh\u1eadp s\u1ed1 nh\u00e0 n\u1ebfu c\u1ea7n.');
+                    } else {
+                        alert('Kh\u00f4ng th\u1ec3 tra c\u1ee9u \u0111\u1ecba ch\u1ec9 t\u1eeb v\u1ecb tr\u00ed hi\u1ec7n t\u1ea1i. Vui l\u00f2ng nh\u1eadp th\u1ee7 c\u00f4ng.');
+                    }
+                },
+                error: function () {
+                    $('#geo-status').remove();
+                    $('#input-hoten, #input-sdt').prop('disabled', false);
+                    alert('Kh\u00f4ng th\u1ec3 k\u1ebft n\u1ed1i d\u1ecbch v\u1ee5 tra c\u1ee9u \u0111\u1ecba ch\u1ec9. Vui l\u00f2ng nh\u1eadp \u0111\u1ecba ch\u1ec9 th\u1ee7 c\u00f4ng.');
+                }
+            });
+        }
+
         // Mock Payment System
         $(document).ready(function () {
             $('.payment-method').change(function () {
@@ -260,7 +360,7 @@
                 if (methodName.includes('Tiền mặt') || methodName.includes('COD')) {
                     area.html('<div class="text-center py-4">\n                            <div style="width: 70px;height: 70px;margin: 0 auto 12px;background: linear-gradient(135deg, #28a745, #20c997);border-radius: 50%;display: flex;align-items: center;justify-content: center;">\n                                <i class="fas fa-money-bill-wave" style="font-size: 32px; color: white;"></i>\n                            </div>\n                            <h5 style="font-weight: 700; color: #28a745;">Thanh toán khi nhận hàng</h5>\n                            <div style="background: #f8fff8; border: 1px solid #c3e6cb; border-radius: 10px; padding: 12px; margin-top: 10px;">\n                                <i class="fas fa-info-circle text-success me-1"></i>\n                                <span class="text-muted">Vui lòng chuẩn bị sẵn số tiền mặt chính xác khi shipper giao hàng.</span>\n                            </div>\n                        </div>');
                     testArea.hide();
-                    submitBtn.hide();
+                    submitBtn.show();
                 } else if (methodName.includes('Chuyển khoản')) {
                     area.html('<div class="text-center py-3">\n                            <div style="width: 70px;height: 70px;margin: 0 auto 12px;background: linear-gradient(135deg, #007bff, #17a2b8);border-radius: 50%;display: flex;align-items: center;justify-content: center;">\n                                <i class="fas fa-university" style="font-size: 32px; color: white;"></i>\n                            </div>\n                            <h5 style="font-weight: 700; color: #007bff;">Chuyển khoản ngân hàng</h5>\n                            <div style="background: linear-gradient(145deg, #f8f9ff, #eef1ff); border: 1px solid #d0d7ff; border-radius: 12px; padding: 14px; margin-top: 10px; text-align: left;">\n                                <div class="d-flex justify-content-between mb-2"><span class="text-muted">Ngân hàng:</span><strong>Vietcombank</strong></div>\n                                <div class="d-flex justify-content-between mb-2"><span class="text-muted">Số TK:</span><strong style="color: #e74c3c; letter-spacing: 1px;">1234 5678 9012</strong></div>\n                                <div class="d-flex justify-content-between mb-2"><span class="text-muted">Chủ TK:</span><strong>FASTSHIP CO., LTD</strong></div>\n                                <div class="d-flex justify-content-between"><span class="text-muted">Nội dung:</span><strong id="transfer-content" style="color: #e74c3c;">DH[MaDonHang]</strong></div>\n                            </div>\n                            <div class="mt-3">\n                                <div style="width:140px;height:140px;margin:0 auto;background:white;display:flex;align-items:center;justify-content:center;border:2px solid #d0d7ff;border-radius:12px;box-shadow:0 4px 15px rgba(0,0,0,0.06);">\n                                    <div class="text-center">\n                                        <i class="fas fa-qrcode" style="font-size:56px;color:#007bff;"></i>\n                                        <p class="small text-muted mb-0 mt-1">QR Mô phỏng</p>\n                                    </div>\n                                </div>\n                                <p class="text-muted small mt-2"><i class="fas fa-camera me-1"></i>Quét mã để thanh toán</p>\n                            </div>\n                        </div>');
                     testArea.show();
@@ -329,21 +429,39 @@
             });
         }
 
+        function validatePhone(sdt) {
+            return /^(0[1-9][0-9]{8,9})$/.test(sdt);
+        }
+
         function submitPayment(testResult) {
             // Validate form
             var hoten = $('#input-hoten').val().trim();
             var sdt = $('#input-sdt').val().trim();
             var diachi = $('input[name="diachicuthe"]').val().trim();
+            var quan = $('select[name="quan"]').val();
             var pttt = $('input[name="pttt"]:checked').val();
 
             if (hoten === '') { alert('Vui lòng nhập họ tên người nhận'); return; }
+            if (hoten.length < 2) { alert('Họ tên phải có ít nhất 2 ký tự'); return; }
+            if (hoten.length > 100) { alert('Họ tên không được quá 100 ký tự'); return; }
+
             if (sdt === '') { alert('Vui lòng nhập số điện thoại'); return; }
+            if (!validatePhone(sdt)) { alert('Số điện thoại không hợp lệ — phải là 10-11 số, bắt đầu bằng 0 (VD: 0912345678)'); return; }
+
             if (!pttt) { alert('Vui lòng chọn phương thức thanh toán'); return; }
             if (!$('#diff-acc').is(':checked')) { alert('Vui lòng xác nhận thông tin trên là đúng'); return; }
 
             var isAvailable = $('#available').is(':checked');
             if (!isAvailable && diachi === '') {
                 alert('Vui lòng nhập địa chỉ giao hàng');
+                return;
+            }
+            if (!isAvailable && diachi.length < 5) {
+                alert('Địa chỉ phải có ít nhất 5 ký tự');
+                return;
+            }
+            if (!isAvailable && diachi.length > 250) {
+                alert('Địa chỉ không được quá 250 ký tự');
                 return;
             }
 

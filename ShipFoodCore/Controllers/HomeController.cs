@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ShipFood.Models;
@@ -130,13 +131,27 @@ public class HomeController : BaseController
     }
 
     [HttpPost]
-    public ActionResult Login(tbUser user)
+    public ActionResult Login(string usernameOrPhone, string pwd)
     {
-        var users = db.tbUser.Where(u => u.username.Equals(user.username) && u.pwd.Equals(user.pwd)).ToList();
+        if (string.IsNullOrWhiteSpace(usernameOrPhone) || string.IsNullOrWhiteSpace(pwd))
+        {
+            ViewBag.LoginFail = "Vui lòng nhập tên đăng nhập/SĐT và mật khẩu";
+            return View();
+        }
+
+        // Tự động nhận diện: nếu nhập số (bắt đầu bằng 0, 10-11 số) → tìm theo SĐT, ngược lại → tìm theo username
+        bool isPhone = System.Text.RegularExpressions.Regex.IsMatch(usernameOrPhone, @"^0[1-9][0-9]{8,9}$");
+
+        IQueryable<tbUser> query = db.tbUser.Where(u => u.pwd == pwd);
+        if (isPhone)
+            query = query.Where(u => u.sdt == usernameOrPhone);
+        else
+            query = query.Where(u => u.username == usernameOrPhone);
+
+        var users = query.ToList();
         if (users.Count != 0)
         {
             var userFind = users[0];
-            // Chỉ chặn tài khoản bị khóa (trangthai == 2), bỏ check duyệt
             if (userFind.trangthai == 2)
             {
                 ViewBag.LoginFail = "Tài khoản đã bị khóa";
@@ -163,6 +178,68 @@ public class HomeController : BaseController
         }
     }
 
+    /// <summary>
+    /// Đăng nhập bằng Google - chuyển hướng đến Google OAuth
+    /// </summary>
+    public IActionResult GoogleLogin()
+    {
+        var redirectUrl = Url.Action("GoogleResponse", "Home");
+        var properties = new Microsoft.AspNetCore.Authentication.AuthenticationProperties { RedirectUri = redirectUrl };
+        return Challenge(properties, Microsoft.AspNetCore.Authentication.Google.GoogleDefaults.AuthenticationScheme);
+    }
+
+    /// <summary>
+    /// Google OAuth callback - xử lý sau khi Google xác thực thành công
+    /// </summary>
+    public async Task<ActionResult> GoogleResponse()
+    {
+        // Đọc từ cookie (Google middleware tự động lưu vào cookie nhờ AddCookie)
+        var authenticateResult = await HttpContext.AuthenticateAsync(Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme);
+        if (!authenticateResult.Succeeded)
+        {
+            ViewBag.LoginFail = "Đăng nhập Google thất bại";
+            return View("Login");
+        }
+
+        // Lấy thông tin email từ Google
+        var email = authenticateResult.Principal?.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+        var name = authenticateResult.Principal?.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value;
+
+        if (string.IsNullOrEmpty(email))
+        {
+            ViewBag.LoginFail = "Không thể lấy thông tin email từ Google";
+            return View("Login");
+        }
+
+        // Tìm user theo email
+        var users = db.tbUser.Where(u => u.email == email).ToList();
+        if (users.Count == 0)
+        {
+            ViewBag.LoginFail = "Email Google này chưa được đăng ký trong hệ thống. Vui lòng đăng ký tài khoản trước.";
+            return View("Login");
+        }
+
+        var userFind = users[0];
+        if (userFind.trangthai == 2)
+        {
+            ViewBag.LoginFail = "Tài khoản đã bị khóa";
+            return View("Login");
+        }
+
+        var cart = new Cart { userid = userFind.userid };
+        SetCart(cart);
+        SetSessionUser(userFind);
+
+        return userFind.loaitaikhoan switch
+        {
+            "Khách hàng" => RedirectToAction("Index", "Home"),
+            "Shipper" => RedirectToAction("Index", "Shipper"),
+            "Quán ăn" => RedirectToAction("Index", "Restaurant"),
+            "Admin" => RedirectToAction("Index", "Admin"),
+            _ => RedirectToAction("Index"),
+        };
+    }
+
     public ActionResult Signup()
     {
         return View();
@@ -171,10 +248,26 @@ public class HomeController : BaseController
     [HttpPost]
     public ActionResult Signup(tbUser user, string repeatpw, string diachi, string hoten)
     {
-        // BUG-004: Validate mật khẩu mạnh
-        if (string.IsNullOrEmpty(user.pwd) || user.pwd.Length < 6)
+        // === Validate dữ liệu đầu vào ===
+
+        // Họ tên
+        if (string.IsNullOrWhiteSpace(hoten) || hoten.Length < 2 || hoten.Length > 100)
         {
-            ViewBag.err = "Mật khẩu phải có ít nhất 6 ký tự";
+            ViewBag.err = "Họ tên phải từ 2-100 ký tự";
+            return View();
+        }
+
+        // Username
+        if (string.IsNullOrWhiteSpace(user.username) || user.username.Length < 3 || user.username.Length > 50)
+        {
+            ViewBag.err = "Tên đăng nhập phải từ 3-50 ký tự";
+            return View();
+        }
+
+        // Mật khẩu
+        if (string.IsNullOrEmpty(user.pwd) || user.pwd.Length < 6 || user.pwd.Length > 50)
+        {
+            ViewBag.err = "Mật khẩu phải từ 6-50 ký tự";
             return View();
         }
         if (!user.pwd.Any(char.IsDigit))
@@ -187,38 +280,69 @@ public class HomeController : BaseController
             ViewBag.err = "Mật khẩu phải chứa ít nhất một chữ cái";
             return View();
         }
-
         if (user.pwd != repeatpw)
         {
-            ViewBag.err = "Xác nhận mật khẩu sai";
+            ViewBag.err = "Xác nhận mật khẩu không khớp";
             return View();
         }
 
-        // BUG-005/006: Validate các trường bắt buộc
+        // Số điện thoại — validate format Việt Nam (10-11 số, bắt đầu bằng 0)
+        if (string.IsNullOrWhiteSpace(user.sdt))
+        {
+            ViewBag.err = "Vui lòng nhập số điện thoại";
+            return View();
+        }
+        if (!System.Text.RegularExpressions.Regex.IsMatch(user.sdt, @"^0[1-9][0-9]{8,9}$"))
+        {
+            ViewBag.err = "Số điện thoại không hợp lệ — phải là 10-11 số, bắt đầu bằng 0 (VD: 0912345678)";
+            return View();
+        }
+
+        // Email
         if (string.IsNullOrWhiteSpace(user.email))
         {
             ViewBag.err = "Vui lòng nhập email";
             return View();
         }
-        if (string.IsNullOrWhiteSpace(diachi))
+        try
         {
-            ViewBag.err = "Vui lòng nhập địa chỉ";
-            return View();
+            var addr = new System.Net.Mail.MailAddress(user.email);
+            if (addr.Address != user.email)
+                throw new Exception();
         }
-        if (string.IsNullOrWhiteSpace(hoten))
+        catch
         {
-            ViewBag.err = "Vui lòng nhập họ tên";
+            ViewBag.err = "Email không hợp lệ (VD: example@gmail.com)";
             return View();
         }
 
+        // Địa chỉ
+        if (string.IsNullOrWhiteSpace(diachi) || diachi.Length < 5 || diachi.Length > 250)
+        {
+            ViewBag.err = "Địa chỉ phải từ 5-250 ký tự";
+            return View();
+        }
+
+        // Loại tài khoản
+        if (string.IsNullOrWhiteSpace(user.loaitaikhoan))
+        {
+            ViewBag.err = "Vui lòng chọn loại tài khoản";
+            return View();
+        }
+        var validRoles = new[] { "Khách hàng", "Quán ăn", "Shipper" };
+        if (!validRoles.Contains(user.loaitaikhoan))
+        {
+            ViewBag.err = "Loại tài khoản không hợp lệ";
+            return View();
+        }
+
+        // Kiểm tra trùng lặp
         var existingUsers = db.tbUser.Where(u => u.username.Equals(user.username)).ToList();
         if (existingUsers.Count != 0)
         {
             ViewBag.err = "Tên tài khoản đã tồn tại";
             return View();
         }
-
-        // Kiểm tra email đã tồn tại chưa
         var existingEmails = db.tbUser.Where(u => u.email == user.email).ToList();
         if (existingEmails.Count != 0)
         {
@@ -239,7 +363,7 @@ public class HomeController : BaseController
         else if (user.loaitaikhoan.Equals("Quán ăn"))
         {
             user.vitien = 0;
-            user.trangthai = 0;
+            user.trangthai = 1;
             db.tbUser.Add(user);
             db.SaveChanges();
 
@@ -257,7 +381,7 @@ public class HomeController : BaseController
         else if (user.loaitaikhoan.Equals("Shipper"))
         {
             user.vitien = 0;
-            user.trangthai = 0;
+            user.trangthai = 1;
             db.tbUser.Add(user);
             db.SaveChanges();
 
@@ -281,8 +405,9 @@ public class HomeController : BaseController
         return View();
     }
 
-    public ActionResult Logout()
+    public async Task<ActionResult> Logout()
     {
+        await HttpContext.SignOutAsync(Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme);
         HttpContext.Session.Remove("user");
         HttpContext.Session.Remove("cart");
         return RedirectToAction("Index");

@@ -78,55 +78,64 @@
     <script src="~/Source/Home/lib/waypoints/waypoints.min.js"></script>
     <script src="~/Source/Home/lib/owlcarousel/owl.carousel.min.js"></script>
 
-    <!-- Template Javascript -->
-    <script>
-        // BUG-004/005/006: Client-side validation cho form đăng ký
+    <!-- Template Javascript -->        <script>
+        // Validation form đăng ký — kiểm tra toàn diện
         function validateSignupForm() {
             var hoten = document.getElementById('reg-hoten').value.trim();
+            var username = document.getElementById('reg-username').value.trim();
             var email = document.getElementById('reg-email').value.trim();
+            var sdt = document.getElementById('reg-sdt').value.trim();
             var diachi = document.getElementById('reg-diachi').value.trim();
             var pwd = document.getElementById('reg-pwd').value;
             var repeatpw = document.getElementById('reg-repeatpw').value;
+            var loaitaikhoan = document.getElementById('reg-loaitaikhoan').value;
             var errDiv = document.getElementById('reg-err');
 
-            // Kiểm tra trống
-            if (hoten === '') {
-                errDiv.textContent = 'Vui lòng nhập họ tên';
-                errDiv.style.display = 'block';
-                return false;
-            }
-            if (email === '') {
-                errDiv.textContent = 'Vui lòng nhập email';
-                errDiv.style.display = 'block';
-                return false;
-            }
-            if (diachi === '') {
-                errDiv.textContent = 'Vui lòng nhập địa chỉ';
+            // Hàm hiển thị lỗi
+            function showErr(msg) {
+                errDiv.textContent = msg;
                 errDiv.style.display = 'block';
                 return false;
             }
 
-            // Kiểm tra mật khẩu
-            if (pwd.length < 6) {
-                errDiv.textContent = 'Mật khẩu phải có ít nhất 6 ký tự';
-                errDiv.style.display = 'block';
-                return false;
-            }
-            if (!/[0-9]/.test(pwd)) {
-                errDiv.textContent = 'Mật khẩu phải chứa ít nhất một chữ số';
-                errDiv.style.display = 'block';
-                return false;
-            }
-            if (!/[a-zA-Z]/.test(pwd)) {
-                errDiv.textContent = 'Mật khẩu phải chứa ít nhất một chữ cái';
-                errDiv.style.display = 'block';
-                return false;
-            }
-            if (pwd !== repeatpw) {
-                errDiv.textContent = 'Xác nhận mật khẩu không khớp';
-                errDiv.style.display = 'block';
-                return false;
-            }
+            // === Họ tên ===
+            if (hoten === '') return showErr('Vui lòng nhập họ tên');
+            if (hoten.length < 2) return showErr('Họ tên phải có ít nhất 2 ký tự');
+            if (hoten.length > 100) return showErr('Họ tên không được quá 100 ký tự');
+
+            // === Username ===
+            if (username === '') return showErr('Vui lòng nhập tên đăng nhập');
+            if (username.length < 3) return showErr('Tên đăng nhập phải có ít nhất 3 ký tự');
+            if (username.length > 50) return showErr('Tên đăng nhập không được quá 50 ký tự');
+            if (!/^[a-zA-Z0-9_]+$/.test(username)) return showErr('Tên đăng nhập chỉ được chứa chữ cái, số và dấu gạch dưới');
+
+            // === Mật khẩu ===
+            if (pwd.length < 6) return showErr('Mật khẩu phải có ít nhất 6 ký tự');
+            if (pwd.length > 50) return showErr('Mật khẩu không được quá 50 ký tự');
+            if (!/[0-9]/.test(pwd)) return showErr('Mật khẩu phải chứa ít nhất một chữ số');
+            if (!/[a-zA-Z]/.test(pwd)) return showErr('Mật khẩu phải chứa ít nhất một chữ cái');
+            if (pwd !== repeatpw) return showErr('Xác nhận mật khẩu không khớp');
+
+            // === Số điện thoại ===
+            if (sdt === '') return showErr('Vui lòng nhập số điện thoại');
+            var phoneRegex = /^(0[1-9][0-9]{8,9})$/;
+            if (!phoneRegex.test(sdt)) return showErr('Số điện thoại không hợp lệ — phải là 10-11 số, bắt đầu bằng 0 (VD: 0912345678)');
+
+            // === Email ===
+            if (email === '') return showErr('Vui lòng nhập email');
+            // Dùng String.fromCharCode(64) thay vi at-char đe tranh loi Razor parse
+            var atPos = email.indexOf(String.fromCharCode(64));
+            var dotPos = email.lastIndexOf('.');
+            if (atPos < 1 || dotPos < atPos + 2 || email.length < 5)
+                return showErr('Email không hợp lệ (VD: example@gmail.com)');
+
+            // === Địa chỉ ===
+            if (diachi === '') return showErr('Vui lòng nhập địa chỉ');
+            if (diachi.length < 5) return showErr('Địa chỉ phải có ít nhất 5 ký tự');
+            if (diachi.length > 250) return showErr('Địa chỉ không được quá 250 ký tự');
+
+            // === Loại tài khoản ===
+            if (!loaitaikhoan || loaitaikhoan === '') return showErr('Vui lòng chọn loại tài khoản');
 
             errDiv.style.display = 'none';
             return true;

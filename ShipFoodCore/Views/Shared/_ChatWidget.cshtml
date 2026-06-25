@@ -1,356 +1,454 @@
 @{
     var userJson = Context.Session.GetString("user");
     ShipFood.Models.tbUser? user = userJson != null ? JsonSerializer.Deserialize<tbUser>(userJson) : null;
+    var loggedIn = user != null && user.userid > 0;
 }
 
-<!-- Chat Widget CSS - refined UI/UX -->
 <style>
-    .chat-widget-btn {
-        position: fixed;
-        bottom: 24px;
-        right: 24px;
-        width: 60px;
-        height: 60px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #3CB815, #2d8f10);
-        color: white;
-        border: none;
-        cursor: pointer;
-        box-shadow: 0 6px 24px rgba(60, 184, 21, 0.45);
-        z-index: 9999;
-        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 28px;
-    }
-    .chat-widget-btn:hover { transform: scale(1.12) rotate(-8deg); box-shadow: 0 8px 30px rgba(60, 184, 21, 0.55); }
-    .chat-widget-btn .badge {
-        position: absolute;
-        top: -4px;
-        right: -4px;
-        background: #e74c3c;
-        color: white;
-        border-radius: 50%;
-        width: 22px;
-        height: 22px;
-        font-size: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        animation: pulse 2s infinite;
-        border: 2px solid white;
-    }
-    @@keyframes pulse {
-        0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(231,76,60,0.4); }
-        50% { transform: scale(1.1); box-shadow: 0 0 0 6px rgba(231,76,60,0); }
-        100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(231,76,60,0); }
-    }
+.chat-toggle {
+    position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+    width: 56px; height: 56px; border-radius: 50%;
+    background: #4285F4; color: #fff; border: none; cursor: pointer;
+    box-shadow: 0 4px 16px rgba(66,133,244,0.35);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; transition: transform .2s, box-shadow .2s;
+}
+.chat-toggle:hover { transform: scale(1.08); box-shadow: 0 6px 24px rgba(66,133,244,0.45); }
+.chat-toggle .badge {
+    position: absolute; top: -4px; right: -4px;
+    background: #e74c3c; color: #fff; border-radius: 50%;
+    width: 20px; height: 20px; font-size: 11px; display: flex;
+    align-items: center; justify-content: center; border: 2px solid #fff;
+}
 
-    .chat-widget-box {
-        position: fixed;
-        bottom: 100px;
-        right: 24px;
-        width: 380px;
-        max-height: 540px;
-        background: white;
-        border-radius: 18px;
-        box-shadow: 0 12px 50px rgba(0,0,0,0.18);
-        z-index: 9998;
-        display: none;
-        flex-direction: column;
-        overflow: hidden;
-        animation: slideUp 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
-    .chat-widget-box.open { display: flex; }
+.chat-box {
+    position: fixed; bottom: 96px; right: 24px; z-index: 9998;
+    width: 360px; max-height: 520px; background: #fff;
+    border-radius: 12px; box-shadow: 0 8px 40px rgba(0,0,0,0.15);
+    display: none; flex-direction: column; overflow: hidden;
+}
+.chat-box.open { display: flex; }
 
-    @@keyframes slideUp {
-        from { opacity: 0; transform: translateY(24px) scale(0.95); }
-        to { opacity: 1; transform: translateY(0) scale(1); }
-    }
+.chat-box-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 16px; background: #4285F4; color: #fff;
+}
+.chat-box-header h6 { margin: 0; font-size: 14px; font-weight: 600; }
+.chat-box-header small { font-size: 11px; opacity: .8; }
+.chat-box-header .close-btn { cursor: pointer; font-size: 20px; opacity: .7; }
+.chat-box-header .close-btn:hover { opacity: 1; }
 
-    .chat-header {
-        background: linear-gradient(135deg, #3CB815, #2a9c0e);
-        color: white;
-        padding: 16px 18px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        position: relative;
-    }
-    .chat-header::after {
-        content: '';
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 3px;
-        background: rgba(255,255,255,0.15);
-    }
-    .chat-header h6 { margin: 0; font-weight: 700; font-size: 15px; }
-    .chat-header small { opacity: 0.85; font-size: 11px; }
-    .chat-close { cursor: pointer; font-size: 22px; opacity: 0.75; transition: all 0.2s; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
-    .chat-close:hover { opacity: 1; background: rgba(255,255,255,0.15); }
+.chat-tabs {
+    display: flex; background: #f5f6fa; border-bottom: 1px solid #e8e8e8;
+}
+.chat-tab {
+    flex: 1; padding: 10px; text-align: center; cursor: pointer;
+    font-size: 13px; font-weight: 500; color: #888;
+    border-bottom: 2px solid transparent; transition: all .2s;
+    background: none; border-top: 0; border-left: 0; border-right: 0; position: relative;
+}
+.chat-tab:hover { color: #555; }
+.chat-tab.active { color: #4285F4; border-bottom-color: #4285F4; background: #fff; }
+.chat-tab .tab-badge {
+    position: absolute; top: 4px; right: 20%;
+    background: #e74c3c; color: #fff; border-radius: 50%;
+    width: 18px; height: 18px; font-size: 10px; display: none;
+    align-items: center; justify-content: center; font-weight: 600;
+}
+.chat-tab .tab-badge.show { display: flex; }
 
-    .chat-messages {
-        flex: 1;
-        overflow-y: auto;
-        padding: 16px;
-        background: #f0f2f5;
-        min-height: 300px;
-        max-height: 340px;
-    }
+.chat-section { display: none; flex-direction: column; flex: 1; }
+.chat-section.active { display: flex; }
 
-    .chat-msg {
-        margin-bottom: 12px;
-        max-width: 88%;
-        padding: 10px 14px;
-        border-radius: 16px;
-        font-size: 14px;
-        line-height: 1.5;
-        word-wrap: break-word;
-        animation: msgIn 0.25s ease;
-    }
-    @@keyframes msgIn {
-        from { opacity: 0; transform: translateY(8px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-    .chat-msg.bot {
-        background: white;
-        border: 1px solid #e8e8e8;
-        border-bottom-left-radius: 4px;
-        margin-right: auto;
-        box-shadow: 0 1px 4px rgba(0,0,0,0.04);
-    }
-    .chat-msg.user {
-        background: linear-gradient(135deg, #3CB815, #2d8f10);
-        color: white;
-        border-bottom-right-radius: 4px;
-        margin-left: auto;
-        box-shadow: 0 2px 8px rgba(60, 184, 21, 0.25);
-    }
+.chat-msgs {
+    flex: 1; overflow-y: auto; padding: 12px 14px;
+    background: #f5f6fa; min-height: 200px; max-height: 280px;
+}
+.chat-msgs .msg {
+    margin-bottom: 8px; max-width: 88%;
+    padding: 8px 12px; border-radius: 12px;
+    font-size: 13px; line-height: 1.5; word-wrap: break-word;
+}
+.chat-msgs .msg.bot, .chat-msgs .msg.admin {
+    background: #fff; border: 1px solid #e8e8e8;
+    margin-right: auto; color: #333;
+}
+.chat-msgs .msg.user, .chat-msgs .msg.customer {
+    background: #4285F4; color: #fff; margin-left: auto;
+}
+.chat-msgs .msg .label {
+    font-size: 10px; opacity: .65; display: block; margin-bottom: 2px;
+}
+.chat-msgs .msg .quick-btn {
+    display: inline-block; padding: 4px 10px; margin: 2px;
+    background: #e8f0fe; color: #4285F4;
+    border: 1px solid #d2e3fc; border-radius: 16px; cursor: pointer;
+    font-size: 11px; font-weight: 500; transition: all .15s;
+}
+.chat-msgs .msg .quick-btn:hover { background: #4285F4; color: #fff; }
+.chat-msgs .msg .msg-time {
+    font-size: 10px; color: #999; margin-top: 4px; display: block;
+}
+.chat-msgs .msg.customer .msg-time { color: rgba(255,255,255,0.6); }
 
-    .chat-msg .quick-reply-btn {
-        display: inline-block;
-        padding: 6px 14px;
-        margin: 3px;
-        background: #e8f5e9;
-        color: #2d8f10;
-        border: 1px solid #c8e6c9;
-        border-radius: 20px;
-        cursor: pointer;
-        font-size: 12px;
-        transition: all 0.2s ease;
-        font-weight: 500;
-    }
-    .chat-msg .quick-reply-btn:hover {
-        background: #3CB815;
-        color: white;
-        transform: scale(1.03);
-        box-shadow: 0 2px 8px rgba(60,184,21,0.3);
-    }
+.chat-input {
+    display: flex; padding: 10px 12px; background: #fff;
+    border-top: 1px solid #e8e8e8; gap: 6px;
+}
+.chat-input input {
+    flex: 1; border: 1px solid #ddd; border-radius: 20px;
+    padding: 8px 14px; outline: none; font-size: 13px;
+}
+.chat-input input:focus { border-color: #4285F4; }
+.chat-input button {
+    background: #4285F4; color: #fff; border: none;
+    border-radius: 50%; width: 36px; height: 36px;
+    cursor: pointer; display: flex; align-items: center;
+    justify-content: center; font-size: 13px; flex-shrink: 0;
+}
+.chat-input button:hover { background: #3367D6; }
+.chat-input button:disabled { background: #ccc; cursor: default; }
 
-    .chat-input-area {
-        display: flex;
-        padding: 12px 14px;
-        border-top: 1px solid #e8e8e8;
-        background: white;
-        gap: 8px;
-    }
-    .chat-input-area input {
-        flex: 1;
-        border: 1px solid #e0e0e0;
-        border-radius: 24px;
-        padding: 10px 16px;
-        outline: none;
-        font-size: 14px;
-        transition: all 0.2s;
-        background: #f8f9fa;
-    }
-    .chat-input-area input:focus { border-color: #3CB815; background: white; box-shadow: 0 0 0 3px rgba(60,184,21,0.1); }
-    .chat-input-area button {
-        background: linear-gradient(135deg, #3CB815, #2d8f10);
-        color: white;
-        border: none;
-        border-radius: 50%;
-        width: 42px;
-        height: 42px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.2s;
-        flex-shrink: 0;
-    }
-    .chat-input-area button:hover { transform: scale(1.08); box-shadow: 0 3px 12px rgba(60,184,21,0.35); }
-    .chat-input-area button:disabled { background: #ccc; cursor: not-allowed; transform: none; box-shadow: none; }
+.chat-typing {
+    display: flex; gap: 4px; padding: 8px 12px; background: #fff;
+    border-radius: 12px; border: 1px solid #e8e8e8;
+    margin-bottom: 8px; width: fit-content;
+}
+.chat-typing span {
+    width: 6px; height: 6px; background: #bbb; border-radius: 50%;
+    animation: typing 1.4s infinite ease-in-out;
+}
+.chat-typing span:nth-child(2) { animation-delay: .2s; }
+.chat-typing span:nth-child(3) { animation-delay: .4s; }
+@@keyframes typing {
+    0%,60%,100% { opacity: .3; transform: scale(.8); }
+    30% { opacity: 1; transform: scale(1.1); }
+}
 
-    .chat-typing {
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        padding: 10px 14px;
-        background: white;
-        border-radius: 16px;
-        border: 1px solid #e8e8e8;
-        margin-bottom: 8px;
-        width: fit-content;
-        box-shadow: 0 1px 4px rgba(0,0,0,0.04);
-    }
-    .chat-typing span {
-        width: 8px;
-        height: 8px;
-        background: #aaa;
-        border-radius: 50%;
-        animation: typing 1.4s infinite ease-in-out;
-    }
-    .chat-typing span:nth-child(2) { animation-delay: 0.2s; }
-    .chat-typing span:nth-child(3) { animation-delay: 0.4s; }
-    @@keyframes typing {
-        0%, 60%, 100% { opacity: 0.3; transform: scale(0.8); }
-        30% { opacity: 1; transform: scale(1.1); }
-    }
+.chat-login-msg {
+    text-align: center; padding: 30px 16px; color: #aaa; font-size: 14px;
+}
+.chat-login-msg a { color: #4285F4; font-weight: 600; }
 
-    /* Responsive */
-    @@media (max-width: 480px) {
-        .chat-widget-box { width: calc(100vw - 32px); right: 16px; bottom: 90px; max-height: 460px; }
-        .chat-widget-btn { width: 52px; height: 52px; font-size: 24px; bottom: 18px; right: 18px; }
-    }
+.admin-order-select {
+    padding: 8px 12px; background: #f8f9fa; border-bottom: 1px solid #e8e8e8;
+}
+.admin-order-select select {
+    width: 100%; padding: 6px 10px; border: 1px solid #ddd;
+    border-radius: 6px; font-size: 12px; outline: none;
+}
+.admin-status {
+    padding: 4px 12px; font-size: 11px; color: #888;
+    background: #f0f4ff; border-bottom: 1px solid #e8e8e8;
+    display: flex; align-items: center; gap: 6px;
+}
+.admin-status .dot {
+    width: 6px; height: 6px; background: #34a853; border-radius: 50%;
+    display: inline-block;
+}
 </style>
 
-<!-- Chat Widget -->
-<button class="chat-widget-btn" id="chatToggle" onclick="toggleChat()">
+<button class="chat-toggle" id="chatToggle" onclick="toggleChat()">
     <i class="fas fa-comment-dots"></i>
-    <span class="badge">1</span>
+    <span class="badge" id="chatBadge" style="display:none;">0</span>
 </button>
 
-<div class="chat-widget-box" id="chatBox">
-    <div class="chat-header">
+<div class="chat-box" id="chatBox">
+    <div class="chat-box-header">
         <div>
-            <h6><i class="fas fa-robot me-2"></i>FastShip Assistant</h6>
-            <small style="opacity:0.8">Trực tuyến 24/7</small>
+            <h6><i class="fas fa-comment me-1"></i>FastShip</h6>
+            <small>Trực tuyến 24/7</small>
         </div>
-        <span class="chat-close" onclick="toggleChat()">&times;</span>
+        <span class="close-btn" onclick="toggleChat()">&times;</span>
     </div>
-    <div class="chat-messages" id="chatMessages">
-        <div class="chat-msg bot">
-            👋 <strong>Chào bạn!</strong> Tôi là trợ lý FastShip. Tôi có thể giúp gì cho bạn?
-            <div class="mt-2">
-                <span class="quick-reply-btn" onclick="sendQuickReply('Phí ship tính thế nào?')">🚚 Phí ship</span>
-                <span class="quick-reply-btn" onclick="sendQuickReply('Gợi ý món ăn')">🍽️ Gợi ý món</span>
-                <span class="quick-reply-btn" onclick="sendQuickReply('Tra cứu đơn hàng')">📦 Tra đơn</span>
+
+    <div class="chat-tabs">
+        <button class="chat-tab active" id="tabAi" onclick="switchTab('ai')">AI Chat</button>
+        @if (loggedIn) {
+            <button class="chat-tab" id="tabAdmin" onclick="switchTab('admin')">
+                Hỗ trợ
+                <span class="tab-badge" id="adminTabBadge">0</span>
+            </button>
+        }
+    </div>
+
+    <!-- AI Chat -->
+    <div class="chat-section active" id="sectionAi">
+        <div class="chat-msgs" id="aiMsgs">
+            <div class="msg bot">👋 Chào bạn! Tôi là trợ lý FastShip. Có thể giúp gì cho bạn?</div>
+        </div>
+        <div class="chat-input">
+            @Html.AntiForgeryToken()
+            <input type="text" id="aiInput" placeholder="Nhập tin nhắn..." onkeypress="if(event.key==='Enter') sendAi()" />
+            <button id="aiBtn" onclick="sendAi()"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    <!-- Admin Chat -->
+    <div class="chat-section" id="sectionAdmin">
+        @if (loggedIn) {
+            <div class="admin-status">
+                <span class="dot"></span> Đã kết nối với hỗ trợ viên
             </div>
-        </div>
-    </div>
-    <div class="chat-input-area">
-        <input type="text" id="chatInput" placeholder="Nhập tin nhắn..." onkeypress="if(event.key==='Enter') sendMessage()" />
-        <button id="chatSendBtn" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
+            <div class="admin-order-select">
+                <select id="adminOrderSelect" onchange="joinAdminChat()">
+                    <option value="0">-- Yêu cầu hỗ trợ chung --</option>
+                </select>
+            </div>
+            <div class="chat-msgs" id="adminMsgs">
+                <div class="msg admin"><span class="label">FastShip</span>Chào bạn! Chọn đơn hàng hoặc gửi yêu cầu chung, admin sẽ trả lời sớm.</div>
+            </div>
+            <div class="chat-input">
+                <input type="text" id="adminInput" placeholder="Nhập tin nhắn..." onkeypress="if(event.key==='Enter') sendAdmin()" />
+                <button id="adminBtn" onclick="sendAdmin()"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        } else {
+            <div class="chat-login-msg">
+                <i class="fas fa-lock" style="font-size:28px;opacity:.25;margin-bottom:10px"></i><br/>
+                <a href="~/Home/Login">Đăng nhập</a> để chat với hỗ trợ viên
+            </div>
+        }
     </div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
 <script>
-    function toggleChat() {
-        var box = document.getElementById('chatBox');
-        var btn = document.getElementById('chatToggle');
-        if (box.classList.contains('open')) {
-            box.classList.remove('open');
-            btn.style.display = 'flex';
-        } else {
-            box.classList.add('open');
-            btn.style.display = 'none';
-            // Ẩn badge khi đã mở chat
-            btn.querySelector('.badge').style.display = 'none';
+    var currentTab = 'ai';
+    function switchTab(tab) {
+        currentTab = tab;
+        document.querySelectorAll('.chat-tab').forEach(function(t){t.classList.remove('active');});
+        document.querySelectorAll('.chat-section').forEach(function(s){s.classList.remove('active');});
+        document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
+        document.getElementById('section' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
+        
+        if (tab === 'admin') {
+            // Clear badge khi mở tab admin
+            document.getElementById('adminTabBadge').classList.remove('show');
+            document.getElementById('adminTabBadge').textContent = '0';
+            // Load l?ch s? tin nh?n
+            loadMyMessages();
+            if (!adminConn || adminConn.state === 'Disconnected') connectAdmin();
         }
     }
 
-    function sendQuickReply(text) {
-        document.getElementById('chatInput').value = text;
-        sendMessage();
+    function toggleChat() {
+        var box = document.getElementById('chatBox');
+        var toggle = document.getElementById('chatToggle');
+        if (box.classList.contains('open')) {
+            box.classList.remove('open');
+            toggle.style.display = 'flex';
+        } else {
+            box.classList.add('open');
+            toggle.style.display = 'none';
+            // Clear badge khi m? chat
+            document.getElementById('chatBadge').style.display = 'none';
+            if (currentTab === 'admin') {
+                document.getElementById('adminTabBadge').classList.remove('show');
+                document.getElementById('adminTabBadge').textContent = '0';
+            }
+        }
     }
 
-    function sendMessage() {
-        var input = document.getElementById('chatInput');
+    // ====== AI Chat ======
+    function getToken() { return $('input[name="__RequestVerificationToken"]').val(); }
+
+    function sendAi() {
+        var input = document.getElementById('aiInput');
         var msg = input.value.trim();
         if (!msg) return;
-
-        // Hiển thị tin nhắn user
-        addMessage(msg, 'user');
+        addMsg('aiMsgs', msg, 'user');
         input.value = '';
-        document.getElementById('chatSendBtn').disabled = true;
-
-        // Hiển thị typing indicator
-        showTyping();
-
-        // Gọi API chatbot
+        document.getElementById('aiBtn').disabled = true;
+        showTyping('aiMsgs');
         $.ajax({
-            url: '@Url.Action("SendMessage", "Chatbot")',
-            type: 'POST',
-            data: { message: msg },
-            success: function (response) {
-                hideTyping();
-                addBotMessage(response.reply, response.quickReplies);
-            },
-            error: function () {
-                hideTyping();
-                addBotMessage('❌ Xin lỗi, đã xảy ra lỗi. Vui lòng thử lại sau.', []);
-            },
-            complete: function () {
-                document.getElementById('chatSendBtn').disabled = false;
+            url: '@Url.Action("SendMessage", "Chatbot")', type: 'POST', data: { message: msg },
+            headers: { 'RequestVerificationToken': getToken() },
+            success: function(r) { hideTyping(); addBotMsg(r.reply, r.quickReplies); },
+            error: function() { hideTyping(); addMsg('aiMsgs', '❌ Lỗi, vui lòng thử lại.', 'bot'); },
+            complete: function() { document.getElementById('aiBtn').disabled = false; }
+        });
+    }
+
+    function addMsg(containerId, text, type) {
+        var c = document.getElementById(containerId);
+        var d = document.createElement('div'); d.className = 'msg ' + type;
+        var time = new Date().toLocaleTimeString('vi-VN', {hour:'2-digit',minute:'2-digit'});
+        d.innerHTML = escHtml(text).replace(/\n/g, '<br/>') + '<span class="msg-time">' + time + '</span>';
+        c.appendChild(d); c.scrollTop = c.scrollHeight;
+    }
+
+    function addBotMsg(text, quickReplies) {
+        hideTyping();
+        var c = document.getElementById('aiMsgs');
+        var d = document.createElement('div'); d.className = 'msg bot';
+        var formatted = escHtml(text).replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br/>');
+        d.innerHTML = formatted;
+        if (quickReplies && quickReplies.length) {
+            var wrap = document.createElement('div'); wrap.style.marginTop = '6px';
+            quickReplies.forEach(function(q){
+                var b = document.createElement('span'); b.className = 'quick-btn';
+                b.textContent = q; b.onclick = function(){ document.getElementById('aiInput').value=q; sendAi(); };
+                wrap.appendChild(b);
+            });
+            d.appendChild(wrap);
+        }
+        c.appendChild(d); c.scrollTop = c.scrollHeight;
+    }
+
+    function showTyping(containerId) {
+        var c = document.getElementById(containerId);
+        var d = document.createElement('div'); d.className = 'chat-typing'; d.id = 'typing';
+        for (var i=0;i<3;i++) d.appendChild(document.createElement('span'));
+        c.appendChild(d); c.scrollTop = c.scrollHeight;
+    }
+    function hideTyping() { var e = document.getElementById('typing'); if(e) e.remove(); }
+
+    // ====== Admin Chat ======
+    var adminConn = null, adminUserId = @(loggedIn ? user!.userid : 0), adminOrderId = 0, adminConnPromise = null;
+    var adminName = '@(loggedIn ? user!.username : "")';
+
+    @if (loggedIn) {
+    <text>
+    $.ajax({
+        url: '@Url.Action("GetUserOrders", "AdminChat")', type: 'GET',
+        success: function(orders) {
+            var sel = document.getElementById('adminOrderSelect');
+            if (orders && orders.length) orders.forEach(function(o){
+                var opt = document.createElement('option'); opt.value = o.madh;
+                opt.textContent = '#' + o.madh + ' - ' + (o.tenquanan || '') + ' - ' + (o.tongtien ? Number(o.tongtien).toLocaleString() : '0') + 'đ';
+                sel.appendChild(opt);
+            });
+        }
+    });
+
+    // ??m s? tin nh?n ch?a ??c khi load trang
+    checkUnreadMessages();
+    // T? ??ng ki?m tra tin nh?n m?i m?i 30 gi?y
+    setInterval(checkUnreadMessages, 30000);
+    </text>
+    }
+
+    function checkUnreadMessages() {
+        if (adminUserId <= 0 || currentTab === 'admin') return;
+        $.ajax({
+            url: '@Url.Action("GetUnreadCount", "AdminChat")', type: 'GET',
+            success: function(res) {
+                var count = res.count || 0;
+                if (count > 0) {
+                    document.getElementById('adminTabBadge').textContent = count > 9 ? '9+' : count;
+                    document.getElementById('adminTabBadge').classList.add('show');
+                    document.getElementById('chatBadge').textContent = count > 9 ? '9+' : count;
+                    document.getElementById('chatBadge').style.display = 'flex';
+                }
             }
         });
     }
 
-    function addMessage(text, type) {
-        var container = document.getElementById('chatMessages');
-        var div = document.createElement('div');
-        div.className = 'chat-msg ' + type;
-        div.innerHTML = text.replace(/\n/g, '<br/>');
-        container.appendChild(div);
-        container.scrollTop = container.scrollHeight;
+    function connectAdmin() {
+        if (adminConn && adminConn.state === 'Connected') return Promise.resolve();
+        if (adminConnPromise) return adminConnPromise;
+        adminConn = new signalR.HubConnectionBuilder().withUrl('/nhantin').withAutomaticReconnect().build();
+
+        adminConn.on('adminMessage', function(msg, orderId, sender) {
+            if (orderId === adminOrderId || (orderId === 0 && adminOrderId === 0)) {
+                addMsg('adminMsgs', msg, 'admin');
+            }
+            // Show badge n?u dang ? tab AI
+            if (currentTab !== 'admin') {
+                var badge = document.getElementById('adminTabBadge');
+                var cur = parseInt(badge.textContent) || 0;
+                badge.textContent = cur + 1 > 9 ? '9+' : cur + 1;
+                badge.classList.add('show');
+                document.getElementById('chatBadge').textContent = cur + 1 > 9 ? '9+' : cur + 1;
+                document.getElementById('chatBadge').style.display = 'flex';
+            }
+        });
+
+        adminConn.onclose(function(){ adminConnPromise = null; });
+        adminConn.onreconnected(function(){ rejoinAdminGroup(); });
+
+        adminConnPromise = adminConn.start().then(function(){
+            return adminConn.invoke('JoinCustomerSupportGroup', adminUserId);
+        }).then(function(){
+            if (adminOrderId > 0) return adminConn.invoke('JoinOrderGroup', adminOrderId);
+        }).catch(function(){});
+        return adminConnPromise;
     }
 
-    function addBotMessage(text, quickReplies) {
-        var container = document.getElementById('chatMessages');
-        var div = document.createElement('div');
-        div.className = 'chat-msg bot';
+    function rejoinAdminGroup() {
+        if (!adminConn || adminConn.state !== 'Connected') return;
+        adminConn.invoke('JoinCustomerSupportGroup', adminUserId).catch(function(){});
+        if (adminOrderId > 0) adminConn.invoke('JoinOrderGroup', adminOrderId).catch(function(){});
+    }
 
-        // Format text với markdown đơn giản
-        var formatted = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br/>');
-        div.innerHTML = formatted;
+    function loadMyMessages() {
+        if (adminUserId <= 0) return;
+        $.ajax({
+            url: '@Url.Action("GetMyMessages", "AdminChat")', type: 'GET',
+            data: { orderId: adminOrderId },
+            success: function(res) {
+                if (!res.success) return;
+                var container = document.getElementById('adminMsgs');
+                container.innerHTML = '';
+                if (!res.data || res.data.length === 0) {
+                    addMsg('adminMsgs', adminOrderId > 0
+                        ? '📦 Đang hỗ trợ đơn #' + adminOrderId + '. Admin sẽ trả lời sớm!'
+                        : '💬 Gửi yêu cầu hỗ trợ chung. Admin sẽ trả lời sớm!', 'admin');
+                } else {
+                    res.data.forEach(function(msg) {
+                        var roleClass = msg.sender === "Khách hàng" || msg.sender === "Shipper" ? "customer" : "admin";
+                        var senderLabel = msg.sender === "Admin" ? "Admin" : "Bạn";
+                        var c = document.getElementById('adminMsgs');
+                        var d = document.createElement('div'); d.className = 'msg ' + roleClass;
+                        d.innerHTML = '<span class="label">' + senderLabel + '</span>' + escHtml(msg.content).replace(/\n/g, '<br/>');
+                        c.appendChild(d);
+                    });
+                    container.scrollTop = container.scrollHeight;
+                }
+            }
+        });
+    }
 
-        // Thêm quick reply buttons
-        if (quickReplies && quickReplies.length > 0) {
-            var btnsDiv = document.createElement('div');
-            btnsDiv.className = 'mt-2';
-            quickReplies.forEach(function (qr) {
-                var btn = document.createElement('span');
-                btn.className = 'quick-reply-btn';
-                btn.textContent = qr;
-                btn.onclick = function () { sendQuickReply(qr); };
-                btnsDiv.appendChild(btn);
-            });
-            div.appendChild(btnsDiv);
+    function joinAdminChat() {
+        var sel = document.getElementById('adminOrderSelect');
+        adminOrderId = parseInt(sel.value);
+        if (adminConn) {
+            (function retry(){
+                if (adminConn.state === 'Connected') {
+                    adminConn.invoke('JoinCustomerSupportGroup', adminUserId).catch(function(){});
+                    if (adminOrderId > 0) adminConn.invoke('JoinOrderGroup', adminOrderId).catch(function(){});
+                } else setTimeout(retry, 500);
+            })();
         }
-
-        container.appendChild(div);
-        container.scrollTop = container.scrollHeight;
+        // Load l?ch s? tin nh?n cho order ?ã ch?n
+        loadMyMessages();
     }
 
-    function showTyping() {
-        var container = document.getElementById('chatMessages');
-        var div = document.createElement('div');
-        div.className = 'chat-typing';
-        div.id = 'typingIndicator';
-        for (var i = 0; i < 3; i++) {
-            var span = document.createElement('span');
-            div.appendChild(span);
-        }
-        container.appendChild(div);
-        container.scrollTop = container.scrollHeight;
+    function sendAdmin() {
+        var input = document.getElementById('adminInput');
+        var msg = input.value.trim();
+        if (!msg) return;
+        
+        // Hi?n th? tin nh?n ngay l?p t?c
+        var c = document.getElementById('adminMsgs');
+        var d = document.createElement('div'); d.className = 'msg customer';
+        var time = new Date().toLocaleTimeString('vi-VN', {hour:'2-digit',minute:'2-digit'});
+        d.innerHTML = '<span class="label">Bạn</span>' + escHtml(msg).replace(/\n/g, '<br/>') + '<span class="msg-time">' + time + '</span>';
+        c.appendChild(d); c.scrollTop = c.scrollHeight;
+        
+        input.value = ''; document.getElementById('adminBtn').disabled = true;
+        
+        $.ajax({
+            url: '@Url.Action("CustomerSendMessage", "AdminChat")', type: 'POST',
+            data: { orderId: adminOrderId, message: msg },
+            headers: { 'RequestVerificationToken': getToken() },
+            error: function(){ addMsg('adminMsgs', '❌ Lỗi gửi tin nhắn', 'admin'); },
+            complete: function(){ document.getElementById('adminBtn').disabled = false; }
+        });
     }
 
-    function hideTyping() {
-        var el = document.getElementById('typingIndicator');
-        if (el) el.remove();
+    function escHtml(str) {
+        if (!str) return '';
+        var d = document.createElement('div'); d.textContent = str; return d.innerHTML;
     }
 </script>

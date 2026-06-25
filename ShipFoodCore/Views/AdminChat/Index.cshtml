@@ -1,0 +1,399 @@
+@{
+    ViewBag.Title = "Admin Chat";
+    Layout = "~/Views/Shared/_LayoutPageAmin.cshtml";
+}
+
+<head>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet" />
+    <style>
+        * { box-sizing: border-box; }
+        body { background: #f5f6fa; }
+        
+        .conversation-list { max-height: 600px; overflow-y: auto; }
+        .conversation-item {
+            padding: 14px 16px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            border-left: 3px solid transparent;
+        }
+        .conversation-item:hover { background: #f8faff; }
+        .conversation-item.active { 
+            background: #eef3ff; 
+            border-left-color: #4285F4;
+        }
+        .conversation-item .customer-name { 
+            font-weight: 600; 
+            font-size: 14px;
+            color: #1a1a2e;
+        }
+        .conversation-item .last-msg { 
+            font-size: 13px; 
+            color: #888;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 200px;
+        }
+        .conversation-item .msg-count {
+            display: inline-block;
+            background: #e8f5e9;
+            color: #2e7d32;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+        .conversation-item .unread-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: #e74c3c;
+            border-radius: 50%;
+            margin-left: 6px;
+            animation: pulse 2s infinite;
+        }
+        @@keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .chat-panel { 
+            height: 560px; 
+            display: flex; 
+            flex-direction: column; 
+            border: 1px solid #e8e8e8; 
+            border-radius: 10px; 
+            overflow: hidden;
+            background: #fff;
+        }
+        .chat-header-panel {
+            padding: 14px 20px;
+            background: #4285F4;
+            color: white;
+            font-weight: 600;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .chat-messages-panel {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            background: #f8f9fb;
+        }
+        .chat-msg-item {
+            margin-bottom: 10px;
+            max-width: 82%;
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-size: 14px;
+            line-height: 1.5;
+            word-wrap: break-word;
+        }
+        .chat-msg-item.admin {
+            background: #4285F4;
+            color: white;
+            margin-left: auto;
+            border-bottom-right-radius: 4px;
+        }
+        .chat-msg-item.customer {
+            background: white;
+            border: 1px solid #e0e0e0;
+            margin-right: auto;
+            border-bottom-left-radius: 4px;
+            color: #333;
+        }
+        .chat-input-panel {
+            display: flex;
+            padding: 12px 16px;
+            background: white;
+            border-top: 1px solid #e8e8e8;
+            gap: 8px;
+        }
+        .chat-input-panel input {
+            flex: 1;
+            border: 1px solid #ddd;
+            border-radius: 24px;
+            padding: 10px 16px;
+            outline: none;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+        .chat-input-panel input:focus { border-color: #4285F4; box-shadow: 0 0 0 3px rgba(66,133,244,0.1); }
+        .chat-input-panel button {
+            background: #4285F4;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        .chat-input-panel button:hover { background: #3367D6; }
+        .no-selection {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #bbb;
+            font-size: 15px;
+        }
+        .msg-sender-label {
+            font-size: 11px;
+            opacity: 0.7;
+            margin-bottom: 3px;
+        }
+        .chat-msg-item.customer .msg-sender-label { color: #888; }
+        .chat-msg-item.admin .msg-sender-label { color: rgba(255,255,255,0.7); }
+        .msg-time {
+            font-size: 10px;
+            color: #bbb;
+            margin-top: 4px;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 13px;
+            outline: none;
+            margin-bottom: 8px;
+        }
+        .search-box:focus { border-color: #4285F4; }
+        .empty-state {
+            text-align: center;
+            padding: 40px 16px;
+            color: #bbb;
+        }
+        .empty-state i { font-size: 36px; margin-bottom: 12px; opacity: 0.4; }
+    </style>
+</head>
+
+<div class="container-fluid py-4">
+    <h4 class="mb-4" style="font-weight: 600; color: #1a1a2e;">
+        <i class="fas fa-comments me-2" style="color: #4285F4;"></i>Hội thoại khách hàng
+    </h4>
+    
+    <div class="row">
+        <div class="col-lg-4">
+            <div class="card" style="border-radius: 10px; box-shadow: 0 1px 6px rgba(0,0,0,0.06);">
+                <div class="card-header bg-white" style="border-bottom: 1px solid #f0f0f0;">
+                    <h6 class="mb-0" style="font-weight: 600;">
+                        <i class="fas fa-users me-2" style="color: #4285F4;"></i>Khách hàng
+                        <small class="text-muted ms-1" id="conversationCount"></small>
+                    </h6>
+                </div>
+                <div class="card-body p-2">
+                    <input type="text" class="search-box" id="searchCustomer" placeholder="Tìm khách hàng..." onkeyup="filterCustomers()" />
+                    <div class="conversation-list" id="conversationList">
+                        <div class="empty-state">
+                            <i class="fas fa-inbox"></i>
+                            <p>Đang tải dữ liệu...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-8">
+            <div class="card" style="border-radius: 10px; box-shadow: 0 1px 6px rgba(0,0,0,0.06);">
+                <div class="card-body p-0">
+                    <div class="chat-panel">
+                        <div class="chat-header-panel" id="chatHeader">
+                            <i class="fas fa-comment"></i>
+                            Chọn khách hàng để xem hội thoại
+                        </div>
+                        <div class="chat-messages-panel" id="chatMessages">
+                            <div class="no-selection">
+                                <div class="text-center">
+                                    <i class="fas fa-comment-dots" style="font-size: 40px; opacity: 0.3;"></i>
+                                    <p class="mt-2 text-muted">Chọn khách hàng bên trái để xem tin nhắn</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chat-input-panel" id="chatInputArea" style="display:none;">
+                            <input type="text" id="adminChatInput" placeholder="Nhập tin nhắn..." onkeypress="if(event.key==='Enter') sendAdminMessage()" />
+                            <button onclick="sendAdminMessage()"><i class="fas fa-paper-plane"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+<script>
+    var connection = null;
+    var currentUserId = 0;
+    var connectPromise = null;
+    var conversations = [];
+
+    function initSignalR() {
+        if (connectPromise) return connectPromise;
+        connection = new signalR.HubConnectionBuilder()
+            .withUrl("/nhantin")
+            .withAutomaticReconnect()
+            .build();
+            
+        connection.on("customerMessage", function (message, orderId, userName, userId) {
+            loadConversations();
+            if (userId === currentUserId) {
+                loadCustomerMessages(currentUserId);
+            }
+        });
+        
+        connection.onreconnected(function () {
+            if (currentUserId > 0) {
+                connection.invoke('JoinCustomerSupportGroup', currentUserId).catch(function () {});
+            }
+        });
+        
+        connectPromise = connection.start().catch(function (err) {
+            console.error("SignalR error: " + err.toString());
+        });
+        return connectPromise;
+    }
+
+    function loadConversations() {
+        $.ajax({
+            url: '@Url.Action("GetConversations", "AdminChat")',
+            type: 'GET',
+            success: function (res) {
+                if (!res.success) return;
+                conversations = res.data || [];
+                renderConversations(conversations);
+            }
+        });
+    }
+
+    function renderConversations(data) {
+        var list = document.getElementById('conversationList');
+        var count = document.getElementById('conversationCount');
+        count.textContent = '(' + data.length + ')';
+        
+        if (data.length === 0) {
+            list.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>Chưa có hội thoại nào</p></div>';
+            return;
+        }
+        
+        list.innerHTML = '';
+        data.forEach(function (c) {
+            var div = document.createElement('div');
+            div.className = 'conversation-item' + (c.userId === currentUserId ? ' active' : '');
+            div.id = 'conv-' + c.userId;
+            div.onclick = function () { selectCustomer(c.userId); };
+            
+            var status = c.hasUnread ? '<span class="unread-dot"></span>' : '';
+            div.innerHTML = '<div class="d-flex justify-content-between align-items-start">' +
+                '<div class="customer-name"><i class="fas fa-user me-1" style="color:#4285F4;font-size:12px;"></i>' +
+                escHtml(c.tenkh) + ' ' + status + '</div>' +
+                '<span class="msg-count">' + c.messageCount + '</span>' +
+                '</div>' +
+                '<div class="last-msg mt-1">' + escHtml(c.lastMessage) + '</div>';
+            list.appendChild(div);
+        });
+    }
+
+    function filterCustomers() {
+        var q = document.getElementById('searchCustomer').value.toLowerCase().trim();
+        if (!q) { renderConversations(conversations); return; }
+        var filtered = conversations.filter(function (c) {
+            return c.tenkh.toLowerCase().includes(q) || c.username.toLowerCase().includes(q) || c.sdt.includes(q);
+        });
+        renderConversations(filtered);
+    }
+
+    function selectCustomer(userId) {
+        currentUserId = userId;
+        
+        document.querySelectorAll('.conversation-item').forEach(function (el) {
+            el.classList.remove('active');
+        });
+        var convEl = document.getElementById('conv-' + userId);
+        if (convEl) convEl.classList.add('active');
+        
+        var customer = conversations.find(function (c) { return c.userId === userId; });
+        var name = customer ? customer.tenkh : 'Khách hàng #' + userId;
+        
+        document.getElementById('chatHeader').innerHTML = '<i class="fas fa-user me-2"></i>' + escHtml(name);
+        document.getElementById('chatInputArea').style.display = 'flex';
+        
+        loadCustomerMessages(userId);
+        
+        initSignalR().then(function () {
+            if (connection && connection.state === 'Connected') {
+                connection.invoke('JoinCustomerSupportGroup', userId).catch(function () {});
+            }
+        });
+    }
+
+    function loadCustomerMessages(userId) {
+        $.ajax({
+            url: '@Url.Action("GetCustomerMessages", "AdminChat")',
+            type: 'GET',
+            data: { userId: userId },
+            success: function (res) {
+                if (!res.success) return;
+                var container = document.getElementById('chatMessages');
+                container.innerHTML = '';
+                
+                if (res.data.length === 0) {
+                    container.innerHTML = '<div class="text-center text-muted py-4">Chưa có tin nhắn. Hãy gửi tin nhắn đầu tiên!</div>';
+                } else {
+                    res.data.forEach(function (msg) {
+                        var roleClass = msg.sender === "Admin" ? "admin" : "customer";
+                        addMessage(msg.content, roleClass, msg.sender);
+                    });
+                }
+                container.scrollTop = container.scrollHeight;
+            }
+        });
+    }
+
+    function addMessage(content, roleClass, senderName) {
+        var container = document.getElementById('chatMessages');
+        var div = document.createElement('div');
+        div.className = 'chat-msg-item ' + roleClass;
+        div.innerHTML = '<div class="msg-sender-label">' + escHtml(senderName || '') + '</div>' + escHtml(content);
+        container.appendChild(div);
+        container.scrollTop = container.scrollHeight;
+    }
+
+    function sendAdminMessage() {
+        var input = document.getElementById('adminChatInput');
+        var msg = input.value.trim();
+        if (!msg || currentUserId === 0) return;
+        input.value = '';
+        
+        addMessage(msg, 'admin', 'Admin');
+        
+        $.ajax({
+            url: '@Url.Action("SendMessageToCustomer", "AdminChat")',
+            type: 'POST',
+            data: { userId: currentUserId, message: msg },
+            error: function () {
+                addMessage('❌ Lỗi gửi tin nhắn', 'admin', 'Hệ thống');
+            }
+        });
+    }
+
+    function escHtml(str) {
+        if (!str) return '';
+        var div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
+    $(document).ready(function () {
+        initSignalR();
+        loadConversations();
+    });
+</script>

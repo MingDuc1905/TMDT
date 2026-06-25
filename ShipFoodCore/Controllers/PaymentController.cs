@@ -26,17 +26,32 @@ public class PaymentController : BaseController
         if (testResult != "success" && testResult != "failure")
             return Json(new { success = false, message = "Kết quả kiểm thử không hợp lệ" });
 
+        // Validate thông tin người nhận
+        if (string.IsNullOrWhiteSpace(hoten) || hoten.Length < 2 || hoten.Length > 100)
+            return Json(new { success = false, message = "Họ tên phải từ 2-100 ký tự" });
+        if (string.IsNullOrWhiteSpace(SDT) || !System.Text.RegularExpressions.Regex.IsMatch(SDT, @"^0[1-9][0-9]{8,9}$"))
+            return Json(new { success = false, message = "Số điện thoại không hợp lệ — phải là 10-11 số, bắt đầu bằng 0" });
+
         var cart = GetCart();
         if (cart == null || cart.monAns.Count == 0)
             return Json(new { success = false, message = "Giỏ hàng trống" });
 
-        // Mô phỏng thanh toán thất bại
+        // Mô phỏng thanh toán thất bại (giả lập nhiều lỗi khác nhau)
         if (testResult == "failure")
         {
+            var failures = new[] {
+                "❌ Thẻ của bạn đã hết hạn. Vui lòng kiểm tra lại thông tin thẻ.",
+                "❌ Số dư trong tài khoản không đủ để thực hiện giao dịch.",
+                "❌ Giao dịch bị từ chối do ngân hàng gặp sự cố kết nối. Vui lòng thử lại.",
+                "❌ Mã xác thực giao dịch không hợp lệ. Vui lòng thực hiện lại.",
+                "❌ Quá thời gian xử lý. Phiên thanh toán đã hết hạn. Vui lòng thử lại."
+            };
+            var msg = failures[new System.Random().Next(failures.Length)];
+            TempData["PaymentError"] = msg;
             return Json(new
             {
                 success = false,
-                message = "Thanh toán thất bại hoặc phiên giao dịch hết hạn. Vui lòng thử lại!",
+                message = msg,
                 keepCart = true
             });
         }

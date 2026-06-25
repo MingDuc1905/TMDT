@@ -10,7 +10,7 @@ namespace ShipFood.Controllers;
 public class ChatbotController : BaseController
 {
     private readonly GeminiService _gemini;
-    private const int MaxHistoryLength = 10; // Giữ tối đa 10 tin nhắn gần nhất
+    private const int MaxHistoryLength = 20; // Giữ tối đa 20 tin nhắn gần nhất cho hội thoại tự nhiên hơn
 
     public ChatbotController(dbFoodyEntities context, GeminiService gemini)
     {
@@ -27,7 +27,8 @@ public class ChatbotController : BaseController
 
         var lowerMsg = message.ToLower().Trim();
 
-        // 1. Kiểm tra các câu hỏi đặc biệt cần database
+        // 1. Xử lý các truy vấn cần database (tra cứu đơn hàng, gợi ý món ăn)
+        // Chỉ xử lý khi có từ khóa rõ ràng - không ảnh hưởng đến hội thoại tự do với AI
         var dbResult = HandleDatabaseQueries(lowerMsg);
         if (dbResult != null)
         {
@@ -35,13 +36,10 @@ public class ChatbotController : BaseController
             return Json(dbResult);
         }
 
-        // 2. Sử dụng Gemini AI để trả lời
+        // 2. Dùng Gemini AI trả lời TỰ DO - không bị giới hạn bởi kịch bản lập trình sẵn
         if (_gemini.IsConfigured)
         {
-            // Lấy lịch sử hội thoại từ session (chỉ các tin nhắn cũ)
             var history = GetConversationHistory();
-            // GeminiService tự thêm message hiện tại vào contents, không cần Add ở đây
-
             var geminiReply = await _gemini.SendMessageAsync(message, history);
             if (!string.IsNullOrEmpty(geminiReply))
             {
@@ -49,16 +47,19 @@ public class ChatbotController : BaseController
                 return Json(new
                 {
                     reply = geminiReply,
-                    quickReplies = GetDefaultQuickReplies(lowerMsg)
+                    quickReplies = GetContextualQuickReplies(message)
                 });
             }
         }
 
-        // 3. Fallback: xử lý rule-based
-        var fallbackResult = HandleFallback(lowerMsg);
-        var replyText = (string)fallbackResult.GetType().GetProperty("reply")!.GetValue(fallbackResult)!;
-        SaveToHistory(message, replyText);
-        return Json(fallbackResult);
+        // 3. Nếu Gemini không khả dụng (chưa cấu hình API key), thông báo nhẹ nhàng
+        var configReply = "⚠️ **FastShip Chatbot cần được cấu hình API key để hoạt động.**\n\nVui lòng liên hệ quản trị viên để thiết lập kết nối Gemini AI.\n\nTrong lúc chờ, bạn có thể dùng các lệnh sau:\n- `#123` - Tra cứu đơn hàng\n- `gợi ý món ăn` - Xem món bán chạy\n- `phí ship` - Xem thông tin phí vận chuyển";
+        SaveToHistory(message, configReply);
+        return Json(new
+        {
+            reply = configReply,
+            quickReplies = new[] { "Tra cứu đơn hàng #", "Gợi ý món ăn", "Phí ship thế nào?", "Đăng ký bán hàng" }
+        });
     }
 
     /// <summary>
@@ -108,7 +109,8 @@ public class ChatbotController : BaseController
 
     private object? HandleOrderLookup(string msg)
     {
-        var match = Regex.Match(msg, @"#?(\d{2,8})");
+        // Chỉ match khi có dấu # hoặc từ khóa "mã", "đơn" đứng trước số - tránh bắt nhầm số trong câu hỏi thường
+        var match = Regex.Match(msg, @"(?:#|mã\s+|đơn\s+|order\s+|tra\s+)(\d{2,8})");
         if (!match.Success) return null;
 
         int orderId = int.Parse(match.Groups[1].Value);
@@ -205,82 +207,21 @@ public class ChatbotController : BaseController
     }
 
     /// <summary>
-    /// Fallback rule-based khi Gemini không hoạt động
+    /// Gợi ý các quick reply dựa trên nội dung tin nhắn hiện tại
+    /// (chỉ gợi ý định hướng chung, không ảnh hưởng đến nội dung AI trả lời)
     /// </summary>
-    private object HandleFallback(string msg)
+    private string[] GetContextualQuickReplies(string msg)
     {
-        if (ContainsAny(msg, "phí ship", "phí vận chuyển", "tiền ship", "free ship", "miễn phí"))
-        {
-            return new
-            {
-                reply = "🚚 **Phí vận chuyển FastShip:**" +
-                        "\n- Phí ship cố định: **15,000đ**" +
-                        "\n- Miễn phí ship cho đơn từ **100,000đ**" +
-                        "\n- Thời gian giao: **30-45 phút**",
-                quickReplies = new[] { "Đăng ký bán hàng", "Hủy đơn thế nào?", "Gợi ý món ăn" }
-            };
-        }
-
-        if (ContainsAny(msg, "đăng ký", "bán hàng", "mở quán", "đăng ký bán"))
-        {
-            return new
-            {
-                reply = "🏪 **Đăng ký bán hàng trên FastShip:**" +
-                        "\n1. Đăng ký tài khoản với loại **'Quán ăn'**" +
-                        "\n2. Chờ Admin duyệt (thường trong 24h)" +
-                        "\n3. Sau khi được duyệt, đăng nhập và quản lý thực đơn" +
-                        "\n\n📧 Liên hệ: Fastship@contact.com",
-                quickReplies = new[] { "Phí ship", "Chính sách hủy đơn", "Gợi ý món ăn" }
-            };
-        }
-
-        if (ContainsAny(msg, "hủy đơn", "huỷ đơn", "cancel", "hủy", "huỷ"))
-        {
-            return new
-            {
-                reply = "📋 **Chính sách hủy đơn:**" +
-                        "\n- Có thể hủy trong **5 phút** sau khi đặt" +
-                        "\n- Nếu quán đã xác nhận, liên hệ quán để hủy" +
-                        "\n- Đơn đã giao **không thể hủy**" +
-                        "\n\n👉 Vào **Lịch sử đơn hàng** để hủy đơn",
-                quickReplies = new[] { "Phí ship", "Đăng ký bán hàng", "Gợi ý món ăn" }
-            };
-        }
-
-        if (ContainsAny(msg, "giờ", "thời gian", "mở cửa", "hoạt động"))
-        {
-            return new
-            {
-                reply = "⏰ **Giờ hoạt động:**" +
-                        "\n- Các quán mở cửa: **7:00 - 21:30**" +
-                        "\n- Giờ có thể khác nhau tùy quán" +
-                        "\n- Xem chi tiết trên trang của từng quán",
-                quickReplies = new[] { "Phí ship", "Đăng ký bán hàng", "Gợi ý món ăn" }
-            };
-        }
-
-        // Mặc định
-        return new
-        {
-            reply = "👋 **Chào bạn!** Tôi là trợ lý FastShip." +
-                    "\n\nTôi có thể giúp bạn:" +
-                    "\n- 📦 **Tra cứu đơn hàng**: Gửi mã đơn (ví dụ: #123)" +
-                    "\n- 🔥 **Gợi ý món**: Gõ 'gợi ý món ăn'" +
-                    "\n- 📞 **Hỗ trợ**: Các câu hỏi về phí ship, hủy đơn, đăng ký..." +
-                    "\n- 🤖 **AI Chat**: Hỏi bất cứ điều gì!",
-            quickReplies = new[] { "Phí ship thế nào?", "Gợi ý món ăn", "Đăng ký bán hàng" }
-        };
-    }
-
-    private string[] GetDefaultQuickReplies(string msg)
-    {
-        if (ContainsAny(msg, "phí", "ship", "tiền"))
-            return new[] { "Gợi ý món ăn", "Đăng ký bán hàng", "Tra cứu đơn hàng" };
-        if (ContainsAny(msg, "món", "ăn", "bán chạy"))
-            return new[] { "Phí ship thế nào?", "Đăng ký bán hàng", "Tra cứu đơn hàng" };
-        if (ContainsAny(msg, "đăng ký", "bán"))
-            return new[] { "Phí ship thế nào?", "Gợi ý món ăn", "Tra cứu đơn hàng" };
-        return new[] { "Phí ship thế nào?", "Gợi ý món ăn", "Đăng ký bán hàng" };
+        var lower = msg.ToLower();
+        if (lower.Contains("phí") || lower.Contains("ship") || lower.Contains("tiền"))
+            return new[] { "Gợi ý món ăn", "Đăng ký bán hàng", "Tra cứu đơn hàng", "Liên hệ hỗ trợ" };
+        if (lower.Contains("món") || lower.Contains("ăn") || lower.Contains("ngon") || lower.Contains("bán chạy") || lower.Contains("gợi ý"))
+            return new[] { "Phí ship thế nào?", "Đăng ký bán hàng", "Tra cứu đơn hàng #", "Liên hệ hỗ trợ" };
+        if (lower.Contains("đăng ký") || lower.Contains("bán hàng") || lower.Contains("mở quán"))
+            return new[] { "Phí ship thế nào?", "Gợi ý món ăn", "Tra cứu đơn hàng #" };
+        if (lower.Contains("chào") || lower.Contains("cảm ơn") || lower.Contains("hello"))
+            return new[] { "Gợi ý món ăn", "Phí ship thế nào?", "Tra cứu đơn hàng #", "Liên hệ hỗ trợ" };
+        return new[] { "Gợi ý món ăn", "Phí ship thế nào?", "Đăng ký bán hàng", "Liên hệ hỗ trợ" };
     }
 
     private bool ContainsAny(string text, params string[] keywords)

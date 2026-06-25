@@ -55,6 +55,21 @@ builder.Services.AddCors(options =>
     });
 });
 
+// Add Authentication (Cookie + Google OAuth)
+builder.Services.AddAuthentication(Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Home/Login";
+        options.LogoutPath = "/Home/Logout";
+        options.ExpireTimeSpan = TimeSpan.FromDays(30);
+        options.SlidingExpiration = true;
+    })
+    .AddGoogle(googleOptions =>
+    {
+        googleOptions.ClientId = builder.Configuration["Authentication:Google:ClientId"] ?? "";
+        googleOptions.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"] ?? "";
+    });
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -68,13 +83,14 @@ else
     app.UseDeveloperExceptionPage();
 }
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection(); // Tắt HTTPS redirect vì app dev chỉ chạy HTTP port 5000 - Google OAuth callback cần URI khớp
 app.UseStaticFiles();
 
 app.UseRouting();
 
 app.UseCors();
 
+app.UseAuthentication();
 app.UseSession();
 
 app.UseAuthorization();

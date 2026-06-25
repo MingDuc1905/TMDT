@@ -1,16 +1,26 @@
-﻿
 @{
-    ViewBag.Title = "FailureView";
+    ViewBag.Title = "Đặt hàng thất bại";
     Layout = "~/Views/Shared/_LayoutPageHome.cshtml";
+    var errorMsg = TempData["PaymentError"] as string ?? "Giao dịch không thành công. Vui lòng thử lại!";
 }
 
-<div style="display: inline-block; width:100%;height:800px" class="alert alert-danger" role="alert">
-    <div style=" text-align: center; display: flex; flex-direction: column; align-items: center; padding-top: 20%;">
-
-        <h3 style="margin-bottom:40px">Đặt hàng không thành công</h3>
-        <a href="~/Cart/LichSuDatHang"><button class="btn btn-outline-light btn-dark">Xem lịch sử đơn hàng</button></a>
+<div class="container py-5" style="min-height: 70vh; display: flex; align-items: center; justify-content: center;">
+    <div class="text-center" style="max-width: 500px;">
+        <div style="width: 80px; height: 80px; margin: 0 auto 24px; background: #fff0f0; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+            <i class="fas fa-times-circle" style="font-size: 40px; color: #e74c3c;"></i>
+        </div>
+        <h3 class="mb-3" style="font-weight: 700; color: #e74c3c;">Đặt hàng thất bại</h3>
+        <p class="text-muted mb-4" style="font-size: 15px; line-height: 1.6;">
+            <i class="fas fa-info-circle me-1 text-danger"></i> @errorMsg
+        </p>
+        <p class="text-muted small mb-4">Bạn có thể thử lại hoặc kiểm tra kết nối và thanh toán.</p>
+        <div class="d-flex justify-content-center gap-3">
+            <a href="~/Cart/Checkout" class="btn btn-lg" style="background: #3CB815; color: white; padding: 12px 28px; border-radius: 8px; font-weight: 600; text-decoration: none;">
+                <i class="fas fa-redo me-1"></i> Thử lại
+            </a>
+            <a href="~/Cart/LichSuDatHang" class="btn btn-lg" style="background: #f0f2f5; color: #333; padding: 12px 28px; border-radius: 8px; font-weight: 500; text-decoration: none;">
+                Lịch sử đơn hàng
+            </a>
+        </div>
     </div>
-
 </div>
-
-

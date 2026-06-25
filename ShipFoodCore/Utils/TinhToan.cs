@@ -1,13 +1,11 @@
-using NetTopologySuite.Geometries;
 using ShipFood.Models;
 
 namespace ShipFood.Utils;
 
 public class TinhToan
 {
-    public static double? TinhTienShip(Point toaDo1, Point toaDo2)
+    public static decimal? TinhTienShip(decimal? khoangCach)
     {
-        double? khoangCach = toaDo1.Distance(toaDo2);
         return khoangCach * 15000;
     }
 

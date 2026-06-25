@@ -74,7 +74,7 @@ public class PaymentController : BaseController
                     userid = user!.userid,
                     sdt = SDT ?? "",
                     diachi = $"{diachiadd}, {diachicuthe}, {quan}, TP Đà Nẵng",
-                    toado = new NetTopologySuite.Geometries.Point(90, 90) { SRID = 4326 },
+                    toado = null,
                     tennguoinhan = hoten ?? ""
                 };
                 db.tbThongTinDatHang.Add(ttdh);

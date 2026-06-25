@@ -292,7 +292,7 @@ public class AdminController : BaseController
                         sdt = user.sdt,
                         tennguoinhan = hoten,
                         userid = user.userid,
-                        toado = new NetTopologySuite.Geometries.Point(90, 90) { SRID = 4326 }
+                        toado = null
                     });
                     break;
                 case "Quán ăn":

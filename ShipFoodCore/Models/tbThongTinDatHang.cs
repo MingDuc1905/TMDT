@@ -1,6 +1,5 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using NetTopologySuite.Geometries;
 
 namespace ShipFood.Models;
 
@@ -19,8 +18,8 @@ public partial class tbThongTinDatHang
     [MaxLength(250)]
     public string diachi { get; set; } = null!;
 
-    [Required]
-    public Point toado { get; set; } = null!;
+    [MaxLength(100)]
+    public string? toado { get; set; }
 
     [Required]
     [MaxLength(50)]

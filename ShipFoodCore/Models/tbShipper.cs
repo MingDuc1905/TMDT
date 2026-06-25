@@ -1,6 +1,5 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using NetTopologySuite.Geometries;
 
 namespace ShipFood.Models;
 
@@ -19,7 +18,8 @@ public partial class tbShipper
     [MaxLength(250)]
     public string diachi { get; set; } = null!;
 
-    public Point? toado { get; set; }
+    [MaxLength(100)]
+    public string? toado { get; set; }
 
     [Column(TypeName = "decimal(18,0)")]
     public decimal? diemdanhgia { get; set; }

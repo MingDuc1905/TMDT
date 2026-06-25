@@ -19,11 +19,11 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 
-// Add Entity Framework Core
+// Add Entity Framework Core (MySQL)
 builder.Services.AddDbContext<dbFoodyEntities>(options =>
-    options.UseSqlServer(
+    options.UseMySql(
         builder.Configuration.GetConnectionString("dbFoodyEntities"),
-        sqlOptions => sqlOptions.UseNetTopologySuite()
+        new MariaDbServerVersion(new Version(10, 6))
     ));
 
 // Add HttpContextAccessor for session access
@@ -71,6 +71,13 @@ builder.Services.AddAuthentication(Microsoft.AspNetCore.Authentication.Cookies.C
     });
 
 var app = builder.Build();
+
+// Auto-create database tables on first run (MySQL)
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<dbFoodyEntities>();
+    db.Database.EnsureCreated();
+}
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

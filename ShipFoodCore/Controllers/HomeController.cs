@@ -160,6 +160,8 @@ public class HomeController : BaseController
     [ValidateAntiForgeryToken]
     public ActionResult Login(string usernameOrPhone, string pwd, bool rememberMe = false)
     {
+        try
+        {
         if (string.IsNullOrWhiteSpace(usernameOrPhone) || string.IsNullOrWhiteSpace(pwd))
         {
             ViewBag.LoginFail = "Vui lòng nhập tên đăng nhập/SĐT và mật khẩu";
@@ -244,6 +246,15 @@ public class HomeController : BaseController
         else
         {
             ViewBag.LoginFail = "Đăng nhập thất bại";
+            return View();
+        }
+        }
+        catch (Exception ex)
+        {
+            // Log chi tiết để debug — hiển thị lỗi thân thiện cho người dùng
+            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<HomeController>>();
+            logger.LogError(ex, "Login failed for user {User}", usernameOrPhone);
+            ViewBag.LoginFail = "Lỗi hệ thống: " + ex.Message;
             return View();
         }
     }
@@ -526,6 +537,60 @@ public class HomeController : BaseController
     public ActionResult Error()
     {
         return View();
+    }
+
+    /// <summary>
+    /// Seed database — chèn seed data từ seed_mysql.sql nếu chưa có user nào.
+    /// Gọi GET /Home/SeedDb từ browser sau deploy (chỉ chạy 1 lần).
+    /// </summary>
+    public IActionResult SeedDb()
+    {
+        try
+        {
+            // Kiểm tra nếu đã có dữ liệu thì skip
+            if (db.tbUser.Any())
+            {
+                return Content("✅ Database đã có dữ liệu, không cần seed.");
+            }
+
+            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<HomeController>>();
+            var env = HttpContext.RequestServices.GetRequiredService<IWebHostEnvironment>();
+
+            string sqlPath = System.IO.Path.Combine(env.ContentRootPath, "seed_mysql.sql");
+            if (!System.IO.File.Exists(sqlPath))
+            {
+                return Content("❌ Không tìm thấy seed_mysql.sql tại: " + sqlPath);
+            }
+
+            var sql = System.IO.File.ReadAllText(sqlPath);
+            // Tách các câu lệnh SQL theo dấu ;
+            var statements = sql.Split(';', StringSplitOptions.RemoveEmptyEntries);
+
+            int success = 0, fail = 0;
+            foreach (var stmt in statements)
+            {
+                var trimmed = stmt.Trim();
+                if (trimmed.Length == 0 || trimmed.StartsWith("--") || trimmed.StartsWith("DROP") || trimmed.StartsWith("CREATE"))
+                    continue;
+
+                try
+                {
+                    db.Database.ExecuteSqlRaw(trimmed);
+                    success++;
+                }
+                catch (Exception ex)
+                {
+                    logger.LogWarning("Seed SQL statement failed: {Error}", ex.Message);
+                    fail++;
+                }
+            }
+
+            return Content($"✅ Seed hoàn tất! {success} câu lệnh thành công, {fail} lỗi (có thể bỏ qua).");
+        }
+        catch (Exception ex)
+        {
+            return Content($"❌ Lỗi seed: {ex.Message}");
+        }
     }
 
     public ActionResult NhanTin()

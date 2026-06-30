@@ -16,6 +16,15 @@
     --fs-topbar-h:38px;
 }
 
+/* ── Ẩn scrollbar nhưng vẫn giữ scroll được (Firefox + Chrome + Edge) ─── */
+html {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+html::-webkit-scrollbar {
+    display: none;
+}
+
 /* ── Utilities ─────────────────────────────────────────────── */
 .fw-700 { font-weight: 700 !important; }
 .fw-800 { font-weight: 800 !important; }

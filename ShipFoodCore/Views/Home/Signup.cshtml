@@ -46,6 +46,7 @@
         </a>
         <h2 style="font-size:20px;margin-bottom:20px;color:#1F1F1F;">Đăng ký tài khoản</h2>
         <form action="~/Home/Signup" method="post" onsubmit="return validateSignupForm()">
+            @Html.AntiForgeryToken()
             <input type="text" id="reg-hoten" name="hoten" placeholder="Họ tên" required />
             <input type="text" id="reg-username" name="username" placeholder="Username" required />
             <input type="password" id="reg-pwd" name="pwd" placeholder="Mật khẩu" required />

@@ -158,7 +158,7 @@ public class HomeController : BaseController
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public ActionResult Login(string usernameOrPhone, string pwd)
+    public ActionResult Login(string usernameOrPhone, string pwd, bool rememberMe = false)
     {
         if (string.IsNullOrWhiteSpace(usernameOrPhone) || string.IsNullOrWhiteSpace(pwd))
         {
@@ -195,6 +195,19 @@ public class HomeController : BaseController
             var cart = new Cart { userid = userFind.userid };
             SetCart(cart);
             SetSessionUser(userFind);
+
+            // Nếu người dùng chọn "Lưu đăng nhập", làm cho session cookie persistent
+            // Dùng HttpContext.Session.Id thay vì Request.Cookies vì cookie chưa tồn tại trong request
+            if (rememberMe)
+            {
+                Response.Cookies.Append(".AspNetCore.Session", HttpContext.Session.Id, new CookieOptions
+                {
+                    Expires = DateTimeOffset.UtcNow.AddDays(30),
+                    HttpOnly = true,
+                    IsEssential = true,
+                    SameSite = SameSiteMode.Lax
+                });
+            }
 
             return userFind.loaitaikhoan switch
             {

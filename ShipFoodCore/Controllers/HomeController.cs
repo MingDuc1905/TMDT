@@ -179,8 +179,31 @@ public class HomeController : BaseController
         if (users.Count != 0)
         {
             var userFind = users[0];
-            // Verify password with BCrypt
-            if (!BCrypt.Net.BCrypt.Verify(pwd, userFind.pwd))
+
+            // === Kiểm tra mật khẩu với backward compatibility ===
+            // Mật khẩu cũ trong seed data là plaintext, mật khẩu mới là BCrypt hash
+            bool passwordMatched = false;
+
+            // Thử 1: BCrypt (dành cho user đăng ký từ khi có BCrypt)
+            if (userFind.pwd != null && userFind.pwd.StartsWith("$2"))
+            {
+                passwordMatched = BCrypt.Net.BCrypt.Verify(pwd, userFind.pwd);
+            }
+            // Thử 2: So sánh plaintext (dành cho user cũ / seed data)
+            else
+            {
+                passwordMatched = (userFind.pwd == pwd);
+            }
+
+            // Nếu khớp bằng plaintext, nâng cấp lên BCrypt ngay
+            // EF Core tự động tracking entity sau ToList(), chỉ cần set property + SaveChanges
+            if (passwordMatched && (userFind.pwd == null || !userFind.pwd.StartsWith("$2")))
+            {
+                userFind.pwd = BCrypt.Net.BCrypt.HashPassword(pwd, workFactor: 12);
+                db.SaveChanges();
+            }
+
+            if (!passwordMatched)
             {
                 ViewBag.LoginFail = "Đăng nhập thất bại";
                 return View();

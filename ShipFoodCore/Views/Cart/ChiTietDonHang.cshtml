@@ -38,7 +38,7 @@
 
 <body>
     <!-- Breadcrumb Section Begin -->
-    <section style="margin-top:200px" class="breadcrumb-section set-bg" data-setbg="https://localhost:44363/Source/Restaurant/images/card/2.png">
+    <section style="margin-top:200px" class="breadcrumb-section set-bg" data-setbg="@Url.Content("~/Source/Restaurant/images/card/2.png")">
         <div class="container">
             <div class="row">
                 <div class="col-lg-12 text-center">
@@ -172,7 +172,7 @@
 
 <script type="text/javascript">
     function redirectToPage() {
-        window.location.href = "https://localhost:44363/Home/NhanTin";
+        window.location.href = '@Url.Action("NhanTin", "Home")';
     }
 
     // Live order tracking with Leaflet.js + SignalR

@@ -1,0 +1,56 @@
+﻿
+@{
+    ViewBag.Title = "NhanTin";
+    Layout = "~/Views/Shared/_LayoutPageHome.cshtml";
+}
+<div class="container-fluid page-header mb-5 wow fadeIn" data-wow-delay="0.1s">
+    <div class="container">
+        <h1 class="display-3 mb-3 animated slideInDown">Nhắn tin</h1>
+        <nav aria-label="breadcrumb animated slideInDown">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item text-dark">Trang chủ</li>
+                <li class="breadcrumb-item text-dark" aria-current="page">Đặt hàng</li>
+                <li class="breadcrumb-item text-dark active" aria-current="page">Nhắn tin</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+<div class="container-xxl py-5">
+        <div class="content">
+            <div class="app-content" style="margin-top:0px;margin-left:0px;">
+                <div id="chatbox-nt" class="chatbox-nt">
+                </div>
+                <div id="messageForm" class="messageTyper d-flex">
+                    <input id="txtMessage" class="search__field" type="text" placeholder="Soạn tin nhắn...">
+                    <button class="button button-send" id="btnSend">Gửi</button>
+                </div>
+            </div>
+        </div>
+</div>
+    @section scripts{
+        <script src="~/Scripts/jquery.signalR-2.4.3.js"></script>
+        <script src="~/Scripts/jquery.signalR-2.4.3.min.js"></script>
+        <script src="~/signalr/hubs"></script>
+        <script>
+            $(function () {
+                var chat = $.connection.nhantin;
+                console.log(chat);
+                loadClient(chat);
+                $.connection.hub.start().done(function () {
+                    $('#btnSend').click(function () {
+                        var msg = $('#txtMessage').val();
+                        var phanbiet = 1;
+                        chat.server.message(msg, phanbiet);
+                        $('#txtMessage').val('').focus();
+                    });
+                });
+            });
+            function loadClient(chat) {
+                chat.client.message = function (msg, phanbiet) {
+                    $('#chatbox-nt').append("<p class='meesage " + (phanbiet == 1 ? 'own' : 'other') + "'>" + msg + "</p>");
+                }
+            }
+        </script>
+
+    }
+

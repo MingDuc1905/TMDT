@@ -1,0 +1,150 @@
+﻿
+@{
+    ViewBag.Title = "Signup";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Fastship - Khám phá, đặt hàng, giao tân nơi</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <meta content="" name="keywords" />
+    <meta content="" name="description" />
+
+    <!-- Favicon -->
+    <link href="~/Source/Home/img/favicon.ico" rel="icon" />
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet" />
+
+    <!-- Icon Font Stylesheet -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet" />
+
+    <!-- Libraries Stylesheet -->
+    <link href="~/Source/Home/lib/animate/animate.min.css" rel="stylesheet" />
+    <link href="~/Source/Home/lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet" />
+
+    <!-- Customized Bootstrap Stylesheet -->
+    <link href="~/Source/Home/css/bootstrap.min.css" rel="stylesheet" />
+
+    <!-- Template Stylesheet -->
+    <link href="~/Source/Home/css/style.css" rel="stylesheet" />
+    <link href="~/Source/Home/css/login.css" rel="stylesheet" />
+</head>
+
+<body style="background:#f0f2f5;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;margin:0;padding:20px;">
+    <div style="margin-bottom:10px;">
+        <a href="~/Home" style="color:#3CB815;text-decoration:none;font-size:14px;">← Quay về trang chủ</a>
+    </div>
+    <div class="register-container">
+        <a href="~/Home" style="text-decoration:none;">
+            <h1 style="color:#3CB815;font-size:28px;margin-bottom:8px;font-weight:700;">F<span style="color:#F65005;">ast</span>ship</h1>
+        </a>
+        <h2 style="font-size:20px;margin-bottom:20px;color:#1F1F1F;">Đăng ký tài khoản</h2>
+        <form action="~/Home/Signup" method="post" onsubmit="return validateSignupForm()">
+            <input type="text" id="reg-hoten" name="hoten" placeholder="Họ tên" required />
+            <input type="text" id="reg-username" name="username" placeholder="Username" required />
+            <input type="password" id="reg-pwd" name="pwd" placeholder="Mật khẩu" required />
+            <input type="password" id="reg-repeatpw" name="repeatpw" placeholder="Nhập lại mật khẩu" required />
+            <select id="reg-loaitaikhoan" name="loaitaikhoan" required>
+                <option value="" disabled selected>Chọn loại tài khoản</option>
+                <option value="Khách hàng">Khách hàng</option>
+                <option value="Quán ăn">Quán ăn</option>
+                <option value="Shipper">Shipper</option>
+            </select>
+            <input type="tel" id="reg-sdt" name="sdt" placeholder="Số điện thoại" required />
+            <input type="email" id="reg-email" name="email" placeholder="Email" required />
+            <input type="text" id="reg-diachi" name="diachi" placeholder="Địa chỉ" required />
+        @if (ViewBag.err != null)
+        {
+            <div class="alert alert-danger" role="alert">
+                @ViewBag.err
+            </div>
+        }
+        <div id="reg-err" class="alert alert-danger" role="alert" style="display:none"></div>
+            <button type="submit" class="register-submit">Đăng ký</button>
+        </form>
+        <div class="login-note">
+            <span>Đã có tài khoản? <a href="~/Home/Login">Đăng nhập</a></span>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/Source/Home/lib/wow/wow.min.js"></script>
+    <script src="~/Source/Home/lib/easing/easing.min.js"></script>
+    <script src="~/Source/Home/lib/waypoints/waypoints.min.js"></script>
+    <script src="~/Source/Home/lib/owlcarousel/owl.carousel.min.js"></script>
+
+    <!-- Template Javascript -->        <script>
+        // Validation form đăng ký — kiểm tra toàn diện
+        function validateSignupForm() {
+            var hoten = document.getElementById('reg-hoten').value.trim();
+            var username = document.getElementById('reg-username').value.trim();
+            var email = document.getElementById('reg-email').value.trim();
+            var sdt = document.getElementById('reg-sdt').value.trim();
+            var diachi = document.getElementById('reg-diachi').value.trim();
+            var pwd = document.getElementById('reg-pwd').value;
+            var repeatpw = document.getElementById('reg-repeatpw').value;
+            var loaitaikhoan = document.getElementById('reg-loaitaikhoan').value;
+            var errDiv = document.getElementById('reg-err');
+
+            // Hàm hiển thị lỗi
+            function showErr(msg) {
+                errDiv.textContent = msg;
+                errDiv.style.display = 'block';
+                return false;
+            }
+
+            // === Họ tên ===
+            if (hoten === '') return showErr('Vui lòng nhập họ tên');
+            if (hoten.length < 2) return showErr('Họ tên phải có ít nhất 2 ký tự');
+            if (hoten.length > 100) return showErr('Họ tên không được quá 100 ký tự');
+
+            // === Username ===
+            if (username === '') return showErr('Vui lòng nhập tên đăng nhập');
+            if (username.length < 3) return showErr('Tên đăng nhập phải có ít nhất 3 ký tự');
+            if (username.length > 50) return showErr('Tên đăng nhập không được quá 50 ký tự');
+            if (!/^[a-zA-Z0-9_]+$/.test(username)) return showErr('Tên đăng nhập chỉ được chứa chữ cái, số và dấu gạch dưới');
+
+            // === Mật khẩu ===
+            if (pwd.length < 6) return showErr('Mật khẩu phải có ít nhất 6 ký tự');
+            if (pwd.length > 50) return showErr('Mật khẩu không được quá 50 ký tự');
+            if (!/[0-9]/.test(pwd)) return showErr('Mật khẩu phải chứa ít nhất một chữ số');
+            if (!/[a-zA-Z]/.test(pwd)) return showErr('Mật khẩu phải chứa ít nhất một chữ cái');
+            if (pwd !== repeatpw) return showErr('Xác nhận mật khẩu không khớp');
+
+            // === Số điện thoại ===
+            if (sdt === '') return showErr('Vui lòng nhập số điện thoại');
+            var phoneRegex = /^(0[1-9][0-9]{8,9})$/;
+            if (!phoneRegex.test(sdt)) return showErr('Số điện thoại không hợp lệ — phải là 10-11 số, bắt đầu bằng 0 (VD: 0912345678)');
+
+            // === Email ===
+            if (email === '') return showErr('Vui lòng nhập email');
+            // Dùng String.fromCharCode(64) thay vi at-char đe tranh loi Razor parse
+            var atPos = email.indexOf(String.fromCharCode(64));
+            var dotPos = email.lastIndexOf('.');
+            if (atPos < 1 || dotPos < atPos + 2 || email.length < 5)
+                return showErr('Email không hợp lệ (VD: example@gmail.com)');
+
+            // === Địa chỉ ===
+            if (diachi === '') return showErr('Vui lòng nhập địa chỉ');
+            if (diachi.length < 5) return showErr('Địa chỉ phải có ít nhất 5 ký tự');
+            if (diachi.length > 250) return showErr('Địa chỉ không được quá 250 ký tự');
+
+            // === Loại tài khoản ===
+            if (!loaitaikhoan || loaitaikhoan === '') return showErr('Vui lòng chọn loại tài khoản');
+
+            errDiv.style.display = 'none';
+            return true;
+        }
+    </script>
+    <script src="~/Source/Home/js/main.js"></script>
+</body>
+</html>
+
+

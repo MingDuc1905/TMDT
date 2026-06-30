@@ -1,0 +1,304 @@
+﻿@using ShipFood.Models
+@inject ShipFood.Models.dbFoodyEntities _db
+
+@{
+    ViewBag.Title = "Fastship — Đặt món, giao tận nơi tại TP.HCM";
+    Layout = "~/Views/Shared/_LayoutPageHome.cshtml";
+    List<tbQuanAn> quanAns = ViewBag.quanAns;
+    var idDMActive = ViewBag.idDM as int?;
+}
+
+@section styles {
+    <style>
+        /* Tạm thời override carousel min-height cho Index */
+        #header-carousel .carousel-item img { max-height: 540px; object-fit: cover; }
+    </style>
+}
+
+<!-- ===== PROMO BAND (sweetgreen style "Summer Today. Gone Tomorrow.") ===== -->
+<div class="fs-promo-band position-relative" id="promoBand" role="banner" aria-label="Ưu đãi đặc biệt">
+    🍜 Mùa hè đặc biệt — Giảm 20% cho đơn đầu tiên trong ngày!&nbsp;
+    <a href="/Home/DanhMuc">Khám phá ngay →</a>
+    <button class="fs-promo-dismiss" onclick="document.getElementById('promoBand').style.display='none'" aria-label="Đóng thông báo">✕</button>
+</div>
+
+<!-- ===== HERO CAROUSEL ===== -->
+<div class="container-fluid p-0 wow fadeIn" data-wow-delay="0.1s">
+    <div id="header-carousel" class="carousel slide" data-bs-ride="carousel">
+        <div class="carousel-inner">
+            <div class="carousel-item active">
+                <img class="w-100" src="~/Source/Home/img/banner-1.jpg" alt="Khám phá ẩm thực Sài Gòn cùng Fastship" />
+                <div class="carousel-caption">
+                    <div class="container">
+                        <div class="row justify-content-start">
+                            <div class="col-lg-7 col-11">
+                                <h1 class="display-2 mb-4 animated slideInDown fw-800">
+                                    Ẩm thực Sài Gòn — giao tận cửa trong 30 phút
+                                </h1>
+                                <div class="animated slideInUp">
+                                    <a href="/Home/DanhMuc?type=food" class="btn btn-primary rounded-pill py-2 py-sm-3 px-4 px-sm-5 me-2 mb-2">🍔 Đồ ăn</a>
+                                    <a href="/Home/DanhMuc?type=drink" class="btn btn-secondary rounded-pill py-2 py-sm-3 px-4 px-sm-5 mb-2">🧋 Đồ uống</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="carousel-item">
+                <img class="w-100" src="~/Source/Home/img/banner-2.jpg" alt="Hàng trăm quán ăn ngon tại TP.HCM" />
+                <div class="carousel-caption">
+                    <div class="container">
+                        <div class="row justify-content-start">
+                            <div class="col-lg-7 col-11">
+                                <h1 class="display-2 mb-4 animated slideInDown fw-800">
+                                    Hơn 200 quán ăn ngon — đặt trong 1 phút
+                                </h1>
+                                <div class="animated slideInUp">
+                                    <a href="/Home" class="btn btn-primary rounded-pill py-2 py-sm-3 px-4 px-sm-5 me-2 mb-2">Đặt ngay</a>
+                                    <a href="/Home/About" class="btn btn-outline-light rounded-pill py-2 py-sm-3 px-4 px-sm-5 mb-2">Tìm hiểu thêm</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#header-carousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Trước</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#header-carousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Tiếp</span>
+        </button>
+    </div>
+</div>
+
+<!-- ===== STATS ROW (sweetgreen metrics band) ===== -->
+<div class="container">
+    <div class="fs-stats-row wow fadeInUp" data-wow-delay="0.1s">
+        <div class="fs-stat-item">
+            <div class="stat-num">200+</div>
+            <div class="stat-label">Quán ăn đối tác</div>
+        </div>
+        <div class="fs-stat-item">
+            <div class="stat-num">30′</div>
+            <div class="stat-label">Giao hàng trung bình</div>
+        </div>
+        <div class="fs-stat-item">
+            <div class="stat-num">50K+</div>
+            <div class="stat-label">Đơn hàng mỗi tháng</div>
+        </div>
+        <div class="fs-stat-item">
+            <div class="stat-num">4.8★</div>
+            <div class="stat-label">Đánh giá trung bình</div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== RESTAURANT LIST SECTION ===== -->
+<div class="container-xxl py-4 pb-5">
+    <div class="container">
+        <!-- Section header -->
+        <div class="row align-items-end mb-4 wow fadeInUp" data-wow-delay="0.1s">
+            <div class="col">
+                <h2 class="fw-800 mb-1" style="font-size:clamp(1.5rem,3vw,2.2rem);color:var(--fs-dark);">
+                    Quán ăn nổi bật tại TP.HCM
+                </h2>
+                <p class="text-muted mb-0" style="font-size:15px;">
+                    Khám phá văn hoá ẩm thực Sài Gòn — hàng trăm hương vị, giao tận nơi
+                </p>
+            </div>
+            <div class="col-auto d-none d-md-block">
+                <a href="/Home/DanhMuc" class="btn btn-outline-success rounded-pill px-4" style="font-size:14px;font-weight:600;">
+                    Xem tất cả <i class="fa fa-arrow-right ms-1"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- Category filter pills -->
+        <div class="fs-category-row wow fadeInUp" data-wow-delay="0.15s" id="categoryRow">
+            <a href="/Home" class="fs-category-pill @(idDMActive == null ? "active" : "")">
+                🍽 Tất cả
+            </a>
+            @{
+                foreach (var dm in _db.tbDanhMuc)
+                {
+                    var isActive = idDMActive.HasValue && idDMActive.Value == dm.madanhmuc;
+                    <a href="/Home?idDM=@dm.madanhmuc" class="fs-category-pill @(isActive ? "active" : "")">
+                        @dm.tendanhmuc
+                    </a>
+                }
+            }
+        </div>
+
+        <!-- Cards grid -->
+        <div class="row g-3 g-md-4 mt-1">
+            @if (quanAns != null && quanAns.Count > 0)
+            {
+                foreach (var item in quanAns)
+                {
+                    <div class="col-xl-3 col-lg-4 col-6 wow fadeInUp" data-wow-delay="0.05s">
+                        <a href="@Url.Action("DetailRestaurant","Home", new { id = item.userid })" class="text-decoration-none" aria-label="Xem chi tiết @item.tenquanan">
+                            <div class="product-item">
+                                <div class="product-img-wrap">
+                                    <img src="~/Source/images/MonAn/@item.hinhanh" alt="@item.tenquanan" loading="lazy" />
+                                </div>
+                                <div class="product-body">
+                                    <div class="product-title">@item.tenquanan</div>
+                                    <div class="product-address">
+                                        <i class="fa fa-map-marker-alt me-1" style="color:var(--fs-green);font-size:11px;"></i>@item.diachi
+                                    </div>
+                                </div>
+                                <div class="product-footer">
+                                    <div class="pf-cell">
+                                        <i class="fa fa-star"></i>@item.diemdanhgia
+                                    </div>
+                                    <div class="pf-cell">
+                                        <i class="fa fa-comment-alt" style="color:var(--fs-muted);"></i>&nbsp;@item.soluotdanhgia bình luận
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="col-12 text-center py-5">
+                    <div style="font-size:48px;">🍽</div>
+                    <h5 class="mt-3 text-muted">Không tìm thấy quán ăn phù hợp</h5>
+                    <p class="text-muted small">Thử tìm kiếm với từ khoá khác hoặc chọn danh mục khác.</p>
+                    <a href="/Home" class="btn btn-success rounded-pill px-4 mt-2">Xem tất cả quán</a>
+                </div>
+            }
+        </div>
+
+        <!-- Mobile: Xem tất cả button -->
+        <div class="text-center mt-4 d-md-none">
+            <a href="/Home/DanhMuc" class="btn btn-outline-success rounded-pill px-5" style="font-weight:600;">
+                Xem tất cả quán <i class="fa fa-arrow-right ms-1"></i>
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- ===== HIGHLIGHT BAND (sweetgreen dark band) ===== -->
+<div class="fs-highlight-band wow fadeIn" data-wow-delay="0.1s">
+    <div class="container">
+        <div class="row align-items-center gy-4">
+            <div class="col-lg-7">
+                <span class="badge rounded-pill mb-3" style="background:var(--fs-green);font-size:12px;font-weight:600;padding:6px 14px;letter-spacing:.5px;">MÙA HÈ SÀI GÒN 2026</span>
+                <h2 class="text-white mb-3">Hôm nay có gì ngon?<br>Đặt ngay — giao nhanh.</h2>
+                <p>Từ cơm tấm Sài Gòn đến trà sữa Quận 1, Fastship đưa hương vị thành phố đến tận bàn của bạn.</p>
+                <a href="/Home/DanhMuc" class="btn btn-outline-light rounded-pill px-5 py-2 mt-2">Khám phá thực đơn →</a>
+            </div>
+            <div class="col-lg-5 text-center d-none d-lg-block">
+                <!-- Visual accent block -->
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:320px;margin:0 auto;">
+                    <div style="background:rgba(255,255,255,.07);border-radius:16px;padding:20px;text-align:center;">
+                        <div style="font-size:2.5rem;">🍜</div>
+                        <div style="color:#fff;font-size:13px;font-weight:600;margin-top:8px;">Cơm - Bún - Phở</div>
+                    </div>
+                    <div style="background:rgba(255,255,255,.07);border-radius:16px;padding:20px;text-align:center;">
+                        <div style="font-size:2.5rem;">🧋</div>
+                        <div style="color:#fff;font-size:13px;font-weight:600;margin-top:8px;">Trà - Cà phê</div>
+                    </div>
+                    <div style="background:rgba(255,255,255,.07);border-radius:16px;padding:20px;text-align:center;">
+                        <div style="font-size:2.5rem;">🍱</div>
+                        <div style="color:#fff;font-size:13px;font-weight:600;margin-top:8px;">Cơm văn phòng</div>
+                    </div>
+                    <div style="background:rgba(60,184,21,.25);border-radius:16px;padding:20px;text-align:center;">
+                        <div style="font-size:2.5rem;">🛵</div>
+                        <div style="color:#fff;font-size:13px;font-weight:600;margin-top:8px;">Giao nhanh 30′</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== HOW IT WORKS (sweetgreen "All the ways") ===== -->
+<div class="fs-how-section wow fadeIn" data-wow-delay="0.1s">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="fw-800" style="font-size:clamp(1.5rem,3vw,2.1rem);color:var(--fs-dark);">Đặt món dễ như thế này</h2>
+            <p class="text-muted" style="font-size:15px;">Ba bước đơn giản để có bữa ăn ngon tại nhà</p>
+        </div>
+        <div class="row gy-4 justify-content-center">
+            <div class="col-lg-3 col-md-4 col-sm-6">
+                <div class="fs-how-card">
+                    <div class="fs-how-icon"><i class="fa fa-search"></i></div>
+                    <h5>1. Chọn quán</h5>
+                    <p>Duyệt hàng trăm quán ăn tại TP.HCM, lọc theo danh mục hoặc tìm theo tên.</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-4 col-sm-6">
+                <div class="fs-how-card">
+                    <div class="fs-how-icon"><i class="fa fa-shopping-bag"></i></div>
+                    <h5>2. Thêm vào giỏ</h5>
+                    <p>Chọn món bạn thích, điều chỉnh số lượng và áp dụng mã khuyến mãi.</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-4 col-sm-6">
+                <div class="fs-how-card">
+                    <div class="fs-how-icon"><i class="fa fa-motorcycle"></i></div>
+                    <h5>3. Nhận hàng</h5>
+                    <p>Shipper giao đến tận tay trong 30 phút. Thanh toán tiền mặt hoặc chuyển khoản.</p>
+                </div>
+            </div>
+        </div>
+        <div class="text-center mt-4">
+            <a href="/Home/Signup" class="btn btn-success rounded-pill px-5 py-2" style="font-weight:700;font-size:15px;">
+                Đăng ký miễn phí →
+            </a>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+<script>
+    // Header scroll shadow
+    window.addEventListener('scroll', function () {
+        var h = document.getElementById('fsHeader');
+        if (h) h.classList.toggle('scrolled', window.scrollY > 10);
+    });
+
+    // Re-init WOW với offset 0 để trigger ngay khi vào viewport (kể cả hero)
+    if (typeof WOW !== 'undefined') {
+        var wow = new WOW({
+            offset: 0,
+            mobile: true,
+            live: true
+        });
+        wow.init();
+    }
+
+    // Carousel: re-trigger CSS animation khi chuyển slide
+    document.addEventListener('DOMContentLoaded', function () {
+        var carousel = document.getElementById('header-carousel');
+        if (!carousel) return;
+
+        function triggerCaptionAnim(slideEl) {
+            var h1 = slideEl.querySelector('.carousel-caption h1');
+            var btns = slideEl.querySelector('.carousel-caption .slideInUp');
+            // Reset animation bằng cách xóa/thêm lại class
+            [h1, btns].forEach(function (el) {
+                if (!el) return;
+                el.style.animation = 'none';
+                el.offsetHeight; // reflow
+                el.style.animation = '';
+            });
+        }
+
+        // Trigger lần đầu cho slide active
+        var activeSlide = carousel.querySelector('.carousel-item.active');
+        if (activeSlide) triggerCaptionAnim(activeSlide);
+
+        // Trigger mỗi lần slide
+        carousel.addEventListener('slid.bs.carousel', function (e) {
+            triggerCaptionAnim(e.relatedTarget);
+        });
+    });
+</script>
+}

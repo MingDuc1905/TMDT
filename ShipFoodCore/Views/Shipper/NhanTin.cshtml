@@ -1,0 +1,48 @@
+﻿
+@{
+    ViewBag.Title = "NhanTin";
+    Layout = "~/Views/Shared/_LayoutPageShipper.cshtml";
+}
+
+<div class="content">
+    
+    <div class="app-content">
+        <div id="chatbox-nt" class="chatbox-nt">
+        </div>
+        <div id="messageForm" class="messageTyper d-flex">
+            <input id="txtMessage" class="search__field" type="text" placeholder="Soạn tin nhắn...">
+            <button type="submit" class="button button-send" id="btnSend">
+                Gủi
+            </button>
+        </div>
+    </div>
+</div>
+@section scripts{
+    <script src="~/Scripts/jquery.signalR-2.4.3.js"></script>
+    <script src="~/Scripts/jquery.signalR-2.4.3.min.js"></script>
+    <script src="~/signalr/hubs"></script>
+    <script>
+        $(function () {
+            var chat = $.connection.nhantin;
+            console.log(chat);
+            loadClient(chat);
+            $.connection.hub.start().done(function () {
+                $('#btnSend').click(function () {
+                    var msg = $('#txtMessage').val();
+                    var phanbiet = 2;
+                    chat.server.message(msg, phanbiet);
+
+                    $('#txtMessage').val('').focus();
+                });
+            });
+        });
+        function loadClient(chat) {
+            chat.client.message = function (msg, phanbiet) {
+                $('#chatbox-nt').append("<p class='meesage " + (phanbiet == 2 ? 'own' : 'other') + "'>" + msg + "</p>");
+            }
+
+        }
+    </script>
+
+}
+

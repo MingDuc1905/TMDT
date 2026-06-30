@@ -1,0 +1,19 @@
+﻿
+@inject ShipFood.Models.dbFoodyEntities _db
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_LayoutPageRestaurant.cshtml";
+    var userJson = Context.Session.GetString("user");
+    ShipFood.Models.tbUser? currentUser = userJson != null ? JsonSerializer.Deserialize<tbUser>(userJson) : null;
+    ShipFood.Models.tbQuanAn? QuanAn = currentUser != null ? _db.tbQuanAn.Find(currentUser.userid) : null;
+}
+
+<div class="container-fluid">
+    <div class="form-head d-flex mb-3 align-items-start">
+        <div class="mr-auto d-none d-lg-block">
+            <h2 class="text-black font-w600 mb-0">Thống kê</h2>
+            <p class="mb-0">Xin chào quản lí @(QuanAn?.tenquanan ?? "")</p>
+        </div>
+    </div>
+    
+</div>

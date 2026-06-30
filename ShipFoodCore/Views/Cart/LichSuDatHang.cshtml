@@ -1,0 +1,143 @@
+﻿
+@{
+    ViewBag.Title = "LichSuDatHang";
+    Layout = "~/Views/Shared/_LayoutPageHome.cshtml";
+    List<ShipFood.Models.tbDonHang> donHangs = ViewBag.donHangs;
+}
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Lịch sử đơn hàng | Fastship</title>
+    <link href="~/Source/Restaurant/vendor/datatables/css/jquery.dataTables.min.css" rel="stylesheet" />
+    <link href="~/Source/Restaurant/css/style-restaurant.css" rel="stylesheet" />
+    <style>
+        .order-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .order-badge.da-dat { background: #e3f2fd; color: #1565c0; }
+        .order-badge.da-xac-nhan { background: #e8f5e9; color: #2e7d32; }
+        .order-badge.dang-chuan-bi { background: #fff3e0; color: #e65100; }
+        .order-badge.da-lay { background: #f3e5f5; color: #6a1b9a; }
+        .order-badge.dang-giao { background: #e0f7fa; color: #00695c; }
+        .order-badge.hoan-thanh { background: #e8f5e9; color: #1b5e20; }
+        .order-badge.da-huy { background: #ffebee; color: #c62828; }
+        .order-items-list {
+            font-size: 12px;
+            color: #666;
+            max-width: 200px;
+        }
+    </style>
+</head>
+<div class="container-fluid" style="margin-top: 150px;">
+    <div class="form-head d-flex mb-3 align-items-start">
+        <div class="mr-auto d-none d-lg-block">
+            <h2 class="text-black font-w600 mb-0"><i class="fas fa-receipt me-2"></i>Lịch sử đơn hàng</h2>
+            <p class="mb-0">Theo dõi tình trạng đơn hàng của bạn</p>
+        </div>
+    </div>
+
+    @if (donHangs.Count == 0)
+    {
+        <div class="text-center py-5">
+            <i class="fas fa-box-open" style="font-size: 64px; color: #ccc;"></i>
+            <h4 class="mt-3 text-muted">Bạn chưa có đơn hàng nào</h4>
+            <p class="text-muted">Hãy khám phá các quán ăn và đặt món ngay!</p>
+            <a href="~/" class="btn btn-success mt-2"><i class="fas fa-utensils me-2"></i>Đặt món ngay</a>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            <div class="col-12">
+                <div class="table-responsive">
+                    <table id="orderTable" class="display mb-4 dataTablesCard" style="min-width: 1000px">
+                        <thead>
+                            <tr>
+                                <th>Mã ĐH</th>
+                                <th>Ngày đặt</th>
+                                <th>Quán ăn</th>
+                                <th>Món đã đặt</th>
+                                <th>Tổng tiền</th>
+                                <th>Trạng thái</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var i in donHangs)
+                            {
+                                var statusClass = i.trangthai switch
+                                {
+                                    "Đã đặt" => "da-dat",
+                                    "Đã xác nhận" => "da-xac-nhan",
+                                    "Đang chuẩn bị" => "dang-chuan-bi",
+                                    "Đã lấy" => "da-lay",
+                                    "Đang giao" => "dang-giao",
+                                    "Hoàn thành" => "hoan-thanh",
+                                    "Đã hủy" => "da-huy",
+                                    _ => ""
+                                };
+                                var statusIcon = i.trangthai switch
+                                {
+                                    "Đã đặt" => "📋",
+                                    "Đã xác nhận" => "✅",
+                                    "Đang chuẩn bị" => "👨‍🍳",
+                                    "Đã lấy" => "🛵",
+                                    "Đang giao" => "🚀",
+                                    "Hoàn thành" => "🎉",
+                                    "Đã hủy" => "❌",
+                                    _ => "📌"
+                                };
+                                var itemCount = i.tbChiTietDonHangs?.Sum(ct => ct.soluong ?? 0) ?? 0;
+                                var itemNames = i.tbChiTietDonHangs?.Select(ct => ct.tbMonAn?.tenmon).Where(n => n != null).ToList() ?? new List<string?>();
+                                <tr>
+                                    <td><strong>#@i.madh</strong></td>
+                                    <td>@i.ngaydathang?.ToString("dd/MM/yy HH:mm")</td>
+                                    <td>@(i.tbQuanAn?.tenquanan ?? "N/A")</td>
+                                    <td>
+                                        <div class="order-items-list">
+                                            @string.Join(", ", itemNames.Take(2))
+                                            @if (itemNames.Count > 2) { <text>...</text> }
+                                            <br /><small class="text-muted">(@itemCount món)</small>
+                                        </div>
+                                    </td>
+                                    <td><strong>@i.tongtien?.ToString("N0")</strong> VNĐ</td>
+                                    <td>
+                                        <span class="order-badge @statusClass">@statusIcon @i.trangthai</span>
+                                    </td>
+                                    <td style="padding: 20px;">
+                                        <a href="~/Cart/ChiTietDonHang?id=@i.madh" class="btn btn-sm btn-outline-secondary">
+                                            <i class="fas fa-eye"></i> Chi tiết
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+<script src="~/Source/Restaurant/vendor/global/global.min.js"></script>
+<script src="~/Source/Restaurant/vendor/datatables/js/jquery.dataTables.min.js"></script>
+<script>
+    $(function () {
+        $('#orderTable').DataTable({
+            searching: true,
+            paging: true,
+            lengthChange: false,
+            order: [[0, 'desc']],
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/vi.json'
+            }
+        });
+    });
+</script>

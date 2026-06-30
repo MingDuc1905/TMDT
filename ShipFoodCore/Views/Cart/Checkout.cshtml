@@ -1,0 +1,576 @@
+﻿@{
+    ViewBag.Title = "Checkout";
+    Layout = "~/Views/Shared/_LayoutPageHome.cshtml";
+    ShipFood.Models.Cart cart = ViewBag.cart;
+    ShipFood.Models.City city = new ShipFood.Models.City();
+    List<ShipFood.Models.tbLoaiHinhThanhToan> lhtt = ViewBag.phuongthuctt;
+    List<ShipFood.Models.tbThongTinDatHang> ttdh = ViewBag.diachicosan;
+    List<ShipFood.Models.tbKhuyenMai> couponList = ViewBag.CouponList as List<ShipFood.Models.tbKhuyenMai> ?? new List<ShipFood.Models.tbKhuyenMai>();
+
+    // URL actions dùng cho JavaScript (Razor ~ không hoạt động trong JS)
+    string urlProcessPayment = Url.Action("ProcessPayment", "Payment")!;
+    string urlCheckCoupon = Url.Action("CheckCoupon", "Cart")!;
+    string urlLichSu = Url.Action("LichSuDatHang", "Cart")!;
+    string urlCheckout = Url.Action("Checkout", "Cart")!;
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thanh toán | Fastship</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="~/Source/Cart/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/Source/Cart/css/font-awesome.min.css" type="text/css">
+    <link rel="stylesheet" href="~/Source/Cart/css/elegant-icons.css" type="text/css">
+    <link rel="stylesheet" href="~/Source/Cart/css/style.css" type="text/css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet" />
+    <style>
+        body { font-family: 'Inter', sans-serif; background: #f8f9fa; }
+        .checkout-card { background: #fff; border-radius: 16px; box-shadow: 0 2px 16px rgba(0,0,0,.07); padding: 28px; margin-bottom: 20px; }
+        .address-tabs .tab-btn { cursor:pointer; padding: 10px 18px; border: 2px solid #dee2e6; border-radius: 30px; font-size: 14px; font-weight: 500; background: #fff; transition: all .2s; margin-right: 8px; margin-bottom: 8px; }
+        .address-tabs .tab-btn.active { border-color: #3CB815; background: #3CB815; color: #fff; }
+        .address-tabs .tab-btn i { margin-right: 6px; }
+        .form-label { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+        .form-control, .form-select { border-radius: 8px; border: 1.5px solid #dee2e6; padding: 10px 14px; font-size: 14px; }
+        .form-control:focus, .form-select:focus { border-color: #3CB815; box-shadow: 0 0 0 3px rgba(60,184,21,.12); }
+        .payment-option { border: 2px solid #dee2e6; border-radius: 12px; padding: 14px 16px; cursor: pointer; transition: all .2s; margin-bottom: 10px; display: flex; align-items: center; gap: 12px; }
+        .payment-option:hover { border-color: #3CB815; background: #f6fff3; }
+        .payment-option.selected { border-color: #3CB815; background: #f0fff0; }
+        .payment-option input[type=radio] { accent-color: #3CB815; width: 18px; height: 18px; }
+        .order-summary { background: #fff; border-radius: 16px; box-shadow: 0 2px 16px rgba(0,0,0,.07); padding: 24px; position: sticky; top: 100px; }
+        .order-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
+        .order-total-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 14px; }
+        .order-grand { font-size: 18px; font-weight: 700; color: #e74c3c; border-top: 2px solid #e74c3c; padding-top: 12px; margin-top: 8px; }
+        .btn-checkout { width: 100%; padding: 14px; background: linear-gradient(135deg,#3CB815,#27a001); color: #fff; border: none; border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer; transition: opacity .2s; }
+        .btn-checkout:hover { opacity: .88; }
+        .btn-checkout:disabled { opacity: .5; cursor: not-allowed; }
+        .coupon-box { border: 1.5px dashed #3CB815; border-radius: 12px; padding: 16px; }
+        .section-title { font-size: 18px; font-weight: 700; color: #1a1a2e; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+        .section-title i { color: #3CB815; }
+        .available-address-card { border: 1.5px solid #dee2e6; border-radius: 10px; padding: 12px 14px; cursor: pointer; transition: all .2s; margin-bottom: 10px; }
+        .available-address-card:hover, .available-address-card.selected { border-color: #3CB815; background: #f6fff3; }
+        .available-address-card input[type=radio] { accent-color: #3CB815; margin-right: 8px; }
+        .payment-detail-box { background: linear-gradient(135deg,#f8f9ff,#eef1ff); border: 1px solid #d0d7ff; border-radius: 12px; padding: 16px; margin-top: 12px; }
+        .confirm-check { display: flex; align-items: center; gap: 10px; padding: 12px 14px; background: #fffbf0; border: 1px solid #ffd700; border-radius: 10px; }
+        .confirm-check input { accent-color: #f39c12; width: 18px; height: 18px; }
+        @@keyframes popIn { 0%{transform:scale(.8);opacity:0} 100%{transform:scale(1);opacity:1} }
+        .popup-overlay { position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.55);z-index:9999;display:flex;align-items:center;justify-content:center; }
+        .popup-box { background:#fff;border-radius:20px;padding:40px 32px;text-align:center;max-width:420px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.2);animation:popIn .3s ease; }
+    </style>
+</head>
+<body>
+<!-- Breadcrumb -->
+<section style="margin-top:120px;padding:24px 0;background:linear-gradient(135deg,#3CB815,#27a001);">
+    <div class="container">
+        <h3 style="color:#fff;font-weight:700;margin:0;"><i class="fas fa-credit-card me-2"></i>Thanh toán đơn hàng</h3>
+        <nav style="color:rgba(255,255,255,.8);font-size:13px;margin-top:4px;">
+            <a href="~/Home" style="color:rgba(255,255,255,.8);text-decoration:none;">Trang chủ</a>
+            <span class="mx-2">/</span>
+            <a href="@Url.Action("Index","Cart")" style="color:rgba(255,255,255,.8);text-decoration:none;">Giỏ hàng</a>
+            <span class="mx-2">/</span>
+            <span>Thanh toán</span>
+        </nav>
+    </div>
+</section>
+
+<section class="py-4">
+    <div class="container">
+        @if (TempData["CartError"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-circle me-2"></i>@TempData["CartError"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        <form id="paymentForm">
+            @Html.AntiForgeryToken()
+            <div class="row g-4">
+                <!-- Cột trái: thông tin giao hàng -->
+                <div class="col-lg-8">
+                    <!-- Chọn kiểu nhập địa chỉ -->
+                    <div class="checkout-card">
+                        <div class="section-title"><i class="fas fa-map-marker-alt"></i> Địa chỉ giao hàng</div>
+                        <div class="address-tabs mb-3">
+                            <button type="button" class="tab-btn active" id="tab-new" onclick="switchAddressMode('new')">
+                                <i class="fas fa-plus-circle"></i> Nhập địa chỉ mới
+                            </button>
+                            <button type="button" class="tab-btn" id="tab-current" onclick="switchAddressMode('current')">
+                                <i class="fas fa-location-arrow"></i> Lấy vị trí hiện tại
+                            </button>
+                            @if (ttdh.Count > 0)
+                            {
+                                <button type="button" class="tab-btn" id="tab-available" onclick="switchAddressMode('available')">
+                                    <i class="fas fa-bookmark"></i> Địa chỉ đã lưu (@ttdh.Count)
+                                </button>
+                            }
+                        </div>
+
+                        <!-- Panel: địa chỉ có sẵn -->
+                        <div id="panel-available" style="display:none;">
+                            <input type="hidden" id="selected-mattdh" name="mattdh" value="" />
+                            @foreach (var addr in ttdh)
+                            {
+                                <label class="available-address-card d-block" onclick="selectSavedAddress(this, @addr.mattdh, '@Html.Raw(addr.tennguoinhan?.Replace("'","\\'")??"")','@Html.Raw(addr.sdt?.Replace("'","\\'")??"")','@Html.Raw(addr.diachi?.Replace("'","\\'")??"")' )">
+                                    <div class="d-flex align-items-start">
+                                        <input type="radio" name="_addrRadio" value="@addr.mattdh" style="margin-top:3px;">
+                                        <div class="ms-2">
+                                            <strong>@addr.tennguoinhan</strong>
+                                            <span class="text-muted ms-2">@addr.sdt</span>
+                                            <div class="text-muted small mt-1"><i class="fas fa-map-pin me-1"></i>@addr.diachi</div>
+                                        </div>
+                                    </div>
+                                </label>
+                            }
+                            <div id="no-address-msg" style="display:@(ttdh.Count==0?"block":"none")" class="text-muted text-center py-3">
+                                <i class="fas fa-inbox fa-2x mb-2 d-block text-secondary"></i>Bạn chưa có địa chỉ nào đã lưu
+                            </div>
+                        </div>
+
+                        <!-- Panel: nhập mới / vị trí hiện tại -->
+                        <div id="panel-form">
+                            <div id="geo-status-box" style="display:none;" class="alert alert-info py-2 mb-3">
+                                <i class="fas fa-spinner fa-spin me-2"></i><span id="geo-msg">Đang lấy vị trí...</span>
+                            </div>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Họ tên người nhận <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" name="hoten" id="input-hoten" placeholder="VD: Nguyễn Văn A">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Số điện thoại <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" name="SDT" id="input-sdt" placeholder="VD: 0912345678">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Quận / Huyện <span class="text-danger">*</span></label>
+                                    <select class="form-select" name="quan">
+                                        @foreach (var d in city.districts)
+                                        {
+                                            <option value="@d.nameDistrict">@d.nameDistrict</option>
+                                        }
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Địa chỉ cụ thể <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" name="diachicuthe" id="input-diachi" placeholder="Số nhà, tên đường...">
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label">Tầng / Phòng / Ghi chú địa chỉ</label>
+                                    <input type="text" class="form-control" name="diachiadd" placeholder="VD: Tầng 3, phòng 301">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Ghi chú & Khuyến mãi -->
+                    <div class="checkout-card">
+                        <div class="section-title"><i class="fas fa-sticky-note"></i> Ghi chú & Khuyến mãi</div>
+                        <div class="mb-3">
+                            <label class="form-label">Ghi chú đơn hàng</label>
+                            <textarea class="form-control" name="note" rows="2" placeholder="Ghi chú cho shipper..."></textarea>
+                        </div>
+                        <div class="coupon-box">
+                            <label class="form-label"><i class="fas fa-tag me-1 text-success"></i>Mã khuyến mãi</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="coupon-code" placeholder="Nhập mã giảm giá">
+                                <button type="button" class="btn btn-success px-4" id="btn-apply-coupon">Áp dụng</button>
+                            </div>
+                            <div id="coupon-result" class="mt-2" style="display:none;font-size:13px;"></div>
+                            <input type="hidden" name="makhuyenmai" id="applied-coupon-id" value="" />
+                            @if (couponList.Any())
+                            {
+                                <div class="mt-2" style="font-size:12px;color:#888;">
+                                    <i class="fas fa-info-circle me-1"></i>Mã có sẵn:
+                                    @foreach (var c in couponList.Take(4))
+                                    {
+                                        <span onclick="$('#coupon-code').val('@c.tenkm')" class="badge bg-light text-dark border me-1" style="cursor:pointer;">@c.tenkm</span>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Phương thức thanh toán -->
+                    <div class="checkout-card">
+                        <div class="section-title"><i class="fas fa-wallet"></i> Phương thức thanh toán</div>
+                        @foreach (var pt in lhtt)
+                        {
+                            <div class="payment-option" id="payment-opt-@pt.mahttt" onclick="selectPayment(@pt.mahttt, '@Html.Raw(pt.tenhinhthuc?.Replace("'","\\'")??"")' )">
+                                <input type="radio" name="pttt" value="@pt.mahttt" class="payment-method" data-name="@pt.tenhinhthuc">
+                                @if ((pt.tenhinhthuc ?? "").Contains("Tiền mặt") || (pt.tenhinhthuc ?? "").Contains("COD"))
+                                {
+                                    <div style="width:40px;height:40px;background:linear-gradient(135deg,#28a745,#20c997);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                        <i class="fas fa-money-bill-wave text-white"></i>
+                                    </div>
+                                }
+                                else if ((pt.tenhinhthuc ?? "").Contains("Chuyển khoản"))
+                                {
+                                    <div style="width:40px;height:40px;background:linear-gradient(135deg,#007bff,#17a2b8);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                        <i class="fas fa-university text-white"></i>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div style="width:40px;height:40px;background:linear-gradient(135deg,#6f42c1,#e83e8c);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                        <i class="fas fa-credit-card text-white"></i>
+                                    </div>
+                                }
+                                <div>
+                                    <div style="font-weight:600;font-size:15px;">@pt.tenhinhthuc</div>
+                                    @if ((pt.tenhinhthuc ?? "").Contains("Tiền mặt") || (pt.tenhinhthuc ?? "").Contains("COD"))
+                                    {
+                                        <div style="font-size:12px;color:#888;">Thanh toán khi nhận hàng</div>
+                                    }
+                                    else if ((pt.tenhinhthuc ?? "").Contains("Chuyển khoản"))
+                                    {
+                                        <div style="font-size:12px;color:#888;">Chuyển khoản qua ngân hàng / QR</div>
+                                    }
+                                </div>
+                            </div>
+                        }
+
+                        <!-- Chi tiết phương thức thanh toán -->
+                        <div id="payment-info-area" class="mt-2" style="display:none;"></div>
+
+                        <!-- Khu vực test mock payment (chuyển khoản) -->
+                        <div id="test-mode-area" class="mt-3" style="display:none;">
+                            <div style="background:#fff8e1;border:1px solid #ffe082;border-radius:10px;padding:12px;">
+                                <p class="mb-2" style="font-size:13px;color:#856404;"><i class="fas fa-flask me-1"></i><strong>Chế độ mô phỏng thanh toán:</strong></p>
+                                <div class="d-flex gap-2">
+                                    <button type="button" class="btn btn-success btn-sm flex-fill" onclick="submitPayment('success')">
+                                        <i class="fas fa-check me-1"></i>Thanh toán thành công
+                                    </button>
+                                    <button type="button" class="btn btn-outline-danger btn-sm flex-fill" onclick="submitPayment('failure')">
+                                        <i class="fas fa-times me-1"></i>Giả lập thất bại
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Xác nhận -->
+                    <div class="confirm-check mb-3">
+                        <input type="checkbox" id="diff-acc">
+                        <label for="diff-acc" style="cursor:pointer;font-size:14px;">
+                            <i class="fas fa-shield-alt text-warning me-1"></i>
+                            Tôi xác nhận thông tin trên là chính xác và đồng ý đặt hàng
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Cột phải: tóm tắt đơn hàng -->
+                <div class="col-lg-4">
+                    <div class="order-summary">
+                        <div class="section-title"><i class="fas fa-receipt"></i> Đơn hàng của bạn</div>
+                        @foreach (var item in cart.monAns)
+                        {
+                            <div class="order-item">
+                                <span>@item.tenmon <span class="badge bg-secondary ms-1">x@(item.soLuong)</span></span>
+                                <span>@((item.soLuong * item.giatien)?.ToString("N0")) đ</span>
+                            </div>
+                        }
+                        <div class="order-total-row mt-2">
+                            <span class="text-muted">Tạm tính</span>
+                            <span id="subtotal-amount">@cart.tongTien?.ToString("N0") đ</span>
+                        </div>
+                        <div class="order-total-row text-success" id="order-discount" style="display:none;">
+                            <span><i class="fas fa-tag me-1"></i>Giảm giá</span>
+                            <span id="discount-amount">-0 đ</span>
+                        </div>
+                        <div class="order-total-row">
+                            <span class="text-muted">Phí giao hàng</span>
+                            <span>15,000 đ</span>
+                        </div>
+                        <div class="order-total-row order-grand">
+                            <span>Tổng cộng</span>
+                            <span id="order-total">@((cart.tongTien + 15000)?.ToString("N0")) đ</span>
+                        </div>
+
+                        <button type="button" id="btn-submit-cod" class="btn-checkout mt-3" onclick="submitPayment('success')">
+                            <i class="fas fa-check-circle me-2"></i>Xác nhận đặt hàng
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</section>
+
+<script src="~/Source/Cart/js/jquery-3.3.1.min.js"></script>
+<script src="~/Source/Cart/js/bootstrap.min.js"></script>
+<script>
+    // === Server-side URLs (Razor renders these, no ~ issues in JS) ===
+    var URL_PROCESS_PAYMENT = '@Html.Raw(urlProcessPayment)';
+    var URL_CHECK_COUPON = '@Html.Raw(urlCheckCoupon)';
+    var URL_LICH_SU = '@Html.Raw(urlLichSu)';
+    var URL_CHECKOUT = '@Html.Raw(urlCheckout)';
+
+    // === Chế độ địa chỉ ===
+    var addressMode = 'new'; // 'new' | 'current' | 'available'
+
+    function switchAddressMode(mode) {
+        addressMode = mode;
+        $('#tab-new, #tab-current, #tab-available').removeClass('active');
+        $('#tab-' + mode).addClass('active');
+        if (mode === 'available') {
+            $('#panel-available').show();
+            $('#panel-form').hide();
+        } else {
+            $('#panel-available').hide();
+            $('#panel-form').show();
+            if (mode === 'current') {
+                getCurrentLocation();
+            }
+        }
+    }
+
+    // === Chọn địa chỉ đã lưu ===
+    function selectSavedAddress(el, mattdh, ten, sdt, diachi) {
+        $('.available-address-card').removeClass('selected');
+        $(el).addClass('selected');
+        $('#selected-mattdh').val(mattdh);
+    }
+
+    // === Geolocation ===
+    function getCurrentLocation() {
+        if (!navigator.geolocation) {
+            alert('Trình duyệt không hỗ trợ định vị. Vui lòng nhập địa chỉ thủ công.');
+            switchAddressMode('new');
+            return;
+        }
+        $('#geo-status-box').show();
+        $('#geo-msg').text('Đang lấy vị trí của bạn...');
+        navigator.geolocation.getCurrentPosition(
+            function(pos) {
+                $('#geo-msg').text('Đã lấy vị trí! Đang tra cứu địa chỉ...');
+                reverseGeocode(pos.coords.latitude, pos.coords.longitude);
+            },
+            function(err) {
+                $('#geo-status-box').hide();
+                var m = 'Không thể lấy vị trí. Vui lòng nhập thủ công.';
+                if (err.code === err.PERMISSION_DENIED) m = 'Bạn đã từ chối cấp quyền vị trí.';
+                if (err.code === err.TIMEOUT) m = 'Quá thời gian chờ lấy vị trí.';
+                alert(m);
+                switchAddressMode('new');
+            },
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+        );
+    }
+
+    function reverseGeocode(lat, lng) {
+        $.ajax({
+            url: 'https://nominatim.openstreetmap.org/reverse',
+            data: { format: 'json', lat: lat, lon: lng, addressdetails: 1, 'accept-language': 'vi' },
+            dataType: 'json', timeout: 8000,
+            headers: { 'User-Agent': 'FastShipApp/1.0' },
+            success: function(data) {
+                $('#geo-status-box').hide();
+                if (data && data.address) {
+                    var a = data.address;
+                    var road = a.road || a.pedestrian || a.street || '';
+                    var house = a.house_number || '';
+                    var suburb = a.suburb || a.neighbourhood || '';
+                    var fullAddr = [house, road, suburb].filter(Boolean).join(' ');
+                    if (!fullAddr && data.display_name) {
+                        fullAddr = data.display_name.split(',').slice(0, -2).join(',').trim();
+                    }
+                    if (fullAddr) $('#input-diachi').val(fullAddr);
+                    var dist = a.city_district || a.county || '';
+                    if (dist) {
+                        $('select[name="quan"] option').each(function() {
+                            if ($(this).val().toLowerCase().includes(dist.toLowerCase())) {
+                                $(this).prop('selected', true); return false;
+                            }
+                        });
+                    }
+                }
+            },
+            error: function() {
+                $('#geo-status-box').hide();
+                alert('Không thể tra cứu địa chỉ. Vui lòng nhập thủ công.');
+            }
+        });
+    }
+
+    // === Chọn phương thức thanh toán ===
+    function selectPayment(id, name) {
+        $('.payment-option').removeClass('selected');
+        $('#payment-opt-' + id).addClass('selected');
+        $('input[name="pttt"][value="' + id + '"]').prop('checked', true);
+        updatePaymentUI(name);
+    }
+
+    function updatePaymentUI(name) {
+        var area = $('#payment-info-area');
+        var testArea = $('#test-mode-area');
+        var codBtn = $('#btn-submit-cod');
+        if (name.includes('Tiền mặt') || name.includes('COD')) {
+            area.html('<div class="payment-detail-box text-center"><div style="background:linear-gradient(135deg,#28a745,#20c997);width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 10px"><i class="fas fa-money-bill-wave text-white fa-lg"></i></div><strong style="color:#28a745;">Thanh toán khi nhận hàng (COD)</strong><p class="text-muted small mt-1 mb-0">Chuẩn bị sẵn tiền mặt khi shipper giao hàng.</p></div>').show();
+            testArea.hide();
+            codBtn.show().html('<i class="fas fa-check-circle me-2"></i>Xác nhận đặt hàng');
+        } else if (name.includes('Chuyển khoản')) {
+            area.html('<div class="payment-detail-box"><div class="text-center mb-3"><div style="background:linear-gradient(135deg,#007bff,#17a2b8);width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 10px"><i class="fas fa-university text-white fa-lg"></i></div><strong style="color:#007bff;">Chuyển khoản ngân hàng</strong></div><div class="d-flex justify-content-between mb-1"><span class="text-muted">Ngân hàng:</span><strong>Vietcombank</strong></div><div class="d-flex justify-content-between mb-1"><span class="text-muted">Số TK:</span><strong style="color:#e74c3c;letter-spacing:1px;">1234 5678 9012</strong></div><div class="d-flex justify-content-between mb-1"><span class="text-muted">Chủ TK:</span><strong>FASTSHIP CO., LTD</strong></div><div class="d-flex justify-content-between"><span class="text-muted">Nội dung CK:</span><strong style="color:#e74c3c;">DH_<span id="dh-ref">[Mã đơn sẽ hiện sau]</span></strong></div></div>').show();
+            testArea.show();
+            codBtn.hide();
+        } else {
+            area.hide();
+            testArea.hide();
+            codBtn.show().html('<i class="fas fa-check-circle me-2"></i>Xác nhận đặt hàng');
+        }
+    }
+
+    // === Khuyến mãi ===
+    function applyCoupon() {
+        var code = $('#coupon-code').val().trim();
+        var result = $('#coupon-result');
+        if (!code) { result.html('<span class="text-danger"><i class="fas fa-exclamation-circle me-1"></i>Vui lòng nhập mã</span>').show(); return; }
+        $.ajax({
+            url: URL_CHECK_COUPON, type: 'POST',
+            data: { code: code, tongTien: @(cart?.tongTien ?? 0) },
+            headers: { 'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() },
+            success: function(r) {
+                if (r.success) {
+                    $('#applied-coupon-id').val(r.couponId);
+                    result.html('<span class="text-success"><i class="fas fa-check-circle me-1"></i>' + r.message + '</span>').show();
+                    var disc = r.discountAmount || 0;
+                    var sub = @(cart?.tongTien ?? 0);
+                    var total = Math.max(sub - disc + 15000, 0);
+                    $('#order-discount').show().find('#discount-amount').text('-' + disc.toLocaleString('vi-VN') + ' đ');
+                    $('#order-total').text(total.toLocaleString('vi-VN') + ' đ');
+                    $('#btn-apply-coupon').prop('disabled', true).html('<i class="fas fa-check"></i> Đã áp dụng');
+                } else {
+                    result.html('<span class="text-danger"><i class="fas fa-exclamation-circle me-1"></i>' + r.message + '</span>').show();
+                }
+            },
+            error: function() { result.html('<span class="text-danger">Lỗi kết nối. Vui lòng thử lại.</span>').show(); }
+        });
+    }
+
+    // === Validate & Submit ===
+    function validatePhone(sdt) { return /^0[1-9][0-9]{8,9}$/.test(sdt); }
+
+    function submitPayment(testResult) {
+        var pttt = $('input[name="pttt"]:checked').val();
+        if (!pttt) { showToast('error', 'Vui lòng chọn phương thức thanh toán'); return; }
+        if (!$('#diff-acc').is(':checked')) { showToast('error', 'Vui lòng xác nhận thông tin trước khi đặt hàng'); return; }
+
+        var formData = {};
+
+        if (addressMode === 'available') {
+            var mattdh = $('#selected-mattdh').val();
+            if (!mattdh) { showToast('error', 'Vui lòng chọn một địa chỉ đã lưu'); return; }
+            formData.mattdh = parseInt(mattdh);
+            // Lấy tên/SĐT từ địa chỉ đã chọn để gửi kèm (dù server không dùng khi mattdh != null)
+            var selectedCard = $('.available-address-card.selected');
+            formData.hoten = selectedCard.find('strong').first().text().trim() || 'Nguoi Nhan';
+            formData.SDT = selectedCard.find('.text-muted').first().text().trim() || '0901234567';
+            formData.quan = 'Quận 3';
+            formData.diachicuthe = 'dia chi cu the';
+            formData.diachiadd = '';
+        } else {
+            var hoten = $('#input-hoten').val().trim();
+            var sdt = $('#input-sdt').val().trim();
+            var diachi = $('#input-diachi').val().trim();
+            if (!hoten) { showToast('error', 'Vui lòng nhập họ tên người nhận'); return; }
+            if (hoten.length < 2 || hoten.length > 100) { showToast('error', 'Họ tên phải từ 2-100 ký tự'); return; }
+            if (!sdt) { showToast('error', 'Vui lòng nhập số điện thoại'); return; }
+            if (!validatePhone(sdt)) { showToast('error', 'Số điện thoại không hợp lệ (VD: 0912345678)'); return; }
+            if (!diachi) { showToast('error', 'Vui lòng nhập địa chỉ giao hàng'); return; }
+            if (diachi.length < 5 || diachi.length > 250) { showToast('error', 'Địa chỉ phải từ 5-250 ký tự'); return; }
+            formData.hoten = hoten;
+            formData.SDT = sdt;
+            formData.quan = $('select[name="quan"]').val();
+            formData.diachicuthe = diachi;
+            formData.diachiadd = $('input[name="diachiadd"]').val();
+            // mattdh không set → sẽ là undefined → jQuery không gửi → server nhận null ✓
+        }
+
+        formData.note = $('textarea[name="note"]').val() || '';
+        formData.pttt = parseInt(pttt);
+        var couponVal = $('#applied-coupon-id').val();
+        if (couponVal) formData.makhuyenmai = parseInt(couponVal);
+        formData.testResult = testResult;
+
+        // Disable nút
+        var btnText = testResult === 'failure' ? 'Giả lập...' : '<i class="fas fa-spinner fa-spin me-2"></i>Đang xử lý...';
+        $('#btn-submit-cod').prop('disabled', true).html(btnText);
+        $('button[onclick*="submitPayment"]').prop('disabled', true);
+
+        $.ajax({
+            url: URL_PROCESS_PAYMENT, type: 'POST',
+            data: formData,
+            headers: { 'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() },
+            success: function(r) {
+                if (r.success) {
+                    showResultPopup(true, 'Đặt hàng thành công! 🎉', r.message || '', r.orderId);
+                } else {
+                    showResultPopup(false, 'Thanh toán thất bại', r.message || 'Đã xảy ra lỗi. Vui lòng thử lại.');
+                }
+            },
+            error: function(xhr) {
+                var msg = 'Lỗi kết nối. Vui lòng thử lại.';
+                if (xhr.status === 400) msg = 'Dữ liệu không hợp lệ. Vui lòng kiểm tra lại thông tin.';
+                if (xhr.status === 401) msg = 'Phiên đăng nhập đã hết. Vui lòng đăng nhập lại.';
+                if (xhr.status === 500) msg = 'Lỗi máy chủ. Vui lòng thử lại sau.';
+                showResultPopup(false, 'Lỗi hệ thống', msg);
+            },
+            complete: function() {
+                $('button[onclick*="submitPayment"]').prop('disabled', false);
+                $('#btn-submit-cod').prop('disabled', false).html('<i class="fas fa-check-circle me-2"></i>Xác nhận đặt hàng');
+            }
+        });
+    }
+
+    function showToast(type, msg) {
+        var color = type === 'error' ? '#dc3545' : '#28a745';
+        var icon = type === 'error' ? 'fas fa-exclamation-circle' : 'fas fa-check-circle';
+        var toast = $('<div style="position:fixed;top:24px;right:24px;z-index:99999;background:' + color + ';color:#fff;padding:14px 20px;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.2);font-size:14px;max-width:360px;"><i class="' + icon + ' me-2"></i>' + msg + '</div>');
+        $('body').append(toast);
+        setTimeout(function(){ toast.fadeOut(400, function(){ $(this).remove(); }); }, 3500);
+    }
+
+    function showResultPopup(success, title, detail, orderId) {
+        $('#payment-popup-overlay').remove();
+        var iconHtml, btnHtml;
+        if (success) {
+            iconHtml = '<div style="width:80px;height:80px;background:linear-gradient(135deg,#28a745,#20c997);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;"><i class="fas fa-check fa-2x text-white"></i></div>';
+            btnHtml = '<a href="' + URL_LICH_SU + '" class="btn btn-success px-5" style="border-radius:8px;">Xem đơn hàng</a>';
+        } else {
+            iconHtml = '<div style="width:80px;height:80px;background:linear-gradient(135deg,#dc3545,#e74c3c);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;"><i class="fas fa-times fa-2x text-white"></i></div>';
+            btnHtml = '<button class="btn btn-warning px-5 me-2" onclick="$(\'#payment-popup-overlay\').remove();" style="border-radius:8px;">Thử lại</button>';
+        }
+        var overlay = $('<div id="payment-popup-overlay" class="popup-overlay"></div>');
+        var box = $('<div class="popup-box"></div>');
+        box.append(iconHtml);
+        box.append('<h4 style="font-weight:700;margin-bottom:8px;">' + title + '</h4>');
+        box.append('<p class="text-muted" style="font-size:14px;margin-bottom:20px;">' + detail + '</p>');
+        box.append(btnHtml);
+        overlay.append(box);
+        $('body').append(overlay);
+        if (success) {
+            overlay.click(function(e){ if(e.target===this) window.location.href = URL_LICH_SU; });
+            setTimeout(function(){ window.location.href = URL_LICH_SU; }, 4000);
+        } else {
+            overlay.click(function(e){ if(e.target===this) $(this).remove(); });
+        }
+    }
+
+    $(document).ready(function() {
+        // Khởi tạo phương thức thanh toán đầu tiên
+        var firstPt = $('.payment-method').first();
+        if (firstPt.length) {
+            firstPt.prop('checked', true);
+            var id = firstPt.val();
+            var name = firstPt.data('name');
+            $('#payment-opt-' + id).addClass('selected');
+            updatePaymentUI(name);
+        }
+
+        // Nút áp dụng coupon
+        $('#btn-apply-coupon').click(applyCoupon);
+        $('#coupon-code').keypress(function(e){ if(e.which===13){ e.preventDefault(); applyCoupon(); } });
+    });
+</script>
+</body>
+</html>

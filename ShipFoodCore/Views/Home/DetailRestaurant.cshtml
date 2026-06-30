@@ -1,0 +1,550 @@
+﻿@{
+    ViewBag.Title = "DetailRestaurant";
+    Layout = "~/Views/Shared/_LayoutPageHome.cshtml";
+}
+
+@section styles {
+    <link href="~/Source/Home/css/test_details.css" rel="stylesheet" />
+    <link href="~/Source/Home/css/details.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/Source/Home/css/base.css" />
+    <style>
+        .app { max-width: 1200px; margin: 100px auto 0; padding: 0 16px; }
+        .menu-restaurant-detail { width: 78%; }
+        .item-restaurant-row { height: auto !important; margin-bottom: 20px; }
+        .item-restaurant-more .row { flex-wrap: nowrap; align-items: center; }
+        @@media (max-width: 768px) {
+            .menu-restaurant-detail { width: 100%; }
+            .now-menu-restaurant { width: 100% !important; }
+            .item-restaurant-more .row { flex-direction: column; align-items: flex-start; }
+            .app { margin-top: 80px; }
+        }
+    </style>
+}
+
+@{
+    var khuyenMais = (ViewBag.KhuyenMais as List<ShipFood.Models.tbMonAnKhuyenMai>) ?? new List<ShipFood.Models.tbMonAnKhuyenMai>();
+    var muaKem = ViewBag.MuaKem as List<ShipFood.Models.tbMonAn>;
+    var trendingNow = ViewBag.TrendingNow as List<ShipFood.Models.tbMonAn>;
+}
+
+<div class="app">
+    <div class="wrapper">
+        <div class="now-detail-restaurant clearfix">
+            <div class="container">
+                <div class="detail-restaurant-img">
+                    <img src="~/Source/images/MonAn/@Model.hinhanh" alt="Không tìm thấy ảnh" class="" />
+                </div>
+                <div class="detail-restaurant-info">
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a class="breadcrumb-link" rel="nofollow" href="">Home</a></li>
+                            <li class="breadcrumb-item"><a class="breadcrumb-link" rel="nofollow" href="/Home">TP. Hồ Chí Minh</a></li>
+                            <li class="breadcrumb-item"><a class="breadcrumb-link" rel="nofollow" href="/">@Model.tenquanan</a></li>
+                        </ol>
+                    </nav>
+                    <div class="kind-restaurant">
+                        <div class="tag-preferred" data-toggle="modal" data-target="#modal-preferred-merchant">
+                            <i class="fa-solid fa-thumbs-up" aria-hidden="true"></i>Yêu thích
+                        </div>
+                        <span>Quán ăn<span>-<a class="link-brand" title="Cơm Thố Thiên Phúc" rel="nofollow" href="/thuong-hieu/com-tho-thien-phuc">Chi nhánh</a></span></span>
+                    </div>
+                    <h1 class="name-restaurant">@Model.tenquanan</h1>
+                    <div class="address-restaurant">@Model.diachi</div>
+                    <div class="rating">
+                        <div class="stars">
+                            @for (int i = 0; i < (int)Model.diemdanhgia; ++i)
+                            {
+                                <span class="full"><i class="fas fa-star"></i></span>
+                            }
+                        </div>
+                        <span class="number-rating">@Model.soluotdanhgia</span>đánh giá trên Fastship
+                    </div>
+                    <div class="view-more-rating">
+                        <a href="#" rel="noopener noreferrer nofollow" target="_blank" class="number-review">Xem thêm lượt đánh giá từ Fastship</a>
+                    </div>
+                    <div class="status-restaurant">
+                        <div class="opentime-status"><span class="stt online" title="@Model.trangthai"></span></div>
+                        <div class="time"><i class="far fa-clock"></i>07:30 - 21:30</div>
+                    </div>
+                    <div class="cost-restaurant"><i class="fas fa-dollar-sign"></i>35.000 - 75.000</div>
+                    <div class="share-social clearfix">
+                        <div class="share-social-box">
+                            <div class="fb-like" data-layout="button" data-action="like" data-size="small" data-show-faces="false" data-share="true" data-colorscheme="light" data-kid-directed-site="false"></div>
+                        </div>
+                    </div>
+                    <div class="utility-restaurant clearfix">
+                        <div class="utility-item">
+                            <div class="utility-title">Phí dịch vụ</div>
+                            <div class="utility-content"><span class="txt-bold txt-red"> 0.0% Phí phục vụ </span></div>
+                            <span class="icon icon-partner-vi" data-toggle="modal" data-target="#modal-verify-merchant"></span>
+                        </div>
+                        <div class="utility-item">
+                            <div class="utility-title">Dịch vụ bởi</div>
+                            <div class="utility-content"><span class="txt-bold txt-red">Fastship</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="container relative clearfix">
+                <div class="now-menu-restaurant" style="width:90%">
+                    <div class="menu-restaurant-tab"><div class="item active">Thực đơn</div></div>
+                    <div class="menu-restaurant-content-tab">
+                        <div class="menu-restaurant-container">
+                            <div class="menu-restaurant-category">
+                                <div class="list-category" id="scroll-spy">
+                                    <div class="scrollbar-container ps">
+                                        <a href="~/Home/DetailRestaurant?id=@ViewBag.maquan">
+                                            <div class="item">
+                                                <span title="Tất cả" class="item-link @(ViewBag.idDM == null ? "active" : "")">Tất cả</span>
+                                            </div>
+                                        </a>
+                                        @foreach (var thucdon in ViewBag.ThucDon)
+                                        {
+                                            var searchKey = ViewBag.searchKey;
+                                            var href = string.IsNullOrEmpty(searchKey)
+                                                ? $"~/Home/DetailRestaurant?idDM={thucdon.madanhmuc}&id={ViewBag.maquan}"
+                                                : $"~/Home/DetailRestaurant?idDM={thucdon.madanhmuc}&id={ViewBag.maquan}&searchKey={Uri.EscapeDataString(searchKey)}";
+                                            <a href="@href">
+                                                <div class="item">
+                                                    <span id="-1" title="@thucdon.tendanhmuc" class="item-link @(ViewBag.idDM == thucdon.madanhmuc ? "active" : "")">@thucdon.tendanhmuc</span>
+                                                </div>
+                                            </a>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="menu-restaurant-detail" style="width:78%">
+                                <div class="menu-restaurant-list">
+                                    <div class="search-items">
+                                        <form action="~/Home/DetailRestaurant">
+                                            <p class="input-group">
+                                                <input type="hidden" name="id" value="@ViewBag.maquan"/>
+                                                <i class="fas fa-search"></i><input style="width:85%" type="text" name="searchKey" placeholder="Tìm món" value="@ViewBag.searchKey" />
+                                                <button type="submit" style="width:15%;color:white" class="btn-secondary"><strong>Tìm</strong></button>
+                                            </p>
+                                        </form>
+                                    </div>
+                                    <div class="menu-group" id="section-group-menu--1" style="height: auto; left: 0px; position: relative; top: 0px; width: 100%; padding-bottom: 8px;">
+                                        <div class="title-menu" style="display: flex; justify-content: space-between; align-items: center;">
+                                            <strong>Danh sách món</strong>
+                                            @{
+                                                var daMuaMonAnIds = ViewBag.DaMuaMonAnIds as HashSet<int>;
+                                                var userJson = Context.Session.GetString("user");
+                                                var isLoggedIn = !string.IsNullOrEmpty(userJson);
+                                            }
+                                            @if (isLoggedIn && daMuaMonAnIds != null && daMuaMonAnIds.Any())
+                                            {
+                                                <label style="font-size:13px;cursor:pointer;user-select:none;">
+                                                    <input type="checkbox" id="filter-da-mua" onchange="toggleDaMuaFilter()" />
+                                                    <span style="color:#e74c3c;">❤ Đã mua</span>
+                                                </label>
+                                            }
+                                        </div>
+                                    </div>
+                                    @foreach (var item in ViewBag.DanhSachMonAn)
+                                    {
+                                        var khuyenMai = khuyenMais?.FirstOrDefault(km => km.mamon == item.mamon);
+                                        var giaGoc = item.giatien;
+                                        var giaKhuyenMai = giaGoc;
+                                        if (khuyenMai != null && khuyenMai.phantramgiam > 0)
+                                        {
+                                            giaKhuyenMai = giaGoc - (giaGoc * khuyenMai.phantramgiam / 100);
+                                        }
+                                        var daMua = daMuaMonAnIds != null && daMuaMonAnIds.Contains(item.mamon);
+                                        <div class="item-restaurant-row @(daMua ? "item-da-mua" : "")" style="display: block; height: 84px; position: relative; width: 100%; margin-bottom: 20px;">
+                                            <div class="row">
+                                                <div class="col-auto item-restaurant-img">
+                                                    <button class="inline">
+                                                        <img src="~/Source/images/MonAn/@item.hinhanh" alt="Không tìm thấy ảnh" width="60" height="60" />
+                                                    </button>
+                                                    @if (khuyenMai != null)
+                                                    {
+                                                        <span style="position: absolute; top: 0; left: 0; background: #e74c3c; color: white; padding: 2px 6px; font-size: 10px; border-radius: 3px;">-@khuyenMai.phantramgiam%</span>
+                                                    }
+                                                </div>
+                                                <div class="col item-restaurant-info">
+                                                    <h2 class="item-restaurant-name">
+                                                        @item.tenmon
+                                                        @if (daMua)
+                                                        {
+                                                            <span style="font-size:11px;background:#e74c3c;color:white;padding:1px 6px;border-radius:3px;margin-left:6px;">Đã mua</span>
+                                                        }
+                                                    </h2>
+                                                    <div class="item-restaurant-desc">@item.mota</div>
+                                                    <div class="item-restaurant-total">Đã được đặt<span class="txt-bold">&nbsp;100+&nbsp;</span>lần&nbsp;&nbsp;|&nbsp;&nbsp;<i class="fa fa-thumbs-up" aria-hidden="true"></i>&nbsp;&nbsp;3</div>
+                                                </div>
+                                                <div class="col-auto item-restaurant-more">
+                                                    <div class="row">
+                                                        <div class="col-auto product-price">
+                                                            @if (khuyenMai != null && khuyenMai.phantramgiam > 0)
+                                                            {
+                                                                <div class="old-price" style="text-decoration: line-through; color: #999;">@giaGoc?.ToString("N0")<span style="font-weight: 400; position: relative; top: -9px; font-size: 10px; right: 0;">đ</span></div>
+                                                            }
+                                                            <div class="current-price" style="color: @(khuyenMai != null ? "#e74c3c" : "inherit");">@(khuyenMai != null ? giaKhuyenMai?.ToString("N0") : giaGoc?.ToString("N0"))<span style="font-weight: 400; position: relative; top: -9px; font-size: 10px; right: 0;">đ</span></div>
+                                                        </div>
+                                                        <div class="col-auto adding-food-cart txt-right">
+                                                            <form action="~/Cart/ThemMonAn" method="get" onsubmit="return validateCartForm(this)">
+                                                                <input name="soLuong" type="number" value="1" min="1" />
+                                                                <input name="maMonAn" type="hidden" value="@item.mamon" />
+                                                                <button type="submit" class="btn btn-success">Thêm</button>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+
+                                    <!-- Recommendation: Thường được mua kèm -->
+                                    @if (muaKem != null && muaKem.Any())
+                                    {
+                                        <div class="menu-group" style="margin-top: 30px;">
+                                            <div class="title-menu"><strong>🛒 Thường được mua kèm</strong></div>
+                                            @foreach (var item in muaKem)
+                                            {
+                                                <div class="item-restaurant-row" style="display: flex; align-items: center; padding: 10px 0; border-bottom: 1px solid #f0f0f0;">
+                                                    <div style="width: 50px; height: 50px; margin-right: 12px;">
+                                                        <img src="~/Source/images/MonAn/@item.hinhanh" style="width:50px;height:50px;border-radius:8px;object-fit:cover;" />
+                                                    </div>
+                                                    <div style="flex:1;">
+                                                        <strong>@item.tenmon</strong>
+                                                        <div style="color: #e74c3c; font-weight: 600;">@item.giatien?.ToString("N0")đ</div>
+                                                    </div>
+                                                    <div>
+                                                        <a href="@Url.Action("DetailRestaurant", new { id = item.maquanan })" class="btn btn-sm btn-outline-success">Xem</a>
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+
+                                    <!-- Recommendation: Gợi ý theo khung giờ -->
+                                    @if (trendingNow != null && trendingNow.Any())
+                                    {
+                                        <div class="menu-group" style="margin-top: 20px;">
+                                            <div class="title-menu"><strong>🔥 Gợi ý cho khung giờ này</strong></div>
+                                            <div style="display: flex; gap: 12px; overflow-x: auto; padding: 10px 0;">
+                                                @foreach (var item in trendingNow)
+                                                {
+                                                    <div style="min-width: 160px; border: 1px solid #eee; border-radius: 10px; padding: 12px; text-align: center;">
+                                                        <img src="~/Source/images/MonAn/@item.hinhanh" style="width:80px;height:80px;border-radius:8px;object-fit:cover;" />
+                                                        <div style="margin-top: 8px;"><strong>@item.tenmon</strong></div>
+                                                        <div style="color: #e74c3c; font-weight: 600;">@item.giatien?.ToString("N0")đ</div>
+                                                        <a href="@Url.Action("DetailRestaurant", new { id = item.maquanan })" class="btn btn-sm btn-success mt-2">Đặt ngay</a>
+                                                    </div>
+                                                }
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== CUSTOMER REVIEWS SECTION ========== -->
+        <div class="container" style="margin-top: 40px; margin-bottom: 60px;">
+            <div id="reviews-section" style="background:#fff; border-radius:16px; padding:32px; box-shadow:0 2px 16px rgba(0,0,0,.07);">
+
+                <!-- Header + Stats -->
+                <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:24px;">
+                    <div>
+                        <h3 style="font-weight:700;margin:0;color:#1a1a2e;">⭐ Đánh giá từ khách hàng</h3>
+                        <p style="color:#888;font-size:14px;margin:4px 0 0;">Nhận xét thực tế từ những người đã đặt hàng</p>
+                    </div>
+                    <div id="review-stats" style="display:flex;align-items:center;gap:20px;">
+                        <div style="text-align:center;">
+                            <div id="avg-score" style="font-size:40px;font-weight:800;color:#f39c12;line-height:1;">—</div>
+                            <div id="star-display" style="color:#f39c12;font-size:18px;letter-spacing:2px;">☆☆☆☆☆</div>
+                            <div id="total-reviews" style="font-size:12px;color:#888;">Đang tải...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Review cards -->
+                <div id="review-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;">
+                    <div style="text-align:center;padding:40px;color:#aaa;grid-column:1/-1;">
+                        <div style="font-size:32px;margin-bottom:8px;">⏳</div>
+                        Đang tải đánh giá...
+                    </div>
+                </div>
+
+                <!-- Load more -->
+                <div id="load-more-wrap" style="text-align:center;margin-top:20px;display:none;">
+                    <button id="btn-load-more" onclick="loadMoreReviews()"
+                        style="padding:10px 32px;border:2px solid #3CB815;background:#fff;color:#3CB815;border-radius:30px;font-weight:600;cursor:pointer;transition:all .2s;">
+                        Xem thêm đánh giá
+                    </button>
+                </div>
+
+                <!-- Viết đánh giá (chỉ hiện khi đã mua và đăng nhập) -->
+                @{
+                    var userJsonReview = Context.Session.GetString("user");
+                    var isLoggedInReview = !string.IsNullOrEmpty(userJsonReview);
+                    var daMuaForReview = ViewBag.DaMuaMonAnIds as HashSet<int>;
+                    bool canReview = isLoggedInReview && daMuaForReview != null && daMuaForReview.Any();
+                }
+                @if (canReview)
+                {
+                    <div style="margin-top:28px;border-top:2px solid #f0f0f0;padding-top:24px;">
+                        <h4 style="font-weight:700;margin-bottom:16px;color:#1a1a2e;">✍️ Viết đánh giá của bạn</h4>
+                        <div style="background:#f8f9fa;border-radius:12px;padding:20px;">
+                            <div style="margin-bottom:12px;">
+                                <label style="font-weight:600;font-size:14px;">Chọn món muốn đánh giá:</label>
+                                <select id="review-mactdh" class="form-select mt-1" style="max-width:400px;">
+                                    <option value="">-- Chọn món đã mua --</option>
+                                </select>
+                            </div>
+                            <div style="margin-bottom:12px;">
+                                <label style="font-weight:600;font-size:14px;">Điểm đánh giá:</label>
+                                <div id="star-picker" style="display:flex;gap:6px;margin-top:8px;font-size:28px;cursor:pointer;">
+                                    <span class="star-opt" data-val="1">☆</span>
+                                    <span class="star-opt" data-val="2">☆</span>
+                                    <span class="star-opt" data-val="3">☆</span>
+                                    <span class="star-opt" data-val="4">☆</span>
+                                    <span class="star-opt" data-val="5">☆</span>
+                                </div>
+                                <input type="hidden" id="review-diem" value="0">
+                            </div>
+                            <div style="margin-bottom:16px;">
+                                <label style="font-weight:600;font-size:14px;">Nhận xét (tuỳ chọn):</label>
+                                <textarea id="review-nhanxet" class="form-control mt-1" rows="3" placeholder="Chia sẻ cảm nhận của bạn..." maxlength="500" style="border-radius:8px;"></textarea>
+                                <div style="font-size:11px;color:#aaa;text-align:right;margin-top:2px;"><span id="char-count">0</span>/500</div>
+                            </div>
+                            <div id="review-feedback" style="display:none;margin-bottom:12px;font-size:14px;padding:10px 14px;border-radius:8px;"></div>
+                            <button onclick="submitReview()"
+                                style="padding:10px 28px;background:linear-gradient(135deg,#3CB815,#27a001);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:14px;">
+                                Gửi đánh giá
+                            </button>
+                        </div>
+                    </div>
+                }
+                else if (!isLoggedInReview)
+                {
+                    <div style="margin-top:20px;text-align:center;padding:20px;background:#f8f9fa;border-radius:12px;">
+                        <p style="color:#888;margin-bottom:12px;">Đăng nhập để viết đánh giá</p>
+                        <a href="@Url.Action("Login","Home")" style="padding:10px 24px;background:#3CB815;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;">Đăng nhập</a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal alerts -->
+<div class="modal fade modal-alert" id="modal-delivery-alert-MenuAlertModal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-noti" role="document">
+        <div class="modal-content">
+            <span class="close" data-dismiss="modal">x</span>
+            <div class="modal-header txt-bold font13"><span class="txt-red">Fastship</span> Thông báo</div>
+            <div class="modal-body"><div class="col col-12"><p class="font15"><span></span></p></div></div>
+            <div class="modal-footer content-right"><button type="button" class="btn btn-red" data-dismiss="modal">Ok</button></div>
+        </div>
+    </div>
+</div>
+<div class="modal fade modal-box-image" id="modal-box-image" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document"><div class="res-menu-carousel"></div></div>
+</div>
+<div class="modal fade modal-alert" id="modal-delivery-confirm-MenuConfirmModal" tabindex="-1" role="dialog" aria-hidden="true" data-keyboard="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <span class="close" data-dismiss="modal">x</span>
+            <div class="modal-header txt-bold font13"><span class="txt-red">service_by_fastchip</span> Thông báo</div>
+            <div class="modal-body"><p class="font15 max-width-750"></p></div>
+            <div class="modal-footer content-right">
+                <button type="button" class="btn btn-gray" data-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-red" data-dismiss="modal">Ok</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script>
+        function validateCartForm(form) {
+            var soLuong = parseInt(form.querySelector('input[name="soLuong"]').value);
+            if (isNaN(soLuong) || soLuong <= 0) {
+                alert('Hãy chọn số lượng trước khi thêm');
+                return false;
+            }
+            return true;
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('input[name="soLuong"]').forEach(function(input) {
+                input.addEventListener('input', function() {
+                    var val = parseInt(this.value);
+                    if (isNaN(val) || val < 1) { this.value = 1; }
+                });
+                input.addEventListener('blur', function() {
+                    var val = parseInt(this.value);
+                    if (isNaN(val) || val < 1) { this.value = 1; }
+                });
+            });
+        });
+
+        function toggleDaMuaFilter() {
+            var checked = document.getElementById('filter-da-mua').checked;
+            var items = document.querySelectorAll('.item-restaurant-row');
+            items.forEach(function(item) {
+                item.style.display = (checked && !item.classList.contains('item-da-mua')) ? 'none' : 'block';
+            });
+        }
+
+        // ===== REVIEWS SYSTEM =====
+        var QUAN_ID = @ViewBag.maquan;
+        var URL_GET_REVIEWS = '@Url.Action("GetReviews","Home")';
+        var URL_SUBMIT_REVIEW = '@Url.Action("SubmitReview","Home")';
+        var ANTIFORGERY_TOKEN = '@Html.AntiForgeryToken()'.match(/value="([^"]+)"/)?.[1] || '';
+        var reviewPage = 1;
+        var reviewPageSize = 6;
+        var reviewTotal = 0;
+
+        function renderStars(score) {
+            var full = Math.floor(score);
+            var half = score - full >= 0.5;
+            var s = '';
+            for (var i = 1; i <= 5; i++) {
+                if (i <= full) s += '★';
+                else if (i === full + 1 && half) s += '½';
+                else s += '☆';
+            }
+            return s;
+        }
+
+        function loadReviews(reset) {
+            if (reset) { reviewPage = 1; $('#review-list').html('<div style="text-align:center;padding:40px;color:#aaa;grid-column:1/-1;"><div style="font-size:32px;margin-bottom:8px;">⏳</div>Đang tải đánh giá...</div>'); }
+            $.get(URL_GET_REVIEWS, { quanId: QUAN_ID, page: reviewPage, pageSize: reviewPageSize }, function(r) {
+                if (!r.success) return;
+                reviewTotal = r.total;
+
+                // Cập nhật stats
+                if (r.total > 0) {
+                    $('#avg-score').text(r.avgDiem.toFixed(1));
+                    $('#star-display').text(renderStars(r.avgDiem));
+                    $('#total-reviews').text(r.total + ' đánh giá');
+                } else {
+                    $('#avg-score').text('—');
+                    $('#star-display').text('☆☆☆☆☆');
+                    $('#total-reviews').text('Chưa có đánh giá');
+                }
+
+                if (reset) $('#review-list').empty();
+
+                if (r.reviews.length === 0 && reviewPage === 1) {
+                    $('#review-list').html('<div style="text-align:center;padding:40px;color:#aaa;grid-column:1/-1;"><div style="font-size:48px;margin-bottom:12px;">💬</div><div style="font-size:16px;font-weight:600;">Chưa có đánh giá nào</div><div style="font-size:13px;margin-top:4px;">Hãy là người đầu tiên đánh giá quán này!</div></div>');
+                    $('#load-more-wrap').hide();
+                    return;
+                }
+
+                r.reviews.forEach(function(rv) {
+                    var stars = '';
+                    for (var i = 1; i <= 5; i++) stars += (i <= rv.diem ? '★' : '☆');
+                    var initial = (rv.tenkh || 'K').charAt(0).toUpperCase();
+                    var colors = ['#3CB815','#007bff','#e74c3c','#f39c12','#9b59b6','#17a2b8'];
+                    var bg = colors[rv.madg % colors.length];
+                    var card = $('<div>').css({
+                        background: '#fff', border: '1.5px solid #f0f0f0', borderRadius: '12px',
+                        padding: '18px', transition: 'box-shadow .2s'
+                    }).hover(function(){ $(this).css('box-shadow','0 4px 20px rgba(0,0,0,.1)'); },
+                              function(){ $(this).css('box-shadow','none'); });
+                    card.html(
+                        '<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">' +
+                          '<div style="width:44px;height:44px;border-radius:50%;background:' + bg + ';color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;flex-shrink:0;">' + initial + '</div>' +
+                          '<div style="flex:1;min-width:0;">' +
+                            '<div style="font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + rv.tenkh + '</div>' +
+                            '<div style="font-size:11px;color:#aaa;">' + rv.ngaydat + '</div>' +
+                          '</div>' +
+                          '<div style="color:#f39c12;font-size:16px;letter-spacing:1px;">' + stars + '</div>' +
+                        '</div>' +
+                        (rv.nhanxet ? '<p style="color:#555;font-size:14px;line-height:1.6;margin:0 0 10px;">"' + $('<div>').text(rv.nhanxet).html() + '"</p>' : '') +
+                        '<div style="display:flex;align-items:center;gap:8px;">' +
+                          '<img src="/Source/images/MonAn/' + rv.hinhanh + '" style="width:32px;height:32px;border-radius:6px;object-fit:cover;" onerror="this.style.display=\'none\'">' +
+                          '<span style="font-size:12px;color:#888;background:#f8f9fa;padding:2px 8px;border-radius:20px;">' + rv.tenmon + '</span>' +
+                        '</div>'
+                    );
+                    $('#review-list').append(card);
+                });
+
+                var shown = (reviewPage - 1) * reviewPageSize + r.reviews.length;
+                if (shown < r.total) {
+                    $('#load-more-wrap').show();
+                } else {
+                    $('#load-more-wrap').hide();
+                }
+            });
+        }
+
+        function loadMoreReviews() {
+            reviewPage++;
+            loadReviews(false);
+        }
+
+        // ===== STAR PICKER =====
+        var selectedDiem = 0;
+        $(document).on('mouseover', '.star-opt', function() {
+            var val = parseInt($(this).data('val'));
+            $('.star-opt').each(function(i) { $(this).text(i < val ? '★' : '☆').css('color', i < val ? '#f39c12' : '#ccc'); });
+        }).on('mouseleave', '#star-picker', function() {
+            $('.star-opt').each(function(i) { $(this).text(i < selectedDiem ? '★' : '☆').css('color', i < selectedDiem ? '#f39c12' : '#ccc'); });
+        }).on('click', '.star-opt', function() {
+            selectedDiem = parseInt($(this).data('val'));
+            $('#review-diem').val(selectedDiem);
+            $('.star-opt').each(function(i) { $(this).text(i < selectedDiem ? '★' : '☆').css('color', i < selectedDiem ? '#f39c12' : '#ccc'); });
+        });
+
+        $('#review-nhanxet').on('input', function() { $('#char-count').text($(this).val().length); });
+
+        function submitReview() {
+            var mactdh = $('#review-mactdh').val();
+            var diem = parseInt($('#review-diem').val());
+            var nhanxet = $('#review-nhanxet').val().trim();
+            var fb = $('#review-feedback');
+
+            if (!mactdh) { showReviewMsg('error', 'Vui lòng chọn món muốn đánh giá'); return; }
+            if (!diem || diem < 1 || diem > 5) { showReviewMsg('error', 'Vui lòng chọn điểm đánh giá (1-5 sao)'); return; }
+
+            $.post(URL_SUBMIT_REVIEW,
+                { mactdh: mactdh, diem: diem, nhanxet: nhanxet, __RequestVerificationToken: ANTIFORGERY_TOKEN },
+                function(r) {
+                    if (r.success) {
+                        showReviewMsg('success', r.message);
+                        $('#review-mactdh').val('');
+                        $('#review-nhanxet').val('');
+                        selectedDiem = 0; $('#review-diem').val(0);
+                        $('.star-opt').text('☆').css('color', '#ccc');
+                        setTimeout(function() { loadReviews(true); }, 800);
+                    } else {
+                        showReviewMsg('error', r.message);
+                    }
+                }
+            ).fail(function() { showReviewMsg('error', 'Lỗi kết nối. Vui lòng thử lại.'); });
+        }
+
+        function showReviewMsg(type, msg) {
+            var fb = $('#review-feedback');
+            var bg = type === 'success' ? '#d4edda' : '#f8d7da';
+            var color = type === 'success' ? '#155724' : '#721c24';
+            fb.css({ background: bg, color: color, border: '1px solid ' + (type === 'success' ? '#c3e6cb' : '#f5c6cb') })
+              .html((type === 'success' ? '✅ ' : '❌ ') + msg).show();
+            if (type === 'success') setTimeout(function(){ fb.fadeOut(); }, 4000);
+        }
+
+        // ===== Load đơn hàng đã mua để chọn đánh giá =====
+        function loadReviewableItems() {
+            $.get('@Url.Action("GetReviewableItems","Home")', { quanId: QUAN_ID }, function(r) {
+                if (r && r.items && r.items.length > 0) {
+                    r.items.forEach(function(item) {
+                        $('#review-mactdh').append('<option value="' + item.mactdh + '">' + item.tenmon + ' — ĐH#' + item.madh + '</option>');
+                    });
+                }
+            }).fail(function() { /* silent fail */ });
+        }
+
+        $(document).ready(function() {
+            loadReviews(true);
+            @if (canReview) { <text>loadReviewableItems();</text> }
+        });
+    </script>
+}

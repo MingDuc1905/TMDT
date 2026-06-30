@@ -1,0 +1,297 @@
+﻿@{
+    ViewBag.Title = "Dashboard";
+    Layout = "~/Views/Shared/_LayoutPageAmin.cshtml";
+}
+
+<div class="content-body">
+    <div class="container-fluid">
+        <!-- Bộ lọc ngày -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body d-flex align-items-center gap-3 flex-wrap">
+                        <h4 class="card-title mb-0 me-3">Dashboard Thống kê</h4>
+                        <div class="d-flex align-items-center gap-2">
+                            <label class="mb-0">Từ:</label>
+                            <input type="date" id="fromDate" class="form-control form-control-sm" style="width:160px" />
+                            <label class="mb-0 ms-2">Đến:</label>
+                            <input type="date" id="toDate" class="form-control form-control-sm" style="width:160px" />
+                            <button class="btn btn-primary btn-sm ms-2" onclick="loadDashboard()">
+                                <i class="fas fa-sync"></i> Cập nhật
+                            </button>
+                            <a href="@Url.Action("ExportExcel", "Admin")" class="btn btn-success btn-sm ms-2">
+                                <i class="fas fa-file-csv"></i> Xuất CSV
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary Cards with hover animations -->
+    <style>
+        .stat-card { transition: all 0.3s ease; border: none; border-radius: 12px; overflow: hidden; }
+        .stat-card:hover { transform: translateY(-6px); box-shadow: 0 12px 30px rgba(0,0,0,0.12); }
+        .stat-card .card-body { padding: 1.5rem; }
+        .stat-card .stat-icon { width: 56px; height: 56px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 24px; color: white; transition: all 0.3s; }
+        .stat-card:hover .stat-icon { transform: scale(1.1) rotate(-5deg); }
+        .stat-value { font-size: 1.8rem; font-weight: 700; margin: 0; transition: all 0.3s; }
+        .stat-label { color: #6c757d; font-size: 0.9rem; margin: 0; }
+        .chart-container { border: none; border-radius: 14px; overflow: hidden; transition: all 0.3s; }
+        .chart-container:hover { box-shadow: 0 8px 25px rgba(0,0,0,0.08); }
+        .chart-container .card-header { background: white; border-bottom: 2px solid #f0f0f0; padding: 1rem 1.5rem; }
+        .chart-container .card-header h4 { margin: 0; font-size: 1.1rem; font-weight: 600; color: #333; }
+        .filter-bar { background: linear-gradient(145deg, #ffffff, #f8f9fa); border: none; border-radius: 14px; padding: 1.2rem 1.5rem; box-shadow: 0 2px 10px rgba(0,0,0,0.04); }
+    </style>
+
+    <div class="row" id="summary-cards">
+        <div class="col-xl-3 col-lg-6 col-md-6 mb-4">
+            <div class="card stat-card shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon me-3" style="background: linear-gradient(135deg, #28a745, #20c997);">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                        <div>
+                            <p class="stat-label">Tổng doanh thu</p>
+                            <h3 class="stat-value text-success" id="stat-doanhthu">0</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-lg-6 col-md-6 mb-4">
+            <div class="card stat-card shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon me-3" style="background: linear-gradient(135deg, #007bff, #17a2b8);">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                        <div>
+                            <p class="stat-label">Tổng số đơn</p>
+                            <h3 class="stat-value text-primary" id="stat-sodon">0</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-lg-6 col-md-6 mb-4">
+            <div class="card stat-card shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon me-3" style="background: linear-gradient(135deg, #17a2b8, #6f42c1);">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div>
+                            <p class="stat-label">Khách hàng mới</p>
+                            <h3 class="stat-value text-info" id="stat-khachhang">0</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-lg-6 col-md-6 mb-4">
+            <div class="card stat-card shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon me-3" style="background: linear-gradient(135deg, #ffc107, #fd7e14);">
+                            <i class="fas fa-percent"></i>
+                        </div>
+                        <div>
+                            <p class="stat-label">Tỷ lệ hủy</p>
+                            <h3 class="stat-value text-warning" id="stat-tilehuy">0%</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+        <!-- Charts Row 1: Line + Bar -->
+        <!-- Charts Row 1: Line + Pie -->
+        <div class="row">
+            <div class="col-lg-8 mb-4">
+                <div class="card chart-container shadow-sm">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h4><i class="fas fa-chart-line text-success me-2"></i>Doanh thu & Số đơn theo ngày</h4>
+                        <span class="badge bg-success rounded-pill">Real-time</span>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="revenueChart" height="280"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 mb-4">
+                <div class="card chart-container shadow-sm">
+                    <div class="card-header">
+                        <h4><i class="fas fa-chart-pie text-primary me-2"></i>Trạng thái đơn hàng</h4>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="statusPieChart" height="280"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row 2: Top Restaurants Bar -->
+        <div class="row">
+            <div class="col-12 mb-4">
+                <div class="card chart-container shadow-sm">
+                    <div class="card-header">
+                        <h4><i class="fas fa-trophy text-warning me-2"></i>Top 5 quán ăn doanh thu cao nhất</h4>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="topRestaurantChart" height="240"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let revenueChart = null, statusPieChart = null, topRestaurantChart = null;
+
+        $(document).ready(function () {
+            // Set default dates
+            var today = new Date();
+            var thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(today.getDate() - 30);
+            $('#fromDate').val(thirtyDaysAgo.toISOString().split('T')[0]);
+            $('#toDate').val(today.toISOString().split('T')[0]);
+
+            loadDashboard();
+        });
+
+        function loadDashboard() {
+            var fromDate = $('#fromDate').val();
+            var toDate = $('#toDate').val();
+
+            // 1. Load summary stats
+            $.getJSON('@Url.Action("GetDashboardStats", "Admin")', { fromDate: fromDate, toDate: toDate }, function (data) {
+                if (data.error) return;
+                $('#stat-doanhthu').text(Number(data.tongDoanhThu).toLocaleString('vi-VN') + ' VNĐ');
+                $('#stat-sodon').text(data.tongSoDon);
+                $('#stat-khachhang').text(data.khachHangMoi);
+                $('#stat-tilehuy').text(data.tiLeHuy + '%');
+            });
+
+            // 2. Load revenue line chart
+            $.getJSON('@Url.Action("GetRevenueChart", "Admin")', { fromDate: fromDate, toDate: toDate }, function (data) {
+                var labels = data.map(function (d) { return d.date; });
+                var doanhThu = data.map(function (d) { return d.doanhThu; });
+                var soDon = data.map(function (d) { return d.soDon; });
+
+                if (revenueChart) revenueChart.destroy();
+
+                var ctx = document.getElementById('revenueChart').getContext('2d');
+                revenueChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Doanh thu (VNĐ)',
+                            data: doanhThu,
+                            borderColor: '#28a745',
+                            backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            yAxisID: 'y'
+                        }, {
+                            label: 'Số đơn',
+                            data: soDon,
+                            borderColor: '#007bff',
+                            backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            yAxisID: 'y1'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        interaction: { mode: 'index', intersect: false },
+                        plugins: { legend: { position: 'top' } },
+                        scales: {
+                            y: {
+                                type: 'linear',
+                                display: true,
+                                position: 'left',
+                                ticks: { callback: function (v) { return v.toLocaleString('vi-VN'); } }
+                            },
+                            y1: {
+                                type: 'linear',
+                                display: true,
+                                position: 'right',
+                                grid: { drawOnChartArea: false }
+                            }
+                        }
+                    }
+                });
+            });
+
+            // 3. Load order status pie chart
+            $.getJSON('@Url.Action("GetOrderStatusPie", "Admin")', function (data) {
+                if (statusPieChart) statusPieChart.destroy();
+
+                var ctx = document.getElementById('statusPieChart').getContext('2d');
+                statusPieChart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: data.labels,
+                        datasets: [{
+                            data: data.data,
+                            backgroundColor: data.colors
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { position: 'bottom' }
+                        }
+                    }
+                });
+            });
+
+            // 4. Load top restaurants bar chart
+            $.getJSON('@Url.Action("GetTopRestaurants", "Admin")', function (data) {
+                var labels = data.map(function (d) { return d.tenQuan; });
+                var doanhThu = data.map(function (d) { return d.doanhThu; });
+                var soDon = data.map(function (d) { return d.soDon; });
+
+                if (topRestaurantChart) topRestaurantChart.destroy();
+
+                var ctx = document.getElementById('topRestaurantChart').getContext('2d');
+                topRestaurantChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Doanh thu (VNĐ)',
+                            data: doanhThu,
+                            backgroundColor: 'rgba(40, 167, 69, 0.7)',
+                            borderColor: '#28a745',
+                            borderWidth: 1
+                        }, {
+                            label: 'Số đơn',
+                            data: soDon,
+                            backgroundColor: 'rgba(0, 123, 255, 0.7)',
+                            borderColor: '#007bff',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { position: 'top' } },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: { callback: function (v) { return v.toLocaleString('vi-VN'); } }
+                            }
+                        }
+                    }
+                });
+            });
+        }
+    </script>
+}

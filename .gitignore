@@ -1,0 +1,81 @@
+# ============
+# .NET
+# ============
+bin/
+obj/
+*.user
+*.suo
+*.vs/
+*.DotSettings
+*.csproj.user
+
+# ============
+# NuGet
+# ============
+packages/
+*.nupkg
+
+# ============
+# Build
+# ============
+Build/
+[Pp]ublish/
+*.dll
+*.exe
+*.pdb
+*.xml
+
+# ============
+# IDE
+# ============
+.vs/
+.vscode/
+.idea/
+*.sln.docstates
+
+# ============
+# Config - Sensitive
+# ============
+appsettings.*.local.json
+appsettings.local.json
+secrets.json
+*.Development.json
+
+# ============
+# AI/Agent Tools & Skills
+# ============
+.continue/
+.aider*
+.cursor/
+.windsurf/
+.roocode/
+.claude/
+.agents/
+Skill/
+
+# ============
+# Node / Frontend
+# ============
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ============
+# Logs
+# ============
+*.log
+UpgradeLog*.htm
+
+# ============
+# Secrets - DO NOT COMMIT
+# ============
+appsettings.json
+
+# ============
+# OS
+# ============
+.DS_Store
+Thumbs.db
+*.swp
+*.swo

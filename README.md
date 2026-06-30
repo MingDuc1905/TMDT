@@ -45,14 +45,14 @@
   </tr>
   <tr>
     <td align="center">
-      <img src="https://placehold.co/480x320/3CB815/ffffff?text=Home+Page+Preview" alt="Home Page" width="100%" style="border-radius: 8px;">
+      <img src="screenshots/home-page.png" alt="Home Page" width="100%" style="border-radius: 8px;">
       <br>
       <sub><i>Giao diện khách hàng với hero carousel, danh mục, grid quán ăn</i></sub>
     </td>
     <td align="center">
-      <img src="https://placehold.co/480x320/1a1a2e/ffffff?text=Dashboard+Preview" alt="Dashboard" width="100%" style="border-radius: 8px;">
+      <img src="screenshots/login-page.png" alt="Login Page" width="100%" style="border-radius: 8px;">
       <br>
-      <sub><i>Admin/Restaurant dashboard với KPI cards + Chart.js</i></sub>
+      <sub><i>Cổng đăng nhập với Google OAuth + form đăng nhập</i></sub>
     </td>
   </tr>
   <tr>
@@ -61,12 +61,12 @@
   </tr>
   <tr>
     <td align="center">
-      <img src="https://placehold.co/480x320/F65005/ffffff?text=Live+Tracking+Preview" alt="Live Tracking" width="100%" style="border-radius: 8px;">
+      <img src="screenshots/menu-page.png" alt="Menu & Categories" width="100%" style="border-radius: 8px;">
       <br>
-      <sub><i>Leaflet.js map + SignalR real-time shipper location</i></sub>
+      <sub><i>Danh sách quán ăn và danh mục món</i></sub>
     </td>
     <td align="center">
-      <img src="https://placehold.co/480x320/2781d5/ffffff?text=Chat+Widget+Preview" alt="Chat Widget" width="100%" style="border-radius: 8px;">
+      <img src="screenshots/chat-widget.png" alt="Chat Widget" width="100%" style="border-radius: 8px;">
       <br>
       <sub><i>AI Gemini chatbot + Support SignalR real-time</i></sub>
     </td>

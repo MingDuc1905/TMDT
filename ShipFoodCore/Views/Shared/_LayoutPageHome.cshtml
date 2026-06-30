@@ -107,7 +107,8 @@
                 <!-- Search (visible inline on desktop) -->
                 @{
                     var selectedIdDM = ViewBag.idDM as int?;
-                    var allDanhMuc = _db.tbDanhMuc.ToList();
+                    List<tbDanhMuc> allDanhMuc = new List<tbDanhMuc>();
+                    try { allDanhMuc = _db.tbDanhMuc.ToList(); } catch { /* DB unavailable — skip category filter */ }
                 }
                 <div class="fs-search-wrap d-none d-lg-flex">
                     <form action="/Home" method="get" class="fs-search-form" role="search" aria-label="Tìm quán ăn">

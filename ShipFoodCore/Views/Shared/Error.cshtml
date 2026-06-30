@@ -1,13 +1,111 @@
-﻿<!DOCTYPE html>
-<html>
+@{
+    ViewBag.Title = "Lỗi";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="vi">
 <head>
-    <meta name="viewport" content="width=device-width" />
-    <title>Error</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fastship — Đã xảy ra lỗi</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 24px;
+            color: #1a1a2e;
+        }
+        .error-container {
+            text-align: center;
+            max-width: 480px;
+            background: #fff;
+            border-radius: 20px;
+            padding: 48px 40px;
+            box-shadow: 0 4px 24px rgba(0,0,0,.06);
+        }
+        .logo {
+            font-size: 2rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin-bottom: 24px;
+        }
+        .logo .f { color: #3CB815; }
+        .logo .ast { color: #F65005; }
+        .logo .ship { color: #1a1a2e; }
+        .error-icon {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: #fff3f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 32px;
+        }
+        h1 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #1a1a2e;
+        }
+        p {
+            font-size: 14px;
+            color: #6b7280;
+            line-height: 1.6;
+            margin-bottom: 28px;
+        }
+        .btn-home {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 28px;
+            border-radius: 24px;
+            background: #3CB815;
+            color: #fff;
+            font-weight: 600;
+            font-size: 14px;
+            text-decoration: none;
+            transition: background .2s, transform .2s;
+        }
+        .btn-home:hover {
+            background: #2ea310;
+            transform: translateY(-1px);
+        }
+        .error-detail {
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+            font-size: 12px;
+            color: #9ca3af;
+        }
+    </style>
 </head>
 <body>
-    <hgroup>
-        <h1>Error.</h1>
-        <h2>An error occurred while processing your request.</h2>
-    </hgroup>
+    <div class="error-container">
+        <div class="logo">
+            <span class="f">F</span><span class="ast">ast</span><span class="ship">ship</span>
+        </div>
+        <div class="error-icon">⚠️</div>
+        <h1>Đã xảy ra lỗi</h1>
+        <p>
+            Máy chủ đang gặp sự cố tạm thời. Đội ngũ Fastship đã được thông báo và sẽ khắc phục sớm nhất.
+            <br><br>
+            Vui lòng thử lại sau.
+        </p>
+        <a href="/Home" class="btn-home">
+            ← Quay về trang chủ
+        </a>
+        <div class="error-detail">
+            Fastship © @DateTime.Now.Year &mdash; Nếu lỗi vẫn tiếp diễn, vui lòng liên hệ fastship@contact.com
+        </div>
+    </div>
 </body>
 </html>

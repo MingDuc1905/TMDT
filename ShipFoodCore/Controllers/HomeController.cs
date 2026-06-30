@@ -497,6 +497,14 @@ public class HomeController : BaseController
         return View(ctmonan);
     }
 
+    /// <summary>
+    /// Trang lỗi mặc định — tránh 404 khi exception handler redirect đến /Home/Error
+    /// </summary>
+    public ActionResult Error()
+    {
+        return View();
+    }
+
     public ActionResult NhanTin()
     {
         return View();

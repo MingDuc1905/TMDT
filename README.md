@@ -17,7 +17,7 @@
 <p align="center">
   <a href="https://dotnet.microsoft.com/download/dotnet/8.0"><img src="https://img.shields.io/badge/.NET_8-512BD4?style=flat-square&logo=dotnet&logoColor=white" alt=".NET 8"></a>
   <a href="https://www.mysql.com/"><img src="https://img.shields.io/badge/MySQL-4479A1?style=flat-square&logo=mysql&logoColor=white" alt="MySQL"></a>
-  <a href="https://learn.microsoft.com/en-us/aspnet/core/signalr/"><img src="https://img.shields.io/badge/SignalR-512BD4?style=flat-square&logo=signalr&logoColor=white" alt="SignalR"></a>
+  <a href="https://learn.microsoft.com/en-us/aspnet/core/signalr/"><img src="https://img.shields.io/badge/SignalR-512BD4?style=flat-square&logo=dotnet&logoColor=white" alt="SignalR"></a>
   <a href="https://leafletjs.com/"><img src="https://img.shields.io/badge/Leaflet.js-199900?style=flat-square&logo=leaflet&logoColor=white" alt="Leaflet.js"></a>
   <a href="https://ai.google.dev/"><img src="https://img.shields.io/badge/Gemini_AI-4285F4?style=flat-square&logo=googlegemini&logoColor=white" alt="Gemini AI"></a>
   <a href="https://getbootstrap.com/"><img src="https://img.shields.io/badge/Bootstrap_5-7952B3?style=flat-square&logo=bootstrap&logoColor=white" alt="Bootstrap 5"></a>
@@ -45,12 +45,12 @@
   </tr>
   <tr>
     <td align="center">
-      <img src="https://via.placeholder.com/480x320/3CB815/ffffff?text=Home+Page+Preview" alt="Home Page" width="100%" style="border-radius: 8px;">
+      <img src="https://placehold.co/480x320/3CB815/ffffff?text=Home+Page+Preview" alt="Home Page" width="100%" style="border-radius: 8px;">
       <br>
       <sub><i>Giao diện khách hàng với hero carousel, danh mục, grid quán ăn</i></sub>
     </td>
     <td align="center">
-      <img src="https://via.placeholder.com/480x320/1a1a2e/ffffff?text=Dashboard+Preview" alt="Dashboard" width="100%" style="border-radius: 8px;">
+      <img src="https://placehold.co/480x320/1a1a2e/ffffff?text=Dashboard+Preview" alt="Dashboard" width="100%" style="border-radius: 8px;">
       <br>
       <sub><i>Admin/Restaurant dashboard với KPI cards + Chart.js</i></sub>
     </td>
@@ -61,12 +61,12 @@
   </tr>
   <tr>
     <td align="center">
-      <img src="https://via.placeholder.com/480x320/F65005/ffffff?text=Live+Tracking+Preview" alt="Live Tracking" width="100%" style="border-radius: 8px;">
+      <img src="https://placehold.co/480x320/F65005/ffffff?text=Live+Tracking+Preview" alt="Live Tracking" width="100%" style="border-radius: 8px;">
       <br>
       <sub><i>Leaflet.js map + SignalR real-time shipper location</i></sub>
     </td>
     <td align="center">
-      <img src="https://via.placeholder.com/480x320/2781d5/ffffff?text=Chat+Widget+Preview" alt="Chat Widget" width="100%" style="border-radius: 8px;">
+      <img src="https://placehold.co/480x320/2781d5/ffffff?text=Chat+Widget+Preview" alt="Chat Widget" width="100%" style="border-radius: 8px;">
       <br>
       <sub><i>AI Gemini chatbot + Support SignalR real-time</i></sub>
     </td>
@@ -251,8 +251,9 @@ dotnet run
   <b>🌐</b> <code>http://localhost:5000</code>
   &nbsp;&nbsp;·&nbsp;&nbsp;
   <b>💚</b> <code>http://localhost:5000/health</code>
-  &nbsp;&nbsp;·&nbsp;&nbsp;
-  <b>🐳</b> <code>docker build -t fastship . && docker run -p 8080:8080 fastship</code>
+  <br><br>
+  <b>🐳 Docker</b> (chạy từ thư mục gốc):<br>
+  <code>cd .. && docker build -t fastship . && docker run -p 8080:8080 fastship</code>
 </p>
 
 <br>

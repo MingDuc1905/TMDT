@@ -122,39 +122,50 @@ try
 
         var created = db.Database.EnsureCreated();
 
-        // If database was just created, seed initial data from seed_mysql.sql
-        if (created && !db.tbUsers.Any())
-        {
-            // Try to find seed_mysql.sql in ContentRootPath (Docker) or parent (local dev)
-            string sqlPath = Path.Combine(app.Environment.ContentRootPath, "seed_mysql.sql");
-            if (!File.Exists(sqlPath))
+        // If database was just created, seed initial data from seed_mysql.sql            if (created && !db.tbUsers.Any())
             {
-                sqlPath = Path.Combine(app.Environment.ContentRootPath, "..", "seed_mysql.sql");
+                // Try to find seed_mysql.sql in ContentRootPath (Docker) or parent (local dev)
+                string sqlPath = Path.Combine(app.Environment.ContentRootPath, "seed_mysql.sql");
+                if (!File.Exists(sqlPath))
+                {
+                    sqlPath = Path.Combine(app.Environment.ContentRootPath, "..", "seed_mysql.sql");
+                }
+
+                if (File.Exists(sqlPath))
+                {
+                    logger.LogInformation("Seeding database from {SqlPath}", sqlPath);
+                    var sql = File.ReadAllText(sqlPath).Replace("\r\n", "\n");
+                    var statements = sql.Split(new[] { "\nGO\n", ";\n" }, StringSplitOptions.RemoveEmptyEntries);
+                    foreach (var stmt in statements)
+                    {
+                        var trimmed = stmt.Trim();
+                        if (trimmed.Length > 0 && !trimmed.StartsWith("--") && !trimmed.StartsWith("DROP") && !trimmed.StartsWith("CREATE"))
+                        {
+                            try { db.Database.ExecuteSqlRaw(trimmed); } catch { }
+                        }
+                    }
+                    logger.LogInformation("Database seeding completed");
+                }
             }
 
-            if (File.Exists(sqlPath))
+            // === BCrypt fix: mở rộng cột pwd từ VARCHAR(50) → VARCHAR(255) ===
+            // BCrypt hash dài 60 ký tự, cột cũ 50 ký tự gây lỗi khi SaveChanges() nâng cấp password
+            try
             {
-                logger.LogInformation("Seeding database from {SqlPath}", sqlPath);
-                var sql = File.ReadAllText(sqlPath).Replace("\r\n", "\n");
-                var statements = sql.Split(new[] { "\nGO\n", ";\n" }, StringSplitOptions.RemoveEmptyEntries);
-                foreach (var stmt in statements)
-                {
-                    var trimmed = stmt.Trim();
-                    if (trimmed.Length > 0 && !trimmed.StartsWith("--") && !trimmed.StartsWith("DROP") && !trimmed.StartsWith("CREATE"))
-                    {
-                        try { db.Database.ExecuteSqlRaw(trimmed); } catch { }
-                    }
-                }
-                logger.LogInformation("Database seeding completed");
+                db.Database.ExecuteSqlRaw("ALTER TABLE tbUser MODIFY COLUMN pwd VARCHAR(255) NOT NULL;");
+                logger.LogInformation("Column tbUser.pwd expanded to VARCHAR(255) for BCrypt compatibility");
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning("Could not alter tbUser.pwd column: {Error}", ex.Message);
             }
         }
     }
-}
-catch (Exception ex)
-{
-    // App still starts - database can be initialized later
-    Console.WriteLine($"[WARN] Database initialization failed: {ex.Message}");
-}
+    catch (Exception ex)
+    {
+        // App still starts - database can be initialized later
+        Console.WriteLine($"[WARN] Database initialization failed: {ex.Message}");
+    }
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

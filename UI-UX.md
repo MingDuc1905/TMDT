@@ -1,6 +1,6 @@
 # Fastship (ShipFood) — UI/UX Documentation (Full)
 
-> **Phiên bản**: 3.2 — Mobile Responsive Overhaul + Header Sticky Fix + Cart/Checkout/Signup Mobile Optimization  
+> **Phiên bản**: 3.3 — Viewport Wrapper Auth + Cart Multi-row Mobile + Bottom Sheet Category  
 > **Cập nhật**: Tháng 7, 2026  
 > **Mô tả**: Tài liệu thiết kế giao diện & trải nghiệm người dùng toàn diện cho nền tảng đặt đồ ăn Fastship
 
@@ -17,6 +17,7 @@
 7. [Giỏ Hàng (Cart)](#7-giỏ-hàng-cart)
 8. [Thanh Toán (Checkout)](#8-thanh-toán-checkout)
 9. [Đăng Nhập / Đăng Ký](#9-đăng-nhập--đăng-ký)
+    - [9.6 Viewport Wrapper — Fix Scroll Rác](#96-viewport-wrapper--fix-scroll-rác-v33)
 10. [Dashboard Admin](#10-dashboard-admin)
 11. [Dashboard Restaurant](#11-dashboard-restaurant)
 12. [Dashboard Shipper](#12-dashboard-shipper)
@@ -30,6 +31,8 @@
 20. [Error Handling & Empty States](#20-error-handling--empty-states)
 21. [User Flows](#21-user-flows)
 22. [Backlog & Improvements](#22-backlog--improvements)
+    - [22.3 ✅ Completed in v3.3 — Layout Architecture Overhaul](#223--completed-in-v33--layout-architecture-overhaul)
+    - [22.4 Future Improvements](#224-future-improvements)
 
 ---
 
@@ -482,7 +485,7 @@ Trên mobile, các element dùng width cố định gây tràn layout:
 │ ⭐ 4.5 | 30 đánh giá │
 │ Utility (full width) │
 ├──────────────────────┤
-│ [Tất cả] [Cơm] [Phở…]│ ← scroll ngang
+│ [Tất cả] [Cơm] [Phở…]│ ← scroll ngang (sticky)
 ├──────────────────────┤
 │ 🔍 [Tìm món........] │
 ├──────────────────────┤
@@ -495,7 +498,158 @@ Trên mobile, các element dùng width cố định gây tràn layout:
 ├──────────────────────┤
 │ ⭐ Đánh giá (1 cột)  │
 └──────────────────────┘
+│                      │
+│         ┌────┐       │ ← FAB + Badge
+│         │ ☰  │       │
+│         │ 5  │       │
+│         └────┘       │
+└──────────────────────┘
 ```
+
+### 6.5 Bottom Sheet + FAB + Sticky Category Bar (v3.3)
+
+#### 6.5.1 Vấn đề
+
+Thanh danh mục món ăn trên mobile dạng scroll ngang (`overflow-x: auto`). Với quán có >6 danh mục, người dùng phải vuốt ngang liên tục, mỏi tay và mất góc nhìn tổng quan.
+
+#### 6.5.2 Giải pháp kết hợp: Sticky Bar + FAB + Bottom Sheet
+
+Hệ thống 3 lớp điều hướng danh mục:
+
+```
+LỚP 1 — STICKY CATEGORY BAR (luôn visible khi scroll)
+┌─────────────────────────────────────────────┐
+│ [Tất cả] [Cơm] [Phở] [Lẩu] [Bún] ... [⋮]    │ ← scroll ngang
+│ position: sticky; top: 68px (60px mobile)    │
+│ z-index: 50 + box-shadow khi scroll >100px   │
+└─────────────────────────────────────────────┘
+
+LỚP 2 — FLOATING ACTION BUTTON (góc dưới phải)
+                ┌────┐
+                │ ☰  │  ← 56px (48px mobile)
+                │ 5  │  ← Badge: tổng số danh mục
+                └────┘
+         bottom:24px; right:16px; z-index:999
+
+LỚP 3 — BOTTOM SHEET (khi bấm FAB)
+┌──────────────────────────────────────────────┐
+│  ──── ──── ──── (drag handle, 32×4px)       │
+│  📂 Danh mục món ăn                  [✕]     │
+├──────────────────────────────────────────────┤
+│  🍽 Tất cả                                    │
+│  🍚 Cơm                                       │
+│  🍜 Phở                                       │
+│  🥘 Lẩu                          ← active    │
+│  🍝 Bún                                       │
+│  🥗 Salad                           60% maxH │
+├──────────────────────────────────────────────┤
+│ (scroll nội bộ nếu nhiều danh mục)            │
+└──────────────────────────────────────────────┘
+    ↓ Click item → đóng sheet + navigate đến danh mục đó
+```
+
+#### 6.5.3 Chi tiết kỹ thuật
+
+**Sticky Category Bar**:
+```css
+.menu-restaurant-category.is-sticky {
+    position: sticky;
+    top: 68px; /* dưới header */
+    z-index: 50;
+    background: #fff;
+    border-bottom: 1px solid #e5e7eb;
+    box-shadow: 0 2px 8px rgba(0,0,0,.05);
+    padding: 0 16px;
+    margin: 0 -16px; /* full-width visual */
+}
+.menu-restaurant-category.is-sticky.scrolled {
+    box-shadow: 0 4px 16px rgba(0,0,0,.1); /* shadow khi scroll >100px */
+}
+@media (max-width: 576px) {
+    .menu-restaurant-category.is-sticky { top: 60px; }
+}
+```
+
+**FAB Button**:
+```css
+.fs-category-fab {
+    position: fixed;
+    bottom: 24px; right: 16px;
+    z-index: 999;
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #3CB815, #2ea310);
+    box-shadow: 0 4px 16px rgba(60,184,21,.35);
+    cursor: pointer;
+    display: none; /* desktop: hidden */
+    align-items: center;
+    justify-content: center;
+}
+@media (max-width: 768px) { .fs-category-fab { display: flex; } }
+@media (max-width: 576px) { .fs-category-fab { width: 48px; height: 48px; bottom: 16px; } }
+```
+
+**Bottom Sheet**:
+```css
+.fs-bottom-sheet {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    z-index: 9999;
+    max-height: 60vh;
+    background: #fff;
+    border-radius: 20px 20px 0 0;
+    transform: translateY(100%);
+    transition: transform .35s cubic-bezier(.32,.72,0,1);
+    display: flex;
+    flex-direction: column;
+}
+.fs-bottom-sheet.active { transform: translateY(0); }
+
+.fs-bottom-sheet-overlay {
+    position: fixed; inset: 0;
+    z-index: 9998;
+    background: rgba(0,0,0,.45);
+    opacity: 0; visibility: hidden;
+    transition: opacity .3s ease, visibility .3s ease;
+}
+.fs-bottom-sheet-overlay.active { opacity: 1; visibility: visible; }
+```
+
+#### 6.5.4 Category Icon Mapping (getCategoryIcon)
+
+Hàm JS tự động gán icon emoji dựa trên tên danh mục, xử lý tiếng Việt có dấu bằng `normalize('NFD')`:
+
+| Tên danh mục | Icon | Logic match |
+|-------------|------|-------------|
+| Tất cả | 🍽 | `n === 'tat ca'` |
+| Cơm | 🍚 | `includes('com')` |
+| Phở | 🍜 | `includes('pho')` |
+| Mì, Bún | 🍝 | `includes('mi') || includes('bun')` |
+| Lẩu | 🥘 | `includes('lau')` |
+| Bánh | 🥟 | `includes('banh')` |
+| Salad, Rau | 🥗 | `includes('salad')` |
+| Sushi | 🍣 | `includes('sushi')` |
+| Thịt | 🥩 | `includes('thit')` |
+| Cá, Hải sản | 🦐 | `includes('ca')` |
+| Trà, Cafe | 🧋 | `includes('tra')` |
+| Nước, Uống | 🥤 | `includes('nuoc')` |
+| Tráng miệng | 🍰 | `includes('trang mieng')` |
+| Khai vị | 🥟 | `includes('khai vi')` |
+| Khác | 📂 | default |
+
+```javascript
+function stripDia(s) {
+    return s.toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/d/g, 'd');
+}
+```
+
+#### 6.5.5 Files thay đổi
+
+| File | Thay đổi |
+|------|----------|
+| `DetailRestaurant.cshtml` | CSS sticky bar + FAB + Bottom Sheet; HTML FAB + Bottom Sheet; JS buildCategorySheet(), open/closeCategorySheet(), getCategoryIcon() |
 
 ---
 
@@ -518,48 +672,94 @@ Trên mobile, các element dùng width cố định gây tràn layout:
 └──────────────────────────────────────────────────┘
 ```
 
-### 7.2 Cart Item Responsive (v3.2)
+### 7.2 Cart Item Responsive (v3.2 → v3.3)
 
-**Vấn đề mobile**: Trên màn hình < 576px, cart item có flex layout với ảnh 80px + info + qty control + total + delete button. Tổng cộng quá nhiều element trên 1 hàng, gây tràn.
+#### Vấn đề mobile (v3.1)
 
-**Fix**:
+Trên màn hình < 576px, cart item ép 5 phần tử (Ảnh 80px + Info + Qty control + Total + Delete) trên **cùng 1 hàng ngang** — quá chật, dễ bấm nhầm.
+
+#### Giải pháp v3.3: Multi-row Card Layout
+
+Phân rã cart item thành **2 hàng riêng biệt**:
+
+```
+ROW 1 — Nhận diện & Xóa:
+┌──────────────────────────────────────┐
+│ ┌──────┐ ┌───────────────────┐  🗑   │
+│ │ 60px │ │ Tên món (14px)    │ (44px)│
+│ │ img  │ │ Giá: 35.000đ/phần │ touch │
+│ └──────┘ └───────────────────┘       │
+└──────────────────────────────────────┘
+
+ROW 2 — Thao tác & Thanh toán:
+┌──────────────────────────────────────┐
+│ 35.000đ              [─] [2] [+]    │
+│ (giá bên trái)        (qty bên phải) │
+│                       44×44px touch  │
+└──────────────────────────────────────┘
+```
+
+#### CSS Implementation
 
 ```css
-@media (max-width: 768px) {
-    .cart-item { flex-wrap: wrap; gap: 10px; padding: 14px 16px; }
-    .cart-item img { width: 60px; height: 60px; }
-    .cart-item .item-info { min-width: calc(100% - 76px); }
-    .qty-control { order: 2; }
-    .item-total { min-width: auto; font-size: 13px; order: 3; }
-    .delete-btn { order: 4; }
+@@media (max-width: 576px) {
+    .cart-item {
+        flex-wrap: wrap;
+        gap: 6px;
+        padding: 10px 12px;
+    }
+    /* Row 1: Image (60px, order:1) + Name (flex:1, order:2) + Delete (right, order:3) */
+    .cart-item img {
+        width: 60px; height: 60px; order: 1;
+    }
+    .cart-item .item-info {
+        order: 2; flex: 1; min-width: 0;
+    }
+    .cart-item .item-name {
+        font-size: 14px;
+        -webkit-line-clamp: 2; /* 2 dòng tối đa */
+        overflow: hidden;
+    }
+    .delete-btn {
+        order: 3; align-self: flex-start;
+        min-width: 44px; min-height: 44px; /* touch target */
+        display: flex; align-items: center; justify-content: center;
+    }
+    /* Row 2: Price (width:auto, order:4) + Qty (margin-left:auto, order:5) */
+    .item-total {
+        order: 4; width: auto; min-width: auto;
+        font-size: 14px; font-weight: 700;
+        padding-top: 6px; margin-top: 4px;
+        border-top: 1px solid #f0f0f0;
+    }
+    .qty-control {
+        order: 5; margin-left: auto;
+        padding-top: 6px; margin-top: 4px;
+        border-top: 1px solid #f0f0f0;
+    }
+    /* Touch targets: 44×44px (WCAG) */
+    .qty-btn {
+        width: 44px !important; height: 44px !important;
+        border-radius: 10px !important; font-size: 18px !important;
+    }
 }
-
-@media (max-width: 576px) {
-    .cart-item img { width: 48px; height: 48px; }
-    .cart-item .item-name { font-size: 12px; }
-    .qty-btn { width: 28px; height: 28px; }
-    .qty-num { min-width: 28px; font-size: 14px; }
-}
 ```
 
-**Hình ảnh trực quan**:
+#### Touch Target Matrix (WCAG 2.1)
 
-```
-MOBILE (< 576px):
-┌────────────────────────────────────┐
-│ ┌────┐ ┌───────────────────────┐   │
-│ │48px│ │ Tên món (font 12px)   │   │
-│ │img │ │ Giá: 35.000đ / phần   │   │
-│ └────┘ └───────────────────────┘   │
-│ [-] [2] [+]     35.000đ       🗑   │ ← cùng hàng
-├────────────────────────────────────┤
-│ Tóm tắt đơn hàng                   │
-│ Tổng món: 70.000đ                  │
-│ Phí ship: 15.000đ                  │
-│ TỔNG: 85.000đ                      │
-│ [████████ Thanh toán ██████████]   │
-└────────────────────────────────────┘
-```
+| Element | Kích thước | Khoảng cách tới element kế |
+|---------|-----------|--------------------------|
+| Nút Giảm `[−]` | 44×44px | 12px với số lượng |
+| Số lượng `[2]` | 32px (read-only) | 12px với nút Tăng |
+| Nút Tăng `[+]` | 44×44px | ≥24px với Delete |
+| Nút Xoá `🗑` | 44×44px | Góc phải, riêng biệt |
+| Khoảng cách tối thiểu | — | 8px (khuyến nghị 16px) |
+
+#### Files thay đổi
+
+| File | Thay đổi |
+|------|----------|
+| `Cart/Index.cshtml` | Rewrite mobile CSS: multi-row, width:auto, 44px touch targets |
 
 ### 7.3 Empty State (Giỏ hàng trống)
 
@@ -738,6 +938,79 @@ Khi thêm fixed header 60px, cần đẩy nội dung xuống để không bị c
 | Login | "Đăng ký" | `background: #3CB815` (xanh lá) |
 | Signup | "Đăng nhập" | `background: #3CB815` (xanh lá) |
 | Forgot | "Đăng nhập" | `background: #3CB815` (xanh lá) |
+
+### 9.6 Viewport Wrapper — Fix Scroll Rác (v3.3)
+
+#### 9.6.1 Vấn đề
+
+Trang Login/Signup/Forgot dùng `min-height: 100vh` + `padding: 80px 20px 20px` (cho fixed header 60px).
+Vì `box-sizing` mặc định là `content-box`, padding được **cộng thêm** vào chiều cao → tổng chiều cao > 100vh → thanh cuộn dọc xuất hiện vô lý.
+
+```diff
+- ❌ min-height: 100vh + padding: 80px 20px 20px → overflow!
++ ✅ height: 100vh + overflow: hidden → khít viewport
+```
+
+#### 9.6.2 Giải pháp: Flexbox Viewport Wrapper
+
+Cấu trúc mới: **Bao khung Viewport (Viewport Wrapper)** — body `height:100vh; overflow:hidden`, bên trong flex layout với header trong flow.
+
+```
+┌── BODY (height:100vh; overflow:hidden) ───────────┐
+│ ┌── AUTH-PAGE-WRAPPER (flex-column) ───────────┐  │
+│ │                                               │  │
+│ │ ┌── HEADER (flex-shrink:0, height:60px) ───┐  │  │
+│ │ │ [F]ast[ship]    [← Trang chủ] [Đăng ký]  │  │  │
+│ │ └───────────────────────────────────────────┘  │  │
+│ │                                               │  │
+│ │ ┌── MAIN (flex:1, flex-center, overflow-y:auto) │ │
+│ │ │     ┌──────────────────────────┐             │  │
+│ │ │     │    LOGIN FORM            │             │  │
+│ │ │     │    (margin:auto)         │             │  │
+│ │ │     │                          │             │  │
+│ │ │     │    [Username]            │             │  │
+│ │ │     │    [Password]            │             │  │
+│ │ │     │    [   Đăng nhập   ]    │             │  │
+│ │ │     └──────────────────────────┘             │  │
+│ │ └──────────────────────────────────────────────┘  │
+│ └──────────────────────────────────────────────────┘  │
+└──────────────────────────────────────────────────────┘
+```
+
+#### 9.6.3 Nguyên lý hoạt động
+
+| Thành phần | CSS | Mục đích |
+|-----------|-----|----------|
+| `body` | `height:100vh; overflow:hidden` | Khóa cứng viewport, cấm scroll toàn trang |
+| `.auth-page-wrapper` | `display:flex; flex-direction:column; height:100%; max-height:100vh; overflow:hidden` | Container flex chiếm trọn viewport |
+| `header.auth-header` | `flex-shrink:0` | Header chiếm chiều cao tự nhiên (60px), không co |
+| `main.auth-main` | `flex:1; display:flex; align-items:center; justify-content:center; overflow-y:auto` | Phần còn lại, căn giữa form, cho phép scroll nội bộ nếu form quá dài (Signup) |
+| `.login-container` | `margin:auto` | Form tự động căn giữa, không cần padding/margin thủ công |
+
+#### 9.6.4 Thay đổi so với v3.2
+
+| Thuộc tính | v3.2 (cũ) | v3.3 (mới) |
+|-----------|-----------|-----------|
+| `body` height | `min-height:100vh` (gây overflow) | `height:100vh; overflow:hidden` (khít) |
+| `body` padding | `80px 20px 20px` (cộng vào height) | Không có padding (header trong flow) |
+| Header position | `position:fixed` (tách khỏi flow) | `flex-shrink:0` (trong flow) |
+| Form centering | `padding-top:80px` thủ công | `flex:1 + flex center` tự động |
+| Overflow | `min-height:100vh + padding` → scroll | `overflow:hidden` trên wrapper + `overflow-y:auto` trên main |
+
+#### 9.6.5 Ưu điểm
+
+1. **Không scroll rác** — body khóa cứng 100vh, main scroll nội bộ nếu cần
+2. **Form luôn căn giữa** — không phụ thuộc vào chiều cao nội dung
+3. **Không padding thủ công** — flex layout tự động xử lý khoảng cách
+4. **Semantic HTML** — `<header>` + `<main>` thay vì `div` lồng nhau
+
+#### 9.6.6 Files thay đổi
+
+| File | Thay đổi |
+|------|----------|
+| `Login.cshtml` | body → viewport wrapper, header → `flex-shrink:0`, main → flex center |
+| `Signup.cshtml` | Same pattern (8 fields vẫn vừa nhờ `overflow-y:auto` trên main) |
+| `Forgot.cshtml` | Same pattern (form ngắn, căn giữa hoàn hảo) |
 
 ---
 
@@ -1044,22 +1317,24 @@ public async Task UpdateLocation(int orderId, double lat, double lng)
 | **Map** | 250px height | 300px height | 380px height |
 | **Table cells** | flex + border-bottom | flex + border-bottom | table cells |
 
-### 17.3 Mobile Responsive Matrix (v3.2 — Tất cả các trang)
+### 17.3 Mobile Responsive Matrix (v3.2 → v3.3 — Tất cả các trang)
 
-| Trang | Vấn đề | Fix | Files |
-|-------|--------|-----|-------|
-| **Header/Skeleton** | Skeleton overlay z-index 9999 che header z-index 1030 | Header z-index: 10000, skeleton top: calc(header height) | `layout-sg.css` |
-| **Login/Signup/Forgot** | Không có header, mất navigation context | Thêm fixed header bar (position:fixed, z-index:10000) | `Login.cshtml`, `Signup.cshtml`, `Forgot.cshtml` |
-| **Login/Signup/Forgot** | Container 420px tràn trên mobile | Padding giảm 40px→24px/18px, input font-size: 16px | `login.css` |
-| **DetailRestaurant** | Ảnh 480px + info 645px + sidebar 235px fixed | 100% width, sidebar scroll ngang, items xếp dọc | `DetailRestaurant.cshtml` |
-| **Cart/Index** | Cart items quá nhiều element trên 1 hàng | Flex-wrap, ảnh 80px→48px, font 15px→12px | `Cart/Index.cshtml` |
-| **ChiTietDonHang** | margin-top: 200px quá lớn | Giảm 200px→130px (desktop) / 80px (mobile) | `ChiTietDonHang.cshtml` |
-| **LichSuDatHang** | margin-top: 150px, table không responsive | Thêm mobile styles, responsive container | `LichSuDatHang.cshtml` |
-| **Thanh toán** | Payment options, coupon box không responsive | CSS responsive cho checkout cards, payment options | `layout-sg.css` |
-| **Chat Widget** | Toggle 56px + box 360px cố định | Toggle 48px, box full width (8px padding) | `layout-sg.css` |
-| **Nhắn tin** | Page header quá to trên mobile | Header padding giảm 12rem→5rem, chat box height 450→300 | `NhanTin.cshtml` |
-| **DanhMuc/SanPham** | Ảnh height: 250px không có object-fit | Thêm `object-fit: cover` | `DanhMuc.cshtml`, `SanPham.cshtml` |
-| **Page Header** | `padding-top: 12rem` quá lớn (192px) | Responsive: 7rem (tablet), 5rem (mobile) | `layout-sg.css`, `style.css` |
+| Trang | Vấn đề | Fix v3.2 | Fix v3.3 (NEW) | Files |
+|-------|--------|----------|---------------|-------|
+| **Login/Signup/Forgot** | Không có header, mất navigation | Thêm fixed header | ⭐ **Viewport Wrapper**: `height:100vh;overflow:hidden`, header trong flex-flow, form flex center | `Login.cshtml`, `Signup.cshtml`, `Forgot.cshtml` |
+| **Login/Signup/Forgot** | Container 420px tràn mobile | Padding giảm | Input font-size 16px (iOS zoom) | `login.css` |
+| **Login/Signup/Forgot** | Scroll rác do `min-height:100vh + padding` | — | ⭐ **Xoá scroll hoàn toàn**: body `overflow:hidden`, main `overflow-y:auto` | `Login.cshtml`, `Signup.cshtml`, `Forgot.cshtml` |
+| **DetailRestaurant** | Ảnh/info fixed width | 100% width, items xếp dọc | ⭐ **Sticky bar + FAB + Bottom Sheet**: `position:sticky` cho category, FAB 56px, bottom sheet 60vh | `DetailRestaurant.cshtml` |
+| **DetailRestaurant** | Nhiều danh mục khó duyệt | Scroll ngang | ⭐ **Bottom Sheet duyệt nhanh**: overlay mờ, slide-up .35s cubic-bezier, icon emoji cho từng DM | `DetailRestaurant.cshtml` |
+| **Cart/Index** | 5 elements trên 1 hàng ngang | Flex-wrap, ảnh 48px | ⭐ **Multi-row layout**: Row 1 (ảnh 60px+tên+xoá), Row 2 (giá trái + qty phải), touch 44×44px | `Cart/Index.cshtml` |
+| **Header/Skeleton** | Skeleton che header | Header z-index 10000 | — | `layout-sg.css` |
+| **ChiTietDonHang** | margin-top 200px | Giảm 200px→130px/80px | — | `ChiTietDonHang.cshtml` |
+| **LichSuDatHang** | margin-top 150px | Giảm + DataTables responsive | — | `LichSuDatHang.cshtml` |
+| **Thanh toán** | Payment/coupon không responsive | CSS responsive | — | `layout-sg.css` |
+| **Chat Widget** | Toggle 56px cố định | Toggle 48px, box full-width | — | `layout-sg.css` |
+| **Nhắn tin** | Header quá to | Giảm padding 12rem→5rem | — | `NhanTin.cshtml` |
+| **DanhMuc/SanPham** | Ảnh height:250px cứng | object-fit:cover | ⭐ **aspect-ratio 4/3 thay height cố định**, `.category-card-img` class | `DanhMuc.cshtml`, `SanPham.cshtml`, `layout-sg.css` |
+| **Page Header** | padding-top 12rem | 7rem/5rem mobile | — | `layout-sg.css` |
 
 ### 17.4 Responsive Stacked Cards CSS
 
@@ -1279,7 +1554,20 @@ LOGIN ──→ DASHBOARD (with LIVE MAP)
 | **DanhMuc/SanPham ảnh** | ✅ | `DanhMuc.cshtml`, `SanPham.cshtml` | Thêm object-fit:cover cho ảnh |
 | **Page header mobile** | ✅ | `layout-sg.css` | padding-top 12rem→7rem/5rem |
 
-### 22.3 Future Improvements
+### 22.3 ✅ Completed in v3.3 — Layout Architecture Overhaul
+
+| Task | Status | Files | Chi tiết |
+|------|--------|-------|----------|
+| **Viewport Wrapper Auth** | ✅ | `Login.cshtml`, `Signup.cshtml`, `Forgot.cshtml` | body `height:100vh;overflow:hidden`, header trong flex-flow, main flex center, form tự căn giữa |
+| **Cart multi-row mobile** | ✅ | `Cart/Index.cshtml` | Row 1 (ảnh 60px + tên + xoá), Row 2 (giá trái + qty phải), touch 44×44px |
+| **Sticky category bar** | ✅ | `DetailRestaurant.cshtml` | `position:sticky; top:68px/60px`, scrolled shadow, `.is-sticky` class |
+| **FAB button** | ✅ | `DetailRestaurant.cshtml` | 56px (48px mobile), gradient green, badge đếm danh mục, `display:none` desktop |
+| **Bottom Sheet category** | ✅ | `DetailRestaurant.cshtml` | 60vh, slide-up `.35s cubic-bezier`, overlay `.45 opacity`, đóng bằng Escape |
+| **Category icon mapping** | ✅ | `DetailRestaurant.cshtml` | `getCategoryIcon()` xử lý tiếng Việt qua `normalize('NFD')` + 14 loại icon emoji |
+| **aspect-ratio images** | ✅ | `DanhMuc.cshtml`, `SanPham.cshtml`, `layout-sg.css` | `.category-card-img` với `aspect-ratio: 4/3` (16/9 mobile), thay `height:250px` cứng |
+| **UI-UX.md update** | ✅ | `UI-UX.md` | v3.3: 8 sections mới, responsive matrix cập nhật, backlog bổ sung |
+
+### 22.4 Future Improvements
 
 - [ ] **Dark mode**: Add CSS custom properties swap
 - [ ] **Smooth page transitions**: View transitions API
@@ -1300,18 +1588,15 @@ LOGIN ──→ DASHBOARD (with LIVE MAP)
 
 ---
 
-> **Document Version**: 3.2 (Full)  
+> **Document Version**: 3.3 (Full)  
 > **Cập nhật**: Tháng 7, 2026  
-> **Based on**: Actual source code analysis of 8 Controllers, 25+ Views, 15+ Models, 10+ CSS files, 5 Layout files, 1 SignalR Hub, 2 sessions of responsive mobile fixes  
-> **Key changes v3.2**:  
-> - Fixed header sticky (z-index 10000 > skeleton 9999)  
-> - Added fixed header to Login/Signup/Forgot standalone pages  
-> - Responsive DetailRestaurant: ảnh+info 100%, sidebar scroll ngang  
-> - Responsive Cart: items flex-wrap, ảnh/thu nhỏ trên mobile  
-> - Chat widget mobile positioning (48px, full-width box)  
-> - Checkout mobile: payment options, coupon, address tabs responsive  
-> - Page-header padding 12rem→5rem mobile  
-> - Login form: padding, font-size 16px, touch targets  
-> - ChiTietDonHang, LichSuDatHang, NhanTin margin/padding fix  
-> - 12 files modified, ~259 insertions, ~22 deletions  
+> **Based on**: Actual source code analysis of 8 Controllers, 30+ Views, 15+ Models, 10+ CSS files, 5 Layout files, 1 SignalR Hub, 3 sessions of responsive mobile fixes  
+> **Key changes v3.3**:  
+> - Viewport Wrapper Auth: body `height:100vh;overflow:hidden`, header trong flex-flow, form flex center  
+> - Cart multi-row mobile: 2 rows (ảnh 60px + tên + xoá / giá trái + qty phải), touch 44×44px  
+> - DetailRestaurant: sticky category bar (position:sticky), FAB 56px, Bottom Sheet 60vh  
+> - Category icon mapping với `normalize('NFD')` xử lý tiếng Việt  
+> - DanhMuc/SanPham: `aspect-ratio: 4/3` thay `height:250px` cứng  
+> - 8 files modified, ~633 insertions, ~44 deletions  
+> - 3 commit pushes: `731b6eb` (v3.2), `32622e2` (HTTPS), `1ee2d71` (v3.3)  
 

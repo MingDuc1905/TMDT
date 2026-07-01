@@ -1054,3 +1054,141 @@ p, li, .text-muted { line-height: 1.65; }
     }
     .page-header h1 { font-size: 1.3rem !important; }
 }
+
+/* ============================================================
+   GLOBAL IMAGE RESPONSIVE FIXES (v3.2)
+   ============================================================ */
+
+/* DanhMuc & SanPham card: aspect-ratio thay vì fixed height */
+.category-card-img {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+}
+.category-card-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+@media (max-width: 576px) {
+    .category-card-img {
+        aspect-ratio: 16 / 9;
+    }
+    /* Đồng thời giảm padding để card gọn hơn */
+    .product-item .text-center.p-4 {
+        padding: 10px 8px !important;
+    }
+    .product-item .text-center.p-4 .h5 {
+        font-size: 14px;
+        margin-bottom: 4px;
+    }
+}
+
+/* Ảnh chi tiết quán ăn (DetailRestaurant) */
+.now-detail-restaurant .detail-restaurant-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+@media (max-width: 768px) {
+    .now-detail-restaurant .detail-restaurant-img {
+        width: 100% !important;
+        height: auto !important;
+        float: none !important;
+        max-height: 220px;
+        overflow: hidden;
+    }
+    .now-detail-restaurant .detail-restaurant-img img {
+        max-height: 220px;
+    }
+}
+
+/* Ảnh trong Admin/PostTaiKhoan */
+img[width="300"][height="300"] {
+    max-width: 100%;
+    height: auto;
+}
+@media (max-width: 576px) {
+    img[width="300"][height="300"] {
+        width: 100% !important;
+        height: auto !important;
+        max-width: 280px;
+    }
+}
+
+/* Ảnh trong Admin/_ListCategory */
+img[style*="width: 100px"][style*="height: 100px"] {
+    max-width: 100%;
+    height: auto;
+}
+@media (max-width: 576px) {
+    img[style*="width: 100px"][style*="height: 100px"] {
+        width: 80px !important;
+        height: 80px !important;
+    }
+}
+
+/* Ảnh cart item - đảm bảo responsive */
+.cart-item img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 12px;
+    flex-shrink: 0;
+}
+@media (max-width: 768px) {
+    .cart-item img {
+        width: 60px !important;
+        height: 60px !important;
+    }
+}
+@media (max-width: 576px) {
+    .cart-item img {
+        width: 48px !important;
+        height: 48px !important;
+    }
+}
+
+/* Ảnh trong Restaurant/ProductDetail */
+img[width="300"]:not([height]) {
+    max-width: 100%;
+    height: auto;
+}
+@media (max-width: 576px) {
+    img[width="300"]:not([height]) {
+        width: 100% !important;
+        max-width: 280px;
+    }
+}
+
+/* Ảnh dashboard Avatar, profile images */
+.header-profile img[width="20"] {
+    width: 20px;
+    height: 20px;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+/* Ảnh shipper order detail */
+img.rounded-circle[width="150"] {
+    max-width: 100%;
+    height: auto;
+}
+@media (max-width: 576px) {
+    img.rounded-circle[width="150"] {
+        width: 100px !important;
+        height: 100px !important;
+    }
+}
+
+/* Restaurant Profile: ảnh 300px height */
+img[style*="height:300px"] {
+    max-width: 100%;
+    object-fit: cover;
+}
+@media (max-width: 576px) {
+    img[style*="height:300px"] {
+        height: 200px !important;
+    }
+}

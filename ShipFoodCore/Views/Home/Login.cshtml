@@ -24,20 +24,23 @@
 
 </head>
 
-<body style="background:#f0f2f5;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;margin:0;padding:80px 20px 20px;">
-    <!-- Fixed sticky header -->
-    <div style="position:fixed;top:0;left:0;right:0;z-index:10000;background:#fff;box-shadow:0 2px 12px rgba(0,0,0,.06);height:60px;display:flex;align-items:center;padding:0 16px;">
+<body style="margin:0;height:100vh;overflow:hidden;background:#f0f2f5;">
+    <!-- Auth Page Wrapper: full viewport lock, no overflow -->
+    <div class="auth-page-wrapper" style="display:flex;flex-direction:column;height:100%;max-height:100vh;overflow:hidden;">
+        <!-- Header: natural height in flex flow, NOT fixed -->
+        <header class="auth-header" style="flex-shrink:0;background:#fff;box-shadow:0 2px 12px rgba(0,0,0,.06);">
+            <div style="height:60px;display:flex;align-items:center;padding:0 16px;">
         <a href="/Home" style="text-decoration:none;display:flex;align-items:center;gap:8px;">
             <span style="font-family:'Inter',sans-serif;font-size:1.35rem;font-weight:800;letter-spacing:-0.5px;">
                 <span style="color:#3CB815;">F</span><span style="color:#F65005;">ast</span><span style="color:#1a1a2e;">ship</span>
             </span>
         </a>
         <div style="margin-left:auto;display:flex;align-items:center;gap:8px;">
-            <a href="~/Home" style="color:#3CB815;text-decoration:none;font-size:14px;font-weight:500;padding:8px 12px;">← Trang chủ</a>
-            <a href="~/Home/Signup" style="background:#3CB815;color:#fff;text-decoration:none;font-size:13px;font-weight:600;padding:8px 16px;border-radius:20px;white-space:nowrap;">Đăng ký</a>
+            <a href="~/Home" style="color:#3CB815;text-decoration:none;font-size:14px;font-weight:500;padding:8px 12px;">← Trang chủ</a>                            <a href="~/Home/Signup" style="background:#3CB815;color:#fff;text-decoration:none;font-size:13px;font-weight:600;padding:8px 16px;border-radius:20px;white-space:nowrap;">Đăng ký</a>
         </div>
-    </div>
-    <div class="login-container">
+    </header>
+    <main class="auth-main" style="flex:1;display:flex;align-items:center;justify-content:center;overflow-y:auto;">
+        <div class="login-container" style="margin:auto;">
         <a href="~/Home" style="text-decoration:none;">
             <h1 style="color:#3CB815;font-size:28px;margin-bottom:20px;font-weight:700;">F<span style="color:#F65005;">ast</span>ship</h1>
         </a>
@@ -98,6 +101,8 @@
             Chúng tôi không sử dụng thông tin của bạn với bất kỳ mục đích nào. Bằng cách đăng nhập hoặc đăng ký, bạn đồng ý
             với <a href="#">Chính sách quy định của Fastship</a>
         </div>
+    </div>
+        </main>
     </div>
 
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>

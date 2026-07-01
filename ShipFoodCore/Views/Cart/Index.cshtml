@@ -9,6 +9,33 @@
 @section styles {
     <style>
         .cart-wrapper { margin-top: 100px; padding: 32px 0 60px; background: #f8f9fa; min-height: 70vh; }
+        @@media (max-width: 768px) {
+            .cart-wrapper { margin-top: 80px; padding: 20px 0 40px; }
+            .cart-header { padding: 16px 20px; }
+            .cart-header h3 { font-size: 17px; }
+            .cart-item { flex-wrap: wrap; gap: 10px; padding: 14px 16px; }
+            .cart-item img { width: 60px; height: 60px; }
+            .cart-item .item-info { min-width: calc(100% - 76px); flex: 1; }
+            .cart-item .item-name { font-size: 13px; }
+            .cart-item .item-price { font-size: 12px; }
+            .qty-control { order: 2; }
+            .item-total { min-width: auto; font-size: 13px; order: 3; }
+            .delete-btn { order: 4; }
+            .cart-summary { padding: 18px; }
+            .summary-total { font-size: 16px; }
+        }
+        @@media (max-width: 576px) {
+            .cart-wrapper { margin-top: 70px; padding: 12px 0 30px; }
+            .cart-item { padding: 12px; }
+            .cart-item img { width: 48px; height: 48px; }
+            .cart-item .item-name { font-size: 12px; }
+            .qty-btn { width: 28px; height: 28px; font-size: 14px; }
+            .qty-num { min-width: 28px; font-size: 14px; }
+            .item-total { font-size: 12px; }
+            .btn-checkout-go { font-size: 14px; padding: 12px; }
+            .cart-summary { padding: 14px; }
+            .restaurant-badge { font-size: 11px; padding: 3px 8px; }
+        }
         .cart-header { background: linear-gradient(135deg,#3CB815,#27a001); color:#fff; border-radius: 16px 16px 0 0; padding: 20px 28px; }
         .cart-header h3 { margin: 0; font-weight: 700; font-size: 20px; }
         .cart-body { background: #fff; border-radius: 0 0 16px 16px; box-shadow: 0 4px 20px rgba(0,0,0,.07); overflow: hidden; }

@@ -37,6 +37,25 @@
     </style>
 </head>
 <div class="container-fluid" style="margin-top: 150px;">
+    <style>
+        /* Mobile responsive fixes */
+        @@media (max-width: 768px) {
+            .container-fluid[style*="150"] { margin-top: 100px !important; }
+            .form-head.d-flex { flex-direction: column; }
+            .form-head h2 { font-size: 1.2rem; }
+            .form-head p { font-size: 13px; }
+            #orderTable_wrapper .dataTables_length,
+            #orderTable_wrapper .dataTables_filter { display: block; width: 100%; }
+            #orderTable_wrapper .dataTables_filter input { max-width: 100%; width: 100%; margin-left: 0; }
+            .order-items-list { max-width: 100%; }
+        }
+        @@media (max-width: 576px) {
+            .container-fluid[style*="150"] { margin-top: 80px !important; }
+            .table-responsive td { padding: 10px; font-size: 13px; }
+            .order-badge { font-size: 11px; padding: 3px 8px; }
+            .btn-sm { font-size: 12px; padding: 6px 10px; }
+        }
+    </style>
     <div class="form-head d-flex mb-3 align-items-start">
         <div class="mr-auto d-none d-lg-block">
             <h2 class="text-black font-w600 mb-0"><i class="fas fa-receipt me-2"></i>Lịch sử đơn hàng</h2>

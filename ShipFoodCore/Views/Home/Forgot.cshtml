@@ -35,7 +35,19 @@
     <link href="~/Source/Home/css/login.css" rel="stylesheet" />
 </head>
 
-<body>
+<body style="padding-top:80px;">
+    <!-- Fixed sticky header -->
+    <div style="position:fixed;top:0;left:0;right:0;z-index:10000;background:#fff;box-shadow:0 2px 12px rgba(0,0,0,.06);height:60px;display:flex;align-items:center;padding:0 16px;">
+        <a href="/Home" style="text-decoration:none;display:flex;align-items:center;gap:8px;">
+            <span style="font-family:'Inter',sans-serif;font-size:1.35rem;font-weight:800;letter-spacing:-0.5px;">
+                <span style="color:#3CB815;">F</span><span style="color:#F65005;">ast</span><span style="color:#1a1a2e;">ship</span>
+            </span>
+        </a>
+        <div style="margin-left:auto;display:flex;align-items:center;gap:8px;">
+            <a href="~/Home" style="color:#3CB815;text-decoration:none;font-size:14px;font-weight:500;padding:8px 12px;">← Trang chủ</a>
+            <a href="~/Home/Login" style="background:#3CB815;color:#fff;text-decoration:none;font-size:13px;font-weight:600;padding:8px 16px;border-radius:20px;">Đăng nhập</a>
+        </div>
+    </div>
     <div class="forgot-password-container">
         <h2>Quên mật khẩu</h2>
         <p>Điền email đăng ký của bạn, Fastship sẽ gửi cho bạn mật khẩu mới.</p>

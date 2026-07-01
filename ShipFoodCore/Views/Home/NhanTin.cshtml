@@ -3,6 +3,23 @@
     ViewBag.Title = "NhanTin";
     Layout = "~/Views/Shared/_LayoutPageHome.cshtml";
 }
+<style>
+    @@media (max-width: 768px) {
+        .page-header[style*="padding-top"] { padding-top: 100px !important; }
+        .page-header h1 { font-size: 1.8rem !important; }
+        .chatbox-nt { height: 350px; padding: 12px; }
+        .meesage { max-width: 80%; font-size: 13px; }
+        .search__field { font-size: 14px; padding: 10px 14px; }
+        .button-send { padding: 10px 18px; font-size: 13px; }
+    }
+    @@media (max-width: 576px) {
+        .page-header { padding-top: 80px !important; padding-bottom: 30px !important; }
+        .page-header h1 { font-size: 1.4rem !important; }
+        .chatbox-nt { height: 300px; padding: 10px; }
+        .meesage { max-width: 85%; font-size: 12px; padding: 0.5em; }
+        .container-xxl.py-5 { padding-top: 0 !important; }
+    }
+</style>
 <div class="container-fluid page-header mb-5 wow fadeIn" data-wow-delay="0.1s">
     <div class="container">
         <h1 class="display-3 mb-3 animated slideInDown">Nhắn tin</h1>

@@ -47,7 +47,7 @@ body {
     top: 0;
     left: 0;
     right: 0;
-    z-index: 1030;
+    z-index: 10000;
     background: #fff;
     box-shadow: 0 2px 12px rgba(0,0,0,.06);
     transition: box-shadow .3s ease;
@@ -869,7 +869,7 @@ img {
 /* ── Skeleton Loading Overlay (replaces old spinner) ──────── */
 .fs-skeleton-overlay {
     position: fixed;
-    top: 0;
+    top: calc(var(--fs-nav-h) + var(--fs-topbar-h));
     left: 0;
     right: 0;
     bottom: 0;
@@ -880,6 +880,9 @@ img {
     padding: 24px 32px;
     gap: 20px;
     overflow: hidden;
+}
+@media (max-width: 991.98px) {
+    .fs-skeleton-overlay { top: var(--fs-nav-h); }
 }
 .fs-skel-header {
     display: flex;
@@ -977,4 +980,77 @@ p, li, .text-muted { line-height: 1.65; }
     .btn { min-height: 44px; padding: 10px 20px; }
     .dropdown-item { padding: 12px 16px; }
     .nav-link { padding: 12px 16px !important; }
+}
+
+/* ============================================================
+   CHAT WIDGET — Mobile positioning
+   ============================================================ */
+@media (max-width: 576px) {
+    .chat-toggle {
+        bottom: 16px !important;
+        right: 16px !important;
+        width: 48px !important;
+        height: 48px !important;
+        font-size: 20px !important;
+    }
+    .chat-box {
+        bottom: 76px !important;
+        right: 8px !important;
+        left: 8px !important;
+        width: auto !important;
+        max-height: calc(100vh - 100px) !important;
+        border-radius: 12px !important;
+    }
+    .chat-msgs {
+        max-height: 220px !important;
+        min-height: 150px !important;
+    }
+    .chat-toggle .badge {
+        width: 18px !important;
+        height: 18px !important;
+        font-size: 10px !important;
+    }
+}
+
+/* ============================================================
+   CHECKOUT — Mobile improvements
+   ============================================================ */
+@media (max-width: 768px) {
+    .checkout-card { padding: 20px 16px !important; }
+    .section-title { font-size: 16px !important; }
+    .address-tabs .tab-btn { padding: 8px 12px !important; font-size: 12px !important; margin-right: 4px !important; }
+    .payment-option { padding: 12px !important; gap: 8px !important; }
+    .payment-option div:last-child div:first-child { font-size: 13px !important; }
+    .form-label { font-size: 13px !important; }
+    .order-summary { padding: 18px !important; }
+    .order-grand { font-size: 16px !important; }
+}
+@media (max-width: 576px) {
+    .checkout-card { padding: 14px 10px !important; }
+    .coupon-box { padding: 12px !important; }
+    .coupon-box .input-group { flex-direction: column !important; gap: 8px !important; }
+    .coupon-box .btn { width: 100% !important; border-radius: 8px !important; }
+    .payment-detail-box { padding: 12px !important; }
+    .confirm-check { padding: 10px !important; }
+    .confirm-check label { font-size: 12px !important; }
+    .popup-box { padding: 28px 20px !important; }
+    .popup-box h4 { font-size: 18px !important; }
+}
+
+/* ============================================================
+   DETAIL RESTAURANT — Additional mobile fixes for page-header
+   ============================================================ */
+@media (max-width: 768px) {
+    .page-header {
+        padding-top: 7rem !important;
+        padding-bottom: 3rem !important;
+    }
+    .page-header h1 { font-size: 1.6rem !important; }
+}
+@media (max-width: 576px) {
+    .page-header {
+        padding-top: 5rem !important;
+        padding-bottom: 2rem !important;
+    }
+    .page-header h1 { font-size: 1.3rem !important; }
 }

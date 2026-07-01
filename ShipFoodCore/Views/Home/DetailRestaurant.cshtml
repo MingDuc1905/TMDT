@@ -17,6 +17,37 @@
             .now-menu-restaurant { width: 100% !important; }
             .item-restaurant-more .row { flex-direction: column; align-items: flex-start; }
             .app { margin-top: 80px; }
+            .now-detail-restaurant .detail-restaurant-img { width: 100%; height: auto; float: none; }
+            .now-detail-restaurant .detail-restaurant-info { width: 100%; float: none; padding: 16px 0; }
+            .now-detail-restaurant .name-restaurant { font-size: 18px; white-space: normal; }
+            .now-menu-restaurant .menu-restaurant-category { position: relative; width: 100%; margin-bottom: 12px; }
+            .menu-restaurant-category .scrollbar-container { max-height: none; overflow-x: auto; display: flex; flex-wrap: nowrap; gap: 6px; padding: 4px 0; }
+            .menu-restaurant-category .list-category .item { display: inline-block; white-space: nowrap; margin: 0; }
+            .menu-restaurant-detail { width: 100%; padding: 6px 10px; }
+            .item-restaurant-row .row { flex-direction: column; }
+            .item-restaurant-row .item-restaurant-img { margin-bottom: 8px; }
+            .item-restaurant-row .item-restaurant-info { width: 100%; }
+            .item-restaurant-row .item-restaurant-name { font-size: 14px; }
+            .item-restaurant-row .item-restaurant-desc { font-size: 12px; }
+            .item-restaurant-more .row { flex-direction: row; align-items: center; justify-content: space-between; width: 100%; }
+            .adding-food-cart form { display: flex; align-items: center; gap: 6px; }
+            .adding-food-cart input[type="number"] { width: 50px; }
+            .menu-restaurant-list .search-items .input-group input { font-size: 13px; }
+            .now-detail-restaurant .utility-restaurant .utility-item { width: 100%; float: none; margin-bottom: 10px; }
+            .now-detail-restaurant .utility-restaurant .utility-item:after { display: none; }
+            #reviews-section { padding: 16px !important; }
+            #review-list { grid-template-columns: 1fr !important; }
+            .now-detail-restaurant .rating .number-rating { font-size: 12px; }
+        }
+        @@media (max-width: 576px) {
+            .app { margin-top: 70px; padding: 0 8px; }
+            .now-detail-restaurant .detail-restaurant-img img { width: 100%; height: auto; max-height: 200px; object-fit: cover; }
+            .now-detail-restaurant .name-restaurant { font-size: 16px; line-height: 1.3; }
+            .now-detail-restaurant .address-restaurant { font-size: 12px; }
+            .item-restaurant-row .current-price { font-size: 14px; }
+            .item-restaurant-row .item-restaurant-total { font-size: 10px; }
+            .adding-food-cart .btn { padding: 6px 12px; font-size: 12px; }
+            .menu-restaurant-list .title-menu strong { font-size: 14px; }
         }
     </style>
 }

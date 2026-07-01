@@ -34,11 +34,29 @@
     <link rel="stylesheet" href="~/Source/Cart/css/owl.carousel.min.css" type="text/css">
     <link rel="stylesheet" href="~/Source/Cart/css/slicknav.min.css" type="text/css">
     <link rel="stylesheet" href="~/Source/Cart/css/style.css" type="text/css">
+    <style>
+        /* Mobile responsive fixes for ChiTietDonHang */
+        @@media (max-width: 768px) {
+            .breadcrumb-section { margin-top: 80px !important; }
+            .breadcrumb__text h2 { font-size: 20px; }
+            .checkout.spad { padding-top: 30px; }
+            .checkout__form h4 { font-size: 18px; }
+            .checkout__order { margin-top: 20px; }
+            #order-tracking-map { height: 180px !important; }
+            .formInfor .checkout__input input { font-size: 14px; }
+        }
+        @@media (max-width: 576px) {
+            .breadcrumb-section { margin-top: 60px !important; }
+            .checkout__order { padding: 16px; }
+            .checkout__order ul li { font-size: 13px; }
+            .checkout__order__total { font-size: 14px; }
+        }
+    </style>
 </head>
 
 <body>
     <!-- Breadcrumb Section Begin -->
-    <section style="margin-top:200px" class="breadcrumb-section set-bg" data-setbg="@Url.Content("~/Source/Restaurant/images/card/2.png")">
+    <section style="margin-top:130px" class="breadcrumb-section set-bg" data-setbg="@Url.Content("~/Source/Restaurant/images/card/2.png")">
         <div class="container">
             <div class="row">
                 <div class="col-lg-12 text-center">

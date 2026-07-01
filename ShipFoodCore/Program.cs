@@ -87,6 +87,8 @@ builder.Services.AddCors(options =>
     });
 });
 
+
+
 // Add Authentication (Cookie + optional Google OAuth)
 var authBuilder = builder.Services.AddAuthentication(Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
@@ -223,6 +225,24 @@ app.Use(async (context, next) =>
     });
     await next();
 });
+
+// Railway HTTPS termination — đặt sớm để xử lý X-Forwarded-Proto header
+// Railway's reverse proxy chạy HTTPS bên ngoài, gửi HTTP vào app bên trong.
+// Middleware này đọc header X-Forwarded-Proto và set Scheme = https,
+// giúp Url.Action() sinh URL redirect OAuth dạng https:// (Google yêu cầu)
+app.Use(async (context, next) =>
+{
+    var forwardedProto = context.Request.Headers["X-Forwarded-Proto"].FirstOrDefault();
+    if (forwardedProto?.Equals("https", StringComparison.OrdinalIgnoreCase) == true)
+    {
+        context.Request.Scheme = "https";
+    }
+    await next();
+});
+
+// Ép HTTPS redirect — khi request đến bằng HTTP, tự động redirect sang HTTPS
+// (đặt trước UseAuthentication để URL callback OAuth dùng https://)
+app.UseHttpsRedirection();
 
 app.UseStaticFiles();
 

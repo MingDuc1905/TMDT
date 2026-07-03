@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using ShipFood.Hubs;
 using ShipFood.Models;
 using System.Text;
 
@@ -573,7 +575,7 @@ public class AdminController : BaseController
     }
 
     [HttpGet]
-    public async Task<ActionResult> ExportExcel(string type = "revenue")
+    public ActionResult ExportExcel(string type = "revenue")
     {
         if (!checkLogin())
             return RedirectToAction("Login", "Home");

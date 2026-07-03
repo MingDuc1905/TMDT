@@ -137,6 +137,7 @@ TMDT-master/
 │   └── appsettings.json             # Configuration (connection strings, API keys)
 │
 ├── UI-UX.md                         # Comprehensive UI/UX documentation (17 sections)
+├── Architectural-Solution.md        # Architectural solution document (15 giải pháp cải thiện)
 ├── Project.md                       # This file
 ├── database_full.sql                # Full MySQL database dump
 ├── seed_mysql.sql                   # Initial seed data (categories, users, menus)
@@ -144,8 +145,8 @@ TMDT-master/
 ├── mysql_utf8.sql                   # UTF-8 configuration script
 ├── Dockerfile                       # Multi-stage Docker build (SDK + runtime)
 ├── railway.json                     # Railway deployment config
-└── .kiro/steering/                 # Codebuff steering rules
-    └── use-skill-first.md          # Skill directory usage instructions
+├── .agents/skills/                  # Codebuff skill rules
+│   └── fastship-rules.md           # FastShip development rules
 ```
 
 ---
@@ -391,6 +392,7 @@ Gemini__ApiKey=xxx
 - [x] ✅ Cart JSON API (ApiTangSoLuong/ApiGiamSoLuong trả JSON)
 - [x] ✅ Responsive dashboards (stacked cards + data-label + touch targets)
 - [x] ✅ Live order tracking (Leaflet.js + SignalR coordinate streaming)
+- [x] ✅ Architectural-Solution.md — 15 giải pháp kiến trúc chi tiết (Redis, Migrations, Rate Limiting, Logging, QR Payment, Auto-Matching, ...)
 - [ ] PayPal/ZaloPay/MoMo integration (đã remove khỏi UI)
 - [ ] Database migrations (hiện tại dùng EnsureCreated)
 - [ ] Server-side pagination cho reviews
@@ -493,9 +495,10 @@ Dự án mã nguồn mở — phát triển bởi đội ngũ ShipFood.
 
 ---
 
-> **Phiên bản**: 2.0 (chuyển từ ASP.NET MVC 5 → ASP.NET Core 8)  
+> **Phiên bản**: 2.1 (thêm Architectural-Solution.md + skill rules)  
 > **Ngôn ngữ**: C# 12, HTML5, CSS3, JavaScript ES6  
 > **Kiến trúc**: ASP.NET Core MVC n-tier  
 > **Database**: MySQL 8+  
 > **Deploy**: Docker + Railway  
-> **Cập nhật cuối**: Tháng 6, 2026
+> **Cập nhật cuối**: Tháng 7, 2026  
+> **Tài liệu kiến trúc**: [Architectural-Solution.md](./Architectural-Solution.md) — 15 giải pháp cải thiện hệ thống

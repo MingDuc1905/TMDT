@@ -2,7 +2,8 @@
 
 > **Phiên bản**: 3.3 — Viewport Wrapper Auth + Cart Multi-row Mobile + Bottom Sheet Category  
 > **Cập nhật**: Tháng 7, 2026  
-> **Mô tả**: Tài liệu thiết kế giao diện & trải nghiệm người dùng toàn diện cho nền tảng đặt đồ ăn Fastship
+> **Mô tả**: Tài liệu thiết kế giao diện & trải nghiệm người dùng toàn diện cho nền tảng đặt đồ ăn Fastship  
+> **Tài liệu liên quan**: [Architectural-Solution.md](./Architectural-Solution.md) — 15 giải pháp kiến trúc backend & nghiệp vụ
 
 ---
 

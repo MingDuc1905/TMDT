@@ -10,4 +10,5 @@ public class DataAnalytic
     public int? soDanhGia { get; set; }
     public decimal? giaTien { get; set; }
     public int? soLuongBanDuoc { get; set; }
+    public bool conhang { get; set; } = true;
 }

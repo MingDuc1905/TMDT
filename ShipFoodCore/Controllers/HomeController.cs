@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using ShipFood.Models;
 using ShipFood.Services;
@@ -157,6 +158,7 @@ public class HomeController : BaseController
     }
 
     [HttpPost]
+    [EnableRateLimiting("login-policy")]
     [ValidateAntiForgeryToken]
     public ActionResult Login(string usernameOrPhone, string pwd, bool rememberMe = false)
     {
@@ -591,6 +593,37 @@ public class HomeController : BaseController
         {
             return Content($"❌ Lỗi seed: {ex.Message}");
         }
+    }
+
+    // ─── Task 2d: Search Autocomplete API (Debounce 300ms) ───
+    [HttpGet]
+    public JsonResult SearchAutocomplete(string q)
+    {
+        if (string.IsNullOrWhiteSpace(q) || q.Length < 2)
+            return Json(new object[0]);
+
+        var normalized = RemoveDiacritics(q.ToLower());
+
+        var results = db.tbQuanAn
+            .Include(qa => qa.tbUser)
+            .Where(qa => qa.trangthai == "Đang mở cửa")
+            // Push initial filter to DB first, then client-side for diacritics
+            .Where(qa => qa.tenquanan.Contains(q) || qa.tbUser.username.Contains(q))
+            .AsEnumerable()
+            .Where(qa => RemoveDiacritics(qa.tenquanan.ToLower()).Contains(normalized)
+                      || RemoveDiacritics(qa.tbUser.username.ToLower()).Contains(normalized))
+            .Take(6)
+            .Select(qa => new
+            {
+                id = qa.userid,
+                name = qa.tenquanan,
+                address = qa.diachi,
+                rating = qa.diemdanhgia > 0 ? "⭐ " + qa.diemdanhgia?.ToString("0.0") : "",
+                icon = "🏪"
+            })
+            .ToList();
+
+        return Json(results);
     }
 
     public ActionResult NhanTin()

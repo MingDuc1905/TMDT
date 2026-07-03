@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.RateLimiting;
+using System.Threading.RateLimiting;
 using ShipFood.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -17,13 +19,85 @@ builder.Services.AddControllersWithViews()
 // Add SignalR
 builder.Services.AddSignalR();
 
-// Add Session support (replacing HttpSession in old project)
-builder.Services.AddDistributedMemoryCache();
+// ─── Task 1a: Redis Distributed Session (fallback to In-Memory) ───
+var redisConnection = builder.Configuration["Redis:Configuration"]
+    ?? Environment.GetEnvironmentVariable("REDIS_URL");
+
+if (!string.IsNullOrEmpty(redisConnection))
+{
+    builder.Services.AddStackExchangeRedisCache(options =>
+    {
+        options.Configuration = redisConnection;
+        options.InstanceName = "FastShip_Session:";
+    });
+    Console.WriteLine("[INFO] Redis distributed cache configured");
+}
+else
+{
+    // Fallback: in-memory (development, no Redis available)
+    builder.Services.AddDistributedMemoryCache();
+    Console.WriteLine("[INFO] Using in-memory cache (no Redis configured)");
+}
+
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromDays(1);
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
+});
+
+// ─── Task 1c: API Rate Limiting ───
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    // Gemini chatbot: 5 requests/minute per user
+    options.AddFixedWindowLimiter("gemini-policy", opt =>
+    {
+        opt.PermitLimit = 5;
+        opt.Window = TimeSpan.FromMinutes(1);
+        opt.QueueLimit = 0;
+    });
+
+    // Login: 5 attempts in 5 minutes (sliding window)
+    options.AddSlidingWindowLimiter("login-policy", opt =>
+    {
+        opt.PermitLimit = 5;
+        opt.Window = TimeSpan.FromMinutes(5);
+        opt.SegmentsPerWindow = 5;
+        opt.QueueLimit = 0;
+    });
+
+    // General API: 100 requests/minute
+    options.AddFixedWindowLimiter("general-api", opt =>
+    {
+        opt.PermitLimit = 100;
+        opt.Window = TimeSpan.FromMinutes(1);
+        opt.QueueLimit = 0;
+    });
+
+    // Custom 429 JSON response
+    options.OnRejected = async (context, cancellationToken) =>
+    {
+        context.HttpContext.Response.StatusCode = 429;
+        context.HttpContext.Response.ContentType = "application/json";
+
+        var retryAfter = context.Lease.TryGetMetadata(
+            MetadataName.RetryAfter, out var retryAfterDuration)
+            ? ((int)retryAfterDuration.TotalSeconds).ToString()
+            : "60";
+
+        context.HttpContext.Response.Headers["Retry-After"] = retryAfter;
+
+        var response = System.Text.Json.JsonSerializer.Serialize(new
+        {
+            success = false,
+            message = $"⚠️ Bạn đã gửi quá nhiều yêu cầu. Vui lòng thử lại sau {retryAfter} giây.",
+            retryAfterSeconds = int.Parse(retryAfter)
+        });
+
+        await context.HttpContext.Response.WriteAsync(response, cancellationToken);
+    };
 });
 
 // Get connection string from Railway env vars or appsettings.json
@@ -63,6 +137,7 @@ builder.Services.AddHttpContextAccessor();
 
 // Register Services
 builder.Services.AddScoped<ShipFood.Services.RecommendationService>();
+builder.Services.AddHostedService<ShipFood.Services.AutoPreparingService>(); // Task 3b
 builder.Services.AddScoped<ShipFood.Services.GeminiService>(sp =>
 {
     var configuration = sp.GetRequiredService<IConfiguration>();
@@ -113,6 +188,7 @@ if (!string.IsNullOrEmpty(googleClientId) && !string.IsNullOrEmpty(googleClientS
 
 var app = builder.Build();
 
+// ─── Task 1b: EF Core Migrations (replacing EnsureCreated) ───
 // Auto-create database tables on first run (MySQL)
 // Wrapped in try-catch so the app starts even if MySQL is not yet available
 try
@@ -122,16 +198,40 @@ try
         var db = scope.ServiceProvider.GetRequiredService<dbFoodyEntities>();
         var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
 
-        var created = db.Database.EnsureCreated();
-
-        // If database was just created, seed initial data from seed_mysql.sql            if (created && !db.tbUsers.Any())
+        // Step 1: Try MigrateAsync() first (for production with migration history)
+        bool migrationApplied = false;
+        try
+        {
+            // Check if __EFMigrationsHistory table exists → use Migrations
+            var hasMigrationTable = db.Database.GetAppliedMigrations().Any();
+            if (hasMigrationTable)
             {
-                // Try to find seed_mysql.sql in ContentRootPath (Docker) or parent (local dev)
+                await db.Database.MigrateAsync();
+                migrationApplied = true;
+                logger.LogInformation("EF Core Migrations applied successfully");
+            }
+        }
+        catch { /* No migration table yet, fall through to EnsureCreated */ }
+
+        // Step 2: Fallback to EnsureCreated() if no migration system
+        if (!migrationApplied)
+        {
+            var created = db.Database.EnsureCreated();
+            if (created)
+            {
+                logger.LogInformation("Database created via EnsureCreated()");
+            }
+            else
+            {
+                logger.LogInformation("Database already exists (EnsureCreated)");
+            }
+
+            // Step 3: Seed data if DB is empty
+            if (!db.tbUsers.Any())
+            {
                 string sqlPath = Path.Combine(app.Environment.ContentRootPath, "seed_mysql.sql");
                 if (!File.Exists(sqlPath))
-                {
                     sqlPath = Path.Combine(app.Environment.ContentRootPath, "..", "seed_mysql.sql");
-                }
 
                 if (File.Exists(sqlPath))
                 {
@@ -149,25 +249,44 @@ try
                     logger.LogInformation("Database seeding completed");
                 }
             }
+        }
 
-            // === BCrypt fix: mở rộng cột pwd từ VARCHAR(50) → VARCHAR(255) ===
-            // BCrypt hash dài 60 ký tự, cột cũ 50 ký tự gây lỗi khi SaveChanges() nâng cấp password
-            try
-            {
-                db.Database.ExecuteSqlRaw("ALTER TABLE tbUser MODIFY COLUMN pwd VARCHAR(255) NOT NULL;");
-                logger.LogInformation("Column tbUser.pwd expanded to VARCHAR(255) for BCrypt compatibility");
-            }
-            catch (Exception ex)
-            {
-                logger.LogWarning("Could not alter tbUser.pwd column: {Error}", ex.Message);
-            }
+        // BCrypt fix: mở rộng cột pwd từ VARCHAR(50) → VARCHAR(255)
+        try
+        {
+            db.Database.ExecuteSqlRaw("ALTER TABLE tbUser MODIFY COLUMN pwd VARCHAR(255) NOT NULL;");
+            logger.LogInformation("Column tbUser.pwd expanded to VARCHAR(255) for BCrypt compatibility");
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning("Could not alter tbUser.pwd column: {Error}", ex.Message);
+        }
+
+        // Task 2c: Thêm cột conhang cho tbMonAn (nếu chưa có)
+        try
+        {
+            db.Database.ExecuteSqlRaw(@"
+                SET @exist := (SELECT COUNT(*) FROM information_schema.COLUMNS 
+                    WHERE TABLE_NAME = 'tbMonAn' AND COLUMN_NAME = 'conhang' AND TABLE_SCHEMA = DATABASE());
+                SET @sql := IF(@exist = 0,
+                    'ALTER TABLE tbMonAn ADD COLUMN conhang BIT DEFAULT 1 AFTER madanhmuc',
+                    'SELECT 1');
+                PREPARE stmt FROM @sql;
+                EXECUTE stmt;
+                DEALLOCATE PREPARE stmt;");
+            logger.LogInformation("Column tbMonAn.conhang ensured (BIT DEFAULT 1)");
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning("Could not add tbMonAn.conhang column: {Error}", ex.Message);
         }
     }
-    catch (Exception ex)
-    {
-        // App still starts - database can be initialized later
-        Console.WriteLine($"[WARN] Database initialization failed: {ex.Message}");
-    }
+}
+catch (Exception ex)
+{
+    // App still starts - database can be initialized later
+    Console.WriteLine($"[WARN] Database initialization failed: {ex.Message}");
+}
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -249,6 +368,9 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.UseCors();
+
+// Rate Limiting middleware (Task 1c)
+app.UseRateLimiter();
 
 // Session phải đặt TRƯỚC Authentication để cookie session hoạt động đúng với Google OAuth
 app.UseSession();

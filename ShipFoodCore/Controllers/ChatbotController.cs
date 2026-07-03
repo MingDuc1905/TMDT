@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -7,6 +8,7 @@ using ShipFood.Services;
 
 namespace ShipFood.Controllers;
 
+[EnableRateLimiting("gemini-policy")]
 public class ChatbotController : BaseController
 {
     private readonly GeminiService _gemini;

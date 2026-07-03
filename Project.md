@@ -64,6 +64,7 @@ Cung cấp một giải pháp hoàn chỉnh cho:
 <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="8.0.11" />
 <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
+<PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="8.0.11" />
 ```
 
 ---
@@ -111,7 +112,8 @@ TMDT-master/
 │   │
 │   ├── Services/                    # Business logic services
 │   │   ├── RecommendationService.cs  # ML-based recommendations (4 algorithms)
-│   │   └── GeminiService.cs         # Gemini AI API integration
+│   │   ├── GeminiService.cs         # Gemini AI API integration
+│   │   └── AutoPreparingService.cs  # BackgroundService: 5s preparing → SignalR
 │   │
 │   ├── Utils/                       # Helper utilities
 │   │   └── TinhToan.cs             # Shipping fee calculation
@@ -282,6 +284,9 @@ TMDT-master/
 | `GET` | `/AdminChat/GetMyMessages` | AdminChat | User's own messages |
 | `GET` | `/AdminChat/GetUnreadCount` | AdminChat | Unread message count |
 | `GET` | `/AdminChat/GetUserOrders` | AdminChat | User's orders for chat |
+| `GET` | `/Home/SearchAutocomplete?q=` | Home | Search autocomplete (debounce 300ms) |
+| `POST` | `/Restaurant/ToggleConHang` | Restaurant | AJAX toggle 1-click hết hàng |
+| `POST` | `/Admin/MockPaymentWebhook` | Admin | Mock payment confirmation + SignalR broadcast |
 | `GET` | `/health` | — | Healthcheck (no DB needed) |
 
 ### SignalR Hub
@@ -394,12 +399,17 @@ Gemini__ApiKey=xxx
 - [x] ✅ Live order tracking (Leaflet.js + SignalR coordinate streaming)
 - [x] ✅ Architectural-Solution.md — 15 giải pháp kiến trúc chi tiết (Redis, Migrations, Rate Limiting, Logging, QR Payment, Auto-Matching, ...)
 - [ ] PayPal/ZaloPay/MoMo integration (đã remove khỏi UI)
-- [ ] Database migrations (hiện tại dùng EnsureCreated)
+- [x] ✅ Database migrations (hybrid: MigrateAsync + EnsureCreated fallback)
+- [x] ✅ API rate limiting — 3 policies (gemini 5/phút, login 5/5phút, general 100/phút)
+- [x] ✅ Search autocomplete (debounce 300ms, JS + API)
+- [x] ✅ AJAX Toggle 1-Click hết hàng (RestaurantController)
+- [x] ✅ Mock Payment Webhook + SignalR broadcast (AdminController)
+- [x] ✅ Auto-preparing 5s simulation (BackgroundService)
+- [x] ✅ Redis Distributed Session (StackExchangeRedis, fallback in-memory)
 - [ ] Server-side pagination cho reviews
 - [ ] CORS policy (hiện tại AllowAny)
 - [ ] Error logging (có logger nhưng chưa centralized)
 - [ ] Unit tests (chưa có)
-- [ ] API rate limiting
 
 ---
 
@@ -495,7 +505,7 @@ Dự án mã nguồn mở — phát triển bởi đội ngũ ShipFood.
 
 ---
 
-> **Phiên bản**: 2.1 (thêm Architectural-Solution.md + skill rules)  
+> **Phiên bản**: 2.2 (Redis, Rate Limiting, Migrations, Search Autocomplete, AJAX Toggle, Mock Payment, Auto-Preparing)  
 > **Ngôn ngữ**: C# 12, HTML5, CSS3, JavaScript ES6  
 > **Kiến trúc**: ASP.NET Core MVC n-tier  
 > **Database**: MySQL 8+  

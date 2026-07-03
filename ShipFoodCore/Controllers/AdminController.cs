@@ -597,6 +597,36 @@ public class AdminController : BaseController
         return File(bytes, "text/csv", $"bao-cao-doanh-thu-{DateTime.Now:yyyyMMdd}.csv");
     }
 
+    // ─── Task 3a: SignalR Payment Confirmation (Mock Webhook) ───
+    /// <summary>
+    /// Admin bấm "Xác nhận đã nhận tiền" → SignalR broadcast real-time đến khách hàng
+    /// </summary>
+    [HttpPost]
+    public async Task<JsonResult> MockPaymentWebhook(int madh)
+    {
+        if (!checkLogin())
+            return Json(new { success = false, message = "Không có quyền" });
+
+        var donHang = await db.tbDonHang.FindAsync(madh);
+        if (donHang == null)
+            return Json(new { success = false, message = "Đơn hàng không tồn tại" });
+
+        // Cập nhật trạng thái
+        donHang.trangthai = "Đã thanh toán";
+        donHang.ngaythanhtoan = DateTime.Now;
+        await db.SaveChangesAsync();
+
+        // SignalR broadcast đến group order_{madh}
+        var hubContext = HttpContext.RequestServices.GetRequiredService<Microsoft.AspNetCore.SignalR.IHubContext<ShipFood.Hubs.Chats>>();
+        await hubContext.Clients.Group($"order_{madh}").SendAsync("paymentConfirmed", madh, donHang.tongtien);
+
+        return Json(new
+        {
+            success = true,
+            message = $"✅ Đã xác nhận thanh toán cho đơn hàng #{madh}. Real-time notification đã gửi đến khách hàng."
+        });
+    }
+
     private bool checkLogin()
     {
         var user = GetCurrentUser();

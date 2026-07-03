@@ -33,14 +33,18 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-7 col-xxl-12">
-                                <div class="new-arrival-content position-relative">
-                                    <a href="~/Restaurant/ProductDetail/@i.maMonAn"><h4>@i.tenMonAn</h4></a>
-                                    <p class="price">@i.giaTien?.ToString("N0") VNĐ</p>
-                                    <p>
-                                        Tình trạng:
-                                        <span class="item"> Còn món <i class="fa fa-check-circle text-success"></i></span>
-                                    </p>
+                            <div class="col-md-7 col-xxl-12">                                    <div class="new-arrival-content position-relative">
+                                        <a href="~/Restaurant/ProductDetail/@i.maMonAn"><h4>@i.tenMonAn</h4></a>
+                                        <p class="price">@i.giaTien?.ToString("N0") VNĐ</p>
+                                        <p>
+                                            Tình trạng:
+                                            <button class="btn btn-sm toggle-conhang @(i.conhang ? "btn-success" : "btn-secondary")"
+                                                    data-mamon="@i.maMonAn"
+                                                    onclick="toggleConHang(this)"
+                                                    aria-label="Bật/tắt trạng thái còn hàng cho @i.tenMonAn">
+                                                @(i.conhang ? "🔴 Còn hàng" : "⚪ Hết hàng")
+                                            </button>
+                                        </p>
                                     <p>Mã món: <span class="item">@i.maMonAn</span></p>
                                     <p>Dạnh mục: <span class="item">@i.tenDanhMuc</span></p>
                                     <div class="comment-review star-rating text-right">
@@ -63,9 +67,50 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+<script>
+// ─── Task 2c: AJAX Toggle 1-Click Hết hàng nhanh ───
+function toggleConHang(btn) {
+    var mamon = $(btn).data('mamon');
+    var $btn = $(btn);
+    $btn.prop('disabled', true);
+
+    $.ajax({
+        url: '@Url.Action("ToggleConHang", "Restaurant")',
+        type: 'POST',
+        data: { mamon: mamon },
+        success: function(res) {
+            if (res.success) {
+                $btn.text(res.conhang ? '🔴 Còn hàng' : '⚪ Hết hàng')
+                    .toggleClass('btn-success btn-secondary')
+                    .attr('aria-label', (res.conhang ? '🔴 Còn hàng' : '⚪ Hết hàng') + ' - Bấm để đổi trạng thái');
+                showToast(res.message);
+            }
+        },
+        error: function() {
+            showToast('❌ Lỗi kết nối, vui lòng thử lại');
+        },
+        complete: function() {
+            $btn.prop('disabled', false);
+        }
+    });
+}
+
+function showToast(msg) {
+    var t = $('<div class="toast-notification">').text(msg).css({
+        position:'fixed', bottom:'24px', left:'50%', transform:'translateX(-50%)',
+        background:'#333', color:'#fff', padding:'10px 24px', borderRadius:'8px',
+        zIndex:99999, fontSize:'14px', boxShadow:'0 4px 12px rgba(0,0,0,0.2)'
+    });
+    $('body').append(t);
+    setTimeout(function(){ t.fadeOut(400, function(){ t.remove(); }); }, 2500);
+}
+</script>
+}
         }
     </div>
 </div>

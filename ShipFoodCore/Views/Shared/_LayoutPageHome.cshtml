@@ -336,6 +336,73 @@
     <script src="~/Source/Home/js/main.js"></script>
     @RenderSection("scripts", required: false)
 
+    <!-- ─── Task 2d: Search Autocomplete Debounce 300ms ─── -->
+    <script>
+    (function() {
+        var searchInput = document.querySelector('input[name="txtSearch"]');
+        var searchForm = document.querySelector('.fs-search-form');
+        if (!searchInput || !searchForm) return;
+
+        var debounceTimer;
+        var autocompleteBox = document.createElement('div');
+        autocompleteBox.className = 'fs-autocomplete';
+        autocompleteBox.style.cssText = 'position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #e5e7eb;border-radius:0 0 12px 12px;box-shadow:0 8px 24px rgba(0,0,0,0.1);z-index:9999;display:none;max-height:360px;overflow-y:auto;';
+        searchForm.style.position = 'relative';
+        searchForm.appendChild(autocompleteBox);
+
+        searchInput.addEventListener('input', function() {
+            clearTimeout(debounceTimer);
+            var q = this.value.trim();
+            if (q.length < 2) { autocompleteBox.style.display = 'none'; return; }
+
+            debounceTimer = setTimeout(function() {
+                $.ajax({
+                    url: '/Home/SearchAutocomplete',
+                    type: 'GET',
+                    data: { q: q },
+                    success: function(res) {
+                        if (!res || !res.length) {
+                            autocompleteBox.style.display = 'none';
+                            return;
+                        }
+                        autocompleteBox.innerHTML = '';
+                        res.forEach(function(item) {
+                            var a = document.createElement('a');
+                            a.href = '/Home/DetailRestaurant/' + item.id;
+                            a.className = 'd-flex align-items-center gap-3 px-3 py-2 text-decoration-none';
+                            a.style.cssText = 'display:flex;align-items:center;gap:12px;padding:8px 16px;text-decoration:none;color:#333;border-bottom:1px solid #f0f0f0;transition:background .15s;';
+                            a.onmouseenter = function(){ this.style.background = '#f5f6fa'; };
+                            a.onmouseleave = function(){ this.style.background = ''; };
+                            a.innerHTML = '<div style="width:40px;height:40px;border-radius:8px;overflow:hidden;flex-shrink:0;background:#eee;display:flex;align-items:center;justify-content:center;font-size:18px;">' + (item.icon || '🍽') + '</div>'
+                                + '<div style="flex:1;min-width:0">'
+                                + '<div style="font-size:14px;font-weight:600;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escHtml(item.name) + '</div>'
+                                + '<div style="font-size:12px;color:#888;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escHtml(item.address || '') + '</div>'
+                                + '</div>'
+                                + '<span style="font-size:13px;color:#3CB815;font-weight:600;white-space:nowrap;">' + (item.rating || '') + '</span>';
+                            autocompleteBox.appendChild(a);
+                        });
+                        autocompleteBox.style.display = 'block';
+                    },
+                    error: function() { autocompleteBox.style.display = 'none'; }
+                });
+            }, 300); // ─── 300ms debounce ───
+        });
+
+        // Hide on click outside
+        document.addEventListener('click', function(e) {
+            if (!searchForm.contains(e.target)) autocompleteBox.style.display = 'none';
+        });
+
+        // Hide on form submit
+        searchForm.addEventListener('submit', function() { autocompleteBox.style.display = 'none'; });
+
+        function escHtml(str) {
+            if (!str) return '';
+            var d = document.createElement('div'); d.textContent = str; return d.innerHTML;
+        }
+    })();
+    </script>
+
     <!-- Chat Widget -->
     @await Html.PartialAsync("_ChatWidget")
 </body>

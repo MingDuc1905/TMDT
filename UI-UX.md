@@ -1,6 +1,6 @@
 # Fastship (ShipFood) — UI/UX Documentation (Full)
 
-> **Phiên bản**: 3.3 — Viewport Wrapper Auth + Cart Multi-row Mobile + Bottom Sheet Category  
+> **Phiên bản**: 3.4 — Search Autocomplete + AJAX Toggle Hết hàng + aria-label WCAG  
 > **Cập nhật**: Tháng 7, 2026  
 > **Mô tả**: Tài liệu thiết kế giao diện & trải nghiệm người dùng toàn diện cho nền tảng đặt đồ ăn Fastship  
 > **Tài liệu liên quan**: [Architectural-Solution.md](./Architectural-Solution.md) — 15 giải pháp kiến trúc backend & nghiệp vụ
@@ -1431,10 +1431,10 @@ Layout chuẩn: top bar, navbar full width, search inline, 4 columns grid
 | **Semantic HTML** | Proper heading hierarchy, `<main>`, `<nav>`, `<section>` | ✅ |
 | **Readable font** | Body `font-size: 16px` on mobile | ✅ |
 | **Line height** | `1.6` for body, `1.65` for paragraphs | ✅ |
+| **aria-label on icon buttons** | Chat toggle, cart delete, AJAX toggle buttons | ✅ v3.4 |
 
 ### 18.2 Areas for Improvement
 
-- [ ] Add `aria-label` to icon-only buttons (cart delete, chat toggle)
 - [ ] Implement skip-to-content link
 - [ ] Add ARIA live regions for dynamic content updates
 - [ ] Add keyboard support for star rating (arrow keys)
@@ -1576,7 +1576,10 @@ LOGIN ──→ DASHBOARD (with LIVE MAP)
 - [ ] **Drag & drop**: For cart item reordering
 - [ ] **Bottom sheet**: Replace popups with bottom sheets on mobile
 - [ ] **Pull-to-refresh**: For order history on mobile
-- [ ] **Search autocomplete**: Debounced API search with suggestions
+- [x] ✅ **Search autocomplete** (v3.4): Debounced API search 300ms, gợi ý dropdown với tên + địa chỉ + rating
+- [x] ✅ **AJAX Toggle 1-Click Hết hàng** (v3.4): Restaurant quản lý trạng thái còn hàng không reload
+- [x] ✅ **aria-label icon-only buttons** (v3.4): Chat toggle, cart delete, stock toggle — WCAG compliance
+- [x] ✅ **SignalR payment broadcast** (v3.4): Admin xác nhận thanh toán → real-time đến khách
 - [ ] **Real payment**: Replace mock Vietcombank with Stripe/PayPal/ZaloPay
 - [ ] **Unit tests**: Add frontend component tests (Jest/Cypress)
 - [ ] **Image optimization**: WebP format with `<picture>` fallback

@@ -285,6 +285,7 @@ public class RestaurantController : BaseController
                 }
             }
             data.diemDanhGia = data.soDanhGia == 0 ? 0 : totalDiem / data.soDanhGia;
+            data.conhang = m.conhang;
             datas.Add(data);
         }
         ViewBag.datas = datas;
@@ -345,6 +346,28 @@ public class RestaurantController : BaseController
             db.SaveChanges();
         }
         return RedirectToAction("ProductList");
+    }
+
+    // ─── Task 2c: AJAX Toggle 1-Click Hết hàng nhanh ───
+    [HttpPost]
+    public async Task<JsonResult> ToggleConHang(int mamon)
+    {
+        if (!checkLogin())
+            return Json(new { success = false, message = "Chưa đăng nhập" });
+
+        var monAn = await db.tbMonAns.FindAsync(mamon);
+        if (monAn == null)
+            return Json(new { success = false, message = "Món ăn không tồn tại" });
+
+        monAn.conhang = !monAn.conhang;  // toggle
+        await db.SaveChangesAsync();
+
+        return Json(new
+        {
+            success = true,
+            conhang = monAn.conhang,
+            message = monAn.conhang ? "🔴 Đã bật Còn hàng" : "⚪ Đã tắt (Hết hàng)"
+        });
     }
 
     public tbQuanAn getQuanAn()

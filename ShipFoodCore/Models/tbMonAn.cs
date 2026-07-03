@@ -27,6 +27,12 @@ public partial class tbMonAn
 
     public int? madanhmuc { get; set; }
 
+    /// <summary>
+    /// Trạng thái còn hàng (Task 2c: AJAX Toggle 1-Click)
+    /// true = còn hàng, false = hết hàng
+    /// </summary>
+    public bool conhang { get; set; } = true;
+
     // Non-mapped property for cart quantity
     [NotMapped]
     public int soLuong { get; set; }

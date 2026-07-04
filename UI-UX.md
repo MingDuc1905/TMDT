@@ -1,6 +1,6 @@
 # Fastship (ShipFood) — UI/UX Documentation (Full)
 
-> **Phiên bản**: 3.6 — Server-side Pagination Reviews, 429 Frontend Handler, Bootstrap 3 Cleanup  
+> **Phiên bản**: 4.0 — Global Design System v4.0, Dashboard Modern Minimalist Override  
 > **Cập nhật**: Tháng 7, 2026  
 > **Mô tả**: Tài liệu thiết kế giao diện & trải nghiệm người dùng toàn diện cho nền tảng đặt đồ ăn Fastship  
 > **Tài liệu liên quan**: Project.md — Tổng quan kiến trúc & phát triển
@@ -41,17 +41,19 @@
 
 ### 1.1 Design Tokens
 
-Fastship sử dụng **design tokens** thông qua CSS custom properties (`:root` variables). Mỗi theme (Home, Cart, Restaurant, Shipper, Admin) có bộ variables riêng nhưng chia sẻ chung **primary green (#3CB815)** và **secondary orange (#F65005)**.
+Fastship sử dụng **design tokens** thông qua CSS custom properties (`:root` variables) trong file `fastship-design-tokens.css`. File này được load trên TOÀN BỘ 4 layouts: `_LayoutPageHome`, `_LayoutPageAmin`, `_LayoutPageRestaurant`, `_LayoutPageShipper`.
 
 ### 1.2 Theme Architecture
 
 | Theme | CSS File(s) | Target Audience | Style |
 |-------|-------------|-----------------|-------|
-| **Home (Customer)** | `style.css`, `layout-sg.css`, `login.css`, `details.css`, `base.css` | Khách hàng | Sweetgreen-inspired, modern, card-based |
-| **Cart/Checkout** | `style.css` (Ogani) + inline styles | Khách hàng | E-commerce, clean, data-dense |
-| **Restaurant Dashboard** | `style-restaurant.css` (Bootstrap 4.3) | Chủ quán | Admin-style sidebar, data tables |
-| **Shipper Dashboard** | `style-shiper.css` (Bootstrap 4.3) | Shipper | Similar to Restaurant, role-specific |
-| **Admin Dashboard** | `style-admin.css` (Bootstrap 5) | Quản trị viên | Full admin, CRUD, charts |
+| **Home (Customer)** | `style.css`, `layout-sg.css`, `login.css`, `details.css`, `base.css` + **`fastship-design-tokens.css`** | Khách hàng | Sweetgreen-inspired, modern, card-based |
+| **Cart/Checkout** | `style.css` (Ogani) + inline styles + **`fastship-design-tokens.css`** | Khách hàng | Modern Minimalist, 12px radius, Inter font |
+| **Restaurant Dashboard** | `style-restaurant.css` (Bootstrap 4.3) + **`fastship-design-tokens.css`** + inline override | Chủ quán | Modern Minimalist, flat KPI, clean sidebar |
+| **Shipper Dashboard** | `style-shiper.css` (Bootstrap 4.3) + **`fastship-design-tokens.css`** + inline override | Shipper | Same as Restaurant |
+| **Admin Dashboard** | `style-admin.css` (Bootstrap 5) + **`fastship-design-tokens.css`** + inline override | Quản trị viên | Full admin, flat KPI, modern tables |
+
+> ⭐ **NEW v4.0**: `fastship-design-tokens.css` — Global Design System thống nhất cho TOÀN BỘ 4 layouts
 
 ### 1.3 Design Inspiration
 
@@ -95,31 +97,61 @@ Fastship sử dụng **design tokens** thông qua CSS custom properties (`:root`
 }
 ```
 
-#### Color Usage Matrix
+#### Color Usage Matrix (v4.0)
 
 | CSS Variable | HEX | Usage | Text Contrast |
 |-------------|-----|-------|---------------|
-| `--primary` | `#3CB815` | Buttons, links, active states | White text ✅ |
-| `--secondary` | `#F65005` | Accent, highlight band | White text ✅ |
-| `--success` | `#2bc155` | Success badges, status | White text ✅ |
-| `--danger` | `#f72b50` | Delete, error | White text ✅ |
-| `--warning` | `#ff6d4d` | Warning badges | White text ✅ |
-| `--info` | `#2781d5` | Info boxes | White text ✅ |
-| `--dark` | `#111111` | Heading text | — |
-| `--light` | `#f8f9fa` | Background sections | — |
-| `--border` | `#e5e7eb` | Borders, dividers | — |
+| `--fs-green` | `#3CB815` | Buttons, links, active states | White text ✅ |
+| `--fs-orange` | `#F65005` | Accent, highlight band | White text ✅ |
+| `--fs-dark` | `#1a1a2e` | Heading, body text | — |
+| `--fs-muted` | `#6b7280` | Secondary text, labels | — |
+| `--fs-muted-soft` | `#9ca3af` | Placeholder text | — |
+| `--fs-light` | `#f8f9fa` | Background sections, table headers | — |
+| `--fs-light-soft` | `#f3f4f6` | Hover backgrounds | — |
+| `--fs-border` | `#e5e7eb` | Borders, dividers | — |
+| `--fs-border-soft` | `#f0f0f0` | Subtle borders, table rows | — |
+| `--fs-white` | `#ffffff` | Card backgrounds | — |
 
-### 2.2 Gradients
+### 2.2 Design Tokens (Global v4.0)
 
-Dashboard sử dụng 18 gradients predefined:
+```css
+:root {
+    /* ─── Brand Colors ─── */
+    --fs-green:      #3CB815;
+    --fs-green-dark: #2ea310;
+    --fs-green-bg:   rgba(60,184,21,.07);
+    --fs-orange:     #F65005;
+    --fs-orange-bg:  rgba(246,80,5,.08);
 
-| Gradient ID | Colors | Usage |
-|-------------|--------|-------|
-| `gradient-1` | `#f0a907 → #f53c79` | KPI cards (yellow-pink) |
-| `gradient-2` | `#4dedf5 → #480ceb` | KPI cards (cyan-purple) |
-| `gradient-3` | `#51f5ae → #3fbcda` | KPI cards (green-blue) |
-| `gradient-4` | `#f25521 → #f9c70a` | KPI cards (orange-yellow) |
-| `gradient_one` | `rgba(186,1,181) → rgba(103,25,255)` | Sidebar active |
+    /* ─── Neutral Palette ─── */
+    --fs-dark:       #1a1a2e;
+    --fs-muted:      #6b7280;
+    --fs-muted-soft: #9ca3af;
+    --fs-light:      #f8f9fa;
+    --fs-light-soft: #f3f4f6;
+    --fs-border:     #e5e7eb;
+    --fs-border-soft:#f0f0f0;
+    --fs-white:      #ffffff;
+
+    /* ─── Typography ─── */
+    --fs-font:       'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --fs-font-size:  14px;
+    --fs-line-height:1.6;
+
+    /* ─── Spacing & Shape ─── */
+    --fs-radius:     12px;
+    --fs-radius-sm:  8px;
+    --fs-radius-lg:  16px;
+    --fs-radius-xl:  24px;
+    --fs-shadow:     0 4px 20px rgba(0,0,0,.07);
+    --fs-shadow-sm:  0 2px 8px rgba(0,0,0,.05);
+    --fs-shadow-lg:  0 12px 32px rgba(0,0,0,.1);
+    --fs-shadow-btn: 0 4px 12px rgba(60,184,21,.3);
+
+    /* ─── Transitions ─── */
+    --fs-transition: .2s ease;
+}
+```
 
 ### 2.3 Typography
 
@@ -386,6 +418,62 @@ AFTER (v3.2):
     .fs-skeleton-overlay { top: var(--fs-nav-h); } /* 68px/60px mobile */
 }
 ```
+
+---
+
+## 3.5 Global Design System v4.0 — `fastship-design-tokens.css`
+
+### 3.5.1 Tổng quan
+
+File `fastship-design-tokens.css` (`~/Source/Shared/css/fastship-design-tokens.css`) là **hệ thống design tokens tập trung** đầu tiên của FastShip, được load trên TOÀN BỘ 4 layouts:
+
+- `_LayoutPageHome.cshtml`
+- `_LayoutPageAmin.cshtml`
+- `_LayoutPageRestaurant.cshtml`
+- `_LayoutPageShipper.cshtml`
+
+**Mục tiêu**: Giải quyết triệt để **Theme Fragmentation** — trước đây Home dùng Sweetgreen, Cart dùng Ogani, Dashboard dùng Bootstrap 4.3 — giờ tất cả đều chia sẻ chung một bộ tokens.
+
+### 3.5.2 Components được định nghĩa
+
+| Component | CSS Class | Key Properties |
+|-----------|-----------|---------------|
+| Card | `.fs-card` | `border: none; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,.07)` |
+| Button Primary | `.fs-btn-primary` | Gradient xanh + box-shadow, hover translateY(-1px) |
+| Button Outline | `.fs-btn-outline` | Trong suốt + border 1.5px, hover xanh |
+| Button Ghost | `.fs-btn-ghost` | Trong suốt hoàn toàn, hover nền sáng |
+| Input | `.fs-input` | height 44px, border-radius 12px, focus ring xanh |
+| Select | `.fs-select` | Custom arrow SVG, appearance none |
+| Textarea | `.fs-textarea` | border-radius 12px, resize vertical |
+| Table | `.fs-table` | Uppercase header 12px, hover row xanh nhạt |
+| Badge | `.fs-badge` | border-radius 20px, 5 color variants |
+| KPI Card | `.fs-kpi` | padding 20px 24px, hover translateY(-2px) |
+| Sidebar Nav | `.fs-sidebar .nav-link` | border-radius 8px, hover/active xanh |
+| Modal | `.fs-modal` | border-radius 16px, box-shadow lg |
+| Empty State | `.fs-empty-state` | Centered, icon + text + CTA |
+
+### 3.5.3 Dashboard Override (Admin/Restaurant/Shipper)
+
+Mỗi dashboard layout có inline `<style>` override áp dụng CSS variables từ design tokens:
+
+| Element | Before (cũ) | After (v4.0) |
+|---------|-------------|-------------|
+| KPI Cards | Gradient nền rực rỡ (gradient-1..4) | `background: white; box-shadow: var(--fs-shadow)` |
+| KPI Icon | 56px circle với gradient | 48px square với `var(--fs-green-bg)` flat |
+| Sidebar items | Nền tối, text trắng | `border-radius: 8px; margin: 2px 8px; hover: green bg` |
+| Table headers | Bootstrap default | Uppercase 12px, letter-spacing, `var(--fs-light)` bg |
+| Buttons | Bootstrap default | `border-radius: 12px; font-weight: 600;` |
+| Form controls | border-radius 4px | `border-radius: 12px; border: 1.5px solid var(--fs-border)` |
+
+### 3.5.4 Files thay đổi
+
+| File | Thay đổi |
+|------|----------|
+| `fastship-design-tokens.css` | **NEW** — 350+ dòng: :root tokens, base reset, 16 component systems, utility classes, FontAwesome icon protection |
+| `_LayoutPageHome.cshtml` | Thêm `<link href="~/Source/Shared/css/fastship-design-tokens.css">` |
+| `_LayoutPageAmin.cshtml` | Thêm CSS link + inline override (KPI, sidebar, table, button, form) |
+| `_LayoutPageRestaurant.cshtml` | Thêm CSS link + inline override (same pattern) |
+| `_LayoutPageShipper.cshtml` | Thêm CSS link + inline override (same pattern) |
 
 ---
 
@@ -1798,19 +1886,36 @@ LOGIN ──→ DASHBOARD (with LIVE MAP)
 - [x] ✅ **Overflow-x body fix** (v3.5)
 - [x] ✅ **Skeleton+WOW/OwlCarousel timing** (v3.5)
 - [ ] **Add `data-label` attributes to all dashboard tables**: Hiện tại stacked cards dùng CSS generic selector, nên thêm data-label cụ thể
-- [ ] **Dashboard mobile optimization**: Responsive sidebar, charts, KPI cards cho Admin/Restaurant/Shipper
+- [x] ✅ **Dashboard mobile optimization**: Responsive sidebar, charts, KPI cards cho Admin/Restaurant/Shipper — **đã làm trong v4.0**
 - [ ] **Google OAuth deployment test**: Kiểm tra đăng nhập Google trên Railway production
+
+### 22.6 ✅ Completed in v4.0 — Global Design System & Theme Unification
+
+| Task | Status | Details |
+|------|--------|---------|
+| **Global Design Tokens** | ✅ | `fastship-design-tokens.css` — 350+ dòng, 16 component systems, unified `:root` variables |
+| **Inter font enforcement** | ✅ | Font-family cascade trên mọi element (`!important`), FontAwesome exception cho icon fonts |
+| **Dashboard KPI flat colors** | ✅ | Gradient rực rỡ → flat `var(--fs-green-bg)` + `var(--fs-shadow)` |
+| **Dashboard sidebar clean** | ✅ | `.deznav .metismenu` border-radius 8px, hover xanh, active xanh full |
+| **Dashboard tables modern** | ✅ | Uppercase 12px headers, `var(--fs-light)` bg, hover row green |
+| **Dashboard buttons sync** | ✅ | `border-radius: 12px`, gradient xanh, font-weight 600 |
+| **Dashboard form controls** | ✅ | `border-radius: 12px`, `border: 1.5px solid var(--fs-border)`, focus ring xanh |
+| **Cart/Checkout border-radius sync** | ✅ | `border-radius: 12px !important`, `box-shadow: 0 4px 20px rgba(0,0,0,.07)` |
+| **Auth pages mobile keyboard fix** | ✅ | `height:100vh` → `min-height:100vh;height:auto` + flexbox |
+| **All 4 layouts linked** | ✅ | Home, Admin, Restaurant, Shipper đều load `fastship-design-tokens.css` |
 
 ---
 
-> **Document Version**: 3.6 (Full)  
+> **Document Version**: 4.0 (Full)  
 > **Cập nhật**: Tháng 7, 2026  
-> **Based on**: Actual source code analysis of 8 Controllers, 30+ Views, 15+ Models, 10+ CSS files, 5 Layout files, 1 SignalR Hub, 3 sessions of responsive mobile fixes  
-> **Key changes v3.6**:  
-> - UI-UX.md: Mở rộng Section 19 Icons (full inventory, 19.1-19.5)  
-> - UI-UX.md: Thêm Section 3.3 Scrollbar Handling (6 mục con)  
-> - UI-UX.md: Mở rộng Section 16 Animations (keyframes, timing map)  
-> - UI-UX.md: Sửa lỗi section numbering trùng 3.3 -> 3.4  
-> - UI-UX.md: Xoá reference Architectural-Solution.md  
-> - Project.md: Cập nhật v2.3, env vars, tech debt  
+> **Based on**: Actual source code analysis of 8 Controllers, 30+ Views, 15+ Models, 10+ CSS files, 5 Layout files, 1 SignalR Hub, 4 sessions of responsive mobile fixes + 1 theme unification update  
+> **Key changes v4.0**:  
+> - 🆕 `fastship-design-tokens.css` — Global Design System 350+ lines (16 components, unified tokens)  
+> - 🖥️ Dashboard Modern Minimalist Override (Admin, Restaurant, Shipper layouts)  
+> - 🔤 FontAwesome icon protection (explicit FA font names, không dùng `inherit`)  
+> - 📐 Theme Fragmentation fix — Home/Cart/Dashboard chia sẻ chung design tokens  
+> - UI-UX.md: Thêm Section 3.5 Global Design System v4.0  
+> - UI-UX.md: Thêm Section 22.6 ✅ v4.0 backlog  
+> - UI-UX.md: Cập nhật version 3.6→4.0, Section 1, 2, Color Usage Matrix  
+> - Project.md: Cập nhật v2.4, frontend stack, tech debt  
 

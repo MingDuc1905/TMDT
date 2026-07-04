@@ -2166,7 +2166,7 @@ Cuối tuần (Chủ nhật 23:59):
 | 1 | Redis Session | Thấp | 0.5 | 🔴 Cao | ✅ Đã code |
 | 2 | EF Core Migrations | Trung bình | 1 | 🔴 Cao | ✅ Đã code |
 | 3 | Rate Limiting | Thấp | 0.5 | 🔴 Cao | ✅ Đã code |
-| 4 | Centralized Logging | Thấp | 0.5 | 🟡 Trung bình | ⬜ Chưa làm |
+| 4 | Centralized Logging | Thấp | 0.5 | 🟡 Trung bình | ✅ Đã code (Serilog + Seq) |
 | 5 | QR Payment & Webhook | Trung bình | 2 | 🟡 Trung bình | 🟡 Code 1/2 (Mock Webhook có SignalR) |
 | 6 | Address Book | Trung bình | 1 | 🟢 Thấp (UX) | ⬜ Chưa làm |
 | 7 | Hủy đơn & Hoàn tiền | Trung bình | 1.5 | 🟡 Trung bình | ⬜ Chưa làm |
@@ -2180,7 +2180,7 @@ Cuối tuần (Chủ nhật 23:59):
 | 15 | Đối soát & Chiết khấu | Cao | 3 | 🔴 Cao | ⬜ Chưa làm |
 
 **Tổng effort ước tính**: ~18.75 man-days  
-**Đã thi công**: 5/15 giải pháp  
+**Đã thi công**: 6/15 giải pháp (+ CORS Policy)  
 **Khuyến nghị ưu tiên**: Code Debt (1-4) → Core Business (7-8-11) → Admin (14-15) → UX (5-6-9-10-12-13)
 
 ---

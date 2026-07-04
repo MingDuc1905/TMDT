@@ -1,6 +1,6 @@
 # Fastship (ShipFood) — UI/UX Documentation (Full)
 
-> **Phiên bản**: 3.4 — Search Autocomplete + AJAX Toggle Hết hàng + aria-label WCAG  
+> **Phiên bản**: 3.5 — Server-side Pagination Reviews, 429 Frontend Handler, Bootstrap 3 Cleanup  
 > **Cập nhật**: Tháng 7, 2026  
 > **Mô tả**: Tài liệu thiết kế giao diện & trải nghiệm người dùng toàn diện cho nền tảng đặt đồ ăn Fastship  
 > **Tài liệu liên quan**: [Architectural-Solution.md](./Architectural-Solution.md) — 15 giải pháp kiến trúc backend & nghiệp vụ
@@ -343,54 +343,7 @@ AFTER (v3.2):
 
 ---
 
-## 5. Home Page (Khách Hàng)
 
-### 5.1 Page Structure
-
-```
-┌─ HERO CAROUSEL ──────────────────────────────┐
-│   Full-width slider with captions            │
-├─ CATEGORY PILLS ─────────────────────────────┤
-│   Horizontal scrollable pill buttons         │
-├─ FEATURED RESTAURANTS (Product Grid) ───────┤
-│   4-column grid (responsive: 2→1 col)        │
-├─ STATS ROW ──────────────────────────────────┤
-│   4 stats: số quán, món ăn, đơn hàng, users │
-├─ HOW IT WORKS ───────────────────────────────┤
-│   3-step: icon circle + title + description  │
-├─ TESTIMONIAL CAROUSEL ───────────────────────┤
-│   OwlCarousel with center active highlight   │
-├─ PROMO BAND ─────────────────────────────────┤
-│   Full-width green band with dismiss button  │
-├─ FOOTER + CHAT WIDGET + SKELETON OVERLAY ───┤
-└──────────────────────────────────────────────┘
-```
-
-### 5.2 Skeleton Loading Behavior
-
-- **On page load**: `.fs-skeleton-overlay` hiển thị với shimmer animation
-- **Auto-hide**: JavaScript tự động ẩn sau 600ms (`#fs-loading-skeleton` fade out)
-- **Components**: Header bar, hero section, 3 product card skeletons
-- **Replaces**: Spinner loading (`#spinner`) hoàn toàn
-
-### 5.3 Product/Restaurant Cards
-
-```
-┌─────────────────────┐
-│    ┌───────────┐    │
-│    │   IMAGE   │    │  ← aspect-ratio: 4/3
-│    │  (cover)  │    │  ← zoom 1.08 on hover
-│    └───────────┘    │
-│  Tên quán ăn        │  ← 2-line clamp
-│  Địa chỉ            │  ← 1-line clamp
-├─────────────────────┤
-│ ⭐ 4.5  │ ⏱ 30ph │  ← Border separated
-└─────────────────────┘
-```
-
----
-
----
 
 ## 6. Trang Chi Tiết Quán Ăn (DetailRestaurant)
 
@@ -1568,7 +1521,19 @@ LOGIN ──→ DASHBOARD (with LIVE MAP)
 | **aspect-ratio images** | ✅ | `DanhMuc.cshtml`, `SanPham.cshtml`, `layout-sg.css` | `.category-card-img` với `aspect-ratio: 4/3` (16/9 mobile), thay `height:250px` cứng |
 | **UI-UX.md update** | ✅ | `UI-UX.md` | v3.3: 8 sections mới, responsive matrix cập nhật, backlog bổ sung |
 
-### 22.4 Future Improvements
+### 22.4 ✅ Completed in v3.5 — UI Cleanup, 429 Handler, Pagination
+
+| Task | Status | Details |
+|------|--------|---------|
+| **Remove legacy Bootstrap 3** | ✅ | Xóa 8 file CSS khỏi `wwwroot/Content/` (-7,472 lines), giữ `Site.css` |
+| **Server-side pagination GetReviews** | ✅ | `IQueryable.Skip().Take()` trước ToList(), COUNT riêng, EF Core push-down |
+| **429 Frontend handler (Login)** | ✅ | Chuyển form Login sang AJAX, parse JSON 429, hiển thị Retry-After |
+| **429 Frontend handler (Checkout)** | ✅ | Thêm `xhr.status === 429` trong error callback, parse JSON + Retry-After header |
+| **Overflow-x body fix** | ✅ | Tách `overflow-x:hidden` khỏi `<body>` trong `layout-sg.css`, chỉ giữ container |
+| **WOW/OwlCarousel skeleton timing** | ✅ | Dời init vào callback `fadeOut()` của skeleton, tránh chạy khi overlay còn |
+| **Bootstrap 3 _Layout.cshtml reference** | ✅ | Xóa `<link href="~/Content/bootstrap.css">` khỏi layout mặc định |
+
+### 22.5 Future Improvements
 
 - [ ] **Dark mode**: Add CSS custom properties swap
 - [ ] **Smooth page transitions**: View transitions API
@@ -1576,31 +1541,36 @@ LOGIN ──→ DASHBOARD (with LIVE MAP)
 - [ ] **Drag & drop**: For cart item reordering
 - [ ] **Bottom sheet**: Replace popups with bottom sheets on mobile
 - [ ] **Pull-to-refresh**: For order history on mobile
-- [x] ✅ **Search autocomplete** (v3.4): Debounced API search 300ms, gợi ý dropdown với tên + địa chỉ + rating
-- [x] ✅ **AJAX Toggle 1-Click Hết hàng** (v3.4): Restaurant quản lý trạng thái còn hàng không reload
-- [x] ✅ **aria-label icon-only buttons** (v3.4): Chat toggle, cart delete, stock toggle — WCAG compliance
-- [x] ✅ **SignalR payment broadcast** (v3.4): Admin xác nhận thanh toán → real-time đến khách
+- [x] ✅ **Search autocomplete** (v3.4)
+- [x] ✅ **AJAX Toggle 1-Click Hết hàng** (v3.4)
+- [x] ✅ **aria-label icon-only buttons** (v3.4)
+- [x] ✅ **SignalR payment broadcast** (v3.4)
 - [ ] **Real payment**: Replace mock Vietcombank with Stripe/PayPal/ZaloPay
 - [ ] **Unit tests**: Add frontend component tests (Jest/Cypress)
 - [ ] **Image optimization**: WebP format with `<picture>` fallback
 - [ ] **Critical CSS**: Inline above-fold styles
 - [ ] **Service Worker**: Offline support for order tracking
-- [ ] **Remove legacy Bootstrap 3**: `wwwroot/Content/bootstrap.css` unused
+- [x] ✅ **Remove legacy Bootstrap 3** (v3.5)
+- [x] ✅ **Server-side pagination reviews** (v3.5)
+- [x] ✅ **429 frontend handler login+checkout** (v3.5)
+- [x] ✅ **Overflow-x body fix** (v3.5)
+- [x] ✅ **Skeleton+WOW/OwlCarousel timing** (v3.5)
 - [ ] **Add `data-label` attributes to all dashboard tables**: Hiện tại stacked cards dùng CSS generic selector, nên thêm data-label cụ thể
 - [ ] **Dashboard mobile optimization**: Responsive sidebar, charts, KPI cards cho Admin/Restaurant/Shipper
 - [ ] **Google OAuth deployment test**: Kiểm tra đăng nhập Google trên Railway production
 
 ---
 
-> **Document Version**: 3.3 (Full)  
+> **Document Version**: 3.5 (Full)  
 > **Cập nhật**: Tháng 7, 2026  
 > **Based on**: Actual source code analysis of 8 Controllers, 30+ Views, 15+ Models, 10+ CSS files, 5 Layout files, 1 SignalR Hub, 3 sessions of responsive mobile fixes  
-> **Key changes v3.3**:  
-> - Viewport Wrapper Auth: body `height:100vh;overflow:hidden`, header trong flex-flow, form flex center  
-> - Cart multi-row mobile: 2 rows (ảnh 60px + tên + xoá / giá trái + qty phải), touch 44×44px  
-> - DetailRestaurant: sticky category bar (position:sticky), FAB 56px, Bottom Sheet 60vh  
-> - Category icon mapping với `normalize('NFD')` xử lý tiếng Việt  
-> - DanhMuc/SanPham: `aspect-ratio: 4/3` thay `height:250px` cứng  
-> - 8 files modified, ~633 insertions, ~44 deletions  
-> - 3 commit pushes: `731b6eb` (v3.2), `32622e2` (HTTPS), `1ee2d71` (v3.3)  
+> **Key changes v3.5**:  
+> - Server-side pagination GetReviews (IQueryable Skip/Take before ToList)  
+> - 429 AJAX handler cho Login (chuyển sang AJAX) và Checkout (error callback)  
+> - Fix overflow-x body → chỉ container, fix WOW/OwlCarousel bị skeleton chặn  
+> - Xóa 8 file Bootstrap 3 legacy (-7,472 dòng)  
+> - Serilog centralized logging (Console + Seq qua SEQ_URL)  
+> - CORS restricted (ALLOWED_ORIGINS env var, AllowCredentials)  
+> - csproj: thêm Serilog.AspNetCore + Serilog.Sinks.Seq  
+> - 13 files modified, +137 insertions, -7,472 deletions  
 

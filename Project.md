@@ -35,6 +35,7 @@ Cung cấp một giải pháp hoàn chỉnh cho:
 | **Google OAuth** | ASP.NET Core Authentication | 8.0.0 |
 | **Charts** | Chart.js | Bundle |
 | **Auth** | Cookie Authentication + Session | ASP.NET Core |
+| **CORS** | Restricted (ALLOWED_ORIGINS env var) | ASP.NET Core |
 
 ### Frontend Stack
 
@@ -65,6 +66,8 @@ Cung cấp một giải pháp hoàn chỉnh cho:
 <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
 <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="8.0.11" />
+<PackageReference Include="Serilog.AspNetCore" Version="8.0.3" />
+<PackageReference Include="Serilog.Sinks.Seq" Version="8.0.0" />
 ```
 
 ---
@@ -335,6 +338,16 @@ Authentication__Google__ClientSecret=xxx
 
 # Gemini AI (optional)
 Gemini__ApiKey=xxx
+
+# Serilog Seq (optional)
+SEQ_URL=http://localhost:5341
+SEQ_API_KEY=xxx
+
+# CORS Allowed Origins
+ALLOWED_ORIGINS=https://shipfood.up.railway.app
+
+# App Domain (for CORS fallback)
+APP_DOMAIN=https://shipfood.up.railway.app
 ```
 
 ---

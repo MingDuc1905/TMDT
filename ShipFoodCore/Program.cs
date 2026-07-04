@@ -2,8 +2,56 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.RateLimiting;
 using System.Threading.RateLimiting;
 using ShipFood.Models;
+using Serilog;
+
+// ─── Task 3: Centralized Logging (Serilog + Seq) ───
+var logConfig = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.AspNetCore", Serilog.Events.LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.EntityFrameworkCore", Serilog.Events.LogEventLevel.Warning)
+    .Enrich.FromLogContext()
+    .Enrich.WithProperty("Application", "FastShip")
+    .Enrich.WithProperty("Environment", Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production")
+    .WriteTo.Console(
+        outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}");
+
+Log.Logger = logConfig.CreateLogger();
+
+// Chỉ ghi vào Seq nếu biến môi trường SEQ_URL được cấu hình
+var seqUrl = Environment.GetEnvironmentVariable("SEQ_URL");
+if (!string.IsNullOrEmpty(seqUrl))
+{
+    Log.Logger = new LoggerConfiguration()
+        .MinimumLevel.Information()
+        .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Warning)
+        .MinimumLevel.Override("Microsoft.AspNetCore", Serilog.Events.LogEventLevel.Warning)
+        .MinimumLevel.Override("Microsoft.EntityFrameworkCore", Serilog.Events.LogEventLevel.Warning)
+        .Enrich.FromLogContext()
+        .Enrich.WithProperty("Application", "FastShip")
+        .Enrich.WithProperty("Environment", Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production")
+        .WriteTo.Console(
+            outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
+        .WriteTo.Seq(
+            serverUrl: seqUrl,
+            apiKey: Environment.GetEnvironmentVariable("SEQ_API_KEY") ?? null,
+            period: TimeSpan.FromSeconds(5))
+        .CreateLogger();
+    Log.Information("Serilog Seq sink configured: {SeqUrl}", seqUrl);
+}
+else
+{
+    Log.Information("SEQ_URL not set — Seq sink skipped, logs go to Console only");
+}
+
+try
+{
+    Log.Information("Starting FastShip application...");
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Use Serilog as the logging provider
+builder.Host.UseSerilog();
 
 // In production (Railway), use PORT env var dynamically
 if (!builder.Environment.IsDevelopment())
@@ -151,16 +199,34 @@ builder.Services.AddAntiforgery(options =>
     options.HeaderName = "RequestVerificationToken";
 });
 
-// Add CORS for development
+// ─── Task 4: CORS Policy — restrict to official domain ───
+var allowedOrigins = (Environment.GetEnvironmentVariable("ALLOWED_ORIGINS")
+    ?? builder.Configuration["Cors:AllowedOrigins"]
+    ?? "https://shipfood.up.railway.app")
+    .Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+if (builder.Environment.IsDevelopment())
+{
+    // Dev: allow localhost for convenience, but keep production domain too
+    allowedOrigins = allowedOrigins
+        .Concat(new[] { "http://localhost:3000", "http://localhost:5000", "http://localhost:8080" })
+        .Distinct()
+        .ToArray();
+}
+
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
-        policy.AllowAnyOrigin()
+        policy.WithOrigins(allowedOrigins)
               .AllowAnyMethod()
-              .AllowAnyHeader();
+              .AllowAnyHeader()
+              .AllowCredentials();
     });
+
 });
+
+Log.Information("CORS configured for origins: {Origins}", string.Join(", ", allowedOrigins));
 
 
 
@@ -387,3 +453,13 @@ app.MapControllerRoute(
 app.MapHub<ShipFood.Hubs.Chats>("/nhantin");
 
 app.Run();
+
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Application terminated unexpectedly");
+}
+finally
+{
+    Log.CloseAndFlush();
+}

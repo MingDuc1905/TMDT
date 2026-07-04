@@ -659,35 +659,41 @@ public class HomeController : BaseController
         return Json(new { items });
     }
 
-    // ===== API: Lấy danh sách đánh giá của một quán (public) =====
+    // ===== API: Lấy danh sách đánh giá của một quán (public) — SERVER-SIDE PAGINATION =====
     [HttpGet]
     public JsonResult GetReviews(int quanId, int page = 1, int pageSize = 5)
     {
-        var chiTietDHs = db.tbChiTietDonHang
-            .Include(c => c.tbDonHang).ThenInclude(d => d!.tbThongTinDatHang).ThenInclude(t => t!.tbKhachHang)
+        // 1) Query gốc: ChiTietDonHang có đánh giá, thuộc quán này
+        var baseQuery = db.tbChiTietDonHang
             .Include(c => c.tbMonAn)
             .Include(c => c.tbDanhGias)
-            .Where(c => c.tbMonAn != null && c.tbMonAn.maquanan == quanId && c.tbDanhGias.Any())
-            .ToList();
+            .Include(c => c.tbDonHang!).ThenInclude(d => d.tbThongTinDatHang!).ThenInclude(t => t.tbKhachHang)
+            .Where(c => c.tbMonAn != null && c.tbMonAn.maquanan == quanId && c.tbDanhGias.Any());
 
-        var reviews = chiTietDHs
+        // 2) Đếm tổng số review (1 query COUNT trên DB)
+        var total = baseQuery.SelectMany(c => c.tbDanhGias).Count();
+
+        // 3) Lấy danh sách review phân trang (Skip/Take trên DB)
+        var reviews = baseQuery
             .SelectMany(c => c.tbDanhGias.Select(dg => new
             {
                 madg       = dg.madg,
                 diem       = dg.diemdanhgia ?? 0,
                 nhanxet    = dg.nhanxet ?? "",
-                tenmon     = c.tbMonAn?.tenmon ?? "",
-                hinhanh    = c.tbMonAn?.hinhanh ?? "",
-                tenkh      = c.tbDonHang?.tbThongTinDatHang?.tbKhachHang?.tenkh ?? "Khách hàng",
-                ngaydat    = c.tbDonHang?.ngaydathang?.ToString("dd/MM/yyyy") ?? ""
+                tenmon     = c.tbMonAn!.tenmon ?? "",
+                hinhanh    = c.tbMonAn!.hinhanh ?? "",
+                tenkh      = c.tbDonHang!.tbThongTinDatHang!.tbKhachHang!.tenkh ?? "Khách hàng",
+                ngaydat    = c.tbDonHang!.ngaydathang!.ToString("dd/MM/yyyy") ?? ""
             }))
             .OrderByDescending(r => r.madg)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .ToList();
+            .ToList();   // ← ToList() CHỈ xảy ra SAU Skip/Take → đúng server-side pagination
 
-        var total = chiTietDHs.SelectMany(c => c.tbDanhGias).Count();
-        var avgDiem = total > 0 ? chiTietDHs.SelectMany(c => c.tbDanhGias).Average(d => d.diemdanhgia ?? 0) : 0;
+        // 4) Tính điểm trung bình (aggregate trên DB)
+        var avgDiem = total > 0
+            ? baseQuery.SelectMany(c => c.tbDanhGias).Average(d => (double?)d.diemdanhgia) ?? 0
+            : 0;
 
         return Json(new { success = true, reviews, total, avgDiem = Math.Round(avgDiem, 1), page, pageSize });
     }

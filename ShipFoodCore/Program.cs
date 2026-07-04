@@ -177,7 +177,9 @@ if (string.IsNullOrEmpty(connectionString))
 builder.Services.AddDbContext<dbFoodyEntities>(options =>
     options.UseMySql(
         connectionString,
-        new MariaDbServerVersion(new Version(10, 6))
+        // Dùng MySqlServerVersion 8.0.20 để tắt RETURNING (MySQL < 8.0.21 không hỗ trợ)
+        // Nếu cần auto-detect: ServerVersion.AutoDetect(connectionString)
+        new MySqlServerVersion(new Version(8, 0, 20))
     ));
 
 // Add HttpContextAccessor for session access

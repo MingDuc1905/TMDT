@@ -376,12 +376,11 @@ public class HomeController : BaseController
         }
         catch (Exception ex)
         {
-            // Log lỗi chi tiết để debug trên Railway
+            // Log lỗi chi tiết để debug trên Railway (KHÔNG hiển thị raw SQL cho user)
             var logger = HttpContext.RequestServices.GetRequiredService<ILogger<HomeController>>();
             logger.LogError(ex, "Google OAuth callback failed for email {Email}", email ?? "null");
 
-            var innerMsg = ex.InnerException?.Message ?? "";
-            ViewBag.LoginFail = "Đăng nhập Google gặp sự cố: " + innerMsg;
+            ViewBag.LoginFail = "Đăng nhập Google gặp sự cố. Vui lòng thử lại hoặc dùng tài khoản thường.";
             return View("Login");
         }
     }

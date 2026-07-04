@@ -112,7 +112,92 @@
     <script src="~/Source/Home/lib/waypoints/waypoints.min.js"></script>
     <script src="~/Source/Home/lib/owlcarousel/owl.carousel.min.js"></script>
     <script src="~/Source/Home/js/main.js"></script>
-    
+
+    <!-- ─── Task 3: AJAX Login + 429 Rate Limit handler ─── -->
+    <script>
+    (function() {
+        var $form = $('form[action*="Login"]');
+        if (!$form.length) return;
+
+        // Hiển thị lỗi tùy chỉnh thay vì alert danger mặc định
+        function showLoginError(msg) {
+            var $existing = $form.find('.fs-login-error');
+            if (!$existing.length) {
+                $existing = $('<div class="alert alert-danger fs-login-error" role="alert" style="font-size:13px;padding:10px 12px;margin-bottom:12px;"></div>');
+                $form.find('input[name="pwd"]').after($existing);
+            }
+            $existing.html('<i class="fas fa-exclamation-circle me-1"></i>' + msg).show();
+        }
+
+        function clearLoginError() {
+            $form.find('.fs-login-error').remove();
+        }
+
+        $form.on('submit', function(e) {
+            // Chỉ chặn nếu form có thể submit bằng AJAX (không phải fallback)
+            // Nếu đã có lỗi 429 trước đó, cho phép submit thường
+            e.preventDefault();
+
+            clearLoginError();
+            var $btn = $form.find('button[type="submit"]');
+            $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i>Đang xử lý...');
+
+            $.ajax({
+                url: $form.attr('action'),
+                type: 'POST',
+                data: $form.serialize(),
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                success: function(response, textStatus, xhr) {
+                    // Server trả về View Login có lỗi (200 OK) → login thất bại
+                    if (typeof response === 'string' &&
+                        (response.indexOf('alert-danger') > -1 || response.indexOf('LoginFail') > -1)) {
+                        var msg = $(response).find('.alert-danger').first().text().trim();
+                        showLoginError(msg || 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.');
+                        $btn.prop('disabled', false).html('Đăng nhập');
+                        return;
+                    }
+                    // Thành công → server đã redirect, dùng xhr.responseURL để chuyển hướng trình duyệt
+                    var targetUrl = (xhr && xhr.responseURL) || '/';
+                    window.location.href = targetUrl;
+                },
+                error: function(xhr) {
+                    var msg = 'Lỗi kết nối. Vui lòng thử lại sau.';
+
+                    if (xhr.status === 429) {
+                        // ─── RATE LIMIT: parse JSON body ───
+                        try {
+                            var resp = JSON.parse(xhr.responseText);
+                            var retryAfter = resp.retryAfter
+                                || xhr.getResponseHeader('Retry-After')
+                                || 30;
+                            msg = (resp.error || resp.message || 'Quá nhiều yêu cầu. Vui lòng thử lại sau.')
+                                + ' <strong>Thử lại sau ' + retryAfter + ' giây.</strong>';
+                        } catch (e) {
+                            // responseText không phải JSON hợp lệ
+                            var retryHeader = xhr.getResponseHeader('Retry-After');
+                            msg = 'Quá nhiều yêu cầu đăng nhập. Vui lòng thử lại sau'
+                                + (retryHeader ? ' ' + retryHeader + ' giây.' : ' ít phút.');
+                        }
+                        showLoginError(msg);
+                    } else if (xhr.status === 400) {
+                        msg = 'Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.';
+                        showLoginError(msg);
+                    } else if (xhr.status === 500) {
+                        msg = 'Lỗi máy chủ. Vui lòng thử lại sau.';
+                        showLoginError(msg);
+                    } else {
+                        showLoginError(msg);
+                    }
+
+                    $btn.prop('disabled', false).html('Đăng nhập');
+                }
+            });
+        });
+    })();
+    </script>
+    <!-- ─── End Task 3 ─── -->
 
 </body>
 </html>

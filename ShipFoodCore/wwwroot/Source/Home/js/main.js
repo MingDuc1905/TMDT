@@ -6,16 +6,47 @@
         setTimeout(function () {
             $('#fs-loading-skeleton').fadeOut(250, function() {
                 $(this).remove();
+                // ── Khởi tạo WOW.js & OwlCarousel SAU KHI skeleton biến mất ──
+                if (typeof WOW !== 'undefined') {
+                    new WOW({
+                        offset: 0,
+                        mobile:  true,
+                        live:    true
+                    }).init();
+                }
+                // OwlCarousel: chỉ init nếu phần tử tồn tại
+                if ($(".testimonial-carousel").length && typeof $.fn.owlCarousel !== 'undefined') {
+                    $(".testimonial-carousel").owlCarousel({
+                        autoplay: true,
+                        smartSpeed: 1000,
+                        margin: 25,
+                        loop: true,
+                        center: true,
+                        dots: false,
+                        nav: true,
+                        navText : [
+                            '<i class="bi bi-chevron-left"></i>',
+                            '<i class="bi bi-chevron-right"></i>'
+                        ],
+                        responsive: {
+                            0:{
+                                items:1
+                            },
+                            768:{
+                                items:2
+                            },
+                            992:{
+                                items:3
+                            }
+                        }
+                    });
+                }
             });
         }, 100);
     };
     skeletonLoader();
     
     
-    // Initiate the wowjs
-    new WOW().init();
-
-
     // Fixed Navbar
     $(window).scroll(function () {
         if ($(window).width() < 992) {
@@ -47,33 +78,5 @@
         return false;
     });
 
-
-    // Testimonials carousel
-    $(".testimonial-carousel").owlCarousel({
-        autoplay: true,
-        smartSpeed: 1000,
-        margin: 25,
-        loop: true,
-        center: true,
-        dots: false,
-        nav: true,
-        navText : [
-            '<i class="bi bi-chevron-left"></i>',
-            '<i class="bi bi-chevron-right"></i>'
-        ],
-        responsive: {
-            0:{
-                items:1
-            },
-            768:{
-                items:2
-            },
-            992:{
-                items:3
-            }
-        }
-    });
-
-    
 })(jQuery);
 

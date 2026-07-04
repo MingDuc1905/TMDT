@@ -512,6 +512,21 @@
                 var msg = 'Lỗi kết nối. Vui lòng thử lại.';
                 if (xhr.status === 400) msg = 'Dữ liệu không hợp lệ. Vui lòng kiểm tra lại thông tin.';
                 if (xhr.status === 401) msg = 'Phiên đăng nhập đã hết. Vui lòng đăng nhập lại.';
+                if (xhr.status === 429) {
+                    // ─── RATE LIMIT: parse JSON body ───
+                    try {
+                        var resp = JSON.parse(xhr.responseText);
+                        var retryAfter = resp.retryAfter
+                            || xhr.getResponseHeader('Retry-After')
+                            || 30;
+                        msg = (resp.error || resp.message || 'Quá nhiều yêu cầu. Vui lòng thử lại sau.')
+                            + ' (<strong>' + retryAfter + ' giây</strong>)';
+                    } catch (e) {
+                        var retryHeader = xhr.getResponseHeader('Retry-After');
+                        msg = 'Quá nhiều yêu cầu. Vui lòng thử lại sau'
+                            + (retryHeader ? ' ' + retryHeader + ' giây.' : ' ít phút.');
+                    }
+                }
                 if (xhr.status === 500) msg = 'Lỗi máy chủ. Vui lòng thử lại sau.';
                 showResultPopup(false, 'Lỗi hệ thống', msg);
             },

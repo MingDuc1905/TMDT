@@ -981,7 +981,7 @@ body {
 }
 
 /* Row 69: No horizontal scroll */
-body, .container-fluid, .container-xxl, .container {
+.container-fluid, .container-xxl, .container {
     max-width: 100%;
     overflow-x: hidden;
 }

@@ -310,8 +310,38 @@ public class HomeController : BaseController
         var users = db.tbUser.Where(u => u.email == email).ToList();
         if (users.Count == 0)
         {
-            ViewBag.LoginFail = $"Email '{email}' chưa được đăng ký trong hệ thống. Vui lòng đăng ký tài khoản trước.";
-            return View("Login");
+            // ─── TỰ ĐỘNG TẠO TÀI KHOẢN KHI ĐĂNG NHẬP GOOGLE LẦN ĐẦU ───
+            // Tạo password ngẫu nhiên (hash BCrypt) — user không cần biết, chỉ dùng OAuth
+            var randomPwd = $"GG_{Guid.NewGuid():N}_{email}";
+            var hashedPwd = BCrypt.Net.BCrypt.HashPassword(randomPwd, workFactor: 12);
+
+            var newUser = new tbUser
+            {
+                username     = email,                          // dùng email làm username
+                pwd          = hashedPwd,
+                email        = email,
+                sdt          = "0000000000",                   // Google không cung cấp SĐT, dùng placeholder
+                loaitaikhoan = "Khách hàng",
+                vitien       = 0,
+                trangthai    = 1                               // kích hoạt ngay, không cần duyệt
+            };
+            db.tbUser.Add(newUser);
+            db.SaveChanges();                                   // ← newUser.userid được sinh tự động
+
+            // Đồng bộ tbKhachHang (khóa ngoại 1-1)
+            var tenKhachHang = !string.IsNullOrEmpty(name) ? name : email;
+            db.tbKhachHang.Add(new tbKhachHang
+            {
+                userid = newUser.userid,
+                tenkh  = tenKhachHang
+            });
+            db.SaveChanges();
+
+            // Gán Session + redirect thẳng vào trang chủ
+            var cart = new Cart { userid = newUser.userid };
+            SetCart(cart);
+            SetSessionUser(newUser);
+            return RedirectToAction("Index", "Home");
         }
 
         var userFind = users[0];

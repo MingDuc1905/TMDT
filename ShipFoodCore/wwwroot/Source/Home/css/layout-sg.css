@@ -31,30 +31,35 @@ html::-webkit-scrollbar {
 .text-green { color: var(--fs-green) !important; }
 .text-orange { color: var(--fs-orange) !important; }
 
-/* ── Body offset for fixed header ─────────────────────────── */
-body {
-    padding-top: calc(var(--fs-nav-h) + var(--fs-topbar-h));
-}
-@media (max-width: 991.98px) {
-    body { padding-top: var(--fs-nav-h); }
+/* ── Body padding khi nav được fixed (thêm bởi JS khi scroll qua topbar) ─── */
+body.fs-body-padded {
+    padding-top: var(--fs-nav-h);
 }
 
 /* ============================================================
    HEADER / NAVBAR
    ============================================================ */
 .fs-header {
+    /* Normal flow — nav được fixed riêng qua JS */
+    background: #fff;
+    overflow: visible !important;
+}
+
+/* Khi scroll qua topbar: nav fixed tại top:0 */
+.fs-nav.fs-nav-fixed {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     z-index: 10000;
     background: #fff;
-    box-shadow: 0 2px 12px rgba(0,0,0,.06);
-    transition: box-shadow .3s ease;
-    overflow: visible !important;
-}
-.fs-header.scrolled {
     box-shadow: 0 4px 20px rgba(0,0,0,.12);
+    transition: box-shadow .3s ease;
+}
+
+/* Subtle shadow trên header khi đã cuộn (trước khi nav fixed) */
+.fs-header.scrolled {
+    box-shadow: 0 2px 8px rgba(0,0,0,.06);
 }
 
 /* Top bar */
@@ -733,8 +738,7 @@ body {
     /* Logo smaller */
     .fs-logo { font-size: 1.35rem; }
 
-    /* Remove top-bar padding on body since it's hidden */
-    body { padding-top: var(--fs-nav-h); }
+    /* Body padding handled by .fs-body-padded (JS) */
 
     /* Grid: 2 cards per row on mobile */
     .col-xl-3.col-lg-4.col-md-6 { flex: 0 0 50%; max-width: 50%; }

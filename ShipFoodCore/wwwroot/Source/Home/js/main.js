@@ -47,20 +47,20 @@
     skeletonLoader();
     
     
-    // Fixed Navbar
+    // Fixed Navbar on scroll — topbar scrolls away, nav becomes fixed at top
     $(window).scroll(function () {
-        if ($(window).width() < 992) {
-            if ($(this).scrollTop() > 45) {
-                $('.fixed-top').addClass('bg-white shadow');
-            } else {
-                $('.fixed-top').removeClass('bg-white shadow');
-            }
+        var scrollY = $(this).scrollTop();
+        var topbar = $('.fs-topbar');
+        var topbarH = topbar.length ? topbar.outerHeight() : 38;
+        var $nav = $('.fs-nav');
+        var $body = $('body');
+
+        if (scrollY > topbarH) {
+            $nav.addClass('fs-nav-fixed');
+            $body.addClass('fs-body-padded');
         } else {
-            if ($(this).scrollTop() > 45) {
-                $('.fixed-top').addClass('bg-white shadow').css('top', -45);
-            } else {
-                $('.fixed-top').removeClass('bg-white shadow').css('top', 0);
-            }
+            $nav.removeClass('fs-nav-fixed');
+            $body.removeClass('fs-body-padded');
         }
     });
     

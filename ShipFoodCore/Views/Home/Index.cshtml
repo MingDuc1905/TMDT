@@ -263,10 +263,38 @@
 
 @section scripts {
 <script>
-    // Header scroll shadow
+    // Header scroll shadow (subtle, trước khi nav fixed)
     window.addEventListener('scroll', function () {
         var h = document.getElementById('fsHeader');
         if (h) h.classList.toggle('scrolled', window.scrollY > 10);
+    });
+
+    // ── Re-trigger Bootstrap carousel sau khi tất cả ảnh đã load ──
+    $(window).on('load', function () {
+        var carouselEl = document.getElementById('header-carousel');
+        if (!carouselEl) return;
+
+        // Kích hoạt resize để carousel tính toán lại kích thước
+        window.dispatchEvent(new Event('resize'));
+
+        // Gọi cycle() để đảm bảo auto-play hoạt động sau khi ảnh load
+        var bsCarousel = bootstrap.Carousel.getInstance(carouselEl);
+        if (bsCarousel) {
+            bsCarousel.cycle();
+        }
+
+        // Re-trigger caption animation cho slide đang active
+        var activeSlide = carouselEl.querySelector('.carousel-item.active');
+        if (activeSlide) {
+            var h1 = activeSlide.querySelector('.carousel-caption h1');
+            var btns = activeSlide.querySelector('.carousel-caption .slideInUp');
+            [h1, btns].forEach(function (el) {
+                if (!el) return;
+                el.style.animation = 'none';
+                el.offsetHeight;
+                el.style.animation = '';
+            });
+        }
     });
 
     // Re-init WOW với offset 0 để trigger ngay khi vào viewport (kể cả hero)

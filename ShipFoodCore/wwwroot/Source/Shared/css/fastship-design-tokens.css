@@ -87,13 +87,12 @@ table, th, td, li, a,
     font-family: var(--fs-font) !important;
 }
 
-/* Icon font exception — bảo vệ FontAwesome, Bootstrap Icons, LineIcons khỏi bị ghi đè font-family */
-.fa, .fas, .far, .fal, .fab, .fad,
-.bi, [class^="bi-"],
-.lni, [class^="lni-"],
-[class*=" flaticon-"] {
-    font-family: inherit !important;
-}
+/* Icon font exception — phục hồi FontAwesome, LineIcons bị ghi đè font-family */
+.fa, .fas, .far { font-family: 'Font Awesome 5 Free' !important; font-weight: 900; }
+.far { font-weight: 400; }
+.fab { font-family: 'Font Awesome 5 Brands' !important; font-weight: 400; }
+.lni { font-family: 'LineIcons' !important; }
+/* Bootstrap Icons (.bi) đã dùng !important trong CSS của nó, không cần xử lý */
 
 /* ── 3. Typography Scale ──────────────────────────────────── */
 .fs-h1 { font-size: clamp(1.8rem, 4vw, 3rem); font-weight: 800; line-height: 1.15; }

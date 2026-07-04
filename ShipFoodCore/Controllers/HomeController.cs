@@ -338,8 +338,8 @@ public class HomeController : BaseController
             db.SaveChanges();
 
             // Gán Session + redirect thẳng vào trang chủ
-            var cart = new Cart { userid = newUser.userid };
-            SetCart(cart);
+            var newCart = new Cart { userid = newUser.userid };
+            SetCart(newCart);
             SetSessionUser(newUser);
             return RedirectToAction("Index", "Home");
         }

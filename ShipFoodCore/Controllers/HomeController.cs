@@ -312,24 +312,30 @@ public class HomeController : BaseController
         {
             // ─── TỰ ĐỘNG TẠO TÀI KHOẢN KHI ĐĂNG NHẬP GOOGLE LẦN ĐẦU ───
             // Tạo password ngẫu nhiên (hash BCrypt) — user không cần biết, chỉ dùng OAuth
-            var randomPwd = $"GG_{Guid.NewGuid():N}_{email}";
+            var randomPwd = $"GG_{Guid.NewGuid():N}";
             var hashedPwd = BCrypt.Net.BCrypt.HashPassword(randomPwd, workFactor: 12);
+
+            // Cắt username/email xuống tối đa 50 ký tự để tránh lỗi MaxLength DB
+            var truncatedEmail = email.Length > 50 ? email[..50] : email;
+            // Tạo username ngắn gọn, tránh trùng: gg_{first8}_{timestamp}
+            var shortUser = "gg_" + Guid.NewGuid().ToString("N")[..12];
 
             var newUser = new tbUser
             {
-                username     = email,                          // dùng email làm username
+                username     = shortUser,                     // username ngắn, không lo trùng
                 pwd          = hashedPwd,
-                email        = email,
-                sdt          = "0000000000",                   // Google không cung cấp SĐT, dùng placeholder
+                email        = truncatedEmail,
+                sdt          = "0000000000",                  // Google không cung cấp SĐT, dùng placeholder
                 loaitaikhoan = "Khách hàng",
                 vitien       = 0,
-                trangthai    = 1                               // kích hoạt ngay, không cần duyệt
+                trangthai    = 1                              // kích hoạt ngay, không cần duyệt
             };
             db.tbUser.Add(newUser);
-            db.SaveChanges();                                   // ← newUser.userid được sinh tự động
+            db.SaveChanges();                                  // ← newUser.userid được sinh tự động
 
             // Đồng bộ tbKhachHang (khóa ngoại 1-1)
-            var tenKhachHang = !string.IsNullOrEmpty(name) ? name : email;
+            var tenKhachHang = !string.IsNullOrEmpty(name) ? name : truncatedEmail;
+            if (tenKhachHang.Length > 50) tenKhachHang = tenKhachHang[..50];
             db.tbKhachHang.Add(new tbKhachHang
             {
                 userid = newUser.userid,
@@ -366,7 +372,12 @@ public class HomeController : BaseController
         }
         catch (Exception ex)
         {
-            ViewBag.LoginFail = "Đăng nhập Google gặp sự cố. Vui lòng thử lại hoặc dùng tài khoản thường.";
+            // Log lỗi chi tiết để debug trên Railway
+            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<HomeController>>();
+            logger.LogError(ex, "Google OAuth callback failed for email {Email}", email ?? "null");
+
+            var innerMsg = ex.InnerException?.Message ?? "";
+            ViewBag.LoginFail = "Đăng nhập Google gặp sự cố: " + innerMsg;
             return View("Login");
         }
     }

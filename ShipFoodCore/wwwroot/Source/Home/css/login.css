@@ -1,13 +1,23 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap');
 
+/* Body style now set inline in cshtml (flexbox, min-height:100dvh, no overflow lock) */
 body {
-    font-family: 'Roboto', Arial, sans-serif;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
     margin: 0;
     background: #f0f2f5;
+}
+
+/* Auth page wrapper — flexbox căn giữa, không khóa viewport */
+.auth-page-wrapper {
+    min-height: 100dvh;
+    height: auto;
+    overflow: visible;
+}
+.auth-main {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow-y: auto;
 }
 
 .login-container {

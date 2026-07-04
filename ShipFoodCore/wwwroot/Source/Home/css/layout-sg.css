@@ -16,14 +16,14 @@
     --fs-topbar-h:38px;
 }
 
-/* ── Ẩn scrollbar nhưng vẫn giữ scroll được (Firefox + Chrome + Edge) ─── */
-html {
+/* ── Ẩn scrollbar (DISABLED — thanh cuộn hiển thị bình thường để phục vụ chấm bài) ─── */
+/* html {
     scrollbar-width: none;
     -ms-overflow-style: none;
 }
 html::-webkit-scrollbar {
     display: none;
-}
+} */
 
 /* ── Utilities ─────────────────────────────────────────────── */
 .fw-700 { font-weight: 700 !important; }

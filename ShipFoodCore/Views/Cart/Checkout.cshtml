@@ -52,7 +52,16 @@
         .available-address-card:hover, .available-address-card.selected { border-color: #3CB815; background: #f6fff3; }
         .available-address-card input[type=radio] { accent-color: #3CB815; margin-right: 8px; }
         .payment-detail-box { background: linear-gradient(135deg,#f8f9ff,#eef1ff); border: 1px solid #d0d7ff; border-radius: 12px; padding: 16px; margin-top: 12px; }
-        .confirm-check { display: flex; align-items: center; gap: 10px; padding: 12px 14px; background: #fffbf0; border: 1px solid #ffd700; border-radius: 10px; }
+        .confirm-check { display: flex; align-items: center; gap: 10px; padding: 12px 14px; background: #fffbf0; border: 1px solid #ffd700; border-radius: 12px; }
+        /* ── Đồng bộ Home theme: border-radius + box-shadow cho Checkout ── */
+        .checkout-card { border-radius: 12px !important; box-shadow: 0 4px 20px rgba(0,0,0,.07) !important; }
+        .order-summary { border-radius: 12px !important; box-shadow: 0 4px 20px rgba(0,0,0,.07) !important; }
+        .form-control, .form-select { border-radius: 12px !important; }
+        .btn-checkout { border-radius: 12px !important; }
+        .payment-option { border-radius: 12px !important; }
+        .coupon-box { border-radius: 12px !important; }
+        .available-address-card { border-radius: 12px !important; }
+        .address-tabs .tab-btn { border-radius: 12px !important; }
         .confirm-check input { accent-color: #f39c12; width: 18px; height: 18px; }
         @@keyframes popIn { 0%{transform:scale(.8);opacity:0} 100%{transform:scale(1);opacity:1} }
         .popup-overlay { position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.55);z-index:9999;display:flex;align-items:center;justify-content:center; }

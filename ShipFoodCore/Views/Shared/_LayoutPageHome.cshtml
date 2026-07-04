@@ -362,7 +362,8 @@
                     data: { q: q },
                     success: function(res) {
                         if (!res || !res.length) {
-                            autocompleteBox.style.display = 'none';
+                            autocompleteBox.innerHTML = '<div style="padding:16px;text-align:center;color:#888;font-size:13px;"><span style="font-size:24px;display:block;margin-bottom:4px;">🔍</span>🚫 Không tìm thấy món ăn hoặc quán ăn phù hợp</div>';
+                            autocompleteBox.style.display = 'block';
                             return;
                         }
                         autocompleteBox.innerHTML = '';

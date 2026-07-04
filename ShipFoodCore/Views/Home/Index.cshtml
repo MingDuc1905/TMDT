@@ -269,68 +269,21 @@
         if (h) h.classList.toggle('scrolled', window.scrollY > 10);
     });
 
-    // ── Re-trigger Bootstrap carousel sau khi tất cả ảnh đã load ──
-    $(window).on('load', function () {
-        var carouselEl = document.getElementById('header-carousel');
-        if (!carouselEl) return;
+    // ── Carousel: re-trigger CSS animation mỗi khi chuyển slide ──
+    // main.js (skeleton callback) đã xử lý lần đầu sau khi skeleton biến mất
+    document.addEventListener('DOMContentLoaded', function () {
+        var carousel = document.getElementById('header-carousel');
+        if (!carousel) return;
 
-        // Kích hoạt resize để carousel tính toán lại kích thước
-        window.dispatchEvent(new Event('resize'));
-
-        // Gọi cycle() để đảm bảo auto-play hoạt động sau khi ảnh load
-        var bsCarousel = bootstrap.Carousel.getInstance(carouselEl);
-        if (bsCarousel) {
-            bsCarousel.cycle();
-        }
-
-        // Re-trigger caption animation cho slide đang active
-        var activeSlide = carouselEl.querySelector('.carousel-item.active');
-        if (activeSlide) {
-            var h1 = activeSlide.querySelector('.carousel-caption h1');
-            var btns = activeSlide.querySelector('.carousel-caption .slideInUp');
-            [h1, btns].forEach(function (el) {
+        carousel.addEventListener('slid.bs.carousel', function (e) {
+            if (!e.relatedTarget) return;
+            var els = e.relatedTarget.querySelectorAll('.carousel-caption h1, .carousel-caption .slideInUp');
+            els.forEach(function (el) {
                 if (!el) return;
                 el.style.animation = 'none';
                 el.offsetHeight;
                 el.style.animation = '';
             });
-        }
-    });
-
-    // Re-init WOW với offset 0 để trigger ngay khi vào viewport (kể cả hero)
-    if (typeof WOW !== 'undefined') {
-        var wow = new WOW({
-            offset: 0,
-            mobile: true,
-            live: true
-        });
-        wow.init();
-    }
-
-    // Carousel: re-trigger CSS animation khi chuyển slide
-    document.addEventListener('DOMContentLoaded', function () {
-        var carousel = document.getElementById('header-carousel');
-        if (!carousel) return;
-
-        function triggerCaptionAnim(slideEl) {
-            var h1 = slideEl.querySelector('.carousel-caption h1');
-            var btns = slideEl.querySelector('.carousel-caption .slideInUp');
-            // Reset animation bằng cách xóa/thêm lại class
-            [h1, btns].forEach(function (el) {
-                if (!el) return;
-                el.style.animation = 'none';
-                el.offsetHeight; // reflow
-                el.style.animation = '';
-            });
-        }
-
-        // Trigger lần đầu cho slide active
-        var activeSlide = carousel.querySelector('.carousel-item.active');
-        if (activeSlide) triggerCaptionAnim(activeSlide);
-
-        // Trigger mỗi lần slide
-        carousel.addEventListener('slid.bs.carousel', function (e) {
-            triggerCaptionAnim(e.relatedTarget);
         });
     });
 </script>

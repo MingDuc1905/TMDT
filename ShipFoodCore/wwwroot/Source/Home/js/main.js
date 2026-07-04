@@ -1,6 +1,27 @@
 (function ($) {
     "use strict";
 
+    // ── Helper: re-trigger caption animation (slideInDown / slideInUp) ──
+    function triggerCaptionAnim(slideEl) {
+        if (!slideEl) return;
+        var els = slideEl.querySelectorAll('.carousel-caption h1, .carousel-caption .slideInUp');
+        els.forEach(function (el) {
+            if (!el) return;
+            el.style.animation = 'none';
+            el.offsetHeight; // force reflow
+            el.style.animation = '';
+        });
+    }
+
+    // ── Chuyển Bootstrap Carousel sang crossfade (thay vì slide) ──
+    // Tương đương animateIn: 'fadeIn' / animateOut: 'fadeOut' của OwlCarousel
+    document.addEventListener('DOMContentLoaded', function () {
+        var carouselEl = document.getElementById('header-carousel');
+        if (carouselEl) {
+            carouselEl.classList.add('carousel-fade');
+        }
+    });
+
     // Skeleton loading — fade out after page render
     var skeletonLoader = function () {
         setTimeout(function () {
@@ -40,6 +61,21 @@
                             }
                         }
                     });
+                }
+
+                // ── Re-trigger Bootstrap Carousel SAU KHI skeleton biến mất ──
+                var carouselEl = document.getElementById('header-carousel');
+                if (carouselEl) {
+                    // Đảm bảo carousel auto-play hoạt động trở lại
+                    var bsCarousel = bootstrap.Carousel.getInstance(carouselEl);
+                    if (bsCarousel) {
+                        bsCarousel.cycle();
+                    }
+                    // Re-trigger caption animation cho slide đang active
+                    var activeSlide = carouselEl.querySelector('.carousel-item.active');
+                    if (activeSlide) {
+                        triggerCaptionAnim(activeSlide);
+                    }
                 }
             });
         }, 100);

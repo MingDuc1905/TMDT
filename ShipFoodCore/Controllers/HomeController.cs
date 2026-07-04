@@ -683,7 +683,7 @@ public class HomeController : BaseController
                 tenmon     = c.tbMonAn!.tenmon ?? "",
                 hinhanh    = c.tbMonAn!.hinhanh ?? "",
                 tenkh      = c.tbDonHang!.tbThongTinDatHang!.tbKhachHang!.tenkh ?? "Khách hàng",
-                ngaydat    = c.tbDonHang!.ngaydathang!.ToString("dd/MM/yyyy") ?? ""
+                ngaydat    = ((DateTime)c.tbDonHang!.ngaydathang!).ToString("dd/MM/yyyy")
             }))
             .OrderByDescending(r => r.madg)
             .Skip((page - 1) * pageSize)

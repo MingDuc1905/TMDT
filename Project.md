@@ -44,7 +44,7 @@ Cung cấp một giải pháp hoàn chỉnh cho:
 | **Bootstrap 5** | Responsive grid + components |
 | **fastship-design-tokens.css** | **NEW v4.0** Global Design System (unified tokens, 16 component systems) |
 | **jQuery 3.7.1** | DOM manipulation + AJAX |
-| **Font Awesome 5** | Icon system |
+| **Font Awesome 5** | **Icon system duy nhất** (đã xoá Bootstrap Icons, Flaticon, LineIcons, Line Awesome, Themify, Simple Line Icons, Material Design Iconic, Avasta, Icomoon, Font Awesome Old — chỉ còn FA5 CDN + Emojis) |
 | **WOW.js + Animate.css** | Scroll animations |
 | **OwlCarousel 2** | Carousel/slider |
 | **DataTables** | Server-side table pagination |
@@ -425,6 +425,7 @@ APP_DOMAIN=https://shipfood.up.railway.app
 - [x] ✅ Smart sticky nav (topbar scrolls away, nav fixed)
 - [x] ✅ Bootstrap carousel re-trigger on window.load
 - [x] ✅ **Global Design System v4.0** (fastship-design-tokens.css + dashboard override cho 4 layouts)
+- [x] ✅ **Icon cleanup v4.1** (xoá 10 icon libraries thừa, chỉ còn FA5 + Emojis, -173k dòng)
 - [ ] PayPal/ZaloPay/MoMo integration (đã remove khỏi UI)
 - [ ] Unit tests (chưa có)
 - [ ] Real payment (Stripe/PayPal/ZaloPay)
@@ -523,7 +524,7 @@ Dự án mã nguồn mở — phát triển bởi đội ngũ ShipFood.
 
 ---
 
-> **Phiên bản**: 2.4 (Global Design System v4.0, Theme Fragmentation fix, Dashboard Modern Minimalist)  
+> **Phiên bản**: 2.5 (Global Design System v4.0, Icon Cleanup v4.1)  
 > **Ngôn ngữ**: C# 12, HTML5, CSS3, JavaScript ES6  
 > **Kiến trúc**: ASP.NET Core MVC n-tier  
 > **Database**: MySQL 8+  

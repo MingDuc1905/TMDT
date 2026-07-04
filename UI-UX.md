@@ -1631,15 +1631,18 @@ Layout chuẩn: top bar, navbar full width, search inline, 4 columns grid
 
 ### 19.1 Icon Libraries Inventory
 
-FastShip sử dụng đa dạng icon libraries cho các theme khác nhau:
+FastShip đã **đồng bộ hoá** toàn bộ icon libraries về **chỉ 2 nguồn**: Font Awesome 5 (CDN) và Emojis hệ thống. Tất cả các icon fonts thừa (Bootstrap Icons, Flaticon, LineIcons, Line Awesome, Simple Line Icons, Themify, Material Design Iconic, Avasta, Icomoon, Font Awesome Old) đã được xoá khỏi CSS @import và thư mục vật lý.
 
-| Theme | Libraries | Files | Usage |
+| Theme | Libraries | Nguồn | Usage |
 |-------|-----------|-------|-------|
-| **Home (Customer)** | Font Awesome 5 (`fa`, `fas`, `fab`), Bootstrap Icons (`bi`) | CDN + inline | Header, footer, cards, buttons, social links |
-| **Admin Dashboard** | Flaticon, Font Awesome 5, Line Awesome, SVG inline | `flaticon.css`, CDN | Sidebar icons, stat cards, tables, action buttons |
-| **Restaurant Dashboard** | Flaticon, LineIcons (`lni`), Font Awesome 5, SVG inline | `flaticon.css`, CDN | Sidebar menu, stat cards, product management |
-| **Shipper Dashboard** | LineIcons (`lni`), Font Awesome 5, SVG inline, Themify | CDN | Sidebar, order list, wallet, notifications |
-| **Cart/Checkout** | Font Awesome 5, Elegant Icons | CDN, local font files | Cart items, payment icons, action buttons |
+| **Home (Customer)** | Font Awesome 5 (`fa`, `fas`, `fab`) | CDN 5.10.0 | Header, footer, cards, buttons, social links |
+| **Admin Dashboard** | Font Awesome 5 (`fa`, `fas`, `fab`) + SVG inline | CDN 5.10.0 | Sidebar icons, KPI cards, tables, action buttons |
+| **Restaurant Dashboard** | Font Awesome 5 (`fa`, `fas`, `fab`) + SVG inline | CDN 5.10.0 | Sidebar menu, KPI cards, product management |
+| **Shipper Dashboard** | Font Awesome 5 (`fa`, `fas`, `fab`) + SVG inline | CDN 5.10.0 | Sidebar, order list, wallet, notifications |
+| **Cart/Checkout** | Font Awesome 5 (`fa`, `fas`, `fab`) + Elegant Icons | CDN + local | Cart items, payment icons, action buttons |
+| **Category pills** | Emojis hệ thống | Hệ thống | Danh mục món ăn (🍽, 🍚, 🍜, etc.) |
+
+> ⚡ **Icon Cleanup v4.1**: Đã xoá hoàn toàn Bootstrap Icons, Flaticon, LineIcons, Line Awesome, Simple Line Icons, Themify, Material Design Iconic Font, Avasta, Icomoon, Font Awesome Old — gồm CSS @import + thư mục icons vật lý (~173k dòng, ~50MB).
 
 ### 19.2 Icon Usage Patterns
 
@@ -1667,13 +1670,15 @@ FastShip sử dụng đa dạng icon libraries cho các theme khác nhau:
 
 | Location | Icon Set | Typical Color |
 |----------|---------|---------------|
-| Sidebar menu items | Flaticon (`flaticon-381-*`), SVG inline | `#fff` on dark bg, active gradient |
-| KPI stat cards | Font Awesome (`fa-dollar-sign`, `fa-shopping-cart`, `fa-users`, `fa-percent`, `fa-trophy`) | White on gradient bg |
-| Action buttons | Font Awesome (`fa-edit`, `fa-trash`, `fa-eye`, `fa-check`, `fa-times`) | Theme-specific |
-| Data tables status | Font Awesome (`fa-check`, `fa-redo`, `fa-ban`, `fa-stream`, `fa-spinner`) | Contextual colors |
-| User avatar | SVG inline (Feather icons: `icon-user1`, `icon-logout`) | `text-primary`, `text-danger` |
-| Notification bell | `fa fa-bell`, SVG bell icon | `#fff` on header |
-| Search | `fa fa-search` | `var(--text)` |
+| Sidebar menu items | Font Awesome 5 (`fas fa-home`, `fas fa-store`, etc.) + SVG inline | `#fff` on dark bg, active `var(--fs-green)` |
+| KPI stat cards | Font Awesome (`fas fa-dollar-sign`, `fas fa-shopping-cart`, `fas fa-users`, `fas fa-percent`, `fas fa-trophy`) | White on `var(--fs-green-bg)` flat |
+| Action buttons | Font Awesome (`fas fa-edit`, `fas fa-trash`, `fas fa-eye`, `fas fa-check`, `fas fa-times`) | Theme-specific |
+| Data tables status | Font Awesome (`fas fa-check`, `fas fa-redo`, `fas fa-ban`, `fas fa-stream`, `fas fa-spinner`) | Contextual colors |
+| User avatar | SVG inline (`icon-user1`, `icon-logout`) | `text-primary`, `text-danger` |
+| Notification bell | `fas fa-bell`, SVG bell icon | `#fff` on header |
+| Search | `fas fa-search` | `var(--text)` |
+
+> **Lưu ý**: Flaticon (`flaticon-381-*`), LineIcons (`lni`), Line Awesome (`las`/`la`), Themify (`ti-*`), Material Design (`mdi`) đã được thay thế hoàn toàn bằng FA5 tương đương. Các icon classes cũ đã được chuyển đổi trong tất cả views (Admin, Shipper, Restaurant).
 
 ### 19.3 Icon Color Conventions
 
@@ -1904,18 +1909,33 @@ LOGIN ──→ DASHBOARD (with LIVE MAP)
 | **Auth pages mobile keyboard fix** | ✅ | `height:100vh` → `min-height:100vh;height:auto` + flexbox |
 | **All 4 layouts linked** | ✅ | Home, Admin, Restaurant, Shipper đều load `fastship-design-tokens.css` |
 
+### 22.7 ✅ Completed in v4.1 — Icon Cleanup & Library Consolidation
+
+| Task | Status | Details |
+|------|--------|---------|
+| **Remove Bootstrap Icons CDN** | ✅ | Xoá `bootstrap-icons@1.4.1` khỏi Login, Signup, Forgot, `_LayoutPageHome` |
+| **Remove LineIcons CDN** | ✅ | Xoá `lineicons.com/2.0` khỏi Admin, Restaurant, Shipper layouts |
+| **Unify FA version** | ✅ | Admin + Shipper: FA6 beta → **FA5 5.10.0** (đồng bộ với Home) |
+| **Remove .lni exception** | ✅ | Xoá `.lni` font-family exception khỏi `fastship-design-tokens.css` |
+| **Replace Flaticon → FA5** | ✅ | `flaticon-381-location-4` → `fas fa-map-marker-alt` (Admin/OrderDetail) |
+| **Replace Line Awesome → FA5** | ✅ | `las la-phone` → `fas fa-phone`, `las la-check-square` → `fas fa-check-square`, `las la-times-circle` → `fas fa-times-circle`, `la la-angle-left/right` → `fas fa-angle-left/right` |
+| **Replace Themify → FA5** | ✅ | `ti-reload` → `fas fa-sync` (Shipper/ThongBao) |
+| **Replace Material Design → FA5** | ✅ | `mdi mdi-file-document-box` → `fas fa-file-alt` (Shipper/ThongBao) |
+| **Replace LNI → FA5** | ✅ | `lni lni-user` → `fas fa-user`, `lni lni-facebook-messenger` → `fab fa-facebook-messenger` (Shipper/OrderDetail) |
+| **Remove @import icon CSS** | ✅ | Xoá 8 @import dòng icon fonts khỏi 6 files: `style-admin.css`, `style-restaurant.css`, `style-shiper.css`, `Admin/scss/main.css`, `Restaurant/scss/main.css`, `Shipper/scss/main.css` |
+| **Delete icon directories** | ✅ | Xoá `Source/Admin/icons/`, `Source/Restaurant/icons/`, `Source/Shipper/icons/` (~173k dòng, ~50MB) |
+
 ---
 
-> **Document Version**: 4.0 (Full)  
+> **Document Version**: 4.1 (Full)  
 > **Cập nhật**: Tháng 7, 2026  
-> **Based on**: Actual source code analysis of 8 Controllers, 30+ Views, 15+ Models, 10+ CSS files, 5 Layout files, 1 SignalR Hub, 4 sessions of responsive mobile fixes + 1 theme unification update  
-> **Key changes v4.0**:  
-> - 🆕 `fastship-design-tokens.css` — Global Design System 350+ lines (16 components, unified tokens)  
-> - 🖥️ Dashboard Modern Minimalist Override (Admin, Restaurant, Shipper layouts)  
-> - 🔤 FontAwesome icon protection (explicit FA font names, không dùng `inherit`)  
-> - 📐 Theme Fragmentation fix — Home/Cart/Dashboard chia sẻ chung design tokens  
-> - UI-UX.md: Thêm Section 3.5 Global Design System v4.0  
-> - UI-UX.md: Thêm Section 22.6 ✅ v4.0 backlog  
-> - UI-UX.md: Cập nhật version 3.6→4.0, Section 1, 2, Color Usage Matrix  
-> - Project.md: Cập nhật v2.4, frontend stack, tech debt  
+> **Based on**: Actual source code analysis of 8 Controllers, 30+ Views, 15+ Models, 10+ CSS files, 5 Layout files, 1 SignalR Hub, 4 sessions of responsive mobile fixes + 1 theme unification update + 1 icon cleanup session  
+> **Key changes v4.1**:  
+> - 🗑️ **Icon Cleanup** — Xoá hoàn toàn 10 icon libraries thừa (Bootstrap Icons, Flaticon, LineIcons, Line Awesome, Simple Line Icons, Themify, Material Design Iconic, Avasta, Icomoon, Font Awesome Old)  
+> - 🎯 **Consolidation** — Chỉ còn Font Awesome 5 (CDN 5.10.0) + Emojis hệ thống  
+> - 🔄 **12 view replacements** — Tất cả icon class references cũ (flaticon, las/la, lni, ti, mdi) → FA5 tương đương  
+> - 📦 **-173k dòng** — Xoá thư mục icons vật lý (Admin, Restaurant, Shipper), 6 file CSS/scss dọn @import  
+> - 📐 UI-UX.md: Section 19.1-19.2 viết lại hoàn toàn  
+> - 📐 UI-UX.md: Thêm Section 22.7 ✅ v4.1 backlog  
+> - 📐 Project.md: Cập nhật v2.5 frontend stack + tech debt  
 

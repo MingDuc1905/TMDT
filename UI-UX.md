@@ -1,9 +1,9 @@
 # Fastship (ShipFood) — UI/UX Documentation (Full)
 
-> **Phiên bản**: 3.5 — Server-side Pagination Reviews, 429 Frontend Handler, Bootstrap 3 Cleanup  
+> **Phiên bản**: 3.6 — Server-side Pagination Reviews, 429 Frontend Handler, Bootstrap 3 Cleanup  
 > **Cập nhật**: Tháng 7, 2026  
 > **Mô tả**: Tài liệu thiết kế giao diện & trải nghiệm người dùng toàn diện cho nền tảng đặt đồ ăn Fastship  
-> **Tài liệu liên quan**: [Architectural-Solution.md](./Architectural-Solution.md) — 15 giải pháp kiến trúc backend & nghiệp vụ
+> **Tài liệu liên quan**: Project.md — Tổng quan kiến trúc & phát triển
 
 ---
 
@@ -204,11 +204,121 @@ body { font-family: 'Inter', sans-serif; }
 }
 ```
 
+### 3.3 Scrollbar Handling
+
+FastShip có chiến lược scrollbar nhất quán xuyên suốt các theme:
+
+#### 3.3.1 Global Scrollbar Ẩn (Home Theme)
+
+Trang chủ (Customer) ẩn scrollbar toàn cục nhưng vẫn giữ scroll được:
+
+```css
+/* layout-sg.css */
+html {
+    scrollbar-width: none;        /* Firefox */
+    -ms-overflow-style: none;     /* IE/Edge legacy */
+}
+html::-webkit-scrollbar {
+    display: none;                /* Chrome, Safari, Edge */
+}
+```
+
+Điều này tạo cảm giác "app-like" — nội dung cuộn mượt mà không bị thanh cuộn ngang/dọc chiếm diện tích.
+
+#### 3.3.2 Overflow-x: Hidden — Chỉ Container, Không Body
+
+Để tránh scroll ngang do nội dung tràn, `overflow-x: hidden` được đặt trên **container elements**, KHÔNG phải body:
+
+```css
+/* ✅ ĐÚNG: Chỉ container */
+.container-fluid, .container-xxl, .container {
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+/* ❌ KHÔNG đặt trên body (gây mất scroll dọc) */
+/* body { overflow-x: hidden; } — KHÔNG DÙNG */
+```
+
+**Vấn đề đã gặp (Fix v3.5)**: Trước đây `body` cũng bị gán `overflow-x: hidden` thông qua selector `body, .container-fluid, ...`, dẫn đến mất thanh cuộn dọc trên Trang chủ. Đã fix bằng cách tách `body` ra khỏi selector.
+
+#### 3.3.3 Auth Pages — Viewport Wrapper (v3.3)
+
+Trang Login, Signup, Forgot sử dụng kỹ thuật **viewport locking** để loại bỏ scroll rác:
+
+```css
+body {
+    height: 100vh;
+    overflow: hidden;           /* Khóa cứng viewport, cấm scroll toàn trang */
+}
+.auth-page-wrapper {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    max-height: 100vh;
+    overflow: hidden;
+}
+.auth-header {
+    flex-shrink: 0;             /* Header chiếm chiều cao tự nhiên */
+}
+.auth-main {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow-y: auto;           /* Chỉ cho phép scroll nội bộ nếu form quá dài (Signup) */
+}
+```
+
+#### 3.3.4 Perfect Scrollbar (Dashboard Themes)
+
+Admin, Restaurant, Shipper dashboards dùng **Perfect Scrollbar** cho sidebar và scrollable containers:
+
+| Library | Version | Files |
+|---------|---------|-------|
+| `perfect-scrollbar.css` | Bundle | `wwwroot/Source/Admin/css/`, `Restaurant/`, `Shipper/` |
+| `perfect-scrollbar.js` | Bundle | Init via inline JS hoặc deznav-init.js |
+
+```css
+/* perfect-scrollbar overrides */
+.scrollbar-container {
+    max-height: none;
+    overflow-x: auto;
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 6px;
+    padding: 4px 0;
+}
+```
+
+#### 3.3.5 iOS Momentum Scrolling
+
+Để scroll mượt trên iOS Safari (DetailRestaurant categories, dashboard tables):
+
+```css
+.scrollbar-container, .table-responsive {
+    -webkit-overflow-scrolling: touch;
+}
+```
+
+#### 3.3.6 Navbar Scrollbar Prevention
+
+Ngăn scrollbar không mong muốn xuất hiện cạnh icon giỏ hàng:
+
+```css
+.fs-nav .navbar-collapse,
+.fs-nav .navbar-nav {
+    overflow: visible !important;
+}
+```
+
 ---
 
-## 3.3 Header Sticky Fix — Skeleton Overlay Conflict (v3.2)
+---
 
-### 3.3.1 Vấn đề
+## 3.4 Header Sticky Fix — Skeleton Overlay Conflict (v3.2)
+
+### 3.4.1 Vấn đề
 
 Header (`#fs-header`) sử dụng `position: fixed` với `z-index: 1030`. Tuy nhiên, skeleton loading overlay (`#fs-loading-skeleton`) có `z-index: 9999` (cao hơn) và dùng `position: fixed` phủ kín toàn màn hình (`inset: 0`).
 
@@ -227,7 +337,7 @@ BEFORE (v3.1):
   → Header chỉ hiện ra sau 350ms
 ```
 
-### 3.3.2 Giải pháp
+### 3.4.2 Giải pháp
 
 1. **Header z-index**: Tăng từ `1030` lên `10000` (cao hơn skeleton overlay)
 2. **Skeleton overlay top**: Thay đổi từ `top: 0` thành `top: calc(var(--fs-nav-h) + var(--fs-topbar-h))` trên desktop và `top: var(--fs-nav-h)` trên mobile
@@ -243,14 +353,14 @@ AFTER (v3.2):
   → Header luôn visible từ đầu
 ```
 
-### 3.3.3 Files thay đổi
+### 3.4.3 Files thay đổi
 
 | File | Thay đổi |
 |------|----------|
 | `layout-sg.css` | `.fs-header` z-index: 1030 → 10000 |
 | `layout-sg.css` | `.fs-skeleton-overlay` top: 0 → `calc(var(--fs-nav-h) + var(--fs-topbar-h))` + responsive override |
 
-### 3.3.4 CSS Code
+### 3.4.4 CSS Code
 
 ```css
 /* Header luôn trên cùng */
@@ -1216,22 +1326,56 @@ public async Task UpdateLocation(int orderId, double lat, double lng)
 
 ## 16. Micro-interactions & Animations
 
-### 16.1 Animation Inventory
+### 16.1 Custom Keyframes
 
-| Element | Animation | Duration | Trigger |
-|---------|-----------|----------|---------|
-| Product card hover | `translateY(-6px)` | 0.3s | Hover |
-| Product image hover | `scale(1.08)` | 0.5s | Card hover |
-| Button hover | `translateY(-1px)` | 0.2s | Hover |
-| Button active | `opacity: .88` | 0.2s | Click |
-| Carousel caption | `slideInDown` / `slideInUp` | 0.7s | Slide activate |
-| Navbar scroll | `box-shadow` + `bg-white` | 0.5s | Window scroll |
-| Skeleton shimmer | `background-position` | 1.5s infinite | Page load |
-| Chat typing dots | `typing` keyframes | 1.4s | While AI responds |
-| Toast dismiss | `fadeOut` | 0.4s | After 3.5s timeout |
-| Map marker update | `setLatLng` | Instant | SignalR event |
+FastShip dinh nghia CSS @keyframes sau trong `layout-sg.css` va inline trong views:
 
-### 16.2 Reduced Motion
+| Keyframe | File | Target |
+|----------|------|--------|
+| `fs-shimmer` | `layout-sg.css` | Skeleton loading shimmer |
+| `slideInDown` | `layout-sg.css` | Carousel caption h1 tu tren xuong |
+| `slideInUp` | `layout-sg.css` | Carousel caption buttons tu duoi len |
+| `typing` | `_ChatWidget.cshtml` | Chat AI typing indicator |
+| `pulse` | `AdminChat/Index.cshtml` | Unread indicator, online status |
+| `slideUp` | `SuccessView.cshtml`, `FailureView.cshtml` | Ket qua thanh toan hien thi |
+| `popIn` | `Checkout.cshtml` | Popup scale-in effect |
+
+### 16.2 Animation Inventory
+
+| Element | Animation | Duration | Easing | Trigger | File |
+|---------|-----------|----------|--------|--------|------|
+| Product card hover | `translateY(-6px)` + box-shadow | 0.3s | ease | Hover | `layout-sg.css` |
+| Product image hover | `scale(1.08)` | 0.5s | ease | Card hover | `layout-sg.css` |
+| Button hover | `translateY(-1px)` | 0.2s | ease | Hover | `layout-sg.css` |
+| Cart item hover | bg highlight | 0.15s | ease | Hover | `Cart/Index.cshtml` |
+| Cart qty button | border color + bg | 0.15s | ease | Hover | `Cart/Index.cshtml` |
+| Delete button | color red + bg pink | 0.15s | ease | Hover | `Cart/Index.cshtml` |
+| Checkout gradient btn | opacity | 0.2s | ease | Hover | `Cart/Checkout.cshtml` |
+| Payment option | border highlight | 0.2s | ease | Click/Hover | `Cart/Checkout.cshtml` |
+| Address card | border + shadow | 0.2s | ease | Selected | `Cart/Checkout.cshtml` |
+| Carousel caption | slideInDown/Up | 0.7s (0.4s mobile) | ease both | Slide activate | `layout-sg.css` |
+| Skeleton shimmer | fs-shimmer | 1.5s infinite | linear | Page load | `layout-sg.css` |
+| Navbar scroll shadow | class toggle | 0.3s | ease | Scroll >10px | `layout-sg.css` |
+| Nav fixed on scroll (v3.6) | fs-nav-fixed class | Instant | -- | Scroll > topbarH | `main.js` |
+| Chat toggle hover | scale + shadow | 0.2s | ease | Hover | `_ChatWidget.cshtml` |
+| Chat typing dots | typing keyframes | 1.4s | ease-in-out | AI responding | `_ChatWidget.cshtml` |
+| Toast dismiss | jQuery fadeOut | 0.4s | -- | After 3.5s | Inline JS |
+| Bottom sheet slide | translateY | 0.35s | cubic-bezier(.32,.72,0,1) | Click FAB | `DetailRestaurant.cshtml` |
+| Bottom sheet overlay | opacity fade | 0.3s | ease | Click FAB | `DetailRestaurant.cshtml` |
+| Category pill hover | border + background | 0.2s | ease | Hover | `layout-sg.css` |
+| Social link hover | border + bg + color | 0.2s | ease | Hover | `layout-sg.css` |
+| KPI icon hover | scale + rotate | 0.3s | ease | Hover | `Admin/Dashboard.cshtml` |
+| Admin chat transitions | all properties | 0.15s | ease | Various | `AdminChat/Index.cshtml` |
+| Review card hover | box-shadow | 0.2s | ease | Hover | `Restaurant/Review.cshtml` |
+| Search autocomplete | bg highlight | 0.15s | ease | Hover | `_LayoutPageHome.cshtml` |
+| Success/Failure page | slideUp keyframes | 0.5s | ease | Page load | `SuccessView.cshtml` |
+| Checkout popup | popIn scale | 0.3s | ease | Payment result | `Checkout.cshtml` |
+| Map marker update | setLatLng() | Instant | -- | SignalR event | `ChiTietDonHang.cshtml` |
+| Skeleton fadeOut | jQuery fadeOut(250) | 0.25s | -- | 100ms after DOM | `main.js` |
+| Back-to-top fade | fadeIn/fadeOut | slow | -- | Scroll >300px | `main.js` |
+| Back-to-top scroll | animate scrollTop | 1500ms | easeInOutExpo | Click | `main.js` |
+
+### 16.3 Reduced Motion
 
 ```css
 @media (prefers-reduced-motion: reduce) {
@@ -1397,7 +1541,105 @@ Layout chuẩn: top bar, navbar full width, search inline, 4 columns grid
 
 ## 19. Icons & Iconography
 
-(Giữ nguyên dari v3.0: Font Awesome 5, Simple Line Icons, Material Design Icons, Themify, Line Awesome, Flaticon, Icomoon, Avasta, Bootstrap Icons, Elegant Icons, SVG inline)
+### 19.1 Icon Libraries Inventory
+
+FastShip sử dụng đa dạng icon libraries cho các theme khác nhau:
+
+| Theme | Libraries | Files | Usage |
+|-------|-----------|-------|-------|
+| **Home (Customer)** | Font Awesome 5 (`fa`, `fas`, `fab`), Bootstrap Icons (`bi`) | CDN + inline | Header, footer, cards, buttons, social links |
+| **Admin Dashboard** | Flaticon, Font Awesome 5, Line Awesome, SVG inline | `flaticon.css`, CDN | Sidebar icons, stat cards, tables, action buttons |
+| **Restaurant Dashboard** | Flaticon, LineIcons (`lni`), Font Awesome 5, SVG inline | `flaticon.css`, CDN | Sidebar menu, stat cards, product management |
+| **Shipper Dashboard** | LineIcons (`lni`), Font Awesome 5, SVG inline, Themify | CDN | Sidebar, order list, wallet, notifications |
+| **Cart/Checkout** | Font Awesome 5, Elegant Icons | CDN, local font files | Cart items, payment icons, action buttons |
+
+### 19.2 Icon Usage Patterns
+
+#### Home Theme
+
+| Location | Icon Class | Style | Color |
+|----------|-----------|-------|-------|
+| Top bar social links | `fab fa-facebook-f`, `fab fa-instagram`, `fab fa-tiktok`, `fab fa-youtube` | Regular | `var(--fs-muted)`, hover `var(--fs-green)` |
+| Top bar contact | `fa fa-map-marker-alt`, `fa fa-envelope` | Solid | `var(--fs-muted)` |
+| Search button | `fa fa-search` | Solid | White on green bg |
+| Cart button | `fa fa-shopping-bag` | Solid | `var(--fs-dark)`, hover white |
+| User menu | `fa fa-user`, `fa fa-sign-in-alt`, `fa fa-user-plus`, `fa fa-sign-out-alt` | Solid | `var(--fs-dark)` |
+| Order history | `fa fa-history` | Solid | `text-muted` |
+| Restaurant store link | `fa fa-store` | Solid | `text-muted` |
+| Category pills | Inline emojis (🍽, 🍚, 🍜, 🥘, etc.) | Emoji | Natural |
+| Star rating | `fa fa-star` | Solid | `#f39c12` (gold) |
+| Address marker | `fa fa-map-marker-alt` | Solid | `var(--fs-green)` |
+| How-it-works icons | `fa fa-search`, `fa fa-shopping-bag`, `fa fa-motorcycle` | Solid | `var(--fs-green)` on light green bg |
+| Footer social | `fab fa-facebook-f`, `fab fa-instagram`, `fab fa-tiktok`, `fab fa-youtube` | Brand | `var(--fs-muted)`, hover white on green |
+| Footer contact | `fa fa-map-marker-alt`, `fa fa-phone-alt`, `fa fa-envelope`, `fa fa-clock` | Solid | `var(--fs-green)` |
+| Back to top | `fa fa-angle-up` | Solid | White on green |
+| Carousel arrows | `bi bi-chevron-left`, `bi bi-chevron-right` | Bootstrap Icons | White |
+
+#### Dashboard Themes (Admin, Restaurant, Shipper)
+
+| Location | Icon Set | Typical Color |
+|----------|---------|---------------|
+| Sidebar menu items | Flaticon (`flaticon-381-*`), SVG inline | `#fff` on dark bg, active gradient |
+| KPI stat cards | Font Awesome (`fa-dollar-sign`, `fa-shopping-cart`, `fa-users`, `fa-percent`, `fa-trophy`) | White on gradient bg |
+| Action buttons | Font Awesome (`fa-edit`, `fa-trash`, `fa-eye`, `fa-check`, `fa-times`) | Theme-specific |
+| Data tables status | Font Awesome (`fa-check`, `fa-redo`, `fa-ban`, `fa-stream`, `fa-spinner`) | Contextual colors |
+| User avatar | SVG inline (Feather icons: `icon-user1`, `icon-logout`) | `text-primary`, `text-danger` |
+| Notification bell | `fa fa-bell`, SVG bell icon | `#fff` on header |
+| Search | `fa fa-search` | `var(--text)` |
+
+### 19.3 Icon Color Conventions
+
+| Context | Color | HEX |
+|---------|-------|-----|
+| Active/Selected | Primary Green | `#3CB815` |
+| Muted/Inactive | Muted Gray | `#6b7280` |
+| Star rating | Gold | `#f39c12` |
+| Success/Completed | Green | `#28a745` |
+| Danger/Delete | Red | `#dc3545` / `#f72b50` |
+| Warning | Orange | `#ff6d4d` |
+| Info | Blue | `#2781d5` / `#4285F4` |
+| Social brand | Brand-specific | `#1877F2` (FB), `#E1306C` (IG), etc. |
+| Text default | Dark | `#1a1a2e` / `#111111` |
+
+### 19.4 Emoji Usage for Categories
+
+Trang DetailRestaurant sử dụng emoji mapping cho danh mục món ăn (hàm `getCategoryIcon` JS):
+
+| Danh mục | Emoji | Logic |
+|----------|-------|-------|
+| Tất cả | 🍽 | `n === 'tat ca'` |
+| Cơm | 🍚 | `includes('com')` |
+| Phở | 🍜 | `includes('pho')` |
+| Mỳ, Bún | 🍝 | `includes('mi') or includes('bun')` |
+| Lẩu | 🥘 | `includes('lau')` |
+| Bánh | 🥟 | `includes('banh')` |
+| Salad, Rau | 🥗 | `includes('salad')` |
+| Sushi | 🍣 | `includes('sushi')` |
+| Thịt | 🥩 | `includes('thit')` |
+| Cá, Hải sản | 🦐 | `includes('ca')` |
+| Trà, Cafe | 🧋 | `includes('tra')` |
+| Nước, Uống | 🥤 | `includes('nuoc')` |
+| Tráng miệng | 🍰 | `includes('trang mieng')` |
+| Khai vị | 🥟 | `includes('khai vi')` |
+| Khác | 📂 | default |
+
+Xử lý tiếng Việt không dấu qua `normalize('NFD') + replace(/[\u0300-\u036f]/g, '')`.
+
+### 19.5 Icon Sizing Guidelines
+
+| Context | Size |
+|---------|------|
+| Top bar social | ~12px |
+| Navbar links | ~14px inline with text |
+| Sidebar menu | 18-24px |
+| KPI stat cards | 24px inside 56px container |
+| Action buttons | 14-16px |
+| Section headers | 16-20px inline |
+| Star ratings | 14-16px |
+| Cart delete | 16-18px |
+| Chat widget | 20-24px toggle, 14px inline |
+| Back to top | 16px |
+| Footer icons | 13-14px |
 
 ---
 
@@ -1561,16 +1803,14 @@ LOGIN ──→ DASHBOARD (with LIVE MAP)
 
 ---
 
-> **Document Version**: 3.5 (Full)  
+> **Document Version**: 3.6 (Full)  
 > **Cập nhật**: Tháng 7, 2026  
 > **Based on**: Actual source code analysis of 8 Controllers, 30+ Views, 15+ Models, 10+ CSS files, 5 Layout files, 1 SignalR Hub, 3 sessions of responsive mobile fixes  
-> **Key changes v3.5**:  
-> - Server-side pagination GetReviews (IQueryable Skip/Take before ToList)  
-> - 429 AJAX handler cho Login (chuyển sang AJAX) và Checkout (error callback)  
-> - Fix overflow-x body → chỉ container, fix WOW/OwlCarousel bị skeleton chặn  
-> - Xóa 8 file Bootstrap 3 legacy (-7,472 dòng)  
-> - Serilog centralized logging (Console + Seq qua SEQ_URL)  
-> - CORS restricted (ALLOWED_ORIGINS env var, AllowCredentials)  
-> - csproj: thêm Serilog.AspNetCore + Serilog.Sinks.Seq  
-> - 13 files modified, +137 insertions, -7,472 deletions  
+> **Key changes v3.6**:  
+> - UI-UX.md: Mở rộng Section 19 Icons (full inventory, 19.1-19.5)  
+> - UI-UX.md: Thêm Section 3.3 Scrollbar Handling (6 mục con)  
+> - UI-UX.md: Mở rộng Section 16 Animations (keyframes, timing map)  
+> - UI-UX.md: Sửa lỗi section numbering trùng 3.3 -> 3.4  
+> - UI-UX.md: Xoá reference Architectural-Solution.md  
+> - Project.md: Cập nhật v2.3, env vars, tech debt  
 

@@ -402,27 +402,30 @@ APP_DOMAIN=https://shipfood.up.railway.app
 - Environment variables for all secrets
 
 ### Tech Debt / Cần cải thiện
-- [x] ✅ Password hashing (BCrypt.Net-Next đã implement)
-- [x] ✅ Real-time SignalR (đã xoá 30s polling, dùng event unreadCountUpdate)
-- [x] ✅ Connection tracking (ConcurrentDictionary, online/offline broadcast)
-- [x] ✅ Font consolidation (Inter only, removed 5 font families)
-- [x] ✅ Skeleton loading (thay spinner bằng shimmer CSS)
-- [x] ✅ Cart JSON API (ApiTangSoLuong/ApiGiamSoLuong trả JSON)
-- [x] ✅ Responsive dashboards (stacked cards + data-label + touch targets)
-- [x] ✅ Live order tracking (Leaflet.js + SignalR coordinate streaming)
-- [x] ✅ Architectural-Solution.md — 15 giải pháp kiến trúc chi tiết (Redis, Migrations, Rate Limiting, Logging, QR Payment, Auto-Matching, ...)
-- [ ] PayPal/ZaloPay/MoMo integration (đã remove khỏi UI)
-- [x] ✅ Database migrations (hybrid: MigrateAsync + EnsureCreated fallback)
-- [x] ✅ API rate limiting — 3 policies (gemini 5/phút, login 5/5phút, general 100/phút)
-- [x] ✅ Search autocomplete (debounce 300ms, JS + API)
-- [x] ✅ AJAX Toggle 1-Click hết hàng (RestaurantController)
-- [x] ✅ Mock Payment Webhook + SignalR broadcast (AdminController)
+- [x] ✅ Password hashing (BCrypt.Net-Next)
+- [x] ✅ Real-time SignalR (bỏ 30s polling, ConcurrentDictionary)
+- [x] ✅ Font consolidation (Inter only)
+- [x] ✅ Skeleton loading (shimmer CSS)
+- [x] ✅ Cart JSON API
+- [x] ✅ Responsive dashboards (data-label, touch targets)
+- [x] ✅ Live order tracking (Leaflet.js + SignalR)
+- [x] ✅ Database migrations (hybrid MigrateAsync + EnsureCreated)
+- [x] ✅ API rate limiting (3 policies)
+- [x] ✅ Search autocomplete (debounce 300ms)
+- [x] ✅ AJAX Toggle 1-Click hết hàng
+- [x] ✅ Mock Payment Webhook + SignalR broadcast
 - [x] ✅ Auto-preparing 5s simulation (BackgroundService)
-- [x] ✅ Redis Distributed Session (StackExchangeRedis, fallback in-memory)
-- [ ] Server-side pagination cho reviews
-- [ ] CORS policy (hiện tại AllowAny)
-- [ ] Error logging (có logger nhưng chưa centralized)
+- [x] ✅ Redis Distributed Session
+- [x] ✅ Server-side pagination cho reviews (GetReviews IQueryable)
+- [x] ✅ CORS policy (ALLOWED_ORIGINS, AllowCredentials)
+- [x] ✅ Centralized logging (Serilog + Console + Seq)
+- [x] ✅ Bootstrap 3 cleanup (xóa 8 files, -7,472 lines)
+- [x] ✅ 429 frontend handler (Login AJAX + Checkout error callback)
+- [x] ✅ Smart sticky nav (topbar scrolls away, nav fixed)
+- [x] ✅ Bootstrap carousel re-trigger on window.load
+- [ ] PayPal/ZaloPay/MoMo integration (đã remove khỏi UI)
 - [ ] Unit tests (chưa có)
+- [ ] Real payment (Stripe/PayPal/ZaloPay)
 
 ---
 
@@ -518,10 +521,9 @@ Dự án mã nguồn mở — phát triển bởi đội ngũ ShipFood.
 
 ---
 
-> **Phiên bản**: 2.2 (Redis, Rate Limiting, Migrations, Search Autocomplete, AJAX Toggle, Mock Payment, Auto-Preparing)  
+> **Phiên bản**: 2.3 (Serilog, CORS, Smart Nav, Scrollbar Handling, UI/UX v3.6)  
 > **Ngôn ngữ**: C# 12, HTML5, CSS3, JavaScript ES6  
 > **Kiến trúc**: ASP.NET Core MVC n-tier  
 > **Database**: MySQL 8+  
 > **Deploy**: Docker + Railway  
-> **Cập nhật cuối**: Tháng 7, 2026  
-> **Tài liệu kiến trúc**: [Architectural-Solution.md](./Architectural-Solution.md) — 15 giải pháp cải thiện hệ thống
+> **Cập nhật cuối**: Tháng 7, 2026

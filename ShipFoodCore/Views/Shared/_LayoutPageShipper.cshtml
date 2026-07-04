@@ -16,8 +16,106 @@
     <link href="~/Source/Shipper/css/style-shiper.css" rel="stylesheet" />
     <link href="https://cdn.lineicons.com/2.0/LineIcons.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Global Design System v4.0 -->
+    <link href="~/Source/Shared/css/fastship-design-tokens.css" rel="stylesheet" />
     <style>
-        /* Responsive Dashboard: stacked cards on mobile */
+        /* ============================================================
+           SHIPPER DASHBOARD — Modern Minimalist Override (v4.0)
+           ============================================================ */
+
+        /* ── KPI Cards ── */
+        .card {
+            border: none !important;
+            border-radius: var(--fs-radius, 12px) !important;
+            box-shadow: var(--fs-shadow, 0 4px 20px rgba(0,0,0,.07)) !important;
+            transition: transform .2s ease, box-shadow .2s ease;
+        }
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(0,0,0,.1) !important;
+        }
+        .card .card-header {
+            background: transparent;
+            border-bottom: 1px solid var(--fs-border-soft, #f0f0f0);
+            padding: 16px 20px;
+            font-weight: 700;
+            font-size: 15px;
+            font-family: var(--fs-font, 'Inter', sans-serif) !important;
+        }
+        .card .card-body { padding: 20px; }
+
+        /* ── Sidebar ── */
+        .deznav {
+            background: var(--fs-white, #fff) !important;
+        }
+        .deznav .metismenu a {
+            font-family: var(--fs-font, 'Inter', sans-serif) !important;
+        }
+        .deznav .metismenu > li > a {
+            border-radius: 8px !important;
+            margin: 2px 8px;
+            padding: 10px 16px;
+            font-weight: 500;
+            font-size: 14px;
+            color: var(--fs-muted, #6b7280) !important;
+            transition: all .2s ease;
+        }
+        .deznav .metismenu > li > a:hover {
+            background: var(--fs-green-bg, rgba(60,184,21,.07)) !important;
+            color: var(--fs-green, #3CB815) !important;
+        }
+        .deznav .metismenu > li.mm-active > a {
+            background: var(--fs-green, #3CB815) !important;
+            color: #fff !important;
+        }
+
+        /* ── Tables ── */
+        .table {
+            font-family: var(--fs-font, 'Inter', sans-serif) !important;
+        }
+        .table thead th {
+            background: var(--fs-light, #f8f9fa) !important;
+            padding: 12px 16px !important;
+            font-weight: 600 !important;
+            font-size: 12px !important;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            color: var(--fs-muted, #6b7280) !important;
+            border-bottom: 1px solid var(--fs-border, #e5e7eb) !important;
+        }
+        .table tbody td {
+            padding: 12px 16px !important;
+            border-bottom: 1px solid var(--fs-border-soft, #f0f0f0) !important;
+        }
+        .table tbody tr:hover {
+            background: var(--fs-green-bg, rgba(60,184,21,.07)) !important;
+        }
+
+        /* ── Buttons ── */
+        .btn {
+            border-radius: var(--fs-radius, 12px) !important;
+            font-family: var(--fs-font, 'Inter', sans-serif) !important;
+            font-weight: 600;
+            padding: 10px 22px;
+        }
+        .btn-success {
+            background: linear-gradient(135deg, var(--fs-green, #3CB815), var(--fs-green-dark, #2ea310)) !important;
+            border: none !important;
+        }
+
+        /* ── Form controls ── */
+        .form-control, .form-select {
+            border-radius: var(--fs-radius, 12px) !important;
+            border: 1.5px solid var(--fs-border, #e5e7eb);
+            font-family: var(--fs-font, 'Inter', sans-serif) !important;
+            padding: 10px 16px;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: var(--fs-green, #3CB815) !important;
+            box-shadow: 0 0 0 3px rgba(60,184,21,.12) !important;
+        }
+
+        /* ── Responsive (giữ nguyên) ── */
         @@media (max-width: 768px) {
             .table-responsive table,
             .table-responsive thead,

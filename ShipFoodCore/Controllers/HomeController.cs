@@ -286,6 +286,10 @@ public class HomeController : BaseController
     /// </summary>
     public async Task<ActionResult> GoogleResponse()
     {
+        // Khai báo trước try để catch có thể dùng (C# scope rules)
+        string? email = null;
+        string? name = null;
+
         try
         {
         // Đọc từ cookie (Google middleware tự động lưu vào cookie nhờ AddCookie)
@@ -297,8 +301,8 @@ public class HomeController : BaseController
         }
 
         // Lấy thông tin email từ Google
-        var email = authenticateResult.Principal?.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
-        var name = authenticateResult.Principal?.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value;
+        email = authenticateResult.Principal?.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+        name = authenticateResult.Principal?.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value;
 
         if (string.IsNullOrEmpty(email))
         {

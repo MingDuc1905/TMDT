@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.SignalR;
 using ShipFood.Hubs;
 using ShipFood.Models;
+using ShipFood.Services;
 
 namespace ShipFood.Controllers;
 
@@ -10,15 +11,17 @@ public class RestaurantController : BaseController
 {
     private readonly IWebHostEnvironment _env;
     private readonly IHubContext<Chats> _hubContext;
+    private readonly RecommendationService _recommendationService;
 
-    public RestaurantController(dbFoodyEntities context, IWebHostEnvironment env, IHubContext<Chats> hubContext)
+    public RestaurantController(dbFoodyEntities context, IWebHostEnvironment env, IHubContext<Chats> hubContext, RecommendationService recommendationService)
     {
         db = context;
         _env = env;
         _hubContext = hubContext;
+        _recommendationService = recommendationService;
     }
 
-    public ActionResult Index()
+    public async Task<ActionResult> Index()
     {
         if (!checkLogin()) return RedirectToAction("Login", "Home");
         var QuanAn = getQuanAn();
@@ -37,6 +40,9 @@ public class RestaurantController : BaseController
         ViewBag.dhChuanBi = QuanAn.tbDonHang.Count(dh => dh.trangthai == "Đang chuẩn bị");
         ViewBag.dhHoanThanh = QuanAn.tbDonHang.Count(dh => dh.trangthai == "Hoàn thành");
         ViewBag.dhHuy = QuanAn.tbDonHang.Count(dh => dh.trangthai == "Đã huỷ");
+
+        // ─── Apriori: Phân tích cặp món bán chéo cho chủ quán ───
+        ViewBag.AprioriInsights = await _recommendationService.GetRestaurantAprioriInsights(QuanAn.userid, 5);
 
         return View();
     }

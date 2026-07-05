@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using ShipFood.Hubs;
 using ShipFood.Models;
+using ShipFood.Services;
 using System.Text;
 
 namespace ShipFood.Controllers;
@@ -10,11 +11,13 @@ namespace ShipFood.Controllers;
 public class AdminController : BaseController
 {
     private readonly IWebHostEnvironment _env;
+    private readonly RecommendationService _recommendationService;
 
-    public AdminController(dbFoodyEntities context, IWebHostEnvironment env)
+    public AdminController(dbFoodyEntities context, IWebHostEnvironment env, RecommendationService recommendationService)
     {
         db = context;
         _env = env;
+        _recommendationService = recommendationService;
     }
 
     public ActionResult Index()
@@ -456,10 +459,14 @@ public class AdminController : BaseController
     // ===== DASHBOARD ANALYTICS API =====
 
     [HttpGet]
-    public ActionResult Dashboard()
+    public async Task<ActionResult> Dashboard()
     {
         if (!checkLogin())
             return RedirectToAction("Login", "Home");
+
+        // ─── Apriori: Phân tích liên kết danh mục ───
+        ViewBag.CategoryAprioriInsights = await _recommendationService.GetCategoryAprioriInsights(6);
+
         return View();
     }
 

@@ -1,6 +1,6 @@
 # Fastship (ShipFood) — UI/UX Documentation (Full)
 
-> **Phiên bản**: 4.3 — SignalR Real-time Order Pipeline, Chat Widget Modern Minimalist, Shipper Geolocation Streaming  
+> **Phiên bản**: 4.4 — Apriori Recommendation System (Support + Confidence), 5 views AI-powered  
 > **Cập nhật**: Tháng 7, 2026  
 > **Mô tả**: Tài liệu thiết kế giao diện & trải nghiệm người dùng toàn diện cho nền tảng đặt đồ ăn Fastship  
 > **Tài liệu liên quan**: Project.md — Tổng quan kiến trúc & phát triển
@@ -2058,7 +2058,7 @@ LOGIN ──→ DASHBOARD (with LIVE MAP)
 > **Document Version**: 4.3 (Full)  
 > **Cập nhật**: Tháng 7, 2026  
 > **Based on**: Actual source code analysis of 8 Controllers, 30+ Views, 15+ Models, 10+ CSS files, 5 Layout files, 1 SignalR Hub, 4 sessions of responsive mobile fixes + 1 theme unification update + 1 icon cleanup session  
-> **Key changes v4.3**:  
+> **Key changes v4.4**:  
 > - 🔄 **SignalR Real-time Order Pipeline** — Customer thanh toán → broadcast `newOrder` đến Restaurant; Restaurant "Chuẩn bị xong" → broadcast `newPickupOrder` đến Shipper; Shipper geolocation → stream `UpdateLocation` đến Customer map  
 > - 💬 **Chat Widget Modern Minimalist** — `var(--fs-green)` thay `#28a745`, Inter font, gradient header, 12px radius, `--fs-border` tokens, admin dot pulse animation  
 > - 📍 **Shipper Geolocation Streaming** — `navigator.geolocation.watchPosition()` (enableHighAccuracy) → signalR `UpdateLocation()` → group `order_{madh}` → Leaflet marker lướt mượt  

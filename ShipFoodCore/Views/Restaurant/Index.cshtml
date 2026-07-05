@@ -15,5 +15,56 @@
             <p class="mb-0">Xin chào quản lí @(QuanAn?.tenquanan ?? "")</p>
         </div>
     </div>
-    
+
+    <!-- ===== APRIORI: GỢI Ý BÁN CHÉO THÔNG MINH ===== -->
+    @{
+        var aprioriInsights = ViewBag.AprioriInsights as List<object>;
+    }
+    @if (aprioriInsights != null && aprioriInsights.Any())
+    {
+        <div class="row">
+            <div class="col-12 mb-4">
+                <div class="card" style="border:none;border-radius:14px;box-shadow:0 4px 20px rgba(0,0,0,.07);overflow:hidden;">
+                    <div class="card-header" style="background:linear-gradient(135deg,#3CB815,#27a001);color:#fff;padding:16px 24px;">
+                        <div style="display:flex;align-items:center;gap:10px;">
+                            <span style="font-size:24px;">🤖</span>
+                            <div>
+                                <h4 style="margin:0;font-weight:700;font-size:16px;">Chiến lược bán chéo từ dữ liệu</h4>
+                                <p style="margin:2px 0 0;font-size:12px;opacity:.85;">Phân tích Apriori trên @ViewBag.dhHoanThanh đơn hàng hoàn thành</p>
+                            </div>
+                            <span style="margin-left:auto;font-size:10px;background:rgba(255,255,255,.2);padding:3px 10px;border-radius:20px;font-weight:600;">AI</span>
+                        </div>
+                    </div>
+                    <div class="card-body" style="padding:20px 24px;">
+                        <p style="font-size:13px;color:#888;margin-bottom:16px;">
+                            <i class="fas fa-lightbulb text-warning me-1"></i>
+                            Những cặp món sau thường được khách đặt cùng nhau. Hãy tạo <strong>Combo khuyến mãi</strong> cho các cặp này để tăng doanh thu!
+                        </p>
+                        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;">
+                            @foreach (var insight in aprioriInsights)
+                            {
+                                var i = insight as dynamic;
+                                <div style="background:#f8f9fa;border-radius:12px;padding:14px 16px;border:1px solid #f0f0f0;transition:all .2s;"
+                                     onmouseover="this.style.borderColor='#3CB815';this.style.boxShadow='0 4px 16px rgba(60,184,21,.12)'"
+                                     onmouseout="this.style.borderColor='#f0f0f0';this.style.boxShadow='none'">
+                                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                                        <span style="font-weight:700;font-size:15px;">@i.TenMonA</span>
+                                        <span style="color:#3CB815;font-weight:700;">+</span>
+                                        <span style="font-weight:700;font-size:15px;">@i.TenMonB</span>
+                                    </div>
+                                    <div style="display:flex;gap:16px;font-size:12px;color:#666;">
+                                        <span><strong style="color:#e74c3c;">@i.ConfidenceAtoB%</strong> khách mua @i.TenMonA cũng mua @i.TenMonB</span>
+                                    </div>
+                                    <div style="display:flex;gap:16px;font-size:11px;color:#999;margin-top:4px;">
+                                        <span>Support <strong>@i.Support%</strong></span>
+                                        <span>@i.PairCount đơn</span>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
 </div>

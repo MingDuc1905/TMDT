@@ -375,7 +375,7 @@ APP_DOMAIN=https://shipfood.up.railway.app
 | Loại | Algorithm | Implementation |
 |------|-----------|----------------|
 | **Personalized** | Collaborative filtering | Tìm user cùng sở thích → gợi ý món chưa đặt |
-| **Frequently Bought Together** | Apriori Support (min 2%) | Support = cặp món cùng đơn / tổng đơn, lọc ≥2% minSup, sort Support giảm dần |
+| **Frequently Bought Together** | Apriori Support + Confidence (min 2%, min 50%) | Support = count(A∩B)/D, Confidence = count(A∩B)/count(A). 3-level fallback. Hỗ trợ đa phần tử (A,B,C→D). |
 | **Time-based** | Keyword matching | Theo giờ: sáng (phở/bún) / trưa (cơm) / tối (lẩu/nướng) / khuya (trà sữa) |
 | **Trending** | Sales volume (48h) | Top bán chạy 48h, fallback all-time |
 
@@ -547,7 +547,7 @@ Dự án mã nguồn mở — phát triển bởi đội ngũ ShipFood.
 
 ---
 
-> **Phiên bản**: 2.7 (SignalR Real-time Order Pipeline, Chat Widget Modern Minimalist, Shipper Geolocation)  
+> **Phiên bản**: 2.8 (Apriori Recommendation System — Support + Confidence, 5 views AI-powered)  
 > **Ngôn ngữ**: C# 12, HTML5, CSS3, JavaScript ES6  
 > **Kiến trúc**: ASP.NET Core MVC n-tier  
 > **Database**: MySQL 8+ (MySqlServerVersion 8.0.20)  

@@ -1,23 +1,40 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ShipFood.Models;
+using ShipFood.Services;
 
 namespace ShipFood.Controllers;
 
 public class CartController : BaseController
 {
-    public CartController(dbFoodyEntities context)
+    private readonly RecommendationService _recommendationService;
+
+    public CartController(dbFoodyEntities context, RecommendationService recommendationService)
     {
         db = context;
+        _recommendationService = recommendationService;
     }
 
     [HttpGet]
-    public ActionResult Index()
+    public async Task<ActionResult> Index()
     {
         if (!CheckLogin())
             return RedirectToAction("Login", "Home");
         var maKMs = db.tbKhuyenMai.ToList();
         ViewBag.maKMs = maKMs;
+
+        // ─── Apriori: Gợi ý món mua kèm dựa trên giỏ hàng hiện tại ───
+        var cart = GetCart();
+        if (cart != null && cart.monAns.Any())
+        {
+            var cartMonIds = cart.monAns.Select(m => m.mamon).ToList();
+            ViewBag.AprioriCartSuggestions = await _recommendationService.GetAprioriRecommendations(cartMonIds, 4);
+        }
+        else
+        {
+            ViewBag.AprioriCartSuggestions = new List<tbMonAn>();
+        }
+
         return View();
     }
 

@@ -62,7 +62,7 @@ public class HomeController : BaseController
         return stringBuilder.ToString().Normalize(NormalizationForm.FormC);
     }
 
-    public ActionResult Index(string? txtSearch, int? idDM)
+    public async Task<ActionResult> Index(string? txtSearch, int? idDM)
     {
         var quanAns = db.tbQuanAn.Include(q => q.tbUser).Include(q => q.tbMonAns).ToList();
         if (!string.IsNullOrEmpty(txtSearch))
@@ -81,6 +81,10 @@ public class HomeController : BaseController
             ViewBag.idDM = idDM;
         }
         ViewBag.quanAns = quanAns;
+
+        // ─── Apriori: Gợi ý Combo AI cho trang chủ ───
+        ViewBag.AprioriCombo = await _recommendationService.GetPopularPairs(6);
+
         return View();
     }
 
@@ -135,18 +139,12 @@ public class HomeController : BaseController
         ViewBag.searchKey = searchKey;
         ViewBag.KhuyenMais = khuyenMais;
 
-        // Recommendation: Gợi ý món thường mua kèm (dựa trên món đầu tiên)
-        if (danhSachMonAn.Any())
-        {
-            var firstMon = danhSachMonAn.First();
-            ViewBag.MuaKem = await _recommendationService.GetFrequentlyBoughtTogether(firstMon.mamon, 4);
-            ViewBag.TrendingNow = await _recommendationService.GetTimeBasedRecommendations(4);
-        }
-        else
-        {
-            ViewBag.MuaKem = new List<tbMonAn>();
-            ViewBag.TrendingNow = await _recommendationService.GetTimeBasedRecommendations(4);
-        }
+        // ─── Apriori: Gợi ý món thường mua kèm (dùng Apriori đa phần tử) ───
+        var firstMonId = danhSachMonAn.Any() ? danhSachMonAn.First().mamon : 0;
+        ViewBag.MuaKem = firstMonId > 0
+            ? await _recommendationService.GetAprioriRecommendations(new List<int> { firstMonId }, 4)
+            : new List<tbMonAn>();
+        ViewBag.TrendingNow = await _recommendationService.GetTimeBasedRecommendations(4);
 
         return View(quanAn);
     }

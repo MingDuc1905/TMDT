@@ -146,6 +146,61 @@
                 </div>
             </div>
         </div>
+
+        <!-- ===== APRIORI: PHÂN TÍCH LIÊN KẾT DANH MỤC ===== -->
+        @{
+            var catApriori = ViewBag.CategoryAprioriInsights as List<object>;
+        }
+        @if (catApriori != null && catApriori.Any())
+        {
+            <div class="row">
+                <div class="col-12 mb-4">
+                    <div class="card chart-container shadow-sm">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h4><i class="fas fa-project-diagram text-info me-2"></i>Phân tích liên kết Danh mục — Apriori</h4>
+                            <span class="badge bg-warning rounded-pill">Khai phá dữ liệu</span>
+                        </div>
+                        <div class="card-body">
+                            <p style="font-size:13px;color:#6c757d;margin-bottom:16px;">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Mối liên hệ kết hợp giữa các danh mục món ăn dựa trên <strong>hành vi mua sắm thực tế</strong>.
+                                <strong>Support</strong> = tỷ lệ đơn hàng chứa cả 2 danh mục. <strong>Confidence</strong> = khả năng khách mua danh mục B nếu đã mua danh mục A.
+                            </p>
+                            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;">
+                                @foreach (var insight in catApriori)
+                                {
+                                    var i = insight as dynamic;
+                                    <div style="background:linear-gradient(145deg,#f8f9fa,#fff);border:1px solid #e9ecef;border-radius:12px;padding:16px 18px;transition:all .3s;"
+                                         onmouseover="this.style.borderColor='#17a2b8';this.style.boxShadow='0 4px 16px rgba(23,162,184,.15)'"
+                                         onmouseout="this.style.borderColor='#e9ecef';this.style.boxShadow='none'">
+                                        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+                                            <span style="background:#17a2b8;color:#fff;width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;">📊</span>
+                                            <div>
+                                                <div style="font-weight:700;font-size:15px;">@i.DanhMucA <span style="color:#17a2b8;">⟷</span> @i.DanhMucB</div>
+                                            </div>
+                                        </div>
+                                        <!-- Progress bar Support -->
+                                        <div style="margin-bottom:8px;">
+                                            <div style="display:flex;justify-content:space-between;font-size:12px;color:#6c757d;margin-bottom:3px;">
+                                                <span>Support</span>
+                                                <span><strong>@i.Support%</strong></span>
+                                            </div>
+                                            <div style="height:6px;background:#e9ecef;border-radius:3px;overflow:hidden;">
+                                                <div style="height:100%;width:@(Math.Min((double)i.Support * 5, 100))%;background:linear-gradient(90deg,#17a2b8,#20c997);border-radius:3px;transition:width .5s;"></div>
+                                            </div>
+                                        </div>
+                                        <div style="display:flex;justify-content:space-between;font-size:12px;color:#6c757d;">
+                                            <span>Confidence @i.DanhMucA → @i.DanhMucB: <strong style="color:#e74c3c;">@i.ConfidenceAtoB%</strong></span>
+                                            <span style="color:#999;">@i.PairCount đơn</span>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
     </div>
 </div>
 

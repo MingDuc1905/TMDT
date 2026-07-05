@@ -213,6 +213,42 @@
                     </div>
                 </div>
 
+                <!-- ===== APRIORI: CÓ THỂ BẠN ĐÃ BỎ QUÊN ===== -->
+                @{
+                    var aprioriCart = ViewBag.AprioriCartSuggestions as List<ShipFood.Models.tbMonAn>;
+                }
+                @if (aprioriCart != null && aprioriCart.Any())
+                {
+                    <div class="col-lg-12 mb-4">
+                        <div class="cart-summary">
+                            <div style="font-size:15px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px;color:var(--fs-dark);">
+                                <span style="font-size:20px;">🤖</span>
+                                Có thể bạn đã bỏ quên
+                                <span style="font-size:10px;background:linear-gradient(135deg,#f39c12,#e67e22);color:#fff;padding:2px 8px;border-radius:4px;font-weight:600;">AI</span>
+                            </div>
+                            <p style="font-size:12px;color:#888;margin-bottom:12px;">Khách hàng thường đặt kèm những món này</p>
+                            @foreach (var item in aprioriCart)
+                            {
+                                <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f0f0f0;">
+                                    <img src="~/Source/images/MonAn/@item.hinhanh" alt="@item.tenmon"
+                                         style="width:48px;height:48px;border-radius:8px;object-fit:cover;border:1px solid #eee;"
+                                         onerror="this.src='/Source/Home/img/food-placeholder.png'" />
+                                    <div style="flex:1;min-width:0;">
+                                        <div style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">@item.tenmon</div>
+                                        <div style="font-size:11px;color:#888;">@item.tbQuanAn?.tenquanan</div>
+                                        <div style="color:#e74c3c;font-weight:700;font-size:13px;">@item.giatien?.ToString("N0")đ</div>
+                                    </div>
+                                    <a href="@Url.Action("ThemMonAn","Cart",new { maMonAn = item.mamon, soLuong = 1 })"
+                                       class="btn btn-sm"
+                                       style="background:var(--fs-green);color:#fff;border-radius:8px;font-weight:600;font-size:12px;padding:6px 12px;white-space:nowrap;">
+                                        + Thêm
+                                    </a>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+
                 <div class="col-lg-4">
                     <div class="cart-summary">
                         <div style="font-size:17px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px;">

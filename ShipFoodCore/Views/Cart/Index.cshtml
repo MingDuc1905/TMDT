@@ -267,6 +267,16 @@
                             <span>Tổng cộng</span>
                             <span id="cart-grandtotal">@((cart.tongTien + 15000)?.ToString("N0")) đ</span>
                         </div>
+                        <!-- ─── MÃ GIẢM GIÁ GỢI Ý ─── -->
+                        <div id="cart-coupon-suggestions" class="mt-3 pt-3" style="border-top:1px solid #f0f0f0;">
+                            <div style="font-size:12px;font-weight:600;color:#3CB815;margin-bottom:8px;">
+                                <i class="fas fa-tag me-1"></i>Mã giảm giá gợi ý:
+                            </div>
+                            <div id="cart-coupon-list" class="d-flex flex-wrap gap-2">
+                                <div style="color:#aaa;font-size:12px;"><i class="fas fa-spinner fa-spin me-1"></i>Đang tải...</div>
+                            </div>
+                        </div>
+
                         <a href="@Url.Action("Checkout","Cart")" class="btn-checkout-go">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="margin-right:6px;vertical-align:middle;"><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 001.95-1.57l1.65-7.43H6M10 21a1 1 0 110-2 1 1 0 010 2zM21 21a1 1 0 110-2 1 1 0 010 2z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                             Tiến hành thanh toán
@@ -287,6 +297,37 @@ $(document).ready(function () {
     // API JSON endpoints - tr? v? JSON thay vì parse HTML
     var tangApiUrl = '@Url.Action("ApiTangSoLuong","Cart")';
     var giamApiUrl = '@Url.Action("ApiGiamSoLuong","Cart")';
+    var urlGetTopCoupons = '@Url.Action("GetTopCoupons","Cart")';
+
+    // ─── Tải mã giảm giá gợi ý ───
+    $.getJSON(urlGetTopCoupons, function(res) {
+        var $list = $('#cart-coupon-list');
+        $list.empty();
+        if (res.success && res.coupons && res.coupons.length > 0) {
+            res.coupons.forEach(function(c, idx) {
+                var isFirst = idx === 0;
+                var badge = $('<div style="cursor:pointer;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;transition:all .2s;"></div>');
+                badge.css({
+                    background: isFirst ? '#3CB815' : '#fff',
+                    color: isFirst ? '#fff' : '#333',
+                    border: isFirst ? '1.5px solid #3CB815' : '1.5px solid #dee2e6'
+                });
+                badge.html((isFirst ? '🔥 ' : '') + c.tenkm + ' <span style="font-weight:400;opacity:.85">(-' + c.phantramgiam + '%)</span>');
+                badge.hover(
+                    function(){ $(this).css('opacity','.85'); },
+                    function(){ $(this).css('opacity','1'); }
+                );
+                badge.click(function() {
+                    window.location.href = '@Url.Action("Checkout","Cart")';
+                });
+                $list.append(badge);
+            });
+        } else {
+            $list.html('<div style="color:#aaa;font-size:12px;">Chưa có mã giảm giá khả dụng</div>');
+        }
+    }).fail(function() {
+        $('#cart-coupon-list').html('<div style="color:#aaa;font-size:12px;">Không tải được mã giảm giá</div>');
+    });
 
     $(document).on('click', '.btn-tang, .btn-giam', function(e) {
         e.preventDefault();

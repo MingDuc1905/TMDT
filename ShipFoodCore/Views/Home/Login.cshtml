@@ -46,7 +46,7 @@
         </a>
         <h2 style="font-size:20px;margin-bottom:24px;color:#1F1F1F;">Đăng nhập</h2>
         
-        <form method="post" action="~/Home/Login">
+        <form id="authForm" method="post" action="~/Home/Login">
             @Html.AntiForgeryToken()
             <div class="login-social">
                 <div class="google-btn-wrapper">
@@ -80,8 +80,8 @@
             
             <div class="divider">hoặc bằng tài khoản</div>
             
-            <input type="text" name="usernameOrPhone" placeholder="Tên đăng nhập hoặc số điện thoại" required />
-            <input type="password" name="pwd" placeholder="Mật khẩu" required />
+            <input type="text" name="usernameOrPhone" placeholder="Tên đăng nhập hoặc số điện thoại" autocomplete="username" required />
+            <input type="password" name="pwd" placeholder="Mật khẩu" autocomplete="current-password" required />
             @if (ViewBag.LoginFail != null)
             {
                 <div class="alert alert-danger" role="alert">
@@ -113,10 +113,10 @@
     <script src="~/Source/Home/lib/owlcarousel/owl.carousel.min.js"></script>
     <script src="~/Source/Home/js/main.js"></script>
 
-    <!-- ─── Task 3: AJAX Login + 429 Rate Limit handler ─── -->
+    <!-- ─── Chuẩn hóa form auth: bắt sự kiện submit form thay vì click nút ─── -->
     <script>
     (function() {
-        var $form = $('form[action*="Login"]');
+        var $form = $('#authForm');
         if (!$form.length) return;
 
         // Hiển thị lỗi tùy chỉnh thay vì alert danger mặc định
@@ -134,9 +134,7 @@
         }
 
         $form.on('submit', function(e) {
-            // Chỉ chặn nếu form có thể submit bằng AJAX (không phải fallback)
-            // Nếu đã có lỗi 429 trước đó, cho phép submit thường
-            e.preventDefault();
+            e.preventDefault(); // Giữ submit mặc định trước khi chặn để browser lưu mật khẩu
 
             clearLoginError();
             var $btn = $form.find('button[type="submit"]');
@@ -166,7 +164,6 @@
                     var msg = 'Lỗi kết nối. Vui lòng thử lại sau.';
 
                     if (xhr.status === 429) {
-                        // ─── RATE LIMIT: parse JSON body ───
                         try {
                             var resp = JSON.parse(xhr.responseText);
                             var retryAfter = resp.retryAfter
@@ -175,7 +172,6 @@
                             msg = (resp.error || resp.message || 'Quá nhiều yêu cầu. Vui lòng thử lại sau.')
                                 + ' <strong>Thử lại sau ' + retryAfter + ' giây.</strong>';
                         } catch (e) {
-                            // responseText không phải JSON hợp lệ
                             var retryHeader = xhr.getResponseHeader('Retry-After');
                             msg = 'Quá nhiều yêu cầu đăng nhập. Vui lòng thử lại sau'
                                 + (retryHeader ? ' ' + retryHeader + ' giây.' : ' ít phút.');
@@ -197,7 +193,7 @@
         });
     })();
     </script>
-    <!-- ─── End Task 3 ─── -->
+    <!-- ─── End Task 4 ─── -->
 
 </body>
 </html>

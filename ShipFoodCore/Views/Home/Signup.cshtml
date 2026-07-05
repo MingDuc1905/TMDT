@@ -57,21 +57,21 @@
             <h1 style="color:#3CB815;font-size:28px;margin-bottom:8px;font-weight:700;">F<span style="color:#F65005;">ast</span>ship</h1>
         </a>
         <h2 style="font-size:20px;margin-bottom:20px;color:#1F1F1F;">Đăng ký tài khoản</h2>
-        <form action="~/Home/Signup" method="post" onsubmit="return validateSignupForm()">
+        <form id="authForm" action="~/Home/Signup" method="post" onsubmit="return validateSignupForm()">
             @Html.AntiForgeryToken()
-            <input type="text" id="reg-hoten" name="hoten" placeholder="Họ tên" required />
-            <input type="text" id="reg-username" name="username" placeholder="Username" required />
-            <input type="password" id="reg-pwd" name="pwd" placeholder="Mật khẩu" required />
-            <input type="password" id="reg-repeatpw" name="repeatpw" placeholder="Nhập lại mật khẩu" required />
+            <input type="text" id="reg-hoten" name="hoten" placeholder="Họ tên" autocomplete="name" required />
+            <input type="text" id="reg-username" name="username" placeholder="Username" autocomplete="username" required />
+            <input type="password" id="reg-pwd" name="pwd" placeholder="Mật khẩu" autocomplete="new-password" required />
+            <input type="password" id="reg-repeatpw" name="repeatpw" placeholder="Nhập lại mật khẩu" autocomplete="new-password" required />
             <select id="reg-loaitaikhoan" name="loaitaikhoan" required>
                 <option value="" disabled selected>Chọn loại tài khoản</option>
                 <option value="Khách hàng">Khách hàng</option>
                 <option value="Quán ăn">Quán ăn</option>
                 <option value="Shipper">Shipper</option>
             </select>
-            <input type="tel" id="reg-sdt" name="sdt" placeholder="Số điện thoại" required />
-            <input type="email" id="reg-email" name="email" placeholder="Email" required />
-            <input type="text" id="reg-diachi" name="diachi" placeholder="Địa chỉ" required />
+            <input type="tel" id="reg-sdt" name="sdt" placeholder="Số điện thoại" autocomplete="tel" required />
+            <input type="email" id="reg-email" name="email" placeholder="Email" autocomplete="email" required />
+            <input type="text" id="reg-diachi" name="diachi" placeholder="Địa chỉ" autocomplete="street-address" required />
         @if (ViewBag.err != null)
         {
             <div class="alert alert-danger" role="alert">
@@ -95,7 +95,20 @@
     <script src="~/Source/Home/lib/waypoints/waypoints.min.js"></script>
     <script src="~/Source/Home/lib/owlcarousel/owl.carousel.min.js"></script>
 
-    <!-- Template Javascript -->        <script>
+    <!-- Template Javascript -->
+    <script>
+        // ─── Chuẩn hóa AJAX: bắt sự kiện submit form auth ───
+        $(document).ready(function() {
+            $('#authForm').on('submit', function(e) {
+                if (!validateSignupForm()) {
+                    e.preventDefault();
+                    return false;
+                }
+                // Cho phép form submit bình thường để browser lưu mật khẩu
+                // Không chặn e.preventDefault() ở đây
+            });
+        });
+
         // Validation form đăng ký — kiểm tra toàn diện
         function validateSignupForm() {
             var hoten = document.getElementById('reg-hoten').value.trim();
@@ -110,7 +123,7 @@
 
             // Hàm hiển thị lỗi
             function showErr(msg) {
-                errDiv.textContent = msg;
+                errDiv.innerHTML = msg;
                 errDiv.style.display = 'block';
                 return false;
             }

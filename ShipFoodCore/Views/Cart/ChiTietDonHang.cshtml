@@ -8,32 +8,7 @@
 
 }
 
-
-<!DOCTYPE html>
-<html lang="zxx">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="description" content="Ogani Template">
-    <meta name="keywords" content="Ogani, unica, creative, html">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Ogani | Template</title>
-
-    <!-- Google Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
-
-    <!-- Leaflet.js for live order tracking -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-
-    <!-- Css Styles -->
-    <link href="~/Source/Cart/css/bootstrap.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="~/Source/Cart/css/font-awesome.min.css" type="text/css">
-    <link rel="stylesheet" href="~/Source/Cart/css/elegant-icons.css" type="text/css">
-    <link rel="stylesheet" href="~/Source/Cart/css/jquery-ui.min.css" type="text/css">
-    <link rel="stylesheet" href="~/Source/Cart/css/owl.carousel.min.css" type="text/css">
-    <link rel="stylesheet" href="~/Source/Cart/css/slicknav.min.css" type="text/css">
-    <link rel="stylesheet" href="~/Source/Cart/css/style.css" type="text/css">
+@section styles {
     <style>
         /* Mobile responsive fixes for ChiTietDonHang */
         @@media (max-width: 768px) {
@@ -43,7 +18,6 @@
             .checkout__form h4 { font-size: 18px; }
             .checkout__order { margin-top: 20px; }
             #order-tracking-map { height: 180px !important; }
-            .formInfor .checkout__input input { font-size: 14px; }
         }
         @@media (max-width: 576px) {
             .breadcrumb-section { margin-top: 60px !important; }
@@ -52,9 +26,7 @@
             .checkout__order__total { font-size: 14px; }
         }
     </style>
-</head>
-
-<body>
+}
     <!-- Breadcrumb Section Begin -->
     <section style="margin-top:130px" class="breadcrumb-section set-bg" data-setbg="@Url.Content("~/Source/Restaurant/images/card/2.png")">
         <div class="container">
@@ -78,48 +50,33 @@
             <div class="checkout__form">
                 <h4>Thông tin chi tiết đơn hàng</h4>
 
-                <form>
-                    <div class="row">
-                        <div class="col-lg-8 col-md-6 formInfor">
-                            <div class="row">
-                                <div class="col-lg-12">
-                                    <div class="checkout__input">
-                                        <p><strong>Họ tên người nhận</strong></p>
-                                        <input disabled name="hoten" value="@donHang.tbThongTinDatHang.tennguoinhan" placeholder="Nhập họ tên người nhận" type="text">
-                                    </div>
-                                </div>
+                <div class="row">
+                    <div class="col-lg-8 col-md-6 formInfor">
+                        <!-- ═══ FLAT INVOICE LABELS: thay thế input read-only ─── -->
+                        <div style="background:#fff;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,.06);padding:24px;">
+                            <div style="border-bottom:1.5px solid #e5e7eb;padding-bottom:12px;margin-bottom:12px;">
+                                <small style="color:#888;font-size:11px;text-transform:uppercase;letter-spacing:.5px;font-weight:600;">Họ tên người nhận</small>
+                                <p style="margin:4px 0 0;font-size:15px;font-weight:600;color:#1a1a2e;">@donHang.tbThongTinDatHang.tennguoinhan</p>
                             </div>
-                            <div>
-                                <div class="checkout__input">
-                                    <p><strong>Địa chỉ</strong></p>
-                                    <div style="margin-bottom:10px"></div>
-                                    <div style="margin-top:10px" class="checkout__input">
-                                        <div>
-                                            <input disabled required style="margin-bottom:10px" type="text" value="@donHang.tbThongTinDatHang.diachi" placeholder="Nhập địa chỉ cụ thể" class="checkout__input__add" />
-                                        </div>
-                                    </div>
-                                </div>
+                            <div style="border-bottom:1.5px solid #e5e7eb;padding-bottom:12px;margin-bottom:12px;">
+                                <small style="color:#888;font-size:11px;text-transform:uppercase;letter-spacing:.5px;font-weight:600;">Địa chỉ giao hàng</small>
+                                <p style="margin:4px 0 0;font-size:14px;color:#1a1a2e;">@donHang.tbThongTinDatHang.diachi</p>
                             </div>
-                            <div class="row">
-                                <div class="col-lg-12">
-                                    <div class="checkout__input">
-                                        <p><strong>Số điện thoại</strong></p>
-                                        <input name="SDT" disabled value="@donHang.tbThongTinDatHang.sdt" placeholder="Nhập số điện thoại" type="text">
-                                    </div>
-                                </div>
+                            <div style="border-bottom:1.5px solid #e5e7eb;padding-bottom:12px;margin-bottom:12px;">
+                                <small style="color:#888;font-size:11px;text-transform:uppercase;letter-spacing:.5px;font-weight:600;">Số điện thoại</small>
+                                <p style="margin:4px 0 0;font-size:14px;color:#1a1a2e;">@donHang.tbThongTinDatHang.sdt</p>
                             </div>
-                            <div class="checkout__input">
-                                <p><strong>Ghi chú đơn hàng</strong></p>
-                                <input type="text" disabled name="note" value="@donHang.ghichu">
+                            <div style="border-bottom:1.5px solid #e5e7eb;padding-bottom:12px;margin-bottom:12px;">
+                                <small style="color:#888;font-size:11px;text-transform:uppercase;letter-spacing:.5px;font-weight:600;">Ghi chú đơn hàng</small>
+                                <p style="margin:4px 0 0;font-size:14px;color:#1a1a2e;">@(string.IsNullOrEmpty(donHang.ghichu) ? "Không có" : donHang.ghichu)</p>
                             </div>
-                            <div class="checkout__input">
-                                <p><strong>Shipper</strong></p>
-                                <input style=" width: 65%; display: inline-block;" type="text" disabled name="note" value="@(donHang.tbShipper != null ? donHang.tbShipper.tenshipper + " - " +donHang.tbShipper.tbUser.sdt : "Trống")">
+                            <div style="border-bottom:1.5px solid #e5e7eb;padding-bottom:12px;margin-bottom:12px;">
+                                <small style="color:#888;font-size:11px;text-transform:uppercase;letter-spacing:.5px;font-weight:600;">Shipper</small>
+                                <p style="margin:4px 0 0;font-size:14px;font-weight:600;color:#1a1a2e;">@(donHang.tbShipper != null ? donHang.tbShipper.tenshipper + " - " + donHang.tbShipper.tbUser.sdt : "Chưa có shipper")</p>
                                 @if (user != null && user.loaitaikhoan.Equals("Khách hàng"))
                                 {
-                                    <a style=" border-radius: 10px; padding: 5px; display: inline-block; background-color: #8fc68f;" class="" href="@Url.Action("NhanTin", "Home")">
-                                        <i class="lni lni-facebook-messenger"></i>
-                                        <p style="margin-bottom: 0;">Chat ngay!</p>
+                                    <a href="@Url.Action("NhanTin", "Home")" style="display:inline-flex;align-items:center;gap:6px;margin-top:8px;padding:8px 16px;background:#3CB815;color:#fff;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600;">
+                                        <i class="fab fa-facebook-messenger"></i> Chat ngay!
                                     </a>
                                 }
                                 @if (user != null && user.loaitaikhoan.Equals("Khách hàng") && donHang.trangthai.Equals("Đang giao"))
@@ -130,64 +87,66 @@
                                 }
                             </div>
                         </div>
+                    </div>
 
-                        <div class="col-lg-4 col-md-6" style="margin:20px auto">
-                            <div class="checkout__order">
-                                <h4>Đơn hàng (@donHang.trangthai)</h4>
-                                <div class="checkout__order__products">Món ăn <span>Tổng tiền</span></div>
-                                <ul>
-                                    @foreach (var i in donHang.tbChiTietDonHang)
-                                    {
-                                        <li>@i.tbMonAn.tenmon (@i.soluong) <span>@((i.tbMonAn.giatien * i.soluong)?.ToString("N0")) VNĐ</span></li>
-                                    }
-                                </ul>
-                                <div class="checkout__order__total">Tổng tiền món <span>@donHang.tongtien?.ToString("N0") VNĐ</span></div>
-                                <div class="checkout__order__total">Phí ship <span>15000 VNĐ</span></div>
-                                <div class="checkout__order__total">Tổng <span>@((donHang.tongtien + 15000)?.ToString("N0")) VNĐ</span></div>
+                    <div class="col-lg-4 col-md-6" style="margin:20px auto">
+                        <div class="checkout__order">
+                            <h4>Đơn hàng (@donHang.trangthai)</h4>
+                            <div class="checkout__order__products">Món ăn <span>Tổng tiền</span></div>
+                            <ul>
+                                @foreach (var i in donHang.tbChiTietDonHang)
+                                {
+                                    <li>@i.tbMonAn.tenmon (@i.soluong) <span>@((i.tbMonAn.giatien * i.soluong)?.ToString("N0")) VNĐ</span></li>
+                                }
+                            </ul>
+                            <!-- ═══ FIX ĐÈ CHỮ: dùng flexbox space-between mỗi dòng ─── -->
+                            <div style="border-top:1.5px solid #e5e7eb;padding-top:12px;margin-top:8px;">
+                                <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;">
+                                    <span style="color:#888;font-size:14px;">Tạm tính món ăn</span>
+                                    <span style="font-weight:600;font-size:14px;color:#1a1a2e;">@donHang.tongtien?.ToString("N0") VNĐ</span>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;">
+                                    <span style="color:#888;font-size:14px;">Mã giảm giá</span>
+                                    <span style="font-weight:600;font-size:14px;color:#3CB815;">0 VNĐ</span>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;">
+                                    <span style="color:#888;font-size:14px;">Phí ship</span>
+                                    <span style="font-weight:600;font-size:14px;color:#1a1a2e;">15,000 VNĐ</span>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0 0;margin-top:6px;border-top:2px solid #e74c3c;">
+                                    <span style="font-weight:700;font-size:17px;color:#e74c3c;">Tổng thanh toán</span>
+                                    <span style="font-weight:700;font-size:17px;color:#e74c3c;">@((donHang.tongtien + 15000)?.ToString("N0")) VNĐ</span>
+                                </div>
+                            </div>
 
-                                <div class="row">
-                                    <div class="col-lg-12">
-                                        <div class="checkout__input">
-                                            <p><strong>Phương thức thanh toán</strong></p>
-
-                                            <input name="SDT" disabled value="@donHang.tbLoaiHinhThanhToan.tenhinhthuc" placeholder="Nhập số điện thoại" type="text">
-
-                                        </div>
+                            <div class="row mt-3">
+                                <div class="col-lg-12">
+                                    <div style="border-bottom:1.5px solid #e5e7eb;padding-bottom:10px;">
+                                        <small style="color:#888;font-size:11px;text-transform:uppercase;letter-spacing:.5px;font-weight:600;">Phương thức thanh toán</small>
+                                        <p style="margin:4px 0 0;font-size:14px;font-weight:600;color:#1a1a2e;">@donHang.tbLoaiHinhThanhToan.tenhinhthuc</p>
                                     </div>
                                 </div>
-                                @if (user != null && user.loaitaikhoan.Equals("Quán ăn") && donHang.trangthai.Equals("Đã đặt"))
-                                {
-                                    <div class="row">
-                                        <div class="col-lg-12">
-                                            <a href="~/Restaurant/nhandon/@donHang.madh"><button class="btn btn-success">Nhận đơn</button></a>
-                                            <a href="~/Restaurant/huydon/@donHang.madh"><button class="btn btn-danger">Huỷ đơn</button></a>
-                                        </div>
-                                    </div>
-                                }
                             </div>
+                            @if (user != null && user.loaitaikhoan.Equals("Quán ăn") && donHang.trangthai.Equals("Đã đặt"))
+                            {
+                                <div class="row mt-3">
+                                    <div class="col-lg-12 d-flex gap-2">
+                                        <a href="~/Restaurant/nhandon/@donHang.madh" class="btn btn-success flex-fill">Nhận đơn</a>
+                                        <a href="~/Restaurant/huydon/@donHang.madh" class="btn btn-danger flex-fill">Huỷ đơn</a>
+                                    </div>
+                                </div>
+                            }
                         </div>
                     </div>
-                </form>
+                </div>
             </div>
         </div>
     </section>
     <!-- Checkout Section End -->
-    <!-- Js Plugins -->
-    <script src="~/Source/Cart/js/jquery-3.3.1.min.js"></script>
-    <script src="~/Source/Cart/js/bootstrap.min.js"></script>
-    <script src="~/Source/Cart/js/jquery-ui.min.js"></script>
-    <script src="~/Source/Cart/js/jquery.slicknav.js"></script>
-    <script src="~/Source/Cart/js/mixitup.min.js"></script>
-    <script src="~/Source/Cart/js/owl.carousel.min.js"></script>
-    <script src="~/Source/Cart/js/main.js"></script>
-    <script src="~/Source/Cart/js/checkout.js"></script>
-</body>
 
-</html>
-
+@section scripts {
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
-
 <script type="text/javascript">
     function redirectToPage() {
         window.location.href = '@Url.Action("NhanTin", "Home")';
@@ -216,7 +175,6 @@
                         .addTo(map)
                         .bindPopup('🚚 Shipper đang giao hàng')
                         .openPopup();
-                    // Thêm transition mượt cho marker — lướt êm, không nhảy giật
                     if (shipperMarker._icon) {
                         shipperMarker._icon.style.transition = 'transform 0.5s ease';
                     }
@@ -227,7 +185,6 @@
             });
 
             conn.start().then(function () {
-                // Join the order group for this order
                 conn.invoke('JoinOrderGroup', @donHang.madh).catch(function (err) {
                     console.error('JoinOrderGroup error:', err);
                 });
@@ -237,3 +194,4 @@
         }
     });
 </script>
+}

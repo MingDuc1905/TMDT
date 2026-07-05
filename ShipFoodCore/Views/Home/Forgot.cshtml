@@ -54,8 +54,8 @@
         <div class="forgot-password-container" style="margin:auto;">
         <h2>Quên mật khẩu</h2>
         <p>Điền email đăng ký của bạn, Fastship sẽ gửi cho bạn mật khẩu mới.</p>
-        <form>
-            <input type="email" placeholder="Email" required />
+        <form id="authForm" method="post" action="~/Home/Forgot">
+            <input type="email" name="email" placeholder="Email" autocomplete="email" required />
             <button type="submit" class="forgot-password-submit">Gửi lại mật khẩu</button>
         </form>
         <div class="footer-text">

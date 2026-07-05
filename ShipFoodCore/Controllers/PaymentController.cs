@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.SignalR;
+using ShipFood.Hubs;
 using ShipFood.Models;
 
 namespace ShipFood.Controllers;
@@ -7,11 +9,13 @@ namespace ShipFood.Controllers;
 public class PaymentController : BaseController
 {
     private readonly ILogger<PaymentController> _logger;
+    private readonly IHubContext<Chats> _hubContext;
 
-    public PaymentController(dbFoodyEntities context, ILogger<PaymentController> logger)
+    public PaymentController(dbFoodyEntities context, ILogger<PaymentController> logger, IHubContext<Chats> hubContext)
     {
         db = context;
         _logger = logger;
+        _hubContext = hubContext;
     }
 
     /// <summary>
@@ -19,7 +23,7 @@ public class PaymentController : BaseController
     /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public JsonResult ProcessPayment(int? mattdh, string? hoten, string? quan, string? diachicuthe,
+    public async Task<JsonResult> ProcessPayment(int? mattdh, string? hoten, string? quan, string? diachicuthe,
         string? diachiadd, string? SDT, string? note, int pttt, string testResult, int? makhuyenmai = null)
     {
         if (!CheckLogin())
@@ -110,7 +114,7 @@ public class PaymentController : BaseController
                 maquan    = cart.maquanan,
                 mattdh    = ttdh.mattdh,
                 ngaydathang = DateTime.Now,
-                trangthai = "Đang xử lý",
+                trangthai = "Đã đặt",
                 tongtien  = tongCong,
                 hinhthucthanhtoan = pttt,
                 ghichu    = note,
@@ -135,6 +139,20 @@ public class PaymentController : BaseController
             SetCart(new Cart());
 
             _logger.LogInformation("Order #{OrderId} placed by user {UserId}", dh.madh, user.userid);
+
+            // ─── SignalR: Broadcast đơn hàng mới đến Quán ăn ───
+            try
+            {
+                await _hubContext.Clients.Group($"restaurant_{cart.maquanan}").SendAsync("newOrder", new
+                {
+                    orderId = dh.madh,
+                    customerName = hoten ?? "Khách",
+                    totalAmount = tongCong,
+                    status = "Đã đặt",
+                    time = DateTime.Now.ToString("HH:mm")
+                });
+            }
+            catch { /* SignalR broadcast không ảnh hưởng đến luồng chính */ }
 
             return Json(new
             {

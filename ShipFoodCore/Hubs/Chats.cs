@@ -22,23 +22,49 @@ public class Chats : Hub
     }
 
     /// <summary>
-    /// Gửi tin nhắn từ admin đến khách hàng/shipper theo đơn hàng
+    /// Gửi tin nhắn từ admin đến khách hàng/shipper THEO GROUP (không dùng ConnectionId)
+    /// Chỉ gửi qua group — bền vững khi admin reload trang
     /// </summary>
     public async Task AdminSendMessage(string message, int orderId, string connectionId)
     {
-        if (!string.IsNullOrEmpty(connectionId))
-        {
-            await Clients.Client(connectionId).SendAsync("adminMessage", message, orderId);
-        }
-        await Clients.All.SendAsync("adminMessageBroadcast", message, orderId, Context.ConnectionId);
+        await Clients.Group($"order_{orderId}").SendAsync("adminMessage", message, orderId, "Admin");
     }
 
     /// <summary>
-    /// Khách hàng gửi tin nhắn đến admin
+    /// Khách hàng gửi tin nhắn đến admin THEO GROUP
     /// </summary>
     public async Task CustomerSendMessage(string message, int orderId, string userName)
     {
-        await Clients.All.SendAsync("customerMessage", message, orderId, userName, Context.ConnectionId);
+        await Clients.Group($"order_{orderId}").SendAsync("customerMessage", message, orderId, userName, Context.ConnectionId);
+    }
+
+    /// <summary>
+    /// Restaurant tham gia group để nhận đơn hàng mới real-time
+    /// </summary>
+    public async Task JoinRestaurantGroup(int restaurantId)
+    {
+        await Groups.AddToGroupAsync(Context.ConnectionId, $"restaurant_{restaurantId}");
+    }
+
+    /// <summary>
+    /// Shipper tham gia group để nhận đơn mới real-time
+    /// </summary>
+    public async Task JoinShipperGroup()
+    {
+        await Groups.AddToGroupAsync(Context.ConnectionId, "shippers");
+    }
+
+    /// <summary>
+    /// Restaurant báo 'Chuẩn bị xong' → broadcast đến tất cả Shipper
+    /// </summary>
+    public async Task NotifyShippersNewPickup(int orderId, string restaurantName, string pickupAddress)
+    {
+        await Clients.Group("shippers").SendAsync("newPickupOrder", new
+        {
+            orderId = orderId,
+            restaurantName = restaurantName,
+            pickupAddress = pickupAddress
+        });
     }
 
     /// <summary>

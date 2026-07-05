@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.SignalR;
+using ShipFood.Hubs;
 using ShipFood.Models;
 
 namespace ShipFood.Controllers;
@@ -7,11 +9,13 @@ namespace ShipFood.Controllers;
 public class RestaurantController : BaseController
 {
     private readonly IWebHostEnvironment _env;
+    private readonly IHubContext<Chats> _hubContext;
 
-    public RestaurantController(dbFoodyEntities context, IWebHostEnvironment env)
+    public RestaurantController(dbFoodyEntities context, IWebHostEnvironment env, IHubContext<Chats> hubContext)
     {
         db = context;
         _env = env;
+        _hubContext = hubContext;
     }
 
     public ActionResult Index()
@@ -192,6 +196,7 @@ public class RestaurantController : BaseController
         if (!checkLogin()) return RedirectToAction("Login", "Home");
         var quanAn = getQuanAn();
         ViewBag.donHangs = quanAn.tbDonHang.ToList();
+        ViewBag.restaurantId = quanAn.userid;
         return View();
     }
 
@@ -210,6 +215,36 @@ public class RestaurantController : BaseController
         if (dh != null) { dh.trangthai = "Đã hủy"; db.SaveChanges(); }
         return RedirectToAction("OrderList");
     }
+
+    /// <summary>
+    /// Quán ăn bấm 'Chuẩn bị xong' → cập nhật trạng thái 'Chờ shipper lấy hàng'
+    /// + SignalR broadcast đến TOÀN BỘ Shipper đang online (group "shippers")
+    /// </summary>
+    public async Task<ActionResult> hoantatdon(int id)
+    {
+        if (!checkLogin()) return RedirectToAction("Login", "Home");
+        var dh = db.tbDonHang.Find(id);
+        if (dh == null) return RedirectToAction("OrderList");
+
+        dh.trangthai = "Chờ shipper lấy hàng";
+        db.SaveChanges();
+
+        // Load thông tin quán để gửi broadcast
+        var quanAn = getQuanAn();
+        try
+        {
+            await _hubContext.Clients.Group("shippers").SendAsync("newPickupOrder", new
+            {
+                orderId = dh.madh,
+                restaurantName = quanAn?.tenquanan ?? "Quán ăn",
+                pickupAddress = quanAn?.diachi ?? ""
+            });
+        }
+        catch { /* SignalR broadcast không ảnh hưởng đến luồng chính */ }
+
+        return RedirectToAction("OrderList");
+    }
+
 
     public ActionResult Profile()
     {

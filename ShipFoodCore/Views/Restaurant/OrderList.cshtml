@@ -94,6 +94,11 @@
                                         <a href="~/Restaurant/nhandon/@i.madh"><span style="width: 115px; font-size: 13px; " class="btn btn-success light btn-secondary">Nhận đơn</span></a>
                                         <a href="~/Restaurant/huydon/@i.madh"><span style="width: 115px; font-size: 13px;" class="btn btn-warning light btn-secondary">Huỷ đơn</span></a>
                                     }
+                                    else if (i.trangthai == "Đã xác nhận")
+                                    {
+                                        <a href="~/Restaurant/hoantatdon/@i.madh"><span style="width: 140px; font-size: 13px;" class="btn btn-primary btn-secondary">Chuẩn bị xong</span></a>
+                                        <a href="~/Cart/ChiTietDonHang?id=@i.madh"><span style="width:115px" class="btn btn-sm light btn-secondary fs-16">Chi tiết</span></a>
+                                    }
                                     @*@if (i.trangthai == "Hoàn thành")
                                         {
                                             <button style="width: 97px; margin-bottom: 5px" class="btn btn-success"><a>Hoàn thành</a></button>
@@ -114,6 +119,8 @@
 
 <!-- Datatable -->
 <script src="~/Source/Restaurant/vendor/datatables/js/jquery.dataTables.min.js"></script>
+<!-- SignalR -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
 
 <script>
     (function ($) {
@@ -121,11 +128,51 @@
             searching: false,
             paging: true,
             select: false,
-            //info: false,
             lengthChange: false,
         });
         $('#example tbody').on('click', 'tr', function () {
             var data = table.row(this).data();
         });
+
+        // ── SignalR: Real-time đơn hàng mới ──
+        (function initRestaurantRealtime() {
+            var restaurantId = @(ViewBag.restaurantId ?? 0);
+            if (!restaurantId) return;
+
+            var conn = new signalR.HubConnectionBuilder()
+                .withUrl('/nhantin')
+                .withAutomaticReconnect()
+                .build();
+
+            conn.on('newOrder', function (data) {
+                // Phát âm thanh thông báo (Web Audio API)
+                try {
+                    var ctx = new (window.AudioContext || window.webkitAudioContext)();
+                    var osc = ctx.createOscillator();
+                    var gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.frequency.value = 880; // Note A5
+                    osc.type = 'sine';
+                    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+                    osc.start(ctx.currentTime);
+                    osc.stop(ctx.currentTime + 0.4);
+                } catch (e) { /* Audio not supported */ }
+
+                // Reload trang để lấy số liệu thật từ server (DataTable static, không có ajax source)
+                setTimeout(function() { location.reload(); }, 2000);
+            });
+
+            conn.onreconnected(function() {
+                conn.invoke('JoinRestaurantGroup', restaurantId).catch(function(){});
+            });
+
+            conn.start().then(function() {
+                conn.invoke('JoinRestaurantGroup', restaurantId).catch(function(){});
+            }).catch(function(err) {
+                console.error('SignalR OrderList connection failed:', err);
+            });
+        })();
     })(jQuery);
 </script>

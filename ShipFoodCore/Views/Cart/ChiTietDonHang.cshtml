@@ -216,6 +216,10 @@
                         .addTo(map)
                         .bindPopup('🚚 Shipper đang giao hàng')
                         .openPopup();
+                    // Thêm transition mượt cho marker — lướt êm, không nhảy giật
+                    if (shipperMarker._icon) {
+                        shipperMarker._icon.style.transition = 'transform 0.5s ease';
+                    }
                 } else {
                     shipperMarker.setLatLng([lat, lng]);
                 }

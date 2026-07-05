@@ -176,6 +176,7 @@
     </div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
 <script>
     function updateOrderStatus(buttonId, status, id) {
         $.ajax({
@@ -236,6 +237,81 @@
                     }
                 }
             }
+        }
+
+        // ── SignalR: Connect + Start Geolocation Streaming ──
+        (function initShipperGeolocation() {
+            var orderId = @(ViewBag.dh?.madh ?? 0);
+            if (!orderId) return;
+
+            window.currentOrderId = orderId;
+            var conn;
+
+            // Use existing connection from Index page or create new one
+            if (window.shipperConn && window.shipperConn.state === 'Connected') {
+                conn = window.shipperConn;
+                startGeolocation();
+            } else {
+                conn = new signalR.HubConnectionBuilder()
+                    .withUrl('/nhantin')
+                    .withAutomaticReconnect()
+                    .build();
+
+                conn.onreconnected(function() {
+                    conn.invoke('JoinOrderGroup', orderId).catch(function(){});
+                    startGeolocation();
+                });
+
+                conn.start().then(function() {
+                    conn.invoke('JoinOrderGroup', orderId).catch(function(){});
+                    startGeolocation();
+                }).catch(function(err) {
+                    console.error('SignalR geolocation connection failed:', err);
+                });
+
+                window.shipperConn = conn;
+            }
+
+            function startGeolocation() {
+                if (!navigator.geolocation) return;
+
+                // Watch position continuously for real-time tracking
+                window._geoWatchId = navigator.geolocation.watchPosition(
+                    function(pos) {
+                        var lat = pos.coords.latitude;
+                        var lng = pos.coords.longitude;
+
+                        // Update map center
+                        if (typeof map !== 'undefined') {
+                            map.setView([lat, lng], 15);
+                        }
+
+                        // Stream to SignalR hub — shipperLocationUpdate event
+                        // sent to Clients.Group(order_{orderId}) so customer sees it
+                        if (conn && conn.state === 'Connected') {
+                            conn.invoke('UpdateLocation', orderId, lat, lng)
+                                .catch(function(err) {
+                                    console.error('UpdateLocation error:', err);
+                                });
+                        }
+                    },
+                    function(err) {
+                        console.warn('Geolocation error:', err.message);
+                    },
+                    {
+                        enableHighAccuracy: true,
+                        maximumAge: 5000,
+                        timeout: 15000
+                    }
+                );
+            }
+        })();
+    });
+
+    // Cleanup geolocation watch on page unload
+    window.addEventListener('beforeunload', function() {
+        if (window._geoWatchId) {
+            navigator.geolocation.clearWatch(window._geoWatchId);
         }
     });
 </script>

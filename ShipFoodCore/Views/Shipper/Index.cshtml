@@ -95,6 +95,7 @@
     </div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
 <script>
     // Leaflet.js map initialization for Shipper location tracking
     $(document).ready(function () {
@@ -128,6 +129,48 @@
                 });
             }
         }
+
+        // ── SignalR: Receive new pickup orders real-time ──
+        (function initShipperRealtime() {
+            var conn = new signalR.HubConnectionBuilder()
+                .withUrl('/nhantin')
+                .withAutomaticReconnect()
+                .build();
+
+            conn.on('newPickupOrder', function (data) {
+                // Phát âm thanh thông báo
+                try {
+                    var ctx = new (window.AudioContext || window.webkitAudioContext)();
+                    var osc = ctx.createOscillator();
+                    var gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.frequency.value = 660; // Note E5
+                    osc.type = 'triangle';
+                    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+                    osc.start(ctx.currentTime);
+                    osc.stop(ctx.currentTime + 0.5);
+                } catch (e) { /* Audio not supported */ }
+
+                // Reload trang để cập nhật FREE-PICK table (lấy số liệu thật từ SQL)
+                // Nếu đang ở tab FREE-PICK, reload nhẹ
+                setTimeout(function() { location.reload(); }, 1000);
+            });
+
+            conn.onreconnected(function() {
+                conn.invoke('JoinShipperGroup').catch(function(){});
+            });
+
+            conn.start().then(function() {
+                conn.invoke('JoinShipperGroup').catch(function(){});
+            }).catch(function(err) {
+                console.error('SignalR Shipper connection failed:', err);
+            });
+
+            // Expose connection for other scripts (OrderDetail geolocation)
+            window.shipperConn = conn;
+        })();
     });
 </script>
 

@@ -1,24 +1,25 @@
 (function ($) {
     "use strict";
 
-    // ── Helper: re-trigger caption animation (slideInDown / slideInUp) ──
+    // ── Helper: re-trigger caption transition (minimalist FadeInUp) ──
     function triggerCaptionAnim(slideEl) {
         if (!slideEl) return;
-        var els = slideEl.querySelectorAll('.carousel-caption h1, .carousel-caption .slideInUp');
-        els.forEach(function (el) {
+        // CSS transition tự động chạy lại khi class .active chuyển slide
+        // Chỉ cần force reflow để restart transition
+        slideEl.querySelectorAll('.carousel-caption h1, .carousel-caption .animated, .carousel-caption .btn').forEach(function (el) {
             if (!el) return;
-            el.style.animation = 'none';
-            el.offsetHeight; // force reflow
-            el.style.animation = '';
+            el.style.transition = 'none';
+            el.offsetHeight;
+            el.style.transition = '';
         });
     }
 
-    // ── Chuyển Bootstrap Carousel sang crossfade (thay vì slide) ──
-    // Tương đương animateIn: 'fadeIn' / animateOut: 'fadeOut' của OwlCarousel
+    // ── Chuyển Bootstrap Carousel sang crossfade + Ken Burns + pause:false ──
     document.addEventListener('DOMContentLoaded', function () {
         var carouselEl = document.getElementById('header-carousel');
         if (carouselEl) {
             carouselEl.classList.add('carousel-fade');
+            carouselEl.setAttribute('data-bs-pause', 'false'); // Ken Burns zoom liên tục
         }
     });
 
@@ -63,15 +64,14 @@
                     });
                 }
 
-                // ── Re-trigger Bootstrap Carousel SAU KHI skeleton biến mất ──
+                // ── Khởi tạo Bootstrap Carousel với cycle() SAU KHI skeleton biến mất ──
                 var carouselEl = document.getElementById('header-carousel');
                 if (carouselEl) {
-                    // Đảm bảo carousel auto-play hoạt động trở lại
                     var bsCarousel = bootstrap.Carousel.getInstance(carouselEl);
                     if (bsCarousel) {
                         bsCarousel.cycle();
                     }
-                    // Re-trigger caption animation cho slide đang active
+                    // Re-trigger caption transition cho slide đang active
                     var activeSlide = carouselEl.querySelector('.carousel-item.active');
                     if (activeSlide) {
                         triggerCaptionAnim(activeSlide);

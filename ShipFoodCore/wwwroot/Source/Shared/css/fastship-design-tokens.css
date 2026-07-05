@@ -331,6 +331,15 @@ table, th, td, li, a,
 .fs-kpi-icon-blue   { background: rgba(0,123,255,.1); color: #007bff; }
 .fs-kpi-icon-purple { background: rgba(108,66,193,.1); color: #6c42c1; }
 
+/* ── 10b. KPI Icon hover: scale + rotate nhẹ (Fix 5) ── */
+/* Transition đặt trên base class để hover-in + hover-out đều mượt */
+.fs-kpi .fs-kpi-icon {
+    transition: transform 0.3s ease;
+}
+.fs-kpi:hover .fs-kpi-icon {
+    transform: scale(1.1) rotate(3deg);
+}
+
 /* ── 11. Sidebar / Navigation ────────────────────────────── */
 .fs-sidebar {
     background: var(--fs-white);

@@ -185,14 +185,19 @@
                         }
                         else
                         {
-                            <div class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="fa fa-user me-1"></i><span class="d-lg-none">Tài khoản</span>
+                            <div class="nav-item d-flex align-items-center gap-1 gap-lg-2">
+                                <a href="/Home/Login" class="nav-link d-inline-flex align-items-center gap-1 px-2 px-lg-3" style="font-size:13.5px;font-weight:600;border:1.5px solid var(--fs-green);border-radius:24px;padding:6px 16px;color:var(--fs-green);transition:all .2s;"
+                                   onmouseenter="this.style.background='var(--fs-green)';this.style.color='#fff'"
+                                   onmouseleave="this.style.background='transparent';this.style.color='var(--fs-green)'">
+                                    <i class="fa fa-sign-in-alt"></i>
+                                    <span class="d-none d-lg-inline">Đăng nhập</span>
                                 </a>
-                                <ul class="dropdown-menu dropdown-menu-end">
-                                    <li><a class="dropdown-item" href="/Home/Login"><i class="fa fa-sign-in-alt me-2 text-muted"></i>Đăng nhập</a></li>
-                                    <li><a class="dropdown-item" href="/Home/Signup"><i class="fa fa-user-plus me-2 text-muted"></i>Đăng ký</a></li>
-                                </ul>
+                                <a href="/Home/Signup" class="nav-link d-inline-flex align-items-center gap-1 px-2 px-lg-3" style="font-size:13.5px;font-weight:600;background:var(--fs-green);color:#fff;border-radius:24px;padding:6px 16px;border:1.5px solid var(--fs-green);transition:all .2s;"
+                                   onmouseenter="this.style.background='#2ea310';this.style.borderColor='#2ea310'"
+                                   onmouseleave="this.style.background='var(--fs-green)';this.style.borderColor='var(--fs-green)'">
+                                    <i class="fa fa-user-plus"></i>
+                                    <span class="d-none d-lg-inline">Đăng ký</span>
+                                </a>
                             </div>
                         }
 

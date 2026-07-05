@@ -891,51 +891,61 @@ body.fs-body-padded {
     .col-xl-3.col-lg-4.col-md-6 { flex: 0 0 50%; max-width: 50%; }
 }
 
-/* ── Carousel caption animation fix ─────────────────────── */
-/* Bootstrap carousel: re-trigger animated class khi slide active */
+/* ═══════════════════════════════════════════════════════════
+   HERO CAROUSEL — Ken Burns Zoom + Crossfade + Caption FadeInUp
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── 1A. Crossfade: carousel-fade mờ chồng — transition 0.8s ── */
+#header-carousel.carousel-fade .carousel-item {
+    transition: opacity 0.8s ease !important;
+}
+
+/* ── 1B. Ken Burns Zoom — ảnh active phóng to cực chậm 6s ── */
+#header-carousel .carousel-item img {
+    transition: transform 6s linear !important;
+    transform: scale(1);
+    will-change: transform;
+}
+#header-carousel .carousel-item.active img {
+    transform: scale(1.05);
+}
+
+/* ── 1C. Caption Minimalist: fadeInUp nhẹ — bỏ slideInDown cũ ── */
 .carousel-item .carousel-caption h1,
 .carousel-item .carousel-caption .animated {
     opacity: 0;
+    transform: translateY(15px);
+    transition: opacity 0.6s ease 0.15s, transform 0.6s ease 0.15s;
 }
 .carousel-item.active .carousel-caption h1,
 .carousel-item.active .carousel-caption .animated {
     opacity: 1;
+    transform: translateY(0);
 }
-/* slideInDown animation cho caption text */
-@keyframes slideInDown {
-    from {
-        transform: translate3d(0, -40px, 0);
-        opacity: 0;
-    }
-    to {
-        transform: translate3d(0, 0, 0);
-        opacity: 1;
-    }
+/* Buttons delay thêm 0.1s so với h1 */
+.carousel-item .carousel-caption .animated .btn,
+.carousel-item .carousel-caption .slideInUp {
+    opacity: 0;
+    transform: translateY(15px);
+    transition: opacity 0.6s ease 0.3s, transform 0.6s ease 0.3s;
 }
-@keyframes slideInUp {
-    from {
-        transform: translate3d(0, 30px, 0);
-        opacity: 0;
-    }
-    to {
-        transform: translate3d(0, 0, 0);
-        opacity: 1;
-    }
-}
-.carousel-item.active .carousel-caption h1.slideInDown {
-    animation: slideInDown 0.7s ease both;
-}
+.carousel-item.active .carousel-caption .animated .btn,
 .carousel-item.active .carousel-caption .slideInUp {
-    animation: slideInUp 0.7s ease 0.3s both;
+    opacity: 1;
+    transform: translateY(0);
 }
-/* Reduce animation on mobile để tránh lag */
+
+/* Mobile: rút ngắn thời gian */
 @media (max-width: 576px) {
-    .carousel-item.active .carousel-caption h1.slideInDown {
-        animation-duration: 0.4s;
+    .carousel-item .carousel-caption h1,
+    .carousel-item .carousel-caption .animated {
+        transition-duration: 0.4s;
+        transition-delay: 0.05s;
     }
-    .carousel-item.active .carousel-caption .slideInUp {
-        animation-duration: 0.4s;
-        animation-delay: 0.15s;
+    .carousel-item .carousel-caption .animated .btn,
+    .carousel-item .carousel-caption .slideInUp {
+        transition-duration: 0.4s;
+        transition-delay: 0.15s;
     }
 }
 .back-to-top {
@@ -993,6 +1003,25 @@ body.fs-body-padded {
     outline: 3px solid var(--fs-green);
     outline-offset: 3px;
 }
+
+/* ═══════════════════════════════════════════════════════════
+   STAGGERED FADE-IN-UP — Cho review, sản phẩm gợi ý (Fix 3)
+   ═══════════════════════════════════════════════════════════ */
+@keyframes fsFadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+.fs-fade-in-up {
+    animation: fsFadeInUp 0.5s ease both;
+    animation-delay: calc(var(--fs-delay, 0) * 0.1s);
+}
+/* Cách dùng: style="--fs-delay: 1" cho item thứ 1, 2 cho item thứ 2, v.v. */
 
 /* Row 7 + 8: Animations max 300ms, respect prefers-reduced-motion */
 @media (prefers-reduced-motion: reduce) {
@@ -1149,6 +1178,27 @@ p, li, .text-muted { line-height: 1.65; }
     .btn { min-height: 44px; padding: 10px 20px; }
     .dropdown-item { padding: 12px 16px; }
     .nav-link { padding: 12px 16px !important; }
+}
+
+/* ============================================================
+   CHAT WIDGET — Mobile positioning + scale-in animation
+   ============================================================ */
+
+/* Chat box scale-in khi mở */
+.chat-box {
+    /* display:flex mặc định, ẩn qua scale+opacity để transition hoạt động */
+    display: flex;
+    flex-direction: column;
+    transform-origin: bottom right;
+    transform: scale(0.9);
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+.chat-box.open {
+    transform: scale(1);
+    opacity: 1;
+    pointer-events: auto;
 }
 
 /* ============================================================

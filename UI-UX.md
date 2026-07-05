@@ -1,6 +1,6 @@
 # Fastship (ShipFood) — UI/UX Documentation (Full)
 
-> **Phiên bản**: 4.2 — Carousel-fade Crossfade, Promo Band Compact, Negative Margin Hero, Google OAuth Auto-Create  
+> **Phiên bản**: 4.3 — SignalR Real-time Order Pipeline, Chat Widget Modern Minimalist, Shipper Geolocation Streaming  
 > **Cập nhật**: Tháng 7, 2026  
 > **Mô tả**: Tài liệu thiết kế giao diện & trải nghiệm người dùng toàn diện cho nền tảng đặt đồ ăn Fastship  
 > **Tài liệu liên quan**: Project.md — Tổng quan kiến trúc & phát triển
@@ -1235,6 +1235,27 @@ Floating chat bubble (bottom-right, z-index 9999):
 - **Closed state**: Green circle (56px) with comment icon + unread badge
 - **Open state**: 360×520px popup with two tabs: AI Chat + Support
 
+### 13.2 Chat Widget Modern Minimalist Restyle (v4.3)
+
+Toàn bộ inline CSS trong `_ChatWidget.cshtml` đã được viết lại theo phong cách Modern Minimalist:
+
+| Thành phần | Before (v4.2) | After (v4.3) |
+|-----------|---------------|-------------|
+| **Màu chủ đạo** | `#28a745` (old green) | `var(--fs-green, #3CB815)` — design tokens |
+| **Header background** | `#28a745` solid | `linear-gradient(135deg, var(--fs-green), var(--fs-green-dark))` |
+| **Font** | Không khai báo | `var(--fs-font, 'Inter', sans-serif)` khắp file |
+| **Border-radius** | 12px | `var(--fs-radius, 12px)` — flexible |
+| **Box-shadow** | `0 8px 40px rgba(0,0,0,0.15)` | `0 8px 40px rgba(0,0,0,0.12)` — nhẹ hơn |
+| **Tab active** | `#28a745` | `var(--fs-green, #3CB815)` |
+| **Tab bg** | `#f5f6fa` | `var(--fs-light, #f8f9fa)` |
+| **User message** | `#28a745` | `var(--fs-green, #3CB815)` |
+| **Typing dots** | `#bbb` | `var(--fs-green, #3CB815)` — pulse animation |
+| **Quick reply** | `#e8f0fe` blue | `var(--fs-green-bg)` + green border |
+| **Admin status** | `#f0f4ff` blue bg | `var(--fs-green-bg)` + `@keyframes fsPulse` dot |
+| **Scrollbar** | Mặc định | Custom 4px thin scrollbar |
+| **Keyframes** | `@@keyframes typing` | `@@keyframes fsTyping` + `@@keyframes fsPulse` |
+| **Animation `display:none`** | `chat-box { display:none }` (block transition) | `transform: scale(0.9); opacity:0; pointer-events:none` (scale-in tự layout-sg.css) |
+
 ### 13.2 Chat Widget Mobile Responsive (v3.2)
 
 **Vấn đề**: Trên mobile, chat toggle (56px) và chat box (360px) dùng kích thước cố định, không vừa màn hình nhỏ.
@@ -1378,6 +1399,47 @@ public async Task UpdateLocation(int orderId, double lat, double lng)
 {
     await Clients.Group($"order_{orderId}").SendAsync("shipperLocationUpdate", orderId, lat, lng);
 }
+```
+
+### 14.5 Real-time Geolocation Streaming (v4.3)
+
+Khi Shipper bấm "Chấp nhận đơn" (`Shipper/OrderDetail`), hệ thống tự động kích hoạt:
+
+```javascript
+// Shipper OrderDetail.cshtml — geolocation streaming
+navigator.geolocation.watchPosition(function(pos) {
+    var lat = pos.coords.latitude;
+    var lng = pos.coords.longitude;
+    
+    // Update map center
+    map.setView([lat, lng], 15);
+    
+    // Stream to SignalR — order_{madh} group
+    conn.invoke('UpdateLocation', orderId, lat, lng);
+}, function(err) { /* fallback */ }, {
+    enableHighAccuracy: true,
+    maximumAge: 5000,
+    timeout: 15000
+});
+
+// Cleanup on page unload
+window.addEventListener('beforeunload', function() {
+    navigator.geolocation.clearWatch(window._geoWatchId);
+});
+```
+
+**SignalR Hub** (`Chats.cs`):
+```csharp
+public async Task UpdateLocation(int orderId, double lat, double lng)
+{
+    await Clients.Group($"order_{orderId}").SendAsync("shipperLocationUpdate", orderId, lat, lng);
+}
+```
+
+**Leaflet Marker smooth transition**:
+```javascript
+// ChiTietDonHang.cshtml — sau khi tạo shipperMarker
+shipperMarker._icon.style.transition = 'transform 0.5s ease';
 ```
 
 ### 14.5 Fallback
@@ -1756,7 +1818,7 @@ Thay thế spinner loading bằng shimmer skeleton:
 
 ## 21. User Flows
 
-### 21.1 Customer Flow (Updated)
+### 21.1 Customer Flow (Updated — Real-time Order Pipeline v4.3)
 
 ```
 HOME ──→ Browse categories ──→ Restaurant list
@@ -1776,39 +1838,86 @@ HOME ──→ Browse categories ──→ Restaurant list
   │                    (address + coupon + payment)
   │                                │
   │                                ▼
-  │                    Payment processing (mock)
+  │                    PaymentController.ProcessPayment
+  │                    (mock success/failure + coupon apply)
   │                          /            \
   │                        ✅            ❌
   │                  Success popup    Error popup
   │                        │
-  │                        ▼
-  │                   Order history
-  │                   (track status - REAL-TIME with SignalR + Leaflet.js)
-  │                        │
-  │                        ▼
-  │              LIVE MAP TRACKING (NEW v3.1)
-  │              Khi đơn hàng chuyển "Đang giao"
-  │              → SignalR nhận shipperLocationUpdate
-  │              → Marker di chuyển real-time trên map
+  │              ┌─────────┴─────────┐
+  │              ▼                   ▼
+  │      ChiTietDonHang      Giỏ hàng giữ nguyên
+  │      (SignalR listener)     (thử lại)
+  │              │
+  │     ┌────────┴────────┐
+  │     ▼                 ▼
+  │  PaymentController         Restaurant OrderList
+  │  broadcast newOrder ──────→ SignalR JoinRestaurantGroup
+  │  → restaurant_{maquan}    → thông báo + reload
+  │                              │
+  │                   ┌──────────┴──────────┐
+  │                   ▼                     ▼
+  │              Nhận đơn              Hủy đơn
+  │              (Đã xác nhận)
+  │                   │
+  │                   ▼
+  │            Chuẩn bị xong
+  │         (Chờ shipper lấy hàng)
+  │              + broadcast
+  │              → group "shippers"
+  │                   │
+  │           ┌───────┴───────┐
+  │           ▼               ▼
+  │     Shipper Index      Shipper Index (FREE-PICK)
+  │     SignalR nhận        + reload trang
+  │     newPickupOrder           │
+  │     + âm thanh               │
+  │           ┌──────────────────┘
+  │           ▼
+  │    Chấp nhận đơn → OrderDetail
+  │     + setLatLng map
+  │     + JoinOrderGroup(madh)
+  │     + Geolocation watchPosition
+  │           │
+  │           ▼
+  │    UpdateLocation(madh, lat, lng)
+  │    → SignalR hub → order_{madh} group
+  │           │
+  │           ▼
+  │    ChiTietDonHang.cshtml (Customer)
+  │    shipperLocationUpdate event
+  │    → Leaflet marker.setLatLng + map.setView
+  │    → Marker lướt mượt (transition: transform 0.5s)
+  │           │
+  │           ▼
+  │    Lấy hàng → Hoàn thành
+  │    (UpdateDonHang AJAX)
 ```
 
-### 21.2 Shipper Flow (Updated)
+### 21.2 Shipper Flow (Updated v4.3 — Real-time Pickup + Geolocation)
 
 ```
 LOGIN ──→ DASHBOARD (with LIVE MAP)
               │
-              ▼
-      FREE ORDER LIST + MY ORDERS
+              ├── FREEPICK tab: raw SQL (đơn chưa có shipper)
+              │    + SignalR JoinShipperGroup()
+              │    + Lắng nghe newPickupOrder
+              │    + Âm thanh + reload khi có đơn mới
+              │    + Expose window.shipperConn
               │
-      [Accept/Reject] [Update status]
-              │        Đã lấy → Hoàn thành
               ▼
-      RECEIVED ORDER → PICK UP → DELIVER
+      Chấp nhận đơn → OrderDetail
               │
-              ├── Leaflet.js map shows current location
-              ├── Geolocation API tracks position
-              └── SignalR streams coordinates to customer
-```
+              ├── Map: Leaflet.js with pickup + delivery markers
+              ├── SignalR: JoinOrderGroup(orderId)
+              ├── Geolocation: watchPosition(enableHighAccuracy)
+              │    → UpdateLocation(orderId, lat, lng)
+              │    → group "order_{madh}" → Customer map
+              └── Cleanup: clearWatch trên beforeunload
+              │
+              ▼
+      [Lấy hàng] [Hoàn thành]
+      (AJAX UpdateDonHang)
 
 ---
 
@@ -1946,17 +2055,15 @@ LOGIN ──→ DASHBOARD (with LIVE MAP)
 
 ---
 
-> **Document Version**: 4.2 (Full)  
+> **Document Version**: 4.3 (Full)  
 > **Cập nhật**: Tháng 7, 2026  
 > **Based on**: Actual source code analysis of 8 Controllers, 30+ Views, 15+ Models, 10+ CSS files, 5 Layout files, 1 SignalR Hub, 4 sessions of responsive mobile fixes + 1 theme unification update + 1 icon cleanup session  
-> **Key changes v4.2**:  
-> - 🎠 **Carousel-fade crossfade** — Chuyển từ slide animation sang fade crossfade (carousel-fade class), re-trigger trong skeleton callback (main.js)  
-> - 📏 **Promo band compact** — Padding 14px→8px, font-size 15px→13px; Topbar compact 38px→34px, font 12.5px→11.5px  
-> - ⬆️ **Negative margin hero** — `#header-carousel` margin-top -29px (desktop) / -24px (mobile) để hero + header khít 100vh  
-> - 🧼 **Carousel code cleanup** — Xoá WOW.js re-init khỏi Index.cshtml, chuyển logic carousel re-trigger vào main.js skeleton callback  
-> - 🔐 **Google OAuth auto-create** — Đăng nhập Google lần đầu tự động tạo tbUser + tbKhachHang (GG_Guid, email truncate 50)  
-> - 🐛 **MySQL Server Version fix** — MariaDbServerVersion(10,6) → MySqlServerVersion(8,0,20) giải quyết RETURNING syntax error  
-> - 📐 UI-UX.md: Section 4.2, 16.2, 17.5 cập nhật  
-> - 📐 UI-UX.md: Thêm Section 22.8 ✅ v4.2 backlog  
-> - 📐 Project.md: Cập nhật v2.6 Google OAuth + MySQL fix + Tech Debt  
+> **Key changes v4.3**:  
+> - 🔄 **SignalR Real-time Order Pipeline** — Customer thanh toán → broadcast `newOrder` đến Restaurant; Restaurant "Chuẩn bị xong" → broadcast `newPickupOrder` đến Shipper; Shipper geolocation → stream `UpdateLocation` đến Customer map  
+> - 💬 **Chat Widget Modern Minimalist** — `var(--fs-green)` thay `#28a745`, Inter font, gradient header, 12px radius, `--fs-border` tokens, admin dot pulse animation  
+> - 📍 **Shipper Geolocation Streaming** — `navigator.geolocation.watchPosition()` (enableHighAccuracy) → signalR `UpdateLocation()` → group `order_{madh}` → Leaflet marker lướt mượt  
+> - 🏪 **Restaurant "Chuẩn bị xong" button** — OrderList thêm nút cho đơn `Đã xác nhận`, link đến `hoantatdon/{id}`, broadcast đến shippers group  
+> - 🐛 **Payment status fix** — `PaymentController` đổi `"Đang xử lý"` → `"Đã đặt"` đồng bộ với `CartController.SuccessView` và OrderList button logic  
+> - 📐 UI-UX.md: Section 13 Chat Widget, 14 Live Tracking, 21 User Flows, 22.9 ✅ v4.3 backlog  
+> - 📐 Project.md: Cập nhật v2.7 SignalR pipeline + API endpoints  
 

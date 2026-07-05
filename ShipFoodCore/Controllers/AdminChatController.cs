@@ -98,7 +98,7 @@ public class AdminChatController : BaseController
     }
 
     /// <summary>
-    /// API: Khách hàng gửi tin nhắn (từ widget chat) — lưu DB + broadcast SignalR về đúng group
+    /// API: Khách hàng gửi tin nhắn (từ widget chat) — lưu DB + broadcast SignalR qua Groups
     /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -124,16 +124,13 @@ public class AdminChatController : BaseController
             db.tbTinNhans.Add(tinNhan);
             await db.SaveChangesAsync();
 
-            // Broadcast đến đúng nơi — tránh gửi trùng
+            // Broadcast đến group customer_{userId} — admin đã join group này khi chọn khách hàng
+            await _hubContext.Clients.Group($"customer_{user.userid}").SendAsync("customerMessage", message, orderId, user.username, user.userid);
+
+            // Đồng thời gửi đến group đơn hàng (nếu có) — admin trong group cũng nhận
             if (orderId > 0)
             {
-                // Chỉ gửi đến group đơn hàng (admin + customer trong group nhận được)
                 await _hubContext.Clients.Group($"order_{orderId}").SendAsync("customerMessage", message, orderId, user.username, user.userid);
-            }
-            else
-            {
-                // Yêu cầu hỗ trợ chung — gửi đến tất cả để admin thấy
-                await _hubContext.Clients.All.SendAsync("customerMessage", message, orderId, user.username, user.userid);
             }
 
             return Json(new { success = true });

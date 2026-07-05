@@ -30,7 +30,7 @@ Cung cấp một giải pháp hoàn chỉnh cho:
 | **ORM** | Entity Framework Core (Pomelo) | 8.0.11 / 8.0.2 |
 | **Database** | MySQL 8+ (MariaDB-compatible) | 8.0.20+ |
 | **Template Engine** | Razor (Runtime Compilation) | 8.0.11 |
-| **Real-time** | SignalR | 8.0.11 |
+| **Real-time** | SignalR (Groups-based) | 8.0.11 |
 | **AI Chatbot** | Google Gemini API | gemini-3.5-flash |
 | **Google OAuth** | ASP.NET Core Authentication (tự động tạo tài khoản lần đầu) | 8.0.0 |
 | **Charts** | Chart.js | Bundle |
@@ -297,16 +297,25 @@ TMDT-master/
 | `GET` | `/AdminChat/GetUserOrders` | AdminChat | User's orders for chat |
 | `GET` | `/Home/SearchAutocomplete?q=` | Home | Search autocomplete (debounce 300ms) |
 | `POST` | `/Restaurant/ToggleConHang` | Restaurant | AJAX toggle 1-click hết hàng |
-| `POST` | `/Admin/MockPaymentWebhook` | Admin | Mock payment confirmation + SignalR broadcast |
+| `GET` | `/Restaurant/hoantatdon/{id}` | Restaurant | Chuẩn bị xong → status 'Chờ shipper lấy hàng' + SignalR broadcast to shippers |
 | `GET` | `/health` | — | Healthcheck (no DB needed, always 200 OK) |
 | `POST` | `/Home/GoogleResponse` | Home | **NEW** Google OAuth callback (auto-create + redirect) |
 
 ### SignalR Hub
 - **Endpoint**: `/nhantin` 
-- **Hub**: `Chats.cs` (7 methods, 2 group types)
-  - `Message`, `AdminSendMessage`, `CustomerSendMessage`, `JoinOrderGroup`, `JoinCustomerSupportGroup`, `SendToOrderGroup`, `NotifyNewMessage`, **`UpdateLocation`** (NEW — shipper coordinates streaming)
-  - `OnConnectedAsync` / `OnDisconnectedAsync` — connection tracking với `ConcurrentDictionary`
-  - `IsUserOnline(userId)` / `GetUserConnectionId(userId)` — static helper methods
+- **Hub**: `Chats.cs` (12 methods, 5 group types)
+  - `Message` — Broadcast to all
+  - `AdminSendMessage` / `CustomerSendMessage` — Chat via Groups (không dùng ConnectionId)
+  - `JoinOrderGroup(orderId)` — Join per-order group `order_{orderId}`
+  - `JoinCustomerSupportGroup(userId)` — Join per-user group `customer_{userId}`
+  - `JoinRestaurantGroup(restaurantId)` — Join restaurant group `restaurant_{restaurantId}` (newOrder events)
+  - `JoinShipperGroup()` — Join shippers broadcast group `shippers` (newPickupOrder events)
+  - `SendToOrderGroup(msg, orderId, senderName, role)` — Send within order group
+  - `NotifyNewMessage(userId, count)` — Real-time unread badge
+  - `NotifyShippersNewPickup(orderId, restaurantName, pickupAddress)` — Broadcast to shippers group
+  - **`UpdateLocation(orderId, lat, lng)`** — Shipper coordinate streaming → `order_{orderId}` group
+  - `OnConnectedAsync` / `OnDisconnectedAsync` — Connection tracking với `ConcurrentDictionary`
+  - `IsUserOnline(userId)` / `GetUserConnectionId(userId)` — Static helper methods
 
 ---
 
@@ -538,7 +547,7 @@ Dự án mã nguồn mở — phát triển bởi đội ngũ ShipFood.
 
 ---
 
-> **Phiên bản**: 2.6 (Google OAuth Auto-Create, MySQL Server Version Fix, Carousel-fade Crossfade)  
+> **Phiên bản**: 2.7 (SignalR Real-time Order Pipeline, Chat Widget Modern Minimalist, Shipper Geolocation)  
 > **Ngôn ngữ**: C# 12, HTML5, CSS3, JavaScript ES6  
 > **Kiến trúc**: ASP.NET Core MVC n-tier  
 > **Database**: MySQL 8+ (MySqlServerVersion 8.0.20)  

@@ -1,6 +1,6 @@
 # Fastship (ShipFood) — UI/UX Documentation (Full)
 
-> **Phiên bản**: 4.0 — Global Design System v4.0, Dashboard Modern Minimalist Override  
+> **Phiên bản**: 4.2 — Carousel-fade Crossfade, Promo Band Compact, Negative Margin Hero, Google OAuth Auto-Create  
 > **Cập nhật**: Tháng 7, 2026  
 > **Mô tả**: Tài liệu thiết kế giao diện & trải nghiệm người dùng toàn diện cho nền tảng đặt đồ ăn Fastship  
 > **Tài liệu liên quan**: Project.md — Tổng quan kiến trúc & phát triển
@@ -207,7 +207,7 @@ body { font-family: 'Inter', sans-serif; }
     --fs-radius:  12px;
     --fs-shadow:  0 4px 20px rgba(0,0,0,.07);
     --fs-nav-h:   68px;
-    --fs-topbar-h: 38px;
+    --fs-topbar-h: 34px; /* v4.2: 38→34 compact */
 }
 ```
 
@@ -373,7 +373,7 @@ BEFORE (v3.1):
 
 1. **Header z-index**: Tăng từ `1030` lên `10000` (cao hơn skeleton overlay)
 2. **Skeleton overlay top**: Thay đổi từ `top: 0` thành `top: calc(var(--fs-nav-h) + var(--fs-topbar-h))` trên desktop và `top: var(--fs-nav-h)` trên mobile
-   - Desktop: skeleton bắt đầu từ vị trí **dưới header** (68px + 38px = 106px)
+   - Desktop: skeleton bắt đầu từ vị trí **dưới header** (68px + 34px = 102px) (v4.2: topbar 38px→34px)
    - Mobile (< 992px): skeleton bắt đầu từ dưới nav (68px hoặc 60px)
 
 ```
@@ -408,7 +408,7 @@ AFTER (v3.2):
 /* Skeleton chỉ che content, không che header */
 .fs-skeleton-overlay {
     position: fixed;
-    top: calc(var(--fs-nav-h) + var(--fs-topbar-h)); /* 106px desktop */
+    top: calc(var(--fs-nav-h) + var(--fs-topbar-h)); /* 102px desktop (v4.2: topbar 38→34) */
     left: 0;
     right: 0;
     bottom: 0;
@@ -493,7 +493,7 @@ Mỗi dashboard layout có inline `<style>` override áp dụng CSS variables t�
 
 ```
 ┌─────────────────────────────────────────┐
-│ Top Bar (38px) - Phone, Email, Social   │
+│ Top Bar (34px) - Phone, Email, Social   │ (v4.2 compact: 38px→34px, font 12.5→11.5px)
 ├─────────────────────────────────────────┤
 │ Navbar (68px) - Logo | Search | Cart UI │
 ├─────────────────────────────────────────┤
@@ -1441,7 +1441,8 @@ FastShip dinh nghia CSS @keyframes sau trong `layout-sg.css` va inline trong vie
 | Checkout gradient btn | opacity | 0.2s | ease | Hover | `Cart/Checkout.cshtml` |
 | Payment option | border highlight | 0.2s | ease | Click/Hover | `Cart/Checkout.cshtml` |
 | Address card | border + shadow | 0.2s | ease | Selected | `Cart/Checkout.cshtml` |
-| Carousel caption | slideInDown/Up | 0.7s (0.4s mobile) | ease both | Slide activate | `layout-sg.css` |
+| Carousel crossfade | carousel-fade class | 0.6s | CSS transition | Slide activate | `main.js` |
+| Carousel caption | slideInDown/Up | 0.7s (0.4s mobile) | ease both | Slide activate + skeleton callback | `layout-sg.css` + `main.js` |
 | Skeleton shimmer | fs-shimmer | 1.5s infinite | linear | Page load | `layout-sg.css` |
 | Navbar scroll shadow | class toggle | 0.3s | ease | Scroll >10px | `layout-sg.css` |
 | Nav fixed on scroll (v3.6) | fs-nav-fixed class | Instant | -- | Scroll > topbarH | `main.js` |
@@ -1459,7 +1460,9 @@ FastShip dinh nghia CSS @keyframes sau trong `layout-sg.css` va inline trong vie
 | Success/Failure page | slideUp keyframes | 0.5s | ease | Page load | `SuccessView.cshtml` |
 | Checkout popup | popIn scale | 0.3s | ease | Payment result | `Checkout.cshtml` |
 | Map marker update | setLatLng() | Instant | -- | SignalR event | `ChiTietDonHang.cshtml` |
-| Skeleton fadeOut | jQuery fadeOut(250) | 0.25s | -- | 100ms after DOM | `main.js` |
+| Skeleton fadeOut | jQuery fadeOut(250) | 0.25s | -- | 100ms after DOM + carousel re-trigger | `main.js` |
+| **Carousel re-trigger (skeleton callback)** | Carousel.cycle() + triggerCaptionAnim() | — | — | After skeleton fadeOut | `main.js` |
+| **Promo band compact** | negative margin for hero | — | — | Resize | `layout-sg.css` |
 | Back-to-top fade | fadeIn/fadeOut | slow | -- | Scroll >300px | `main.js` |
 | Back-to-top scroll | animate scrollTop | 1500ms | easeInOutExpo | Click | `main.js` |
 
@@ -1566,11 +1569,11 @@ FastShip dinh nghia CSS @keyframes sau trong `layout-sg.css` va inline trong vie
 | Product card | aspect-ratio 16:9, title 13px, address 12px |
 | Stats row | 2 columns, border-bottom thay border-right |
 | Footer newsletter | Input-group xếp dọc, nút full width |
-| Promo band | Font 13px, padding 10px 36px |
+| Promo band | Font 13px (12px v4.2), padding 10px (6px v4.2) 36px |
 | Chat toggle | 48px, bottom: 16px, right: 16px |
 | Chat box | Full width (left: 8px, right: 8px) |
 | Cart item | Flex-wrap, ảnh 48px, font 12px |
-| Carousel | Caption position relative, background rgba(0,0,0,.45) |
+| Carousel | Caption position relative, background rgba(0,0,0,.45); **crossfade** (carousel-fade class) |
 | DetailRestaurant | Ảnh max-height 200px, tên quán 16px |
 | Touch targets | `min-height: 44px`, `padding: 12px 16px` |
 | Body font | 16px (iOS zoom prevention) |
@@ -1925,17 +1928,35 @@ LOGIN ──→ DASHBOARD (with LIVE MAP)
 | **Remove @import icon CSS** | ✅ | Xoá 8 @import dòng icon fonts khỏi 6 files: `style-admin.css`, `style-restaurant.css`, `style-shiper.css`, `Admin/scss/main.css`, `Restaurant/scss/main.css`, `Shipper/scss/main.css` |
 | **Delete icon directories** | ✅ | Xoá `Source/Admin/icons/`, `Source/Restaurant/icons/`, `Source/Shipper/icons/` (~173k dòng, ~50MB) |
 
+### 22.8 ✅ Completed in v4.2 — Carousel-fade Crossfade & Hero Layout Optimization
+
+| Task | Status | Files | Chi tiết |
+|------|--------|-------|----------|
+| **Carousel-fade crossfade** | ✅ | `main.js` | Chuyển carousel từ slide animation → fade crossfade (carousel-fade class), mượt mà hơn, không bị giật |
+| **Carousel re-trigger trong skeleton callback** | ✅ | `main.js` | `Carousel.cycle()` + `triggerCaptionAnim()` sau khi skeleton fadeOut, đảm bảo auto-play và caption animation hoạt động |
+| **Extract triggerCaptionAnim helper** | ✅ | `main.js` | Hàm reset animation (none → reflow → '') dùng chung cho skeleton callback và slid.bs.carousel event |
+| **Cleanup WOW.js re-init khỏi Index.cshtml** | ✅ | `Home/Index.cshtml` | Xoá WOW re-init và carousel window.load handler khỏi Index.cshtml, chuyển logic vào main.js |
+| **Promo band compact** | ✅ | `layout-sg.css` | Padding 14px→8px, font-size 15px→13px (mobile: 6px, 12px), line-height 1.3 |
+| **Topbar compact** | ✅ | `layout-sg.css` | Height 38px→34px (--fs-topbar-h), font-size 12.5px→11.5px, padding 0 |
+| **Negative margin hero** | ✅ | `layout-sg.css` | `#header-carousel { margin-top: -29px }` desktop / `-24px` mobile — kéo hero lên sát header, tạo 100vh effect |
+| **Google OAuth auto-create** | ✅ | `HomeController.cs` | Khi email chưa tồn tại: tự động tạo tbUser (GG_Guid, email truncate 50) + tbKhachHang + redirect |
+| **MySQL Server Version fix** | ✅ | `Program.cs` | `MariaDbServerVersion(10,6)` → `MySqlServerVersion(8,0,20)` — tắt RETURNING clause |
+| **DateTime? ToString fix** | ✅ | `HomeController.cs` | `((DateTime)value).ToString()` thay vì `DateTime?.ToString()` tránh CS1501 build error |
+| **fastship-design-tokens.css sync** | ✅ | `fastship-design-tokens.css` | `--fs-topbar-h: 38px→34px` đồng bộ với layout-sg.css (lần 2: file tokens global) |
+
 ---
 
-> **Document Version**: 4.1 (Full)  
+> **Document Version**: 4.2 (Full)  
 > **Cập nhật**: Tháng 7, 2026  
 > **Based on**: Actual source code analysis of 8 Controllers, 30+ Views, 15+ Models, 10+ CSS files, 5 Layout files, 1 SignalR Hub, 4 sessions of responsive mobile fixes + 1 theme unification update + 1 icon cleanup session  
-> **Key changes v4.1**:  
-> - 🗑️ **Icon Cleanup** — Xoá hoàn toàn 10 icon libraries thừa (Bootstrap Icons, Flaticon, LineIcons, Line Awesome, Simple Line Icons, Themify, Material Design Iconic, Avasta, Icomoon, Font Awesome Old)  
-> - 🎯 **Consolidation** — Chỉ còn Font Awesome 5 (CDN 5.10.0) + Emojis hệ thống  
-> - 🔄 **12 view replacements** — Tất cả icon class references cũ (flaticon, las/la, lni, ti, mdi) → FA5 tương đương  
-> - 📦 **-173k dòng** — Xoá thư mục icons vật lý (Admin, Restaurant, Shipper), 6 file CSS/scss dọn @import  
-> - 📐 UI-UX.md: Section 19.1-19.2 viết lại hoàn toàn  
-> - 📐 UI-UX.md: Thêm Section 22.7 ✅ v4.1 backlog  
-> - 📐 Project.md: Cập nhật v2.5 frontend stack + tech debt  
+> **Key changes v4.2**:  
+> - 🎠 **Carousel-fade crossfade** — Chuyển từ slide animation sang fade crossfade (carousel-fade class), re-trigger trong skeleton callback (main.js)  
+> - 📏 **Promo band compact** — Padding 14px→8px, font-size 15px→13px; Topbar compact 38px→34px, font 12.5px→11.5px  
+> - ⬆️ **Negative margin hero** — `#header-carousel` margin-top -29px (desktop) / -24px (mobile) để hero + header khít 100vh  
+> - 🧼 **Carousel code cleanup** — Xoá WOW.js re-init khỏi Index.cshtml, chuyển logic carousel re-trigger vào main.js skeleton callback  
+> - 🔐 **Google OAuth auto-create** — Đăng nhập Google lần đầu tự động tạo tbUser + tbKhachHang (GG_Guid, email truncate 50)  
+> - 🐛 **MySQL Server Version fix** — MariaDbServerVersion(10,6) → MySqlServerVersion(8,0,20) giải quyết RETURNING syntax error  
+> - 📐 UI-UX.md: Section 4.2, 16.2, 17.5 cập nhật  
+> - 📐 UI-UX.md: Thêm Section 22.8 ✅ v4.2 backlog  
+> - 📐 Project.md: Cập nhật v2.6 Google OAuth + MySQL fix + Tech Debt  
 

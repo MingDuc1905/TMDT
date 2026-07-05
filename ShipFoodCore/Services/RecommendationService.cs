@@ -54,34 +54,76 @@ public class RecommendationService
     }
 
     /// <summary>
-    /// Gợi ý "Thường được mua kèm" - dựa trên các món xuất hiện cùng nhau trong cùng đơn hàng
+    /// Gợi ý "Thường được mua kèm" - Thuật toán Apriori với Support chuẩn
+    /// 
+    /// Công thức: Support(A→B) = Số đơn hàng chứa đồng thời A và B / Tổng số đơn hàng (D)
+    /// Ngưỡng tối thiểu: minSupport = 2% (0.02)
     /// </summary>
     public async Task<List<tbMonAn>> GetFrequentlyBoughtTogether(int? monAnId, int take = 4)
     {
         if (monAnId == null) return new List<tbMonAn>();
 
-        // Tìm các đơn hàng có chứa món này
+        // Bước 1: Tính tổng số lượng đơn hàng (D) — làm mẫu số
+        var totalOrders = await _db.tbDonHang.CountAsync();
+        if (totalOrders == 0) return new List<tbMonAn>();
+
+        // Bước 2: Tìm các đơn hàng có chứa món A (monAnId)
         var relatedOrderIds = await _db.tbChiTietDonHang
-            .Where(ct => ct.mamon == monAnId)
+            .Where(ct => ct.mamon == monAnId && ct.madh != null)
             .Select(ct => ct.madh)
             .Distinct()
             .ToListAsync();
 
         if (relatedOrderIds.Count == 0) return new List<tbMonAn>();
 
-        // Tìm các món khác xuất hiện trong cùng đơn hàng
-        var pairedMonIds = await _db.tbChiTietDonHang
+        // Bước 3: Quét bảng chi tiết đơn hàng → nhóm các món đi cùng A trong cùng hoá đơn
+        // Tính support: số đơn có cả A và B / totalOrders
+        var candidatePairs = await _db.tbChiTietDonHang
             .Where(ct => relatedOrderIds.Contains(ct.madh ?? 0)
-                        && ct.mamon != monAnId)
+                        && ct.mamon != monAnId
+                        && ct.madh != null)
             .GroupBy(ct => ct.mamon)
-            .Select(g => new { monId = g.Key, count = g.Count() })
-            .OrderByDescending(g => g.count)
-            .Take(take)
+            .Select(g => new
+            {
+                MonId = g.Key,
+                OrderCount = g.Select(x => x.madh).Distinct().Count()  // số đơn chứa đồng thời A và B
+            })
             .ToListAsync();
 
-        if (pairedMonIds.Count == 0) return new List<tbMonAn>();
+        if (candidatePairs.Count == 0) return new List<tbMonAn>();
 
-        var ids = pairedMonIds.Select(p => p.monId ?? 0).ToList();
+        // Bước 4: Ngưỡng Support tối thiểu 2%
+        decimal minSupport = 0.02m;
+
+        // Bước 5: Lọc theo minSupport, sắp xếp Support giảm dần
+        var filteredPairs = candidatePairs
+            .Select(p => new
+            {
+                MonId = p.MonId,
+                OrderCount = p.OrderCount,
+                Support = (decimal)p.OrderCount / totalOrders  // Support = count(A∩B) / D
+            })
+            .Where(p => p.Support >= minSupport)
+            .OrderByDescending(p => p.Support)
+            .Take(take)
+            .ToList();
+
+        // Nếu không có cặp nào đạt ngưỡng, fallback: lấy top items có support cao nhất (không lọc)
+        if (filteredPairs.Count == 0)
+        {
+            filteredPairs = candidatePairs
+                .Select(p => new
+                {
+                    MonId = p.MonId,
+                    OrderCount = p.OrderCount,
+                    Support = (decimal)p.OrderCount / totalOrders
+                })
+                .OrderByDescending(p => p.Support)
+                .Take(take)
+                .ToList();
+        }
+
+        var ids = filteredPairs.Select(p => p.MonId ?? 0).ToList();
         return await _db.tbMonAn
             .Where(m => ids.Contains(m.mamon))
             .Include(m => m.tbQuanAn)

@@ -1,6 +1,6 @@
 # Fastship (ShipFood) — Nền tảng Giao Hàng Thức Ăn Online
 
-> **Cập nhật**: Dựa trên mã nguồn thực tế — ASP.NET Core 8 MVC + MySQL (Pomelo) + Bootstrap 5 + SignalR + Gemini AI
+> **Cập nhật**: Dựa trên mã nguồn thực tế — ASP.NET Core 8 MVC + MySQL (Pomelo) + Bootstrap 5 + SignalR + Gemini AI + Google OAuth
 
 ---
 
@@ -28,11 +28,11 @@ Cung cấp một giải pháp hoàn chỉnh cho:
 |------|-----------|-----------|
 | **Backend Framework** | ASP.NET Core | 8.0 |
 | **ORM** | Entity Framework Core (Pomelo) | 8.0.11 / 8.0.2 |
-| **Database** | MySQL (MariaDB-compatible) | 10.6+ |
+| **Database** | MySQL 8+ (MariaDB-compatible) | 8.0.20+ |
 | **Template Engine** | Razor (Runtime Compilation) | 8.0.11 |
 | **Real-time** | SignalR | 8.0.11 |
 | **AI Chatbot** | Google Gemini API | gemini-3.5-flash |
-| **Google OAuth** | ASP.NET Core Authentication | 8.0.0 |
+| **Google OAuth** | ASP.NET Core Authentication (tự động tạo tài khoản lần đầu) | 8.0.0 |
 | **Charts** | Chart.js | Bundle |
 | **Auth** | Cookie Authentication + Session | ASP.NET Core |
 | **CORS** | Restricted (ALLOWED_ORIGINS env var) | ASP.NET Core |
@@ -212,9 +212,16 @@ TMDT-master/
 
 ## 💾 Cơ Sở Dữ Liệu
 
-### Database: MySQL 8+ (MariaDB 10.6+)
+### Database: MySQL 8+ (MySqlServerVersion 8.0.20)
 
 **Connection**: `dbFoodyEntities` (Pomelo.EntityFrameworkCore.MySql)
+> **Fix v2.6**: Đổi từ `MariaDbServerVersion(10,6)` → `MySqlServerVersion(8,0,20)` để tắt RETURNING clause (MySQL < 8.0.21 không hỗ trợ). Nếu cần auto-detect: `ServerVersion.AutoDetect(connectionString)`.
+
+**Google OAuth Auto-Create**: Khi người dùng đăng nhập Google lần đầu (email chưa tồn tại trong DB), hệ thống tự động:
+1. Tạo password ngẫu nhiên `GG_{Guid}` → hash BCrypt workFactor 12
+2. Tạo `tbUser` với username `gg_{guid12}`, email truncate 50 ký tự, role "Khách hàng", trạng thái active (trangthai=1)
+3. Đồng bộ `tbKhachHang` với tên từ Google profile (cắt 50 ký tự)
+4. Gán session + redirect thẳng vào trang chủ (không cần duyệt thủ công)
 
 **Tables** (16 bảng):
 | Bảng | Mô tả | Quan hệ |
@@ -291,7 +298,8 @@ TMDT-master/
 | `GET` | `/Home/SearchAutocomplete?q=` | Home | Search autocomplete (debounce 300ms) |
 | `POST` | `/Restaurant/ToggleConHang` | Restaurant | AJAX toggle 1-click hết hàng |
 | `POST` | `/Admin/MockPaymentWebhook` | Admin | Mock payment confirmation + SignalR broadcast |
-| `GET` | `/health` | — | Healthcheck (no DB needed) |
+| `GET` | `/health` | — | Healthcheck (no DB needed, always 200 OK) |
+| `POST` | `/Home/GoogleResponse` | Home | **NEW** Google OAuth callback (auto-create + redirect) |
 
 ### SignalR Hub
 - **Endpoint**: `/nhantin` 
@@ -358,7 +366,7 @@ APP_DOMAIN=https://shipfood.up.railway.app
 | Loại | Algorithm | Implementation |
 |------|-----------|----------------|
 | **Personalized** | Collaborative filtering | Tìm user cùng sở thích → gợi ý món chưa đặt |
-| **Frequently Bought Together** | Market basket analysis | Món xuất hiện cùng đơn → GroupBy count descending |
+| **Frequently Bought Together** | Apriori Support (min 2%) | Support = cặp món cùng đơn / tổng đơn, lọc ≥2% minSup, sort Support giảm dần |
 | **Time-based** | Keyword matching | Theo giờ: sáng (phở/bún) / trưa (cơm) / tối (lẩu/nướng) / khuya (trà sữa) |
 | **Trending** | Sales volume (48h) | Top bán chạy 48h, fallback all-time |
 
@@ -367,7 +375,7 @@ APP_DOMAIN=https://shipfood.up.railway.app
 ## 🤖 AI Chatbot (Gemini)
 
 ### API
-- **Model**: `gemini-3.5-flash` (free tier)
+- **Model**: `gemini-3.5-flash` (free tier) — comment in code: gemini-2.0-flash retired as of 1/6/2026
 - **System prompt**: Tiếng Việt, ngắn gọn, thân thiện
 - **Context**: Phí ship 15,000đ (free ≥100,000đ), giao 30-45 phút, 7:00-21:30
 
@@ -385,7 +393,7 @@ APP_DOMAIN=https://shipfood.up.railway.app
 ## 📝 Ghi Chú Phát Triển
 
 - **Framework**: ASP.NET Core 8 (not MVC 5)
-- **Database**: MySQL with Pomelo (not SQL Server)
+- **Database**: MySQL 8+ with Pomelo (MySqlServerVersion 8.0.20, not MariaDb)
 - **ORM**: Entity Framework Core 8 (not EF6)
 - **Frontend**: Bootstrap 5 (not Bootstrap 3/4)
 - **Auth**: Cookie + Session (not Identity Framework)
@@ -394,7 +402,7 @@ APP_DOMAIN=https://shipfood.up.railway.app
 - **Font**: Inter (unified) — removed Open Sans, Lora, Cairo, Poppins, Montserrat, Nunito
 - **Charts**: Chart.js (not any commercial charting library)
 - **Real-time**: SignalR 8 (not WebSocket raw)
-- **AI**: Google Gemini (not any paid AI service)
+- **AI**: Google Gemini gemini-3.5-flash (free tier, not any paid AI service)
 - **Deploy**: Docker + Railway (not IIS)
 
 ### CI/CD
@@ -426,8 +434,14 @@ APP_DOMAIN=https://shipfood.up.railway.app
 - [x] ✅ Bootstrap carousel re-trigger on window.load
 - [x] ✅ **Global Design System v4.0** (fastship-design-tokens.css + dashboard override cho 4 layouts)
 - [x] ✅ **Icon cleanup v4.1** (xoá 10 icon libraries thừa, chỉ còn FA5 + Emojis, -173k dòng)
+- [x] ✅ **Fix: MariaDb → MySqlServerVersion 8.0.20** (giải quyết RETURNING syntax error)
+- [x] ✅ **Google OAuth auto-create account** (tự động tạo tbUser + tbKhachHang khi login lần đầu)
+- [x] ✅ **Carousel-fade crossfade + negative margin hero** (100vh hero, promo band compact)
+- [x] ✅ **Topbar/promo band thu gọn** (34px topbar, 8px padding promo, font-size 11.5/13px)
+- [x] ✅ **Apriori Support algorithm** (tính Support = cặp món cùng đơn / tổng đơn, minSup 2%, sort giảm dần)
+- [x] ✅ **fastship-design-tokens.css đồng bộ** (--fs-topbar-h: 38→34px sync với layout-sg.css)
 - [ ] PayPal/ZaloPay/MoMo integration (đã remove khỏi UI)
-- [ ] Unit tests (chưa có)
+- [ ] Unit tests (chưa có — đã thêm xUnit project + 12 tests GetReviews)
 - [ ] Real payment (Stripe/PayPal/ZaloPay)
 
 ---
@@ -524,9 +538,9 @@ Dự án mã nguồn mở — phát triển bởi đội ngũ ShipFood.
 
 ---
 
-> **Phiên bản**: 2.5 (Global Design System v4.0, Icon Cleanup v4.1)  
+> **Phiên bản**: 2.6 (Google OAuth Auto-Create, MySQL Server Version Fix, Carousel-fade Crossfade)  
 > **Ngôn ngữ**: C# 12, HTML5, CSS3, JavaScript ES6  
 > **Kiến trúc**: ASP.NET Core MVC n-tier  
-> **Database**: MySQL 8+  
+> **Database**: MySQL 8+ (MySqlServerVersion 8.0.20)  
 > **Deploy**: Docker + Railway  
 > **Cập nhật cuối**: Tháng 7, 2026

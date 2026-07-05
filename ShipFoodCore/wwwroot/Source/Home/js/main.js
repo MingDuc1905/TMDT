@@ -87,7 +87,7 @@
     $(window).scroll(function () {
         var scrollY = $(this).scrollTop();
         var topbar = $('.fs-topbar');
-        var topbarH = topbar.length ? topbar.outerHeight() : 38;
+        var topbarH = topbar.length ? topbar.outerHeight() : 34; /* v4.2: 38→34 compact */
         var $nav = $('.fs-nav');
         var $body = $('body');
 

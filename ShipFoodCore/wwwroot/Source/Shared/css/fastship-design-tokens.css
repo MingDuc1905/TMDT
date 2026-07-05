@@ -49,7 +49,7 @@
 
     /* ─── Layout ─── */
     --fs-nav-h:      68px;
-    --fs-topbar-h:   38px;
+    --fs-topbar-h:   34px; /* v4.2: 38→34 compact, đồng bộ layout-sg.css */
 }
 
 /* ── 2. Base Reset ─────────────────────────────────────────── */

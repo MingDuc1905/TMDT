@@ -272,6 +272,29 @@
                 window.shipperConn = conn;
             }
 
+            // ── THROTTLE: Chỉ gửi tọa độ lên Hub tối đa 5s/lần ──
+            var _lastGeoUpdate = 0;
+            var _throttleInterval = 5000; // 5 giây
+
+            function sendLocationThrottled(lat, lng) {
+                var now = Date.now();
+                if (now - _lastGeoUpdate < _throttleInterval) return; // bỏ qua nếu chưa đủ 5s
+                _lastGeoUpdate = now;
+
+                // Update map center
+                if (typeof map !== 'undefined') {
+                    map.setView([lat, lng], 15);
+                }
+
+                // Stream to SignalR hub — shipperLocationUpdate event
+                if (conn && conn.state === 'Connected') {
+                    conn.invoke('UpdateLocation', orderId, lat, lng)
+                        .catch(function(err) {
+                            console.error('UpdateLocation error:', err);
+                        });
+                }
+            }
+
             function startGeolocation() {
                 if (!navigator.geolocation) return;
 
@@ -280,20 +303,7 @@
                     function(pos) {
                         var lat = pos.coords.latitude;
                         var lng = pos.coords.longitude;
-
-                        // Update map center
-                        if (typeof map !== 'undefined') {
-                            map.setView([lat, lng], 15);
-                        }
-
-                        // Stream to SignalR hub — shipperLocationUpdate event
-                        // sent to Clients.Group(order_{orderId}) so customer sees it
-                        if (conn && conn.state === 'Connected') {
-                            conn.invoke('UpdateLocation', orderId, lat, lng)
-                                .catch(function(err) {
-                                    console.error('UpdateLocation error:', err);
-                                });
-                        }
+                        sendLocationThrottled(lat, lng);
                     },
                     function(err) {
                         console.warn('Geolocation error:', err.message);

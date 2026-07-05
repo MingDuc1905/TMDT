@@ -252,20 +252,45 @@
     function toggleChat() {
         var box = document.getElementById('chatBox');
         var toggle = document.getElementById('chatToggle');
+        if (!box) return;
         if (box.classList.contains('open')) {
+            // ─── ĐÓNG: thu nhỏ mượt qua CSS transition ───
             box.classList.remove('open');
-            toggle.style.display = 'flex';
+            if (toggle) toggle.style.display = 'flex';
         } else {
+            // ─── MỞ: scale-up mượt ───
             box.classList.add('open');
-            toggle.style.display = 'none';
-            // Clear badge khi m? chat
-            document.getElementById('chatBadge').style.display = 'none';
+            if (toggle) toggle.style.display = 'none';
+            // Clear badge
+            var badge = document.getElementById('chatBadge');
+            if (badge) badge.style.display = 'none';
             if (currentTab === 'admin') {
-                document.getElementById('adminTabBadge').classList.remove('show');
-                document.getElementById('adminTabBadge').textContent = '0';
+                var adminBadge = document.getElementById('adminTabBadge');
+                if (adminBadge) { adminBadge.classList.remove('show'); adminBadge.textContent = '0'; }
             }
         }
     }
+
+    // ─── Đảm bảo nút ✕ (close-btn) và nút toggle đều gọi toggleChat() ───
+    $(document).ready(function() {
+        $('.close-btn').on('click', function(e) {
+            e.stopPropagation();
+            toggleChat();
+        });
+        $('#chatToggle').on('click', function(e) {
+            e.stopPropagation();
+            toggleChat();
+        });
+        // Click outside chat box → đóng (trừ khi click vào toggle)
+        $(document).on('click', function(e) {
+            var box = document.getElementById('chatBox');
+            var toggle = document.getElementById('chatToggle');
+            if (!box || !box.classList.contains('open')) return;
+            if (!box.contains(e.target) && toggle && !toggle.contains(e.target)) {
+                toggleChat();
+            }
+        });
+    });
 
     // ====== AI Chat ======
     function getToken() { return $('input[name="__RequestVerificationToken"]').val(); }

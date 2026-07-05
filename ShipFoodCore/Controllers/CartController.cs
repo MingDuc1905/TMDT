@@ -137,14 +137,19 @@ public class CartController : BaseController
         var cart = GetCart() ?? new Cart();
         var monAn = db.tbMonAn.Find(maMonAn);
 
+        // ─── Multi-restaurant check: nếu cart có món khác quán → redirect kèm TempData ───
+        if (cart.maquanan != null && cart.maquanan != monAn!.maquanan)
+        {
+            TempData["CartConflict"] = "true";
+            TempData["ConflictNewQuan"] = monAn.maquanan?.ToString() ?? "";
+            TempData["ConflictNewMonId"] = maMonAn.ToString();
+            TempData["ConflictNewSoLuong"] = soLuong.ToString();
+            return RedirectToAction("Index");
+        }
+
         if (cart.maquanan == null)
-        {
             cart.maquanan = monAn!.maquanan;
-        }
-        else if (cart.maquanan != monAn!.maquanan)
-        {
-            cart = new Cart { maquanan = monAn.maquanan };
-        }
+
         cart.themMon(monAn, soLuong);
         SetCart(cart);
         return RedirectToAction("Index");
@@ -170,6 +175,82 @@ public class CartController : BaseController
         cart.themMon(monAn, soLuong);
         SetCart(cart);
         return RedirectToAction("Index");
+    }
+
+    // ─── API: Kiểm tra xung đột quán và thêm món (AJAX) ───
+    [HttpGet]
+    public JsonResult ApiThemMonAn(int maMonAn, int soLuong)
+    {
+        if (!CheckLogin())
+            return Json(new { success = false, message = "Vui lòng đăng nhập" });
+
+        if (soLuong <= 0)
+            return Json(new { success = false, message = "Số lượng không hợp lệ" });
+
+        var monAn = db.tbMonAn.Find(maMonAn);
+        if (monAn == null)
+            return Json(new { success = false, message = "Món ăn không tồn tại" });
+
+        var cart = GetCart() ?? new Cart();
+
+        // Kiểm tra xung đột quán
+        if (cart.maquanan != null && cart.maquanan != monAn.maquanan && cart.monAns.Any())
+        {
+            var currentQuan = db.tbQuanAn.Find(cart.maquanan);
+            var newQuan = db.tbQuanAn.Find(monAn.maquanan);
+            return Json(new
+            {
+                success = false,
+                conflict = true,
+                maMonAn = maMonAn,
+                soLuong = soLuong,
+                currentRestaurant = currentQuan?.tenquanan ?? "",
+                newRestaurant = newQuan?.tenquanan ?? "",
+                message = "Giỏ hàng đã có món từ quán khác"
+            });
+        }
+
+        // Cùng quán hoặc giỏ trống → thêm bình thường
+        if (cart.maquanan == null)
+            cart.maquanan = monAn.maquanan;
+        cart.themMon(monAn, soLuong);
+        SetCart(cart);
+
+        return Json(new
+        {
+            success = true,
+            conflict = false,
+            soLuong = cart.monAns.FirstOrDefault(m => m.mamon == maMonAn)?.soLuong ?? soLuong,
+            cartTotal = cart.tongTien?.ToString("N0") + " đ",
+            cartGrandTotal = (cart.tongTien + 15000)?.ToString("N0") + " đ",
+            redirect = Url.Action("Index", "Cart")
+        });
+    }
+
+    // ─── API: Xác nhận chuyển quán (xóa cart cũ + thêm món mới) ───
+    [HttpGet]
+    public JsonResult ApiForceSwitchRestaurant(int maMonAn, int soLuong)
+    {
+        if (!CheckLogin())
+            return Json(new { success = false, message = "Vui lòng đăng nhập" });
+
+        if (soLuong <= 0)
+            return Json(new { success = false, message = "Số lượng không hợp lệ" });
+
+        var monAn = db.tbMonAn.Find(maMonAn);
+        if (monAn == null)
+            return Json(new { success = false, message = "Món ăn không tồn tại" });
+
+        // Xóa cart cũ, tạo cart mới với quán mới
+        var newCart = new Cart { maquanan = monAn.maquanan };
+        newCart.themMon(monAn, soLuong);
+        SetCart(newCart);
+
+        return Json(new
+        {
+            success = true,
+            redirect = Url.Action("Index", "Cart")
+        });
     }
 
     /// <summary>

@@ -128,7 +128,14 @@ public class Chats : Hub
 
             // Broadcast offline status
             await Clients.All.SendAsync("userOnline", userId, false);
+
+            // ─── Shipper disconnect: gỡ khỏi tất cả groups + báo real-time ───
+            // Gửi tín hiệu shipperOffline để Customer map biết shipper đã mất kết nối
+            await Clients.All.SendAsync("shipperOffline", userId);
         }
+
+        // Gỡ khỏi tất cả groups (order_{id}, shippers, restaurant_{id}, customer_{id})
+        // SignalR tự động làm điều này, nhưng gửi tín hiệu để FE cập nhật
         await base.OnDisconnectedAsync(exception);
     }
 

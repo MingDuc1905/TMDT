@@ -112,11 +112,33 @@ public class ShipperController : BaseController
     {
         var sh = GetCurrentUser();
         if (sh == null) return RedirectToAction("Login", "Home");
+        if (id == null) return RedirectToAction("Index");
 
+        // ─── RACE CONDITION: Kiểm tra đơn đã có shipper khác nhận chưa ───
         var donhang = db.tbDonHang.Find(id);
-        if (donhang != null)
+        if (donhang == null)
+        {
+            TempData["ShipperError"] = "Đơn hàng không tồn tại";
+            return RedirectToAction("Index");
+        }
+
+        if (donhang.mashipper != null && donhang.mashipper != sh.userid)
+        {
+            TempData["ShipperError"] = "Đơn hàng đã được shipper khác tiếp nhận";
+            return RedirectToAction("Index");
+        }
+
+        if (donhang.trangthai != "Đã xác nhận" && donhang.trangthai != "Chờ shipper lấy hàng")
+        {
+            TempData["ShipperError"] = "Đơn hàng không còn ở trạng thái chờ nhận";
+            return RedirectToAction("Index");
+        }
+
+        // ─── Tranh đơn: dùng giao dịch nguyên tử để tránh 2 shipper nhận cùng lúc ───
+        if (donhang.mashipper == null)
         {
             donhang.mashipper = sh.userid;
+            donhang.trangthai = "Chờ shipper lấy hàng";
             db.SaveChanges();
         }
 

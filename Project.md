@@ -449,6 +449,12 @@ APP_DOMAIN=https://shipfood.up.railway.app
 - [x] ✅ **Topbar/promo band thu gọn** (34px topbar, 8px padding promo, font-size 11.5/13px)
 - [x] ✅ **Apriori Support algorithm** (tính Support = cặp món cùng đơn / tổng đơn, minSup 2%, sort giảm dần)
 - [x] ✅ **fastship-design-tokens.css đồng bộ** (--fs-topbar-h: 38→34px sync với layout-sg.css)
+- [x] ✅ **Fix 1 — Footer social icons alignment** (`display:inline-flex; width:36px; height:34px; margin:0 6px` trong `layout-sg.css`)
+- [x] ✅ **Fix 1 — Chat toggle close không được** (`toggleChat()` bulletproofed, click-outside-to-close, `scale(0.9) translateY(20px)` animation)
+- [x] ✅ **Fix 2 — Cart multi-restaurant** (`ApiThemMonAn` + `ApiForceSwitchRestaurant` endpoints, confirm dialog khi thêm món khác quán)
+- [x] ✅ **Fix 3 — Geo throttling 5s** (`sendLocationThrottled()`, `_throttleInterval=5000` trong Shipper/OrderDetail)
+- [x] ✅ **Fix 3 — OnDisconnectedAsync cleanup** (`Chats.cs` broadcast `shipperOffline` khi shipper mất kết nối)
+- [x] ✅ **Fix 4 — Race condition Shipper** (kiểm tra `mashipper != null` + `trangthai` trước khi assign, TempData error nếu đơn đã có shipper khác)
 - [ ] PayPal/ZaloPay/MoMo integration (đã remove khỏi UI)
 - [ ] Unit tests (chưa có — đã thêm xUnit project + 12 tests GetReviews)
 - [ ] Real payment (Stripe/PayPal/ZaloPay)
@@ -547,7 +553,7 @@ Dự án mã nguồn mở — phát triển bởi đội ngũ ShipFood.
 
 ---
 
-> **Phiên bản**: 2.8 (Apriori Recommendation System — Support + Confidence, 5 views AI-powered)  
+> **Phiên bản**: 2.9 — 5 UI/UX & Logic Fixes (Footer icons, Chat toggle, Cart multi-restaurant, Geo throttling, Race condition)  
 > **Ngôn ngữ**: C# 12, HTML5, CSS3, JavaScript ES6  
 > **Kiến trúc**: ASP.NET Core MVC n-tier  
 > **Database**: MySQL 8+ (MySqlServerVersion 8.0.20)  

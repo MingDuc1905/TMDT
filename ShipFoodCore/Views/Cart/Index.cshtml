@@ -308,6 +308,47 @@ $(document).ready(function () {
             }
         }).always(function(){ $btn.prop('disabled', false); });
     });
+
+    // ─── XỬ LÝ XUNG ĐỘT QUÁN (Multi-restaurant) ───
+    @if (TempData["CartConflict"] as string == "true")
+    {
+        <text>
+        var conflictNewMonId = @(TempData["ConflictNewMonId"] ?? "0");
+        var conflictNewSoLuong = @(TempData["ConflictNewSoLuong"] ?? "1");
+        var conflictUrl = '@Url.Action("ApiForceSwitchRestaurant", "Cart")';
+
+        if (confirm('Giỏ hàng của bạn đã có món ăn thuộc quán khác. Bạn có muốn xóa giỏ hàng cũ để bắt đầu đặt món tại quán mới này không?')) {
+            window.location.href = conflictUrl + '?maMonAn=' + conflictNewMonId + '&soLuong=' + conflictNewSoLuong;
+        }
+        </text>
+    }
+
+    // ─── AJAX INTERCEPT: Chuyển form "Thêm" sang AJAX ───
+    $(document).on('submit', 'form[action*="Cart/ThemMonAn"]', function(e) {
+        e.preventDefault();
+        var $form = $(this);
+        var maMonAn = $form.find('input[name="maMonAn"]').val();
+        var soLuong = $form.find('input[name="soLuong"]').val();
+        if (!maMonAn || !soLuong || parseInt(soLuong) <= 0) return;
+
+        var apiUrl = '@Url.Action("ApiThemMonAn", "Cart")' + '?maMonAn=' + maMonAn + '&soLuong=' + soLuong;
+        $.getJSON(apiUrl, function(res) {
+            if (res.success && !res.conflict) {
+                // Thêm thành công → redirect đến giỏ hàng
+                if (res.redirect) window.location.href = res.redirect;
+            } else if (res.conflict) {
+                // Xung đột quán → hỏi người dùng
+                if (confirm('Giỏ hàng của bạn đã có món từ "' + res.currentRestaurant + '". Bạn có muốn xóa giỏ hàng cũ để đặt món từ "' + res.newRestaurant + '" không?')) {
+                    var forceUrl = '@Url.Action("ApiForceSwitchRestaurant", "Cart")' + '?maMonAn=' + res.maMonAn + '&soLuong=' + res.soLuong;
+                    window.location.href = forceUrl;
+                }
+            } else {
+                alert(res.message || 'Lỗi khi thêm món vào giỏ hàng');
+            }
+        }).fail(function() {
+            alert('Lỗi kết nối. Vui lòng thử lại.');
+        });
+    });
 });
 </script>
 }

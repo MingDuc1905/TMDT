@@ -24,7 +24,7 @@ DROP TABLE IF EXISTS tbUser;
 CREATE TABLE tbUser (
     userid INT AUTO_INCREMENT NOT NULL,
     username VARCHAR(50) NOT NULL,
-    pwd VARCHAR(60) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+    pwd VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
     loaitaikhoan VARCHAR(50) NOT NULL,
     sdt VARCHAR(11) NOT NULL,
     vitien DECIMAL(19,4) NULL,
@@ -214,24 +214,24 @@ CREATE TABLE tbTinNhan (
 
 -- ==================== tbUser ====================
 INSERT INTO tbUser (userid, username, pwd, loaitaikhoan, sdt, vitien, email, trangthai) VALUES
-(1, 'tranthib', '$2a$12$I8KJSgS5q6fpNTsfYOnnh.CIegJX0Z.AGXlJJtXNGdypVThn1TAGa', 'Khách hàng', '0987654321', 2000.0000, 'tranthib@example.com', 1),
-(2, 'levanc', '$2a$12$PXvFBzMc2NgdgU3jlrjfUOoDEokeb8yq1iHPCACH8f/y/IIMCXh2C', 'Khách hàng', '0901234567', 1500.0000, 'levanc@example.com', 1),
-(3, 'shippery', '$2a$12$OWbRyocV/va/otlWpQ/8kuOSag3j5Y4izgdWD2GD3tilzo0bs9pGS', 'Shipper', '0955555555', 1000.0000, 'shippery@gmail.com', 1),
-(4, 'shipperz', '$2a$12$M9RLc3PRcB/04eP2pM5qwODOwo1.DQ.cUzV22A.Ko6/TqdsnDDntK', 'Shipper', '0966666666', 1200.0000, 'shipperz@gmail.com', 1),
-(5, 'phamthid', '$2a$12$c3g/7bbeZfFKpq9hbUZAZuPVcadD.SSpgzE37pGtR7r0A2GDYBXG6', 'Khách hàng', '0977777777', 1800.0000, 'phamthid@example.com', 1),
-(6, 'konekopizza', '$2a$12$4IZe87sznRNIdsHtCgNVaOxfTEwz.dSAx25vEloOYHOy/0xRG0Pyu', 'Quán ăn', '0922227262', 10000.0000, 'konekopizza@gmail.com', 1),
-(7, 'com1990nvs', '$2a$12$7SmR52i/bLYnHx3LoM.J5uAmZ10sBnzcK.OGxZj7EZQJDmJjnT..a', 'Quán ăn', '0632563451', 10000000.0000, 'com1990@gmail.com', 1),
-(8, 'bundaugiadi', '$2a$12$7SmR52i/bLYnHx3LoM.J5uAmZ10sBnzcK.OGxZj7EZQJDmJjnT..a', 'Quán ăn', '0632586299', 50000000.0000, 'bundaugiadi@gmail.com', 1),
-(9, 'quanchayanlactam', '$2a$12$q68RCmZVuzhRn6Cuw7abVegCbnJuoum9WnjhsKl6I1q4OOb5sjZeC', 'Quán ăn', '0986123487', 4000000.0000, 'chayanlactam@gmail.com', 1),
-(10, 'changanuongbahong', '$2a$12$iAQCNYSRZPZdovyFwYuQpefydJBYR0jDulBCvD9b4q2fBe0j8tc3i', 'Quán ăn', '0728973833', 130000000.0000, 'changanuongbahong@gmail.com', 1),
-(11, 'tralong', '$2a$12$riVfXVlwkCao9HqtdUNTg.Wk8MoihNW6LIO/VgszP9ucFT.TAGua6', 'Quán ăn', '0286472897', 130000000.0000, 'tralong@gmail.com', 1),
-(12, 'bunmambadong', '$2a$12$qPdX7o0FJ87VadSfBaFHj.kb5u/Ed55D.fZWsoR9FuQopOymbd8GW', 'Quán ăn', '0905816478', 130000000.0000, 'bunmambadong@gmail.com', 1),
-(13, 'danghoanggatre', '$2a$12$L.7akU4vpEzRqB.SKDzCI.KRa749KCYfn2XTXbdpCSUzlKvwrLPcC', 'Quán ăn', '0902123654', 130000000.0000, 'danghoanggatre@gmail.com', 1),
-(14, 'sushitotoro', '$2a$12$vbVCyKA9FKXoBc.uJ2HJXuXXZUJ9n8xTUh0V410hZPlxlX5D6EMCm', 'Quán ăn', '0286677897', 130000000.0000, 'sushitotoro@gmail.com', 1),
-(15, '43bakery', '$2a$12$cJYcZxBnBsdiMGSWFYcCku8.oiB9LrliRFvMNLSRqkUdkCKtwX4Ym', 'Quán ăn', '0164982356', 30000000.0000, '43bakery@gmail.com', 1),
-(16, 'admin1', '$2a$12$rZmkOmKbruEYhYow/5AzbeehkNsVx07R.p/lwl3cLPBjr2CKFx22e', 'Admin', '0902122309', 0.0000, 'admin1@gmail.com', 1),
-(17, 'admin2', '$2a$12$BTkjkD.xwTDoLYqazqbq.Okhx7K7IZMmna0IquI9jVCDsZIYYUJOG', 'Admin', '0286673478', 0.0000, 'admin2@gmail.com', 1),
-(18, 'admin3', '$2a$12$R.3B.t1xkUN1AEFQLDkXD.oJlXQ06kDlObP3EqTGqPce9pp4OPEEC', 'Admin', '0383766899', 0.0000, 'admin3@gmail.com', 1);
+(1,  'tranthib',       'abcdef',        'Khách hàng', '0987654321', 2000.0000,    'tranthib@example.com', 1),
+(2,  'levanc',         'qwerty',        'Khách hàng', '0901234567', 1500.0000,    'levanc@example.com', 1),
+(3,  'shippery',       'shipy456',      'Shipper',     '0955555555', 1000.0000,    'shippery@gmail.com', 1),
+(4,  'shipperz',       'shipz789',      'Shipper',     '0966666666', 1200.0000,    'shipperz@gmail.com', 1),
+(5,  'phamthid',       'xyz123',        'Khách hàng', '0977777777', 1800.0000,    'phamthid@example.com', 1),
+(6,  'konekopizza',    'konekopizza',   'Quán ăn',    '0922227262', 10000.0000,   'konekopizza@gmail.com', 1),
+(7,  'com1990nvs',     'com1990nvs',    'Quán ăn',    '0632563451', 10000000.0000, 'com1990@gmail.com', 1),
+(8,  'bundaugiadi',    'bundaugiadi',   'Quán ăn',    '0632586299', 50000000.0000, 'bundaugiadi@gmail.com', 1),
+(9,  'quanchayanlactam', 'quanchayanlactam', 'Quán ăn', '0986123487', 4000000.0000,  'chayanlactam@gmail.com', 1),
+(10, 'changanuongbahong', 'changanuongbahong', 'Quán ăn', '0728973833', 130000000.0000, 'changanuongbahong@gmail.com', 1),
+(11, 'tralong',        'tralong',       'Quán ăn',    '0286472897', 130000000.0000, 'tralong@gmail.com', 1),
+(12, 'bunmambadong',   'bunmambadong',  'Quán ăn',    '0905816478', 130000000.0000, 'bunmambadong@gmail.com', 1),
+(13, 'danghoanggatre', 'danghoanggatre', 'Quán ăn',   '0902123654', 130000000.0000, 'danghoanggatre@gmail.com', 1),
+(14, 'sushitotoro',    'sushitotoro',   'Quán ăn',    '0286677897', 130000000.0000, 'sushitotoro@gmail.com', 1),
+(15, '43bakery',       '43bakery',      'Quán ăn',    '0164982356', 30000000.0000,  '43bakery@gmail.com', 1),
+(16, 'admin1',         'admin1',        'Admin',       '0902122309', 0.0000,        'admin1@gmail.com', 1),
+(17, 'admin2',         'admin2',        'Admin',       '0286673478', 0.0000,        'admin2@gmail.com', 1),
+(18, 'admin3',         'admin3',        'Admin',       '0383766899', 0.0000,        'admin3@gmail.com', 1);
 
 -- ==================== tbAdmin ====================
 INSERT INTO tbAdmin (userid, tenadmin) VALUES

@@ -288,6 +288,11 @@ public class RestaurantController : BaseController
             if (quanAn.hinhanh != null) quanAnOld.hinhanh = quanAn.hinhanh;
             if (!string.IsNullOrEmpty(pwd)) quanAnOld.tbUser.pwd = pwd;
             quanAnOld.diachi = quanAn.diachi;
+            // Hash password nếu có thay đổi
+            if (!string.IsNullOrEmpty(pwd) && pwd != quanAnOld.tbUser.pwd)
+            {
+                quanAnOld.tbUser.pwd = BCrypt.Net.BCrypt.HashPassword(pwd, workFactor: 12);
+            }
             db.SaveChanges();
         }
         return RedirectToAction("Profile");
@@ -422,7 +427,7 @@ public class RestaurantController : BaseController
             .FirstOrDefault(q => q.userid == user.userid) ?? null!;
     }
 
-    public bool checkLogin()
+    private bool checkLogin()
     {
         var user = GetCurrentUser();
         return user != null && user.loaitaikhoan.Equals("Quán ăn");

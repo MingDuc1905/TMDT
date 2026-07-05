@@ -227,7 +227,7 @@ public class AdminChatController : BaseController
 
         var user = db.tbUser.Find(userId);
         if (user == null)
-            return Json(new { success = false, message = "Không tìm th?y ng??i dùng" });
+            return Json(new { success = false, message = "Không tìm thấy người dùng" });
 
         var messages = db.tbTinNhans
             .Where(t => t.makh == userId)
@@ -259,7 +259,7 @@ public class AdminChatController : BaseController
             return Json(new { success = false });
 
         if (string.IsNullOrWhiteSpace(message))
-            return Json(new { success = false, error = "Vui lòng nh?p n?i dung" });
+            return Json(new { success = false, error = "Vui lòng nhập nội dung" });
 
         try
         {
@@ -280,7 +280,7 @@ public class AdminChatController : BaseController
         }
         catch
         {
-            return Json(new { success = false, error = "L?i khi g?i tin nh?n" });
+            return Json(new { success = false, error = "Lỗi khi gửi tin nhắn" });
         }
     }
 

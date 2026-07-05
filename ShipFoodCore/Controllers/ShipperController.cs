@@ -11,10 +11,16 @@ public class ShipperController : BaseController
         db = context;
     }
 
+    private bool checkShipper()
+    {
+        var user = GetCurrentUser();
+        return user != null && user.loaitaikhoan.Equals("Shipper");
+    }
+
     public ActionResult Index()
     {
         var sh = GetCurrentUser();
-        if (sh == null) return RedirectToAction("Login", "Home");
+        if (sh == null || !checkShipper()) return RedirectToAction("Login", "Home");
 
         var listdh = db.DonHangDangLam.FromSqlRaw(
             @"select dh.madh, dh.ngaydathang, tt.diachi, tt.tennguoinhan, dh.trangthai, dh.phiship, dh.tongtien, tt.userid, tt.sdt, 
@@ -31,7 +37,7 @@ public class ShipperController : BaseController
     public ActionResult ThuNhap()
     {
         var sh = GetCurrentUser();
-        if (sh == null) return RedirectToAction("Login", "Home");
+        if (sh == null || !checkShipper()) return RedirectToAction("Login", "Home");
 
         DateTime currentDate = DateTime.Now;
         DateTime todayStart = currentDate.Date;
@@ -60,12 +66,17 @@ public class ShipperController : BaseController
         return View(shipper ?? new tbUser());
     }
 
-    public ActionResult ThongBao() => View();
+    public ActionResult ThongBao()
+    {
+        var sh = GetCurrentUser();
+        if (sh == null || !checkShipper()) return RedirectToAction("Login", "Home");
+        return View();
+    }
 
     public ActionResult LichSu()
     {
         var sh = GetCurrentUser();
-        if (sh == null) return RedirectToAction("Login", "Home");
+        if (sh == null || !checkShipper()) return RedirectToAction("Login", "Home");
         var listdh = db.tbDonHang
             .Where(dh => dh.mashipper == sh.userid)
             .Include(d => d.tbThongTinDatHang)
@@ -76,7 +87,7 @@ public class ShipperController : BaseController
     public ActionResult CaiDat()
     {
         var user = GetCurrentUser();
-        if (user == null) return RedirectToAction("Login", "Home");
+        if (user == null || !checkShipper()) return RedirectToAction("Login", "Home");
         var shipper = db.tbUser.Include(s => s.tbShipper).FirstOrDefault(s => s.userid == user.userid);
         return View(shipper ?? new tbUser());
     }
@@ -86,13 +97,17 @@ public class ShipperController : BaseController
     public ActionResult CaiDat(tbUser user, string? diachi)
     {
         var shipper = GetCurrentUser();
-        if (shipper == null) return RedirectToAction("Login", "Home");
+        if (shipper == null || !checkShipper()) return RedirectToAction("Login", "Home");
 
         var existingUser = db.tbUser.Find(user.userid);
         if (existingUser != null)
         {
             existingUser.sdt = user.sdt;
-            existingUser.pwd = user.pwd;
+            // Chỉ hash password nếu có thay đổi (không rỗng, khác current)
+            if (!string.IsNullOrEmpty(user.pwd) && user.pwd != existingUser.pwd)
+            {
+                existingUser.pwd = BCrypt.Net.BCrypt.HashPassword(user.pwd, workFactor: 12);
+            }
             db.SaveChanges();
         }
         return RedirectToAction("CaiDat");
@@ -101,7 +116,7 @@ public class ShipperController : BaseController
     public ActionResult ViTien()
     {
         var sh = GetCurrentUser();
-        if (sh == null) return RedirectToAction("Login", "Home");
+        if (sh == null || !checkShipper()) return RedirectToAction("Login", "Home");
         var shipper = db.tbUser.Find(sh.userid);
         var listdonhang = db.tbDonHang.Where(dh => dh.mashipper == sh.userid).ToList();
         ViewBag.listdh = listdonhang;
@@ -111,7 +126,7 @@ public class ShipperController : BaseController
     public ActionResult OrderDetail(int? id)
     {
         var sh = GetCurrentUser();
-        if (sh == null) return RedirectToAction("Login", "Home");
+        if (sh == null || !checkShipper()) return RedirectToAction("Login", "Home");
         if (id == null) return RedirectToAction("Index");
 
         // ─── RACE CONDITION: Kiểm tra đơn đã có shipper khác nhận chưa ───
@@ -160,6 +175,8 @@ public class ShipperController : BaseController
     [HttpPost]
     public JsonResult UpdateDonHang(string status, int id)
     {
+        if (!checkShipper())
+            return Json(new { success = false, message = "Không có quyền thực hiện" });
         string? trangthai = null;
         if (status == "lh") trangthai = "Đã lấy";
         if (status == "ht") trangthai = "Hoàn thành";
@@ -182,7 +199,7 @@ public class ShipperController : BaseController
     public ActionResult updateStatus()
     {
         var sh = GetCurrentUser();
-        if (sh == null) return RedirectToAction("Login", "Home");
+        if (sh == null || !checkShipper()) return RedirectToAction("Login", "Home");
 
         var shipper = db.tbShipper.Find(sh.userid);
         if (shipper != null)

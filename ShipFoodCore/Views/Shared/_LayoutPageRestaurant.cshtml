@@ -20,8 +20,27 @@
     <link href="~/Source/Restaurant/vendor/bootstrap-select/dist/css/bootstrap-select.min.css" rel="stylesheet" />
     <link href="~/Source/Restaurant/vendor/datatables/css/jquery.dataTables.min.css" rel="stylesheet" />
     <link href="~/Source/Restaurant/css/style-restaurant.css" rel="stylesheet" />
-    <!-- Chỉ dùng Font Awesome 5 + Emoji hệ thống -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css">
+    <!-- Font Awesome 5 (CDN) + local FA6 fallback khi AdBlock chặn CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" id="fa-cdn">
+    <link href="~/Source/Home/css/font/fontawesome-free-6.1.2-web/css/all.min.css" rel="stylesheet" media="print" id="fa-local" />
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var iconTest = document.createElement('span');
+        iconTest.className = 'fa';
+        iconTest.style.cssText = 'position:absolute;visibility:hidden;top:-999px;left:-999px;font-family:inherit;';
+        document.body.appendChild(iconTest);
+        var cdnFailed = window.getComputedStyle(iconTest).getPropertyValue('font-family').indexOf('Font Awesome') === -1;
+        document.body.removeChild(iconTest);
+        if (cdnFailed) {
+            var localLink = document.getElementById('fa-local');
+            if (localLink) { localLink.media = 'all'; localLink.removeAttribute('media'); }
+            var v5Compat = document.createElement('link');
+            v5Compat.rel = 'stylesheet';
+            v5Compat.href = '/Source/Home/css/font/fontawesome-free-6.1.2-web/css/v5-font-face.css';
+            document.head.appendChild(v5Compat);
+        }
+    });
+    </script>
     <!-- Global Design System v4.0 -->
     <link href="~/Source/Shared/css/fastship-design-tokens.css" rel="stylesheet" />
     <style>

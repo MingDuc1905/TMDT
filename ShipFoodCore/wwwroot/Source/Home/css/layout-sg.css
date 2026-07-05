@@ -38,24 +38,42 @@ html::-webkit-scrollbar-thumb:hover {
 
 /* ═══════════════════════════════════════════════════════════
    TOPBAR RIGHT — Icon MXH Font Awesome 5 Brands Protection
-   Chống lỗi tàng hình do Inter font-family ép đè
+   Chống lỗi tàng hình + khoảng cách không đồng đều
    ═══════════════════════════════════════════════════════════ */
 .fs-header .top-bar-right {
     display: inline-flex !important;
     align-items: center !important;
-    gap: 14px !important;
+    gap: 8px !important;
+}
+.fs-header .top-bar-right span {
+    font-size: 11.5px;
+    color: var(--fs-muted);
+    white-space: nowrap;
+}
+.fs-header .top-bar-right a {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 24px !important;
+    height: 24px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    text-decoration: none !important;
 }
 .fs-header .top-bar-right a i,
 .fs-header .top-bar-right i[class^="fab fa-"] {
     font-family: "Font Awesome 5 Brands" !important;
     font-weight: 400 !important;
+    font-size: 14px !important;
+    width: 14px !important;
+    height: 14px !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    width: 28px !important;
-    height: 28px !important;
     line-height: 1 !important;
-    vertical-align: middle !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    text-align: center !important;
 }
 
 /* ── Utilities ─────────────────────────────────────────────── */
@@ -935,40 +953,42 @@ body.fs-body-padded {
     height: 100vh;
 }
 
-/* ── 2C. Caption: fadeIn + slide từ phải sang trái ── */
-.carousel-item .carousel-caption h1 {
-    opacity: 0;
-    transform: translateX(30px);
-    transition: opacity 0.6s ease 0.15s, transform 0.6s cubic-bezier(0.645, 0.045, 0.355, 1) 0.15s;
+/* ── 2C. @keyframes fsSlideLeft — fadeIn + slide từ phải sang trái ── */
+@keyframes fsSlideLeft {
+    0%   { opacity: 0; transform: translateX(30px); }
+    100% { opacity: 1; transform: translateX(0); }
 }
-.carousel-item.active .carousel-caption h1 {
-    opacity: 1;
-    transform: translateX(0);
+
+/* Tiêu đề h1 — animation 0.6s, delay 0.15s */
+#header-carousel .carousel-item.active .carousel-caption h1 {
+    animation: fsSlideLeft 0.6s cubic-bezier(0.215, 0.610, 0.355, 1) forwards !important;
 }
 
 /* Buttons — xuất hiện trễ hơn h1 150ms để tạo nhịp điệu */
+#header-carousel .carousel-item.active .carousel-caption .animated .btn,
+#header-carousel .carousel-item.active .carousel-caption .slideInUp {
+    animation: fsSlideLeft 0.6s cubic-bezier(0.215, 0.610, 0.355, 1) forwards !important;
+    animation-delay: 0.15s !important;
+}
+
+/* Trạng thái ẩn ban đầu (khi chưa active) */
+.carousel-item .carousel-caption h1,
 .carousel-item .carousel-caption .animated .btn,
 .carousel-item .carousel-caption .slideInUp {
     opacity: 0;
     transform: translateX(30px);
-    transition: opacity 0.6s ease 0.3s, transform 0.6s cubic-bezier(0.645, 0.045, 0.355, 1) 0.3s;
-}
-.carousel-item.active .carousel-caption .animated .btn,
-.carousel-item.active .carousel-caption .slideInUp {
-    opacity: 1;
-    transform: translateX(0);
 }
 
 /* Mobile: rút ngắn thời gian */
 @media (max-width: 576px) {
-    .carousel-item .carousel-caption h1 {
-        transition-duration: 0.4s;
-        transition-delay: 0.05s;
+    #header-carousel .carousel-item.active .carousel-caption h1 {
+        animation-duration: 0.4s !important;
+        animation-delay: 0.05s !important;
     }
-    .carousel-item .carousel-caption .animated .btn,
-    .carousel-item .carousel-caption .slideInUp {
-        transition-duration: 0.4s;
-        transition-delay: 0.15s;
+    #header-carousel .carousel-item.active .carousel-caption .animated .btn,
+    #header-carousel .carousel-item.active .carousel-caption .slideInUp {
+        animation-duration: 0.4s !important;
+        animation-delay: 0.15s !important;
     }
 }
 .back-to-top {

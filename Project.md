@@ -458,6 +458,7 @@ APP_DOMAIN=https://shipfood.up.railway.app
 - [x] ✅ **Fix 1b — Topbar icon font fix** (`font-family: "Font Awesome 5 Brands" !important` — ép FontAwesome khi Inter font-family đè)
 - [x] ✅ **Chat toggle rewrite (event delegation)** (`data-chat-toggle` attribute, `.active` class, `$(toggle).fadeIn(100)` / `$(toggle).fadeOut(100)`, click-outside-to-close)
 - [x] ✅ **Hero Carousel → Horizontal Slide Smooth** (xoá Ken Burns zoom, crossfade → `transition: transform 0.75s cubic-bezier(...)`, caption `translateX(30px→0)`, ảnh flat `100vh`, `interval: 4500`, `pause: false`)
+- [x] ✅ **Fix icon tàng hình triệt để** (chuyển 8 file từ FA5 CDN → local FA6.1.2, cập nhật fastship-design-tokens.css font-family FA5→FA6, thêm super-specific CSS selector `#fsHeader .fs-topbar .col-lg-6.text-end a i.fab`, xoá `font-family: inherit !important` gây lỗi)
 - [ ] PayPal/ZaloPay/MoMo integration (đã remove khỏi UI)
 - [ ] Unit tests (chưa có — đã thêm xUnit project + 12 tests GetReviews)
 - [ ] Real payment (Stripe/PayPal/ZaloPay)
@@ -556,7 +557,7 @@ Dự án mã nguồn mở — phát triển bởi đội ngũ ShipFood.
 
 ---
 
-> **Phiên bản**: 3.0 — Topbar icon font fix, Chat toggle event delegation, Hero Horizontal Slide  
+> **Phiên bản**: 3.1 — FA5 CDN → local FA6.1.2, fix icon tàng hình triệt để  
 > **Ngôn ngữ**: C# 12, HTML5, CSS3, JavaScript ES6  
 > **Kiến trúc**: ASP.NET Core MVC n-tier  
 > **Database**: MySQL 8+ (MySqlServerVersion 8.0.20)  

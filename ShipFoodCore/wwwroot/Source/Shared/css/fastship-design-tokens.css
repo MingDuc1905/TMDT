@@ -33,6 +33,8 @@
     --fs-font:       'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     --fs-font-size:  14px;
     --fs-line-height:1.6;
+    --fs-letter-spacing: -0.01em;
+    --fs-heading-letter-spacing: -0.03em;
 
     /* ─── Spacing & Shape ─── */
     --fs-radius:     12px;
@@ -41,15 +43,25 @@
     --fs-radius-xl:  24px;
     --fs-shadow:     0 4px 20px rgba(0,0,0,.07);
     --fs-shadow-sm:  0 2px 8px rgba(0,0,0,.05);
+    --fs-shadow-md:  0 8px 24px rgba(0,0,0,.08);
     --fs-shadow-lg:  0 12px 32px rgba(0,0,0,.1);
+    --fs-shadow-xl:  0 20px 48px rgba(0,0,0,.12);
     --fs-shadow-btn: 0 4px 12px rgba(60,184,21,.3);
+
+    /* ─── Section Spacing ─── */
+    --fs-section-gap: 32px;
+    --fs-section-gap-mobile: 20px;
+    --fs-section-padding: 60px;
+    --fs-section-padding-mobile: 40px;
 
     /* ─── Transitions ─── */
     --fs-transition: .2s ease;
+    --fs-transition-slow: .35s ease;
+    --fs-transition-fast: .15s ease;
 
     /* ─── Layout ─── */
     --fs-nav-h:      68px;
-    --fs-topbar-h:   34px; /* v4.2: 38→34 compact, đồng bộ layout-sg.css */
+    --fs-topbar-h:   34px;
 }
 
 /* ── 2. Base Reset ─────────────────────────────────────────── */

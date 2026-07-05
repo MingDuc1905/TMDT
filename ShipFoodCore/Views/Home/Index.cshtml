@@ -137,12 +137,14 @@
             }
         </div>
 
-        <!-- Cards grid -->
+        <!-- Cards grid — staggered fade-in (Contemporary Editorial) -->
         <div class="row g-3 g-md-4 mt-1">
             @if (quanAns != null && quanAns.Count > 0)
             {
+                int cardIdx = 0;
                 foreach (var item in quanAns)
                 {
+                    cardIdx++;
                     <div class="col-xl-3 col-lg-4 col-6 wow fadeInUp" data-wow-delay="0.05s">
                         <a href="@Url.Action("DetailRestaurant","Home", new { id = item.userid })" class="text-decoration-none" aria-label="Xem chi tiết @item.tenquanan">
                             <div class="product-item">

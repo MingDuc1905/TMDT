@@ -431,21 +431,21 @@ body.fs-body-padded {
     font-size: 15px;
 }
 
-/* Restaurant card — sweetgreen card look */
+/* Restaurant card — sweetgreen card look (Contemporary Editorial) */
 .product-item {
     border: none !important;
     border-radius: 16px;
     overflow: hidden;
     box-shadow: 0 2px 14px rgba(0,0,0,.05);
-    transition: transform .3s ease, box-shadow .3s ease;
+    transition: transform .4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow .4s ease;
     background: #fff;
     height: 100%;
     display: flex;
     flex-direction: column;
 }
 .product-item:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 12px 32px rgba(0,0,0,.1);
+    transform: translateY(-8px);
+    box-shadow: 0 16px 40px rgba(0,0,0,.12);
 }
 /* Ảnh dùng aspect-ratio thay height cứng — tránh vỡ mobile */
 .product-item .product-img-wrap {
@@ -566,7 +566,7 @@ body.fs-body-padded {
     color: var(--fs-green);
 }
 
-/* ── Stats row ────────────────────────────────────────────── */
+/* ── Stats row — Editorial Minimal ────────────────────────── */
 .fs-stats-row {
     display: flex;
     justify-content: center;
@@ -574,14 +574,18 @@ body.fs-body-padded {
     flex-wrap: wrap;
     border-top: 1px solid var(--fs-border);
     border-bottom: 1px solid var(--fs-border);
-    padding: 32px 0;
-    margin: 48px 0;
+    padding: 40px 0;
+    margin: 40px 0;
 }
 .fs-stat-item {
     flex: 1;
     min-width: 140px;
     text-align: center;
     padding: 12px 16px;
+    transition: transform .3s ease;
+}
+.fs-stat-item:hover {
+    transform: translateY(-2px);
 }
 .fs-stat-item:not(:last-child) {
     border-right: 1px solid var(--fs-border);
@@ -591,11 +595,13 @@ body.fs-body-padded {
     font-weight: 800;
     color: var(--fs-green);
     line-height: 1;
+    letter-spacing: -0.03em;
 }
 .fs-stat-item .stat-label {
     font-size: 13px;
     color: var(--fs-muted);
-    margin-top: 4px;
+    margin-top: 6px;
+    letter-spacing: 0.02em;
 }
 @media (max-width: 576px) {
     .fs-stat-item:not(:last-child) { border-right: none; border-bottom: 1px solid var(--fs-border); }
@@ -650,36 +656,47 @@ body.fs-body-padded {
     }
 }
 
-/* ── How it works section ─────────────────────────────────── */
+/* ── How it works section — Contemporary Editorial ────────── */
 .fs-how-section {
     background: var(--fs-light);
     padding: 64px 0;
 }
 .fs-how-card {
     text-align: center;
-    padding: 24px 16px;
+    padding: 32px 20px;
+    transition: transform .3s ease;
+}
+.fs-how-card:hover {
+    transform: translateY(-4px);
 }
 .fs-how-icon {
-    width: 64px;
-    height: 64px;
+    width: 72px;
+    height: 72px;
     border-radius: 50%;
     background: rgba(60,184,21,.12);
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 auto 16px;
-    font-size: 24px;
+    margin: 0 auto 20px;
+    font-size: 28px;
     color: var(--fs-green);
+    transition: transform .3s ease, background .3s ease;
+}
+.fs-how-card:hover .fs-how-icon {
+    transform: scale(1.1);
+    background: rgba(60,184,21,.18);
 }
 .fs-how-card h5 {
     font-weight: 700;
     color: var(--fs-dark);
-    margin-bottom: 8px;
+    margin-bottom: 10px;
+    letter-spacing: -0.02em;
 }
 .fs-how-card p {
     font-size: 14px;
     color: var(--fs-muted);
     margin: 0;
+    line-height: 1.7;
 }
 
 /* ============================================================
@@ -760,33 +777,32 @@ body.fs-body-padded {
     flex-shrink: 0;
 }
 
-/* Social links */
+/* Social links — đồng bộ với topbar (30px circular) */
 .fs-social-links {
     display: flex;
-    gap: 6px;
+    gap: 8px;
     align-items: center;
 }
 .fs-social-links a {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 36px;
-    height: 34px;
-    margin: 0 6px;
-    border-radius: 50%;
-    border: 1.5px solid var(--fs-border);
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 30px !important;
+    height: 30px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border-radius: 50% !important;
+    border: none !important;
     color: var(--fs-muted);
-    font-size: 13px;
+    font-size: 14px !important;
     text-decoration: none !important;
-    transition: border-color .2s, background .2s, color .2s;
+    transition: background .2s, color .2s;
     line-height: 1;
 }
-.fs-social-links a:first-child { margin-left: 0; }
-.fs-social-links a:last-child { margin-right: 0; }
 .fs-social-links a:hover {
-    border-color: var(--fs-green);
-    background: var(--fs-green);
-    color: #fff;
+    background: rgba(60,184,21,.12) !important;
+    color: var(--fs-green) !important;
+    border-color: transparent !important;
 }
 
 /* Footer bottom */

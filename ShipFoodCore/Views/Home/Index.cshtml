@@ -10,8 +10,8 @@
 
 @section styles {
     <style>
-        /* Tạm thời override carousel min-height cho Index */
-        #header-carousel .carousel-item img { max-height: 540px; object-fit: cover; }
+        /* Hero Horizontal Slide — ảnh full height, caption overlay */
+        #header-carousel .carousel-item img { height: 100vh; object-fit: cover; max-height: 540px; min-height: 320px; }
     </style>
 }
 
@@ -315,20 +315,21 @@
         if (h) h.classList.toggle('scrolled', window.scrollY > 10);
     });
 
-    // ── Carousel: re-trigger CSS animation mỗi khi chuyển slide ──
-    // main.js (skeleton callback) đã xử lý lần đầu sau khi skeleton biến mất
+    // ── Carousel: re-trigger caption transition mỗi khi chuyển slide ──
     document.addEventListener('DOMContentLoaded', function () {
         var carousel = document.getElementById('header-carousel');
         if (!carousel) return;
 
         carousel.addEventListener('slid.bs.carousel', function (e) {
             if (!e.relatedTarget) return;
-            var els = e.relatedTarget.querySelectorAll('.carousel-caption h1, .carousel-caption .slideInUp');
+            var els = e.relatedTarget.querySelectorAll('.carousel-caption h1, .carousel-caption .animated .btn, .carousel-caption .slideInUp');
             els.forEach(function (el) {
                 if (!el) return;
-                el.style.animation = 'none';
+                el.style.transition = 'none';
+                el.style.opacity = '0';
                 el.offsetHeight;
-                el.style.animation = '';
+                el.style.transition = '';
+                el.style.opacity = '';
             });
         });
     });

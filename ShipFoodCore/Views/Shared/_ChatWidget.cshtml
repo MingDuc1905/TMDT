@@ -166,7 +166,7 @@
 }
 </style>
 
-<button class="chat-toggle" id="chatToggle" onclick="toggleChat()" aria-label="Mở chat hỗ trợ FastShip" title="Chat hỗ trợ">
+<button class="chat-toggle" id="chatToggle" aria-label="Mở chat hỗ trợ FastShip" title="Chat hỗ trợ">
     <i class="fas fa-comment-dots" aria-hidden="true"></i>
     <span class="badge" id="chatBadge" style="display:none;" aria-hidden="true">0</span>
 </button>
@@ -177,7 +177,7 @@
             <h6><i class="fas fa-comment me-1"></i>FastShip</h6>
             <small>Trực tuyến 24/7</small>
         </div>
-        <span class="close-btn" onclick="toggleChat()">&times;</span>
+        <span class="close-btn close-chat">&times;</span>
     </div>
 
     <div class="chat-tabs">
@@ -249,18 +249,13 @@
         }
     }
 
-    function toggleChat() {
-        var box = document.getElementById('chatBox');
-        var toggle = document.getElementById('chatToggle');
-        if (!box) return;
-        if (box.classList.contains('open')) {
-            // ─── ĐÓNG: thu nhỏ mượt qua CSS transition ───
-            box.classList.remove('open');
-            if (toggle) toggle.style.display = 'flex';
-        } else {
-            // ─── MỞ: scale-up mượt ───
-            box.classList.add('open');
-            if (toggle) toggle.style.display = 'none';
+    // ─── SỬA DỨT ĐIỂM LỖI KẸT CHAT: Event Delegation + class .active ───
+    $(document).ready(function() {
+        // Dùng event delegation trên document để bọc toàn bộ
+        $(document).on('click', '.chat-toggle', function(e) {
+            e.stopPropagation();
+            $('#chatBox').addClass('active');
+            $(this).fadeOut(100);
             // Clear badge
             var badge = document.getElementById('chatBadge');
             if (badge) badge.style.display = 'none';
@@ -268,26 +263,22 @@
                 var adminBadge = document.getElementById('adminTabBadge');
                 if (adminBadge) { adminBadge.classList.remove('show'); adminBadge.textContent = '0'; }
             }
-        }
-    }
+        });
 
-    // ─── Đảm bảo nút ✕ (close-btn) và nút toggle đều gọi toggleChat() ───
-    $(document).ready(function() {
-        $('.close-btn').on('click', function(e) {
+        $(document).on('click', '.close-chat, .chat-box-header .close-btn', function(e) {
             e.stopPropagation();
-            toggleChat();
+            $('#chatBox').removeClass('active');
+            $('.chat-toggle').fadeIn(100);
         });
-        $('#chatToggle').on('click', function(e) {
-            e.stopPropagation();
-            toggleChat();
-        });
+
         // Click outside chat box → đóng (trừ khi click vào toggle)
         $(document).on('click', function(e) {
-            var box = document.getElementById('chatBox');
-            var toggle = document.getElementById('chatToggle');
-            if (!box || !box.classList.contains('open')) return;
-            if (!box.contains(e.target) && toggle && !toggle.contains(e.target)) {
-                toggleChat();
+            var $box = $('#chatBox');
+            if (!$box.hasClass('active')) return;
+            var $toggle = $('.chat-toggle');
+            if (!$box[0].contains(e.target) && !$toggle[0].contains(e.target)) {
+                $box.removeClass('active');
+                $toggle.fadeIn(100);
             }
         });
     });

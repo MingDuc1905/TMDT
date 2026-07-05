@@ -65,6 +65,30 @@ public class CartController : BaseController
         return View();
     }
 
+    // ─── API: Lấy danh sách mã giảm giá khả dụng (còn hạn, còn số lượng) ───
+    [HttpGet]
+    public JsonResult GetAvailableCoupons()
+    {
+        var now = DateTime.Now;
+        var coupons = db.tbKhuyenMai
+            .Where(k => (k.ngayketthuc == null || k.ngayketthuc >= now)
+                       && (k.ngaybatdau == null || k.ngaybatdau <= now))
+            .OrderByDescending(k => k.phantramgiam)
+            .Select(k => new
+            {
+                makm = k.makm,
+                tenkm = k.tenkm,
+                mota = k.mota ?? "",
+                phantramgiam = k.phantramgiam ?? 0,
+                dieukien = k.dieukien ?? "",
+                ngaybatdau = k.ngaybatdau,
+                ngayketthuc = k.ngayketthuc
+            })
+            .ToList();
+
+        return Json(new { success = true, coupons = coupons });
+    }
+
     [HttpPost]
     [ValidateAntiForgeryToken]
     public JsonResult CheckCoupon(string code, decimal tongTien)

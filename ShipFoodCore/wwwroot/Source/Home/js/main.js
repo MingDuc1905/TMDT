@@ -14,12 +14,12 @@
         });
     }
 
-    // ── Chuyển Bootstrap Carousel sang crossfade + Ken Burns + pause:false ──
+    // ── Cấu hình Carousel trượt ngang horizontal smooth ──
     document.addEventListener('DOMContentLoaded', function () {
         var carouselEl = document.getElementById('header-carousel');
         if (carouselEl) {
-            carouselEl.classList.add('carousel-fade');
-            carouselEl.setAttribute('data-bs-pause', 'false'); // Ken Burns zoom liên tục
+            carouselEl.setAttribute('data-bs-interval', '4500');
+            carouselEl.setAttribute('data-bs-pause', 'false');
         }
     });
 
@@ -70,6 +70,13 @@
                     var bsCarousel = bootstrap.Carousel.getInstance(carouselEl);
                     if (bsCarousel) {
                         bsCarousel.cycle();
+                    } else {
+                        // Khởi tạo mới nếu chưa có instance
+                        new bootstrap.Carousel(carouselEl, {
+                            interval: 4500,
+                            ride: 'carousel',
+                            pause: false
+                        });
                     }
                     // Re-trigger caption transition cho slide đang active
                     var activeSlide = carouselEl.querySelector('.carousel-item.active');

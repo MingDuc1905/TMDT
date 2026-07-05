@@ -93,11 +93,6 @@ table, th, td, li, a,
 .far { font-family: 'Font Awesome 6 Free' !important; font-weight: 400; }
 .fab { font-family: 'Font Awesome 6 Brands' !important; font-weight: 400; }
 
-/* Bảo vệ tất cả i element có class fa/fab/fas — override mọi font-family Inter */
-i.fa, i.fas, i.far, i.fab,
-i[class*=" fa-"], i[class*="fab"], i[class*="fas"], i[class*="far"] {
-    font-family: inherit !important;
-}
 
 /* ── 3. Typography Scale ──────────────────────────────────── */
 .fs-h1 { font-size: clamp(1.8rem, 4vw, 3rem); font-weight: 800; line-height: 1.15; }

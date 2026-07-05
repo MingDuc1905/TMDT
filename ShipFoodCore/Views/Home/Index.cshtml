@@ -317,23 +317,8 @@
         if (h) h.classList.toggle('scrolled', window.scrollY > 10);
     });
 
-    // ── Carousel: re-trigger caption transition mỗi khi chuyển slide ──
-    document.addEventListener('DOMContentLoaded', function () {
-        var carousel = document.getElementById('header-carousel');
-        if (!carousel) return;
-
-        carousel.addEventListener('slid.bs.carousel', function (e) {
-            if (!e.relatedTarget) return;
-            var els = e.relatedTarget.querySelectorAll('.carousel-caption h1, .carousel-caption .animated .btn, .carousel-caption .slideInUp');
-            els.forEach(function (el) {
-                if (!el) return;
-                el.style.transition = 'none';
-                el.style.opacity = '0';
-                el.offsetHeight;
-                el.style.transition = '';
-                el.style.opacity = '';
-            });
-        });
-    });
+    // Carousel: Caption animation xu ly hoan toan qua CSS keyframes fsSlideLeft
+    // Khong can JS handler vi CSS animation tu dong chay lai khi class .active chuyen slide
+    // (layout-sg.css da dinh nghia fsSlideLeft keyframes cho h1, .btn, .slideInUp)
 </script>
 }

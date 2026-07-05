@@ -67,7 +67,6 @@ html::-webkit-scrollbar-thumb:hover {
     color: var(--fs-green) !important;
 }
 .fs-header .top-bar-right a i,
-.fs-header .top-bar-right i[class^="fab fa-"] {
     font-family: "Font Awesome 5 Brands" !important;
     font-weight: 400 !important;
     font-size: 16px !important;

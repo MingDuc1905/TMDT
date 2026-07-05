@@ -100,10 +100,10 @@ table, th, td, li, a,
 }
 
 /* Icon font exception — phục hồi FontAwesome bị ghi đè font-family */
-/* Chỉ giữ Font Awesome 5 + Emoji hệ thống. Các icon lib khác đã được gỡ bỏ. */
-.fa, .fas, .far { font-family: 'Font Awesome 5 Free' !important; font-weight: 900; }
+/* Hỗ trợ cả FA5 (CDN) và FA6 (local fallback) */
+.fa, .fas, .far { font-family: 'Font Awesome 6 Free', 'Font Awesome 5 Free' !important; font-weight: 900; }
 .far { font-weight: 400; }
-.fab { font-family: 'Font Awesome 5 Brands' !important; font-weight: 400; }
+.fab { font-family: 'Font Awesome 6 Brands', 'Font Awesome 5 Brands' !important; font-weight: 400; }
 
 /* ── 3. Typography Scale ──────────────────────────────────── */
 .fs-h1 { font-size: clamp(1.8rem, 4vw, 3rem); font-weight: 800; line-height: 1.15; }

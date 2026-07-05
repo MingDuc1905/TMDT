@@ -1,27 +1,29 @@
 (function ($) {
     "use strict";
 
-    // ── Helper: re-trigger caption transition (minimalist FadeInUp) ──
-    function triggerCaptionAnim(slideEl) {
-        if (!slideEl) return;
-        // CSS transition tự động chạy lại khi class .active chuyển slide
-        // Chỉ cần force reflow để restart transition
-        slideEl.querySelectorAll('.carousel-caption h1, .carousel-caption .animated, .carousel-caption .btn').forEach(function (el) {
-            if (!el) return;
-            el.style.transition = 'none';
-            el.offsetHeight;
-            el.style.transition = '';
-        });
-    }
-
     // ── Cấu hình Carousel trượt ngang horizontal smooth ──
-    document.addEventListener('DOMContentLoaded', function () {
+    // Bootstrap 5 khởi tạo carousel tự động khi có data-bs-ride, nhưng ta init thủ công
+    // để đảm bảo timing với skeleton loading
+    function initHeroCarousel() {
         var carouselEl = document.getElementById('header-carousel');
-        if (carouselEl) {
-            carouselEl.setAttribute('data-bs-interval', '4500');
-            carouselEl.setAttribute('data-bs-pause', 'false');
+        if (!carouselEl) return;
+        
+        // Check if already initialized
+        var bsCarousel = bootstrap.Carousel.getInstance(carouselEl);
+        if (bsCarousel) {
+            bsCarousel.cycle();
+            return;
         }
-    });
+        
+        // Khởi tạo mới với interval 4500ms
+        new bootstrap.Carousel(carouselEl, {
+            interval: 4500,
+            ride: 'carousel',
+            pause: false
+        });
+        
+        // CSS @keyframes fsSlideLeft tự động chạy khi slide.active thay đổi
+    }
 
     // Skeleton loading — fade out after page render
     var skeletonLoader = function () {
@@ -64,26 +66,8 @@
                     });
                 }
 
-                // ── Khởi tạo Bootstrap Carousel với cycle() SAU KHI skeleton biến mất ──
-                var carouselEl = document.getElementById('header-carousel');
-                if (carouselEl) {
-                    var bsCarousel = bootstrap.Carousel.getInstance(carouselEl);
-                    if (bsCarousel) {
-                        bsCarousel.cycle();
-                    } else {
-                        // Khởi tạo mới nếu chưa có instance
-                        new bootstrap.Carousel(carouselEl, {
-                            interval: 4500,
-                            ride: 'carousel',
-                            pause: false
-                        });
-                    }
-                    // Re-trigger caption transition cho slide đang active
-                    var activeSlide = carouselEl.querySelector('.carousel-item.active');
-                    if (activeSlide) {
-                        triggerCaptionAnim(activeSlide);
-                    }
-                }
+                // ── Khởi tạo Bootstrap Carousel SAU KHI skeleton biến mất ──
+                initHeroCarousel();
             });
         }, 100);
     };

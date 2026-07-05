@@ -85,11 +85,26 @@ body.fs-body-padded {
     padding-top: 0 !important;
     padding-bottom: 0 !important;
 }
+
 .fs-topbar a {
     color: var(--fs-muted);
     transition: color .2s;
 }
 .fs-topbar a:hover { color: var(--fs-green); }
+
+/* Topbar social icons — ép font FontAwesome 5 Brands để không bị Inter font-family đè */
+.fs-topbar .text-end a i,
+i[class^="fab fa-"] {
+    font-family: "Font Awesome 5 Brands" !important;
+    font-weight: 400 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 28px !important;
+    height: 28px !important;
+    line-height: 1 !important;
+    vertical-align: middle !important;
+}
 
 /* Nav */
 .fs-nav {
@@ -897,59 +912,55 @@ body.fs-body-padded {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   HERO CAROUSEL — Ken Burns Zoom + Crossfade + Caption FadeInUp
+   HERO CAROUSEL — Horizontal Slide Smooth + Caption SlideRight
    ═══════════════════════════════════════════════════════════ */
 
-/* ── 1A. Crossfade: carousel-fade mờ chồng — transition 0.8s ── */
-#header-carousel.carousel-fade .carousel-item {
-    transition: opacity 0.8s ease !important;
+/* ── Horizontal slide: cubic-bezier smooth — thay crossfade + Ken Burns ── */
+#header-carousel .carousel-item {
+    transition: transform 0.75s cubic-bezier(0.645, 0.045, 0.355, 1) !important;
 }
 
-/* ── 1B. Ken Burns Zoom — ảnh active phóng to cực chậm 6s ── */
+/* Ảnh flat — không zoom */
 #header-carousel .carousel-item img {
-    transition: transform 6s linear !important;
-    transform: scale(1);
-    will-change: transform;
-}
-#header-carousel .carousel-item.active img {
-    transform: scale(1.05);
+    transform: scale(1) !important;
+    transition: none !important;
+    object-fit: cover;
+    height: 100vh;
 }
 
-/* ── 1C. Caption Minimalist: fadeInUp nhẹ — bỏ slideInDown cũ ── */
-.carousel-item .carousel-caption h1,
-.carousel-item .carousel-caption .animated {
+/* ── Caption Animation: fade + slide from right ── */
+.carousel-item .carousel-caption h1 {
     opacity: 0;
-    transform: translateY(15px);
-    transition: opacity 0.6s ease 0.15s, transform 0.6s ease 0.15s;
+    transform: translateX(30px);
+    transition: opacity 0.5s ease 0.1s, transform 0.5s ease 0.1s;
 }
-.carousel-item.active .carousel-caption h1,
-.carousel-item.active .carousel-caption .animated {
+.carousel-item.active .carousel-caption h1 {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateX(0);
 }
-/* Buttons delay thêm 0.1s so với h1 */
+
+/* Buttons appear 150ms AFTER h1 — rhythmic */
 .carousel-item .carousel-caption .animated .btn,
 .carousel-item .carousel-caption .slideInUp {
     opacity: 0;
-    transform: translateY(15px);
-    transition: opacity 0.6s ease 0.3s, transform 0.6s ease 0.3s;
+    transform: translateX(30px);
+    transition: opacity 0.5s ease 0.25s, transform 0.5s ease 0.25s;
 }
 .carousel-item.active .carousel-caption .animated .btn,
 .carousel-item.active .carousel-caption .slideInUp {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateX(0);
 }
 
-/* Mobile: rút ngắn thời gian */
+/* Mobile: rút ngắn */
 @media (max-width: 576px) {
-    .carousel-item .carousel-caption h1,
-    .carousel-item .carousel-caption .animated {
-        transition-duration: 0.4s;
+    .carousel-item .carousel-caption h1 {
+        transition-duration: 0.35s;
         transition-delay: 0.05s;
     }
     .carousel-item .carousel-caption .animated .btn,
     .carousel-item .carousel-caption .slideInUp {
-        transition-duration: 0.4s;
+        transition-duration: 0.35s;
         transition-delay: 0.15s;
     }
 }
@@ -1189,9 +1200,8 @@ p, li, .text-muted { line-height: 1.65; }
    CHAT WIDGET — Mobile positioning + scale-in animation
    ============================================================ */
 
-/* Chat box scale-in khi mở */
+/* Chat box scale-in khi mở — dùng class .active (đồng bộ toggleChat) */
 .chat-box {
-    /* display:flex mặc định, ẩn qua scale+opacity để transition hoạt động */
     display: flex;
     flex-direction: column;
     transform-origin: bottom right;
@@ -1200,10 +1210,10 @@ p, li, .text-muted { line-height: 1.65; }
     pointer-events: none;
     transition: transform 0.25s ease, opacity 0.25s ease;
 }
-.chat-box.open {
+.chat-box.active {
     transform: scale(1) translateY(0);
     opacity: 1;
-    pointer-events: auto;
+    pointer-events: auto !important;
 }
 
 /* ============================================================

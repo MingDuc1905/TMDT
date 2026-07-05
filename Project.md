@@ -455,6 +455,9 @@ APP_DOMAIN=https://shipfood.up.railway.app
 - [x] ✅ **Fix 3 — Geo throttling 5s** (`sendLocationThrottled()`, `_throttleInterval=5000` trong Shipper/OrderDetail)
 - [x] ✅ **Fix 3 — OnDisconnectedAsync cleanup** (`Chats.cs` broadcast `shipperOffline` khi shipper mất kết nối)
 - [x] ✅ **Fix 4 — Race condition Shipper** (kiểm tra `mashipper != null` + `trangthai` trước khi assign, TempData error nếu đơn đã có shipper khác)
+- [x] ✅ **Fix 1b — Topbar icon font fix** (`font-family: "Font Awesome 5 Brands" !important` — ép FontAwesome khi Inter font-family đè)
+- [x] ✅ **Chat toggle rewrite (event delegation)** (`data-chat-toggle` attribute, `.active` class, `$(toggle).fadeIn(100)` / `$(toggle).fadeOut(100)`, click-outside-to-close)
+- [x] ✅ **Hero Carousel → Horizontal Slide Smooth** (xoá Ken Burns zoom, crossfade → `transition: transform 0.75s cubic-bezier(...)`, caption `translateX(30px→0)`, ảnh flat `100vh`, `interval: 4500`, `pause: false`)
 - [ ] PayPal/ZaloPay/MoMo integration (đã remove khỏi UI)
 - [ ] Unit tests (chưa có — đã thêm xUnit project + 12 tests GetReviews)
 - [ ] Real payment (Stripe/PayPal/ZaloPay)
@@ -553,7 +556,7 @@ Dự án mã nguồn mở — phát triển bởi đội ngũ ShipFood.
 
 ---
 
-> **Phiên bản**: 2.9 — 5 UI/UX & Logic Fixes (Footer icons, Chat toggle, Cart multi-restaurant, Geo throttling, Race condition)  
+> **Phiên bản**: 3.0 — Topbar icon font fix, Chat toggle event delegation, Hero Horizontal Slide  
 > **Ngôn ngữ**: C# 12, HTML5, CSS3, JavaScript ES6  
 > **Kiến trúc**: ASP.NET Core MVC n-tier  
 > **Database**: MySQL 8+ (MySqlServerVersion 8.0.20)  

@@ -1,6 +1,6 @@
 # Fastship (ShipFood) — UI/UX Documentation (Full)
 
-> **Phiên bản**: 4.5 — 5 UI/UX & Logic Fixes (Footer icons, Chat toggle, Cart multi-restaurant, Geo throttling, Race condition)  
+> **Phiên bản**: 4.6 — Topbar icon font fix, Chat toggle event delegation, Hero Horizontal Slide  
 > **Cập nhật**: Tháng 7, 2026  
 > **Mô tả**: Tài liệu thiết kế giao diện & trải nghiệm người dùng toàn diện cho nền tảng đặt đồ ăn Fastship  
 > **Tài liệu liên quan**: Project.md — Tổng quan kiến trúc & phát triển
@@ -2055,21 +2055,26 @@ LOGIN ──→ DASHBOARD (with LIVE MAP)
 
 ---
 
-> **Document Version**: 4.5 (Full)  
+> **Document Version**: 4.6 (Full)  
 > **Cập nhật**: Tháng 7, 2026  
-> **Based on**: Actual source code analysis of 8 Controllers, 30+ Views, 15+ Models, 10+ CSS files, 5 Layout files, 1 SignalR Hub, 4 sessions of responsive mobile fixes + 1 theme unification update + 1 icon cleanup session + 1 UI/UX Logic Fixes session  
-> **Key changes v4.5**:  
+> **Based on**: Actual source code analysis of 8 Controllers, 30+ Views, 15+ Models, 10+ CSS files, 5 Layout files, 1 SignalR Hub, 4 sessions of responsive mobile fixes + 1 theme unification update + 1 icon cleanup session + 2 UI/UX Logic Fixes sessions  
+> **Key changes v4.6**:  
 > - 🔄 **SignalR Real-time Order Pipeline** — Customer thanh toán → broadcast `newOrder` đến Restaurant; Restaurant "Chuẩn bị xong" → broadcast `newPickupOrder` đến Shipper; Shipper geolocation → stream `UpdateLocation` đến Customer map  
 > - 💬 **Chat Widget Modern Minimalist** — `var(--fs-green)` thay `#28a745`, Inter font, gradient header, 12px radius, `--fs-border` tokens, admin dot pulse animation  
 > - 📍 **Shipper Geolocation Streaming** — `navigator.geolocation.watchPosition()` (enableHighAccuracy) → signalR `UpdateLocation()` → group `order_{madh}` → Leaflet marker lướt mượt  
 > - 🏪 **Restaurant "Chuẩn bị xong" button** — OrderList thêm nút cho đơn `Đã xác nhận`, link đến `hoantatdon/{id}`, broadcast đến shippers group  
 > - 🐛 **Payment status fix** — `PaymentController` đổi `"Đang xử lý"` → `"Đã đặt"` đồng bộ với `CartController.SuccessView` và OrderList button logic  
 > - 🧹 **Fix 1 — Footer social icons alignment** — `display:inline-flex; width:36px; height:34px; margin:0 6px; line-height:1` trong `layout-sg.css`  
-> - 🧹 **Fix 1 — Chat toggle close không được** — `toggleChat()` bulletproofed (null checks, jQuery handlers), click-outside-to-close, `scale(0.9) translateY(20px)` animation  
+> - 🧹 **Fix 1b — Topbar icon tàng hình do Inter font-family đè** — `font-family: "Font Awesome 5 Brands" !important` + `.fs-topbar .text-end a i` selector  
+> - 🧹 **Fix 2 — Chat toggle rewrite (event delegation)** — `data-chat-toggle` attribute, `.active` class, `$(toggle).fadeIn(100)` / `.fadeOut(100)`, click-outside-to-close  
 > - 🧹 **Fix 2 — Cart multi-restaurant** — `ApiThemMonAn` + `ApiForceSwitchRestaurant` endpoints, confirm dialog khi thêm món khác quán  
 > - 🧹 **Fix 3 — Geo throttling 5s** — `sendLocationThrottled()` trong Shipper/OrderDetail, `_throttleInterval=5000`, chỉ gửi tọa độ 5s/lần  
 > - 🧹 **Fix 3 — OnDisconnectedAsync cleanup** — `Chats.cs` broadcast `shipperOffline` khi shipper mất kết nối  
 > - 🧹 **Fix 4 — Race condition Shipper** — Kiểm tra `mashipper != null` + `trangthai` trước khi assign, TempData error nếu đơn đã có shipper khác  
-> - 📐 UI-UX.md: v4.5 — 5 fixes backlog, cập nhật Section 13 Chat + 7 Cart + 14 Live Tracking  
-> - 📐 Project.md: Cập nhật v2.9 — 5 logic fixes  
+> - 🎠 **Hero Carousel → Horizontal Slide Smooth** — Xoá Ken Burns zoom + crossfade, thay bằng `transition: transform 0.75s cubic-bezier(0.645,0.045,0.355,1)`, caption `translateX(30px→0)`, ảnh flat 100vh, `interval: 4500`  
+> - 🎠 **Caption Modern Minimalist** — `translateX` thay `translateY`, buttons trễ 150ms so với h1  
+> - 🎠 **main.js** — Xoá `carousel-fade`, khởi tạo `new bootstrap.Carousel({interval:4500, pause:false})`  
+> - 🧹 **Fix CSS dead selector** — `top-bar-right` → `.fs-topbar .text-end` (khớp HTML thật)  
+> - 📐 UI-UX.md: v4.6 — Thêm Section 16 animation Carousel Horizontal, Section 19 chỉnh icon font  
+> - 📐 Project.md: Cập nhật v3.0 — Thêm Hero Horizontal Slide vào Tech Debt  
 

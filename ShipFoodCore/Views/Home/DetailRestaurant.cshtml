@@ -411,7 +411,7 @@
                                                         <div class="col-auto product-price">
                                                             @if (khuyenMai != null && khuyenMai.phantramgiam > 0)
                                                             {
-                                                                <div class="old-price" style="text-decoration: line-through; color: #999;">@giaGoc?.ToString("N0")<span style="font-weight: 400; position: relative; top: -9px; font-size: 10px; right: 0;">đ</span></div>
+                                                                <div class="old-price" style="text-decoration: line-through; color: var(--fs-muted-soft);">@giaGoc?.ToString("N0")<span style="font-weight: 400; position: relative; top: -9px; font-size: 10px; right: 0;">đ</span></div>
                                                             }
                                                             <div class="current-price" style="color: @(khuyenMai != null ? "#e74c3c" : "inherit");">@(khuyenMai != null ? giaKhuyenMai?.ToString("N0") : giaGoc?.ToString("N0"))<span style="font-weight: 400; position: relative; top: -9px; font-size: 10px; right: 0;">đ</span></div>
                                                         </div>
@@ -505,22 +505,21 @@
 
                 <!-- Header + Stats -->
                 <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:24px;">
-                    <div>
-                        <h3 style="font-weight:700;margin:0;color:#1a1a2e;">⭐ Đánh giá từ khách hàng</h3>
-                        <p style="color:#888;font-size:14px;margin:4px 0 0;">Nhận xét thực tế từ những người đã đặt hàng</p>
+                    <div>                                        <h3 style="font-weight:700;margin:0;color:var(--fs-dark);">⭐ Đánh giá từ khách hàng</h3>
+                        <p style="color:var(--fs-muted);font-size:14px;margin:4px 0 0;">Nhận xét thực tế từ những người đã đặt hàng</p>
                     </div>
                     <div id="review-stats" style="display:flex;align-items:center;gap:20px;">
                         <div style="text-align:center;">
                             <div id="avg-score" style="font-size:40px;font-weight:800;color:#f39c12;line-height:1;">—</div>
                             <div id="star-display" style="color:#f39c12;font-size:18px;letter-spacing:2px;">☆☆☆☆☆</div>
-                            <div id="total-reviews" style="font-size:12px;color:#888;">Đang tải...</div>
+                            <div id="total-reviews" style="font-size:12px;color:var(--fs-muted);">Đang tải...</div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Review cards -->
                 <div id="review-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;">
-                    <div style="text-align:center;padding:40px;color:#aaa;grid-column:1/-1;">
+                    <div style="text-align:center;padding:40px;color:var(--fs-muted-soft);grid-column:1/-1;">
                         <div style="font-size:32px;margin-bottom:8px;">⏳</div>
                         Đang tải đánh giá...
                     </div>
@@ -544,8 +543,8 @@
                 @if (canReview)
                 {
                     <div style="margin-top:28px;border-top:2px solid #f0f0f0;padding-top:24px;">
-                        <h4 style="font-weight:700;margin-bottom:16px;color:#1a1a2e;">✍️ Viết đánh giá của bạn</h4>
-                        <div style="background:#f8f9fa;border-radius:12px;padding:20px;">
+                        <h4 style="font-weight:700;margin-bottom:16px;color:var(--fs-dark);">✍️ Viết đánh giá của bạn</h4>
+                        <div style="background:var(--fs-light);border-radius:12px;padding:20px;">
                             <div style="margin-bottom:12px;">
                                 <label style="font-weight:600;font-size:14px;">Chọn món muốn đánh giá:</label>
                                 <select id="review-mactdh" class="form-select mt-1" style="max-width:400px;">
@@ -566,7 +565,7 @@
                             <div style="margin-bottom:16px;">
                                 <label style="font-weight:600;font-size:14px;">Nhận xét (tuỳ chọn):</label>
                                 <textarea id="review-nhanxet" class="form-control mt-1" rows="3" placeholder="Chia sẻ cảm nhận của bạn..." maxlength="500" style="border-radius:8px;"></textarea>
-                                <div style="font-size:11px;color:#aaa;text-align:right;margin-top:2px;"><span id="char-count">0</span>/500</div>
+                                <div style="font-size:11px;color:var(--fs-muted-soft);text-align:right;margin-top:2px;"><span id="char-count">0</span>/500</div>
                             </div>
                             <div id="review-feedback" style="display:none;margin-bottom:12px;font-size:14px;padding:10px 14px;border-radius:8px;"></div>
                             <button onclick="submitReview()"
@@ -578,9 +577,9 @@
                 }
                 else if (!isLoggedInReview)
                 {
-                    <div style="margin-top:20px;text-align:center;padding:20px;background:#f8f9fa;border-radius:12px;">
-                        <p style="color:#888;margin-bottom:12px;">Đăng nhập để viết đánh giá</p>
-                        <a href="@Url.Action("Login","Home")" style="padding:10px 24px;background:#3CB815;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;">Đăng nhập</a>
+                    <div style="margin-top:20px;text-align:center;padding:20px;background:var(--fs-light);border-radius:12px;">
+                        <p style="color:var(--fs-muted);margin-bottom:12px;">Đăng nhập để viết đánh giá</p>
+                        <a href="@Url.Action("Login","Home")" class="fs-btn fs-btn-primary" style="padding:10px 24px;border-radius:8px;">Đăng nhập</a>
                     </div>
                 }
             </div>

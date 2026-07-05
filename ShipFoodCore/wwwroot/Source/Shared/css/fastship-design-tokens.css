@@ -431,7 +431,63 @@ table, th, td, li, a,
     border-radius: 4px;
 }
 
-/* ── 15. Reduced Motion ───────────────────────────────────── */
+/* ── 15. Dark Mode ──────────────────────────────────────────── */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --fs-dark:       #e8e8e8;
+        --fs-muted:      #9ca3af;
+        --fs-muted-soft: #6b7280;
+        --fs-light:      #1e1e2e;
+        --fs-light-soft: #252536;
+        --fs-border:     #2d2d3d;
+        --fs-border-soft:#252536;
+        --fs-white:      #16161f;
+        --fs-green-bg:   rgba(60,184,21,.12);
+        --fs-orange-bg:  rgba(246,80,5,.12);
+        --fs-shadow:     0 4px 20px rgba(0,0,0,.3);
+        --fs-shadow-sm:  0 2px 8px rgba(0,0,0,.2);
+        --fs-shadow-md:  0 8px 24px rgba(0,0,0,.35);
+        --fs-shadow-lg:  0 12px 32px rgba(0,0,0,.4);
+        --fs-shadow-xl:  0 20px 48px rgba(0,0,0,.45);
+    }
+    body { background: #16161f; color: #e8e8e8; }
+    .fs-header,
+    .fs-nav,
+    .fs-nav.navbar,
+    .fs-nav.fs-nav-fixed { background: #1a1a28 !important; }
+    .fs-topbar { background: #1e1e2e; border-color: #2d2d3d; }
+    .fs-footer { background: #1a1a28; border-color: #2d2d3d; }
+    .fs-footer-newsletter { background: #1e1e2e; border-color: #2d2d3d; }
+    .fs-footer-bottom { border-color: #2d2d3d; }
+    .fs-promo-band { background: #2ea310; }
+    .fs-highlight-band { background: #0d0d15; }
+    .fs-how-section { background: #1e1e2e; }
+    .product-item { background: #1a1a28 !important; }
+    .product-item .product-footer { border-color: #2d2d3d; }
+    .product-item .product-footer .pf-cell:not(:last-child) { border-color: #2d2d3d; }
+    .fs-category-pill { background: #1a1a28; border-color: #2d2d3d; color: #e8e8e8; }
+    .fs-stats-row { border-color: #2d2d3d; }
+    .fs-stat-item:not(:last-child) { border-color: #2d2d3d; }
+    .fs-search-form select,
+    .fs-search-form input[type="text"] { background: #1e1e2e; border-color: #2d2d3d; color: #e8e8e8; }
+    .fs-nav .navbar-nav .nav-link { color: #9ca3af; }
+    .fs-nav .navbar-nav .nav-link:hover { color: #3CB815; background: rgba(60,184,21,.12); }
+    .fs-nav .dropdown-menu { background: #1a1a28; border-color: #2d2d3d; }
+    .fs-dropdown-item,
+    .dropdown-item { color: #e8e8e8; }
+    .dropdown-item:hover { background: #2d2d3d; }
+    .fs-cart-btn { background: #2d2d3d; color: #e8e8e8 !important; }
+    .fs-cart-btn:hover { background: var(--fs-green); color: #fff !important; }
+    .fs-social-links a { color: #9ca3af; }
+    .fs-skeleton-overlay { background: #16161f; }
+    .fs-skeleton { background: linear-gradient(90deg, #252536 25%, #2d2d3d 50%, #252536 75%); }
+    .chat-box { background: #1a1a28 !important; }
+    .card, .fs-card { background: #1a1a28 !important; }
+    .text-muted { color: #9ca3af !important; }
+    .text-dark { color: #e8e8e8 !important; }
+}
+
+/* ── 16. Reduced Motion ───────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
         animation-duration: 0.01ms !important;
@@ -441,7 +497,7 @@ table, th, td, li, a,
     }
 }
 
-/* ── 16. Mobile Touch Targets ──────────────────────────────── */
+/* ── 17. Mobile Touch Targets ──────────────────────────────── */
 @media (max-width: 768px) {
     .btn, .nav-link, .dropdown-item,
     button, .fs-btn {

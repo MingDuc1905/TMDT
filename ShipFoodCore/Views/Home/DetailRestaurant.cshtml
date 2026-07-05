@@ -59,8 +59,8 @@
                 position: sticky;
                 top: 68px; /* below header height */
                 z-index: 50;
-                background: #fff;
-                border-bottom: 1px solid #e5e7eb;
+                background: var(--fs-white);
+                border-bottom: 1px solid var(--fs-border);
                 box-shadow: 0 2px 8px rgba(0,0,0,.05);
                 margin: 0 -16px;
                 padding: 0 16px;
@@ -86,7 +86,7 @@
             height: 56px;
             border-radius: 50%;
             background: linear-gradient(135deg, #3CB815, #2ea310);
-            color: #fff;
+            color: var(--fs-white);
             border: none;
             box-shadow: 0 4px 16px rgba(60,184,21,.35);
             cursor: pointer;
@@ -104,8 +104,8 @@
             position: absolute;
             top: -4px;
             right: -4px;
-            background: #e74c3c;
-            color: #fff;
+            background: var(--fs-danger);
+            color: var(--fs-white);
             font-size: 11px;
             font-weight: 700;
             width: 22px;
@@ -154,7 +154,7 @@
             bottom: 0;
             z-index: 9999;
             max-height: 60vh;
-            background: #fff;
+            background: var(--fs-white);
             border-radius: 20px 20px 0 0;
             box-shadow: 0 -8px 40px rgba(0,0,0,.15);
             transform: translateY(100%);
@@ -178,7 +178,7 @@
             content: '';
             width: 32px;
             height: 4px;
-            background: #d1d5db;
+            background: var(--fs-border);
             border-radius: 4px;
         }
 
@@ -189,12 +189,12 @@
             align-items: center;
             justify-content: space-between;
             padding: 0 20px 12px;
-            border-bottom: 1px solid #f0f0f0;
+            border-bottom: 1px solid var(--fs-border-soft);
         }
         .fs-bs-header h3 {
             font-size: 17px;
             font-weight: 700;
-            color: #1a1a2e;
+            color: var(--fs-dark);
             margin: 0;
         }
         .fs-bs-close {
@@ -202,8 +202,8 @@
             height: 36px;
             border-radius: 50%;
             border: none;
-            background: #f3f4f6;
-            color: #6b7280;
+            background: var(--fs-light);
+            color: var(--fs-muted);
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -211,7 +211,7 @@
             font-size: 16px;
             transition: background .2s;
         }
-        .fs-bs-close:active { background: #e5e7eb; }
+        .fs-bs-close:active { background: var(--fs-border); }
 
         /* List */
         .fs-bs-list {
@@ -240,16 +240,16 @@
         .fs-bs-item .bs-item-icon { font-size: 20px; flex-shrink: 0; }
         .fs-bs-item .bs-item-name { flex: 1; font-weight: 600; font-size: 14px; }
         .fs-bs-item .bs-item-count {
-            background: #f3f4f6;
+            background: var(--fs-light);
             padding: 2px 10px;
             border-radius: 12px;
             font-size: 12px;
-            color: #6b7280;
+            color: var(--fs-muted);
             font-weight: 500;
         }
         .fs-bs-item.active .bs-item-count {
             background: #3CB815;
-            color: #fff;
+            color: var(--fs-white);
         }
     </style>
 }
@@ -353,7 +353,7 @@
                                             <p class="input-group">
                                                 <input type="hidden" name="id" value="@ViewBag.maquan"/>
                                                 <i class="fas fa-search"></i><input style="width:85%" type="text" name="searchKey" placeholder="Tìm món" value="@ViewBag.searchKey" />
-                                                <button type="submit" style="width:15%;color:white" class="btn-secondary"><strong>Tìm</strong></button>
+                                                <button type="submit" style="width:15%;color:var(--fs-white);" class="btn-secondary"><strong>Tìm</strong></button>
                                             </p>
                                         </form>
                                     </div>
@@ -366,10 +366,9 @@
                                                 var isLoggedIn = !string.IsNullOrEmpty(userJson);
                                             }
                                             @if (isLoggedIn && daMuaMonAnIds != null && daMuaMonAnIds.Any())
-                                            {
-                                                <label style="font-size:13px;cursor:pointer;user-select:none;">
-                                                    <input type="checkbox" id="filter-da-mua" onchange="toggleDaMuaFilter()" />
-                                                    <span style="color:#e74c3c;">❤ Đã mua</span>
+                                            {                                                    <label style="font-size:13px;cursor:pointer;user-select:none;">
+                                                        <input type="checkbox" id="filter-da-mua" onchange="toggleDaMuaFilter()" />
+                                                        <span style="color:var(--fs-danger);">❤ Đã mua</span>
                                                 </label>
                                             }
                                         </div>
@@ -383,8 +382,7 @@
                                         {
                                             giaKhuyenMai = giaGoc - (giaGoc * khuyenMai.phantramgiam / 100);
                                         }
-                                        var daMua = daMuaMonAnIds != null && daMuaMonAnIds.Contains(item.mamon);
-                                        <div class="item-restaurant-row @(daMua ? "item-da-mua" : "")" style="display: block; height: 84px; position: relative; width: 100%; margin-bottom: 20px;">
+                                        var daMua = daMuaMonAnIds != null && daMuaMonAnIds.Contains(item.mamon);                                                    <div class="item-restaurant-row @(daMua ? "item-da-mua" : "")" style="display:block;height:84px;position:relative;width:100%;margin-bottom:20px;">
                                             <div class="row">
                                                 <div class="col-auto item-restaurant-img">
                                                     <button class="inline">
@@ -392,7 +390,7 @@
                                                     </button>
                                                     @if (khuyenMai != null)
                                                     {
-                                                        <span style="position: absolute; top: 0; left: 0; background: #e74c3c; color: white; padding: 2px 6px; font-size: 10px; border-radius: 3px;">-@khuyenMai.phantramgiam%</span>
+                                                        <span style="position:absolute;top:0;left:0;background:var(--fs-danger);color:var(--fs-white);padding:2px 6px;font-size:10px;border-radius:3px;">-@khuyenMai.phantramgiam%</span>
                                                     }
                                                 </div>
                                                 <div class="col item-restaurant-info">
@@ -400,7 +398,7 @@
                                                         @item.tenmon
                                                         @if (daMua)
                                                         {
-                                                            <span style="font-size:11px;background:#e74c3c;color:white;padding:1px 6px;border-radius:3px;margin-left:6px;">Đã mua</span>
+                                                            <span style="font-size:11px;background:var(--fs-danger);color:var(--fs-white);padding:1px 6px;border-radius:3px;margin-left:6px;">Đã mua</span>
                                                         }
                                                     </h2>
                                                     <div class="item-restaurant-desc">@item.mota</div>
@@ -413,7 +411,7 @@
                                                             {
                                                                 <div class="old-price" style="text-decoration: line-through; color: var(--fs-muted-soft);">@giaGoc?.ToString("N0")<span style="font-weight: 400; position: relative; top: -9px; font-size: 10px; right: 0;">đ</span></div>
                                                             }
-                                                            <div class="current-price" style="color: @(khuyenMai != null ? "#e74c3c" : "inherit");">@(khuyenMai != null ? giaKhuyenMai?.ToString("N0") : giaGoc?.ToString("N0"))<span style="font-weight: 400; position: relative; top: -9px; font-size: 10px; right: 0;">đ</span></div>
+                                                            <div class="current-price" style="color:@(khuyenMai != null ? "var(--fs-danger)" : "inherit");">@(khuyenMai != null ? giaKhuyenMai?.ToString("N0") : giaGoc?.ToString("N0"))<span style="font-weight: 400; position: relative; top: -9px; font-size: 10px; right: 0;">đ</span></div>
                                                         </div>
                                                         <div class="col-auto adding-food-cart txt-right">
                                                             <form action="~/Cart/ThemMonAn" method="get" onsubmit="return validateCartForm(this)">
@@ -435,13 +433,13 @@
                                             <div class="title-menu"><strong>🛒 Thường được mua kèm</strong></div>
                                             @foreach (var item in muaKem)
                                             {
-                                                <div class="item-restaurant-row" style="display: flex; align-items: center; padding: 10px 0; border-bottom: 1px solid #f0f0f0;">
-                                                    <div style="width: 50px; height: 50px; margin-right: 12px;">
+                                                <div class="item-restaurant-row" style="display:flex;align-items:center;padding:10px 0;border-bottom:1px solid var(--fs-border-soft);">
+                                                    <div style="width:50px;height:50px;margin-right:12px;">
                                                         <img src="~/Source/images/MonAn/@item.hinhanh" style="width:50px;height:50px;border-radius:8px;object-fit:cover;" />
                                                     </div>
                                                     <div style="flex:1;">
                                                         <strong>@item.tenmon</strong>
-                                                        <div style="color: #e74c3c; font-weight: 600;">@item.giatien?.ToString("N0")đ</div>
+                                                        <div style="color:var(--fs-danger);font-weight:600;">@item.giatien?.ToString("N0")đ</div>
                                                     </div>
                                                     <div>
                                                         <a href="@Url.Action("DetailRestaurant", new { id = item.maquanan })" class="btn btn-sm btn-outline-success">Xem</a>
@@ -459,10 +457,10 @@
                                             <div style="display: flex; gap: 12px; overflow-x: auto; padding: 10px 0;">
                                                 @foreach (var item in trendingNow)
                                                 {
-                                                    <div style="min-width: 160px; border: 1px solid #eee; border-radius: 10px; padding: 12px; text-align: center;">
+                                                    <div style="min-width:160px;border:1px solid var(--fs-border);border-radius:10px;padding:12px;text-align:center;">
                                                         <img src="~/Source/images/MonAn/@item.hinhanh" style="width:80px;height:80px;border-radius:8px;object-fit:cover;" />
                                                         <div style="margin-top: 8px;"><strong>@item.tenmon</strong></div>
-                                                        <div style="color: #e74c3c; font-weight: 600;">@item.giatien?.ToString("N0")đ</div>
+                                                        <div style="color:var(--fs-danger);font-weight:600;">@item.giatien?.ToString("N0")đ</div>
                                                         <a href="@Url.Action("DetailRestaurant", new { id = item.maquanan })" class="btn btn-sm btn-success mt-2">Đặt ngay</a>
                                                     </div>
                                                 }
@@ -510,8 +508,8 @@
                     </div>
                     <div id="review-stats" style="display:flex;align-items:center;gap:20px;">
                         <div style="text-align:center;">
-                            <div id="avg-score" style="font-size:40px;font-weight:800;color:#f39c12;line-height:1;">—</div>
-                            <div id="star-display" style="color:#f39c12;font-size:18px;letter-spacing:2px;">☆☆☆☆☆</div>
+                            <div id="avg-score" style="font-size:40px;font-weight:800;color:var(--fs-warning);line-height:1;">—</div>
+                            <div id="star-display" style="color:var(--fs-warning);font-size:18px;letter-spacing:2px;">☆☆☆☆☆</div>
                             <div id="total-reviews" style="font-size:12px;color:var(--fs-muted);">Đang tải...</div>
                         </div>
                     </div>
@@ -528,7 +526,7 @@
                 <!-- Load more -->
                 <div id="load-more-wrap" style="text-align:center;margin-top:20px;display:none;">
                     <button id="btn-load-more" onclick="loadMoreReviews()"
-                        style="padding:10px 32px;border:2px solid #3CB815;background:#fff;color:#3CB815;border-radius:30px;font-weight:600;cursor:pointer;transition:all .2s;">
+                        style="padding:10px 32px;border:2px solid var(--fs-green);background:var(--fs-white);color:var(--fs-green);border-radius:30px;font-weight:600;cursor:pointer;transition:all .2s;">
                         Xem thêm đánh giá
                     </button>
                 </div>
@@ -542,7 +540,7 @@
                 }
                 @if (canReview)
                 {
-                    <div style="margin-top:28px;border-top:2px solid #f0f0f0;padding-top:24px;">
+                    <div style="margin-top:28px;border-top:2px solid var(--fs-border-soft);padding-top:24px;">
                         <h4 style="font-weight:700;margin-bottom:16px;color:var(--fs-dark);">✍️ Viết đánh giá của bạn</h4>
                         <div style="background:var(--fs-light);border-radius:12px;padding:20px;">
                             <div style="margin-bottom:12px;">
@@ -569,7 +567,7 @@
                             </div>
                             <div id="review-feedback" style="display:none;margin-bottom:12px;font-size:14px;padding:10px 14px;border-radius:8px;"></div>
                             <button onclick="submitReview()"
-                                style="padding:10px 28px;background:linear-gradient(135deg,#3CB815,#27a001);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:14px;">
+                                style="padding:10px 28px;background:linear-gradient(135deg,#3CB815,#27a001);color:var(--fs-white);border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:14px;">
                                 Gửi đánh giá
                             </button>
                         </div>
@@ -668,7 +666,7 @@
         }
 
         function loadReviews(reset) {
-            if (reset) { reviewPage = 1; $('#review-list').html('<div style="text-align:center;padding:40px;color:#aaa;grid-column:1/-1;"><div style="font-size:32px;margin-bottom:8px;">⏳</div>Đang tải đánh giá...</div>'); }
+            if (reset) { reviewPage = 1; $('#review-list').html('<div style="text-align:center;padding:40px;color:var(--fs-muted-soft);grid-column:1/-1;"><div style="font-size:32px;margin-bottom:8px;">⏳</div>Đang tải đánh giá...</div>'); }
             $.get(URL_GET_REVIEWS, { quanId: QUAN_ID, page: reviewPage, pageSize: reviewPageSize }, function(r) {
                 if (!r.success) return;
                 reviewTotal = r.total;
@@ -687,7 +685,7 @@
                 if (reset) $('#review-list').empty();
 
                 if (r.reviews.length === 0 && reviewPage === 1) {
-                    $('#review-list').html('<div style="text-align:center;padding:40px;color:#aaa;grid-column:1/-1;"><div style="font-size:48px;margin-bottom:12px;">💬</div><div style="font-size:16px;font-weight:600;">Chưa có đánh giá nào</div><div style="font-size:13px;margin-top:4px;">Hãy là người đầu tiên đánh giá quán này!</div></div>');
+                    $('#review-list').html('<div style="text-align:center;padding:40px;color:var(--fs-muted-soft);grid-column:1/-1;"><div style="font-size:48px;margin-bottom:12px;">💬</div><div style="font-size:16px;font-weight:600;">Chưa có đánh giá nào</div><div style="font-size:13px;margin-top:4px;">Hãy là người đầu tiên đánh giá quán này!</div></div>');
                     $('#load-more-wrap').hide();
                     return;
                 }
@@ -699,23 +697,23 @@
                     var colors = ['#3CB815','#007bff','#e74c3c','#f39c12','#9b59b6','#17a2b8'];
                     var bg = colors[rv.madg % colors.length];
                     var card = $('<div>').css({
-                        background: '#fff', border: '1.5px solid #f0f0f0', borderRadius: '12px',
+                        background: 'var(--fs-white)', border: '1.5px solid var(--fs-border-soft)', borderRadius: '12px',
                         padding: '18px', transition: 'box-shadow .2s'
                     }).hover(function(){ $(this).css('box-shadow','0 4px 20px rgba(0,0,0,.1)'); },
                               function(){ $(this).css('box-shadow','none'); });
                     card.html(
                         '<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">' +
-                          '<div style="width:44px;height:44px;border-radius:50%;background:' + bg + ';color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;flex-shrink:0;">' + initial + '</div>' +
+                          '<div style="width:44px;height:44px;border-radius:50%;background:' + bg + ';color:var(--fs-white);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;flex-shrink:0;">' + initial + '</div>' +
                           '<div style="flex:1;min-width:0;">' +
                             '<div style="font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + rv.tenkh + '</div>' +
-                            '<div style="font-size:11px;color:#aaa;">' + rv.ngaydat + '</div>' +
+                            '<div style="font-size:11px;color:var(--fs-muted-soft);">' + rv.ngaydat + '</div>' +
                           '</div>' +
-                          '<div style="color:#f39c12;font-size:16px;letter-spacing:1px;">' + stars + '</div>' +
+                          '<div style="color:var(--fs-warning);font-size:16px;letter-spacing:1px;">' + stars + '</div>' +
                         '</div>' +
                         (rv.nhanxet ? '<p style="color:#555;font-size:14px;line-height:1.6;margin:0 0 10px;">"' + $('<div>').text(rv.nhanxet).html() + '"</p>' : '') +
                         '<div style="display:flex;align-items:center;gap:8px;">' +
                           '<img src="/Source/images/MonAn/' + rv.hinhanh + '" style="width:32px;height:32px;border-radius:6px;object-fit:cover;" onerror="this.style.display=\'none\'">' +
-                          '<span style="font-size:12px;color:#888;background:#f8f9fa;padding:2px 8px;border-radius:20px;">' + rv.tenmon + '</span>' +
+                          '<span style="font-size:12px;color:var(--fs-muted);background:var(--fs-light);padding:2px 8px;border-radius:20px;">' + rv.tenmon + '</span>' +
                         '</div>'
                     );
                     $('#review-list').append(card);
@@ -739,13 +737,13 @@
         var selectedDiem = 0;
         $(document).on('mouseover', '.star-opt', function() {
             var val = parseInt($(this).data('val'));
-            $('.star-opt').each(function(i) { $(this).text(i < val ? '★' : '☆').css('color', i < val ? '#f39c12' : '#ccc'); });
+            $('.star-opt').each(function(i) { $(this).text(i < val ? '★' : '☆').css('color', i < val ? 'var(--fs-warning)' : 'var(--fs-muted-soft)'); });
         }).on('mouseleave', '#star-picker', function() {
-            $('.star-opt').each(function(i) { $(this).text(i < selectedDiem ? '★' : '☆').css('color', i < selectedDiem ? '#f39c12' : '#ccc'); });
+            $('.star-opt').each(function(i) { $(this).text(i < selectedDiem ? '★' : '☆').css('color', i < selectedDiem ? 'var(--fs-warning)' : 'var(--fs-muted-soft)'); });
         }).on('click', '.star-opt', function() {
             selectedDiem = parseInt($(this).data('val'));
             $('#review-diem').val(selectedDiem);
-            $('.star-opt').each(function(i) { $(this).text(i < selectedDiem ? '★' : '☆').css('color', i < selectedDiem ? '#f39c12' : '#ccc'); });
+            $('.star-opt').each(function(i) { $(this).text(i < selectedDiem ? '★' : '☆').css('color', i < selectedDiem ? 'var(--fs-warning)' : 'var(--fs-muted-soft)'); });
         });
 
         $('#review-nhanxet').on('input', function() { $('#char-count').text($(this).val().length); });

@@ -8,7 +8,7 @@
 
 @section styles {
     <style>
-        .cart-wrapper { margin-top: 100px; padding: 32px 0 60px; background: #f8f9fa; min-height: 70vh; }
+        .cart-wrapper { margin-top: 100px; padding: 32px 0 60px; background: var(--fs-light); min-height: 70vh; }
         @@media (max-width: 768px) {
             .cart-wrapper { margin-top: 80px; padding: 20px 0 40px; }
             .cart-header { padding: 16px 20px; }
@@ -76,11 +76,11 @@
                 min-width: auto;
                 font-size: 14px;
                 font-weight: 700;
-                color: #e74c3c;
+                color: var(--fs-danger);
                 text-align: left;
                 padding-top: 6px;
                 margin-top: 4px;
-                border-top: 1px solid #f0f0f0;
+                border-top: 1px solid var(--fs-border-soft);
                 flex: 0 0 auto;
             }
             .qty-control {
@@ -88,7 +88,7 @@
                 margin-left: auto;
                 padding-top: 6px;
                 margin-top: 4px;
-                border-top: 1px solid #f0f0f0;
+                border-top: 1px solid var(--fs-border-soft);
             }
             .qty-btn {
                 width: 44px !important;
@@ -112,31 +112,31 @@
         .cart-wrapper .cart-item img { border-radius: 12px; }
         .cart-wrapper .cart-summary { box-shadow: 0 4px 20px rgba(0,0,0,.07); }
         .cart-wrapper .cart-body { box-shadow: 0 4px 20px rgba(0,0,0,.07); }
-        .cart-header { background: linear-gradient(135deg,#3CB815,#27a001); color:#fff; border-radius: 16px 16px 0 0; padding: 20px 28px; }
+        .cart-header { background: linear-gradient(135deg,#3CB815,#27a001); color:var(--fs-white); border-radius: 16px 16px 0 0; padding: 20px 28px; }
         .cart-header h3 { margin: 0; font-weight: 700; font-size: 20px; }
-        .cart-body { background: #fff; border-radius: 0 0 16px 16px; box-shadow: 0 4px 20px rgba(0,0,0,.07); overflow: hidden; }
-        .cart-item { display: flex; align-items: center; gap: 16px; padding: 18px 24px; border-bottom: 1px solid #f0f0f0; transition: background .15s; }
+        .cart-body { background: var(--fs-white); border-radius: 0 0 16px 16px; box-shadow: 0 4px 20px rgba(0,0,0,.07); overflow: hidden; }
+        .cart-item { display: flex; align-items: center; gap: 16px; padding: 18px 24px; border-bottom: 1px solid var(--fs-border-soft); transition: background .15s; }
         .cart-item:hover { background: #fafff9; }
         .cart-item:last-child { border-bottom: none; }
-        .cart-item img { width: 80px; height: 80px; object-fit: cover; border-radius: 12px; flex-shrink: 0; border: 1px solid #eee; }
+        .cart-item img { width: 80px; height: 80px; object-fit: cover; border-radius: 12px; flex-shrink: 0; border: 1px solid var(--fs-border); }
         .cart-item .item-info { flex: 1; }
-        .cart-item .item-name { font-weight: 600; font-size: 15px; color: #1a1a2e; }
-        .cart-item .item-price { color: #888; font-size: 13px; margin-top: 2px; }
+        .cart-item .item-name { font-weight: 600; font-size: 15px; color: var(--fs-dark); }
+        .cart-item .item-price { color: var(--fs-muted); font-size: 13px; margin-top: 2px; }
         .qty-control { display: flex; align-items: center; gap: 8px; }
-        .qty-btn { width: 32px; height: 32px; border: 1.5px solid #dee2e6; border-radius: 8px; background: #fff; cursor: pointer; font-size: 16px; font-weight: 600; display: flex; align-items: center; justify-content: center; transition: all .15s; color: #333; }
+        .qty-btn { width: 32px; height: 32px; border: 1.5px solid var(--fs-border); border-radius: 8px; background: var(--fs-white); cursor: pointer; font-size: 16px; font-weight: 600; display: flex; align-items: center; justify-content: center; transition: all .15s; color: var(--fs-body); }
         .qty-btn:hover { border-color: #3CB815; color: #3CB815; background: #f0fff0; }
         .qty-num { min-width: 36px; text-align: center; font-weight: 700; font-size: 16px; }
-        .item-total { font-weight: 700; font-size: 15px; color: #e74c3c; min-width: 110px; text-align: right; }
-        .delete-btn { color: #ccc; cursor: pointer; padding: 6px; border-radius: 8px; transition: all .15s; border: none; background: none; }
-        .delete-btn:hover { color: #dc3545; background: #fff0f0; }
-        .cart-summary { background: #fff; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,.07); padding: 24px; }
+        .item-total { font-weight: 700; font-size: 15px; color: var(--fs-danger); min-width: 110px; text-align: right; }
+        .delete-btn { color: var(--fs-muted-soft); cursor: pointer; padding: 6px; border-radius: 8px; transition: all .15s; border: none; background: none; }
+        .delete-btn:hover { color: var(--fs-danger); background: #fff0f0; }
+        .cart-summary { background: var(--fs-white); border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,.07); padding: 24px; }
         .summary-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 14px; }
-        .summary-total { display: flex; justify-content: space-between; padding-top: 12px; margin-top: 8px; border-top: 2px solid #e74c3c; font-size: 18px; font-weight: 700; color: #e74c3c; }
-        .btn-checkout-go { display: block; width: 100%; padding: 14px; background: linear-gradient(135deg,#3CB815,#27a001); color:#fff; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; text-align: center; text-decoration: none; cursor: pointer; transition: opacity .2s; margin-top: 16px; }
+        .summary-total { display: flex; justify-content: space-between; padding-top: 12px; margin-top: 8px; border-top: 2px solid var(--fs-danger); font-size: 18px; font-weight: 700; color: var(--fs-danger); }
+        .btn-checkout-go { display: block; width: 100%; padding: 14px; background: linear-gradient(135deg,#3CB815,#27a001); color:var(--fs-white); border: none; border-radius: 10px; font-size: 15px; font-weight: 700; text-align: center; text-decoration: none; cursor: pointer; transition: opacity .2s; margin-top: 16px; }
         .btn-checkout-go:hover { opacity:.88; color:#fff; text-decoration:none; }
         .empty-cart { text-align: center; padding: 60px 24px; }
         .empty-cart svg { opacity: .25; margin-bottom: 16px; }
-        .restaurant-badge { display: inline-flex; align-items: center; gap: 6px; background: #f0fff0; border: 1px solid #c3e6cb; color: #28a745; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 500; }
+        .restaurant-badge { display: inline-flex; align-items: center; gap: 6px; background: #f0fff0; border: 1px solid #c3e6cb; color: var(--fs-success); padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 500; }
     </style>
 }
 
@@ -155,8 +155,8 @@
             <div class="cart-body" style="border-radius:16px;">
                 <div class="empty-cart">
                     <svg width="80" height="80" viewBox="0 0 24 24" fill="none"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0" stroke="#333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    <h4 style="color:#888;font-weight:600;">Giỏ hàng của bạn đang trống</h4>
-                    <p style="color:#aaa;font-size:14px;">Hãy chọn món ăn từ các quán yêu thích</p>
+                    <h4 style="color:var(--fs-muted);font-weight:600;">Giỏ hàng của bạn đang trống</h4>
+                    <p style="color:var(--fs-muted-soft);font-size:14px;">Hãy chọn món ăn từ các quán yêu thích</p>
                     <a href="@Url.Action("Index","Home")" class="btn-checkout-go" style="display:inline-block;width:auto;padding:12px 32px;">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="margin-right:6px;vertical-align:middle;"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="white" stroke-width="2"/><polyline points="9 22 9 12 15 12 15 22" stroke="white" stroke-width="2"/></svg>
                         Khám phá quán ăn
@@ -178,7 +178,7 @@
                             var quanAn = _db.tbQuanAn.Find(cart.maquanan);
                             if (quanAn != null)
                             {
-                                <div class="restaurant-badge" style="background:rgba(255,255,255,.2);border-color:rgba(255,255,255,.4);color:#fff;">
+                                <div class="restaurant-badge" style="background:rgba(255,255,255,.2);border-color:rgba(255,255,255,.4);color:var(--fs-white);">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 3a4 4 0 110 8 4 4 0 010-8zM23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
                                     @quanAn.tenquanan
                                 </div>
@@ -224,19 +224,19 @@
                             <div style="font-size:15px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px;color:var(--fs-dark);">
                                 <span style="font-size:20px;">🤖</span>
                                 Có thể bạn đã bỏ quên
-                                <span style="font-size:10px;background:linear-gradient(135deg,#f39c12,#e67e22);color:#fff;padding:2px 8px;border-radius:4px;font-weight:600;">AI</span>
+                                <span style="font-size:10px;background:linear-gradient(135deg,#f39c12,#e67e22);color:var(--fs-white);padding:2px 8px;border-radius:4px;font-weight:600;">AI</span>
                             </div>
-                            <p style="font-size:12px;color:#888;margin-bottom:12px;">Khách hàng thường đặt kèm những món này</p>
+                            <p style="font-size:12px;color:var(--fs-muted);margin-bottom:12px;">Khách hàng thường đặt kèm những món này</p>
                             @foreach (var item in aprioriCart)
                             {
-                                <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f0f0f0;">
+                                <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--fs-border-soft);">
                                     <img src="~/Source/images/MonAn/@item.hinhanh" alt="@item.tenmon"
-                                         style="width:48px;height:48px;border-radius:8px;object-fit:cover;border:1px solid #eee;"
+                                         style="width:48px;height:48px;border-radius:8px;object-fit:cover;border:1px solid var(--fs-border);"
                                          onerror="this.src='/Source/Home/img/food-placeholder.png'" />
                                     <div style="flex:1;min-width:0;">
                                         <div style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">@item.tenmon</div>
-                                        <div style="font-size:11px;color:#888;">@item.tbQuanAn?.tenquanan</div>
-                                        <div style="color:#e74c3c;font-weight:700;font-size:13px;">@item.giatien?.ToString("N0")đ</div>
+                                        <div style="font-size:11px;color:var(--fs-muted);">@item.tbQuanAn?.tenquanan</div>
+                                        <div style="color:var(--fs-danger);font-weight:700;font-size:13px;">@item.giatien?.ToString("N0")đ</div>
                                     </div>
                                     <a href="@Url.Action("ThemMonAn","Cart",new { maMonAn = item.mamon, soLuong = 1 })"
                                        class="btn btn-sm"
@@ -256,11 +256,11 @@
                             Tóm tắt đơn hàng
                         </div>
                         <div class="summary-row">
-                            <span style="color:#888;">Tổng món ăn</span>
+                            <span style="color:var(--fs-muted);">Tổng món ăn</span>
                             <span id="cart-total">@cart.tongTien?.ToString("N0") đ</span>
                         </div>
                         <div class="summary-row">
-                            <span style="color:#888;">Phí giao hàng</span>
+                            <span style="color:var(--fs-muted);">Phí giao hàng</span>
                             <span>15,000 đ</span>
                         </div>
                         <div class="summary-total">
@@ -268,12 +268,12 @@
                             <span id="cart-grandtotal">@((cart.tongTien + 15000)?.ToString("N0")) đ</span>
                         </div>
                         <!-- ─── MÃ GIẢM GIÁ GỢI Ý ─── -->
-                        <div id="cart-coupon-suggestions" class="mt-3 pt-3" style="border-top:1px solid #f0f0f0;">
-                            <div style="font-size:12px;font-weight:600;color:#3CB815;margin-bottom:8px;">
+                        <div id="cart-coupon-suggestions" class="mt-3 pt-3" style="border-top:1px solid var(--fs-border-soft);">
+                            <div style="font-size:12px;font-weight:600;color:var(--fs-green);margin-bottom:8px;">
                                 <i class="fas fa-tag me-1"></i>Mã giảm giá gợi ý:
                             </div>
                             <div id="cart-coupon-list" class="d-flex flex-wrap gap-2">
-                                <div style="color:#aaa;font-size:12px;"><i class="fas fa-spinner fa-spin me-1"></i>Đang tải...</div>
+                                <div style="color:var(--fs-muted-soft);font-size:12px;"><i class="fas fa-spinner fa-spin me-1"></i>Đang tải...</div>
                             </div>
                         </div>
 
@@ -281,7 +281,7 @@
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="margin-right:6px;vertical-align:middle;"><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 001.95-1.57l1.65-7.43H6M10 21a1 1 0 110-2 1 1 0 010 2zM21 21a1 1 0 110-2 1 1 0 010 2z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                             Tiến hành thanh toán
                         </a>
-                        <a href="@Url.Action("Index","Home")" style="display:block;text-align:center;color:#888;font-size:13px;margin-top:12px;text-decoration:none;">
+                        <a href="@Url.Action("Index","Home")" style="display:block;text-align:center;color:var(--fs-muted);font-size:13px;margin-top:12px;text-decoration:none;">
                             ← Tiếp tục mua sắm
                         </a>
                     </div>
@@ -308,9 +308,9 @@ $(document).ready(function () {
                 var isFirst = idx === 0;
                 var badge = $('<div style="cursor:pointer;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;transition:all .2s;"></div>');
                 badge.css({
-                    background: isFirst ? '#3CB815' : '#fff',
-                    color: isFirst ? '#fff' : '#333',
-                    border: isFirst ? '1.5px solid #3CB815' : '1.5px solid #dee2e6'
+                    background: isFirst ? 'var(--fs-green)' : 'var(--fs-white)',
+                    color: isFirst ? 'var(--fs-white)' : 'var(--fs-body)',
+                    border: isFirst ? '1.5px solid var(--fs-green)' : '1.5px solid var(--fs-border)'
                 });
                 badge.html((isFirst ? '🔥 ' : '') + c.tenkm + ' <span style="font-weight:400;opacity:.85">(-' + c.phantramgiam + '%)</span>');
                 badge.hover(
@@ -323,10 +323,10 @@ $(document).ready(function () {
                 $list.append(badge);
             });
         } else {
-            $list.html('<div style="color:#aaa;font-size:12px;">Chưa có mã giảm giá khả dụng</div>');
+            $list.html('<div style="color:var(--fs-muted-soft);font-size:12px;">Chưa có mã giảm giá khả dụng</div>');
         }
     }).fail(function() {
-        $('#cart-coupon-list').html('<div style="color:#aaa;font-size:12px;">Không tải được mã giảm giá</div>');
+        $('#cart-coupon-list').html('<div style="color:var(--fs-muted-soft);font-size:12px;">Không tải được mã giảm giá</div>');
     });
 
     $(document).on('click', '.btn-tang, .btn-giam', function(e) {
@@ -355,7 +355,7 @@ $(document).ready(function () {
     {
         <text>
         var conflictNewMonId = @(TempData["ConflictNewMonId"] ?? "0");
-        var conflictNewSoLuong = @(TempData["ConflictNewSoLuong"] ?? "1");
+var conflictNewSoLuong = @(TempData["ConflictNewSoLuong"] ?? "1");
         var conflictUrl = '@Url.Action("ApiForceSwitchRestaurant", "Cart")';
 
         if (confirm('Giỏ hàng của bạn đã có món ăn thuộc quán khác. Bạn có muốn xóa giỏ hàng cũ để bắt đầu đặt món tại quán mới này không?')) {

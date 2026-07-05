@@ -233,14 +233,22 @@ public class HomeController : BaseController
                 });
             }
 
-            return userFind.loaitaikhoan switch
+            var redirectUrl = userFind.loaitaikhoan switch
             {
-                "Khách hàng" => RedirectToAction("Index", "Home"),
-                "Shipper" => RedirectToAction("Index", "Shipper"),
-                "Quán ăn" => RedirectToAction("Index", "Restaurant"),
-                "Admin" => RedirectToAction("Index", "Admin"),
-                _ => RedirectToAction("Index"),
+                "Khách hàng" => Url.Action("Index", "Home"),
+                "Shipper" => Url.Action("Index", "Shipper"),
+                "Quán ăn" => Url.Action("Index", "Restaurant"),
+                "Admin" => Url.Action("Index", "Admin"),
+                _ => Url.Action("Index"),
             };
+
+            // AJAX request → trả về JSON để client tự redirect (tránh mất session khi follow 302)
+            if (HttpContext.Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                return Json(new { success = true, redirectUrl });
+            }
+
+            return Redirect(redirectUrl);
         }
         else
         {

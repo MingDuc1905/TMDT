@@ -147,7 +147,20 @@
                     'X-Requested-With': 'XMLHttpRequest'
                 },
                 success: function(response, textStatus, xhr) {
-                    // Server trả về View Login có lỗi (200 OK) → login thất bại
+                    // Thử parse JSON response (server trả về { success, redirectUrl } cho AJAX)
+                    try {
+                        var json = typeof response === 'object' ? response : JSON.parse(response);
+                        if (json && json.success && json.redirectUrl) {
+                            window.location.href = json.redirectUrl;
+                            return;
+                        }
+                        if (json && json.success === false && json.message) {
+                            showLoginError(json.message);
+                            $btn.prop('disabled', false).html('Đăng nhập');
+                            return;
+                        }
+                    } catch(e) {}
+                    // Fallback: HTML response (login thất bại → server trả về View Login với lỗi)
                     if (typeof response === 'string' &&
                         (response.indexOf('alert-danger') > -1 || response.indexOf('LoginFail') > -1)) {
                         var msg = $(response).find('.alert-danger').first().text().trim();
@@ -155,7 +168,7 @@
                         $btn.prop('disabled', false).html('Đăng nhập');
                         return;
                     }
-                    // Thành công → server đã redirect, dùng xhr.responseURL để chuyển hướng trình duyệt
+                    // Fallback cuối: dùng responseURL (nếu server vẫn redirect)
                     var targetUrl = (xhr && xhr.responseURL) || '/';
                     window.location.href = targetUrl;
                 },

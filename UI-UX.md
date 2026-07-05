@@ -1,6 +1,6 @@
 # Fastship (ShipFood) — UI/UX Documentation (Full)
 
-> **Phiên bản**: 4.5 — 5 UI/UX & Logic Fixes (Footer icons, Chat toggle, Cart multi-restaurant, Geo throttling, Race condition)  
+> **Phiên bản**: 4.8 — AdBlock Bypass SVG Icons, Hero Carousel Horizontal Slide, Coupon Popup Selector & CSS Refinements  
 > **Cập nhật**: Tháng 7, 2026  
 > **Mô tả**: Tài liệu thiết kế giao diện & trải nghiệm người dùng toàn diện cho nền tảng đặt đồ ăn Fastship  
 > **Tài liệu liên quan**: Project.md — Tổng quan kiến trúc & phát triển
@@ -1980,7 +1980,16 @@ LOGIN ──→ DASHBOARD (with LIVE MAP)
 | **WOW/OwlCarousel skeleton timing** | ✅ | Dời init vào callback `fadeOut()` của skeleton, tránh chạy khi overlay còn |
 | **Bootstrap 3 _Layout.cshtml reference** | ✅ | Xóa `<link href="~/Content/bootstrap.css">` khỏi layout mặc định |
 
-### 22.5 Future Improvements
+### 22.5 ✅ Completed in v4.8 — AdBlock Bypass, Hero Horizontal Slide, Coupon Popup & CSS Refinements
+
+| Task | Status | Files | Chi tiết |
+|------|--------|-------|----------|
+| **AdBlock Bypass Icon SVG** | ✅ | `layout-sg.css`, `_LayoutPageHome.cshtml` | `fs-icon-anchor-f/i` class trung lập, SVG data URI, `inline-flex 28×28px`, `vertical-align:middle`, `no-repeat center/contain` |
+| **Hero Carousel Horizontal Smooth Slide** | ✅ | `layout-sg.css`, `main.js`, `Index.cshtml` | Loại bỏ Ken Burns zoom + fade crossfade; `cubic-bezier(0.645,0.045,0.355,1)` horizontal slide; caption `translateX(30px)→0`; buttons delay 150ms |
+| **Coupon Selection Popup** | ✅ | `CartController.cs`, `Checkout.cshtml` | `GetAvailableCoupons` endpoint query tbKhuyenMai; popup modal với coupon cards; click auto-apply → CheckCoupon |
+| **CSS Refinements** | ✅ | `layout-sg.css` | Xoá `:contains()` không hợp lệ; chuẩn hoá background-image shorthand với `no-repeat center/contain`; fix `.fs-icon-anchor-i` |
+
+### 22.7 Future Improvements
 
 - [ ] **Dark mode**: Add CSS custom properties swap
 - [ ] **Smooth page transitions**: View transitions API
@@ -2055,10 +2064,20 @@ LOGIN ──→ DASHBOARD (with LIVE MAP)
 
 ---
 
-> **Document Version**: 4.5 (Full)  
+> **Document Version**: 4.8 (Full)  
 > **Cập nhật**: Tháng 7, 2026  
 > **Based on**: Actual source code analysis of 8 Controllers, 30+ Views, 15+ Models, 10+ CSS files, 5 Layout files, 1 SignalR Hub, 4 sessions of responsive mobile fixes + 1 theme unification update + 1 icon cleanup session + 1 UI/UX Logic Fixes session  
-> **Key changes v4.5**:  
+> **Key changes v4.8**:  
+> - 🛡️ **AdBlock Bypass Social Icons** — `fs-icon-anchor-f/i` class trung lập, SVG data URI, `display:inline-flex; width:28px; height:28px; vertical-align:middle`, `no-repeat center/contain`  
+> - 🎠 **Hero Carousel Horizontal Smooth Slide** — Loại bỏ Ken Burns zoom + crossfade; chuyển sang `cubic-bezier(0.645,0.045,0.355,1)`, caption `translateX(30px)→0`, buttons delay 150ms  
+> - 🏷️ **Coupon Selection Popup** — `GetAvailableCoupons` JSON endpoint, popup modal với coupon cards, click auto-apply + trigger CheckCoupon  
+> - 🧹 **CSS Refinements** — Xoá `:contains()` pseudo-selector không hợp lệ, chuẩn hoá `background-image` shorthand, thêm `no-repeat center/contain`  
+> - 📐 **Project.md**: v3.2 — thêm API endpoint mới, backlog items  
+> - 📐 **README.md**: v3.2 — badge update, roadmap mới  
+
+---
+
+### v4.5 (previous)
 > - 🔄 **SignalR Real-time Order Pipeline** — Customer thanh toán → broadcast `newOrder` đến Restaurant; Restaurant "Chuẩn bị xong" → broadcast `newPickupOrder` đến Shipper; Shipper geolocation → stream `UpdateLocation` đến Customer map  
 > - 💬 **Chat Widget Modern Minimalist** — `var(--fs-green)` thay `#28a745`, Inter font, gradient header, 12px radius, `--fs-border` tokens, admin dot pulse animation  
 > - 📍 **Shipper Geolocation Streaming** — `navigator.geolocation.watchPosition()` (enableHighAccuracy) → signalR `UpdateLocation()` → group `order_{madh}` → Leaflet marker lướt mượt  

@@ -280,6 +280,7 @@ TMDT-master/
 | `GET` | `/Home/GetReviews?quanId=&page=&pageSize=` | Home | Load reviews (paginated) |
 | `POST` | `/Home/SubmitReview` | Home | Submit review (anti-forgery) |
 | `GET` | `/Home/GetReviewableItems?quanId=` | Home | Get user's purchased items |
+| `GET` | `/Cart/GetAvailableCoupons` | Cart | **NEW** Danh sách mã giảm giá khả dụng (còn hạn, sắp xếp giảm dần) |
 | `POST` | `/Cart/CheckCoupon` | Cart | Validate coupon code |
 | `POST` | `/Payment/ProcessPayment` | Payment | Mock payment processing |
 | `POST` | `/Chatbot/SendMessage` | Chatbot | AI chatbot message |
@@ -455,6 +456,10 @@ APP_DOMAIN=https://shipfood.up.railway.app
 - [x] ✅ **Fix 3 — Geo throttling 5s** (`sendLocationThrottled()`, `_throttleInterval=5000` trong Shipper/OrderDetail)
 - [x] ✅ **Fix 3 — OnDisconnectedAsync cleanup** (`Chats.cs` broadcast `shipperOffline` khi shipper mất kết nối)
 - [x] ✅ **Fix 4 — Race condition Shipper** (kiểm tra `mashipper != null` + `trangthai` trước khi assign, TempData error nếu đơn đã có shipper khác)
+- [x] ✅ **AdBlock Bypass Icon SVG** — `fs-icon-anchor-f/i` class trung lập, SVG data URI, inline-flex 28×28px, no-repeat center/contain
+- [x] ✅ **Hero Carousel Horizontal Smooth Slide** — Thay Ken Burns zoom + crossfade bằng `transform translateX` horizontal slide, caption fade+slide phải→trái, buttons delay 150ms
+- [x] ✅ **Coupon Selection Popup** — `GetAvailableCoupons` endpoint, popup modal danh sách coupon cards, click auto-apply + trigger CheckCoupon
+- [x] ✅ **CSS AdBlock Refinements** — Xoá `:contains()` pseudo-selector không hợp lệ, chuẩn hoá `background-image` shorthand với `no-repeat center/contain`
 - [ ] PayPal/ZaloPay/MoMo integration (đã remove khỏi UI)
 - [ ] Unit tests (chưa có — đã thêm xUnit project + 12 tests GetReviews)
 - [ ] Real payment (Stripe/PayPal/ZaloPay)
@@ -553,7 +558,7 @@ Dự án mã nguồn mở — phát triển bởi đội ngũ ShipFood.
 
 ---
 
-> **Phiên bản**: 2.9 — 5 UI/UX & Logic Fixes (Footer icons, Chat toggle, Cart multi-restaurant, Geo throttling, Race condition)  
+> **Phiên bản**: 3.2 / v4.8 — AdBlock Bypass, Hero Horizontal Slide, Coupon Popup Selector & CSS Refinements  
 > **Ngôn ngữ**: C# 12, HTML5, CSS3, JavaScript ES6  
 > **Kiến trúc**: ASP.NET Core MVC n-tier  
 > **Database**: MySQL 8+ (MySqlServerVersion 8.0.20)  

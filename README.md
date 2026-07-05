@@ -1,7 +1,7 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/Fastship-v3.1-3CB815?style=for-the-badge&logo=dotnet&logoColor=white&labelColor=111">
-    <img src="https://img.shields.io/badge/Fastship-v3.1-3CB815?style=for-the-badge&logo=dotnet&logoColor=white&labelColor=fff" alt="Fastship v3.1">
+    <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/Fastship-v3.2-3CB815?style=for-the-badge&logo=dotnet&logoColor=white&labelColor=111">
+    <img src="https://img.shields.io/badge/Fastship-v3.2-3CB815?style=for-the-badge&logo=dotnet&logoColor=white&labelColor=fff" alt="Fastship v3.2">
   </picture>
 </p>
 
@@ -389,6 +389,16 @@ TMDT-master/
 ---
 
 ## 🛣️ Roadmap
+
+<details>
+<summary><b>✅ v3.2 — Đã hoàn thành</b></summary>
+
+- [x] 🛡️ **AdBlock Bypass Social Icons** — SVG data:URI icons qua class `fs-icon-anchor-f/i`, tránh bộ lọc chặn
+- [x] 🎠 **Hero Carousel Horizontal Smooth Slide** — Cubic-bezier slide, caption FadeIn từ phải, buttons delay 150ms
+- [x] 🏷️ **Coupon Selection Popup** — Popup modal danh sách mã giảm giá từ API, click auto-apply
+- [x] 🎨 **CSS Refinements** — Xoá `:contains()` không hợp lệ, chuẩn hoá background-image shorthand
+
+</details>
 
 <details>
 <summary><b>✅ v3.1 — Đã hoàn thành</b></summary>

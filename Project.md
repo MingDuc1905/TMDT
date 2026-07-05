@@ -280,7 +280,7 @@ TMDT-master/
 | `GET` | `/Home/GetReviews?quanId=&page=&pageSize=` | Home | Load reviews (paginated) |
 | `POST` | `/Home/SubmitReview` | Home | Submit review (anti-forgery) |
 | `GET` | `/Home/GetReviewableItems?quanId=` | Home | Get user's purchased items |
-| `GET` | `/Cart/GetAvailableCoupons` | Cart | **NEW** Danh sách mã giảm giá khả dụng (còn hạn, sắp xếp giảm dần) |
+| `GET` | `/Cart/GetAvailableCoupons` | Cart | Danh sách mã giảm giá khả dụng (còn hạn, sắp xếp giảm dần) |
 | `POST` | `/Cart/CheckCoupon` | Cart | Validate coupon code |
 | `POST` | `/Payment/ProcessPayment` | Payment | Mock payment processing |
 | `POST` | `/Chatbot/SendMessage` | Chatbot | AI chatbot message |
@@ -460,6 +460,15 @@ APP_DOMAIN=https://shipfood.up.railway.app
 - [x] ✅ **Hero Carousel Horizontal Smooth Slide** — Thay Ken Burns zoom + crossfade bằng `transform translateX` horizontal slide, caption fade+slide phải→trái, buttons delay 150ms
 - [x] ✅ **Coupon Selection Popup** — `GetAvailableCoupons` endpoint, popup modal danh sách coupon cards, click auto-apply + trigger CheckCoupon
 - [x] ✅ **CSS AdBlock Refinements** — Xoá `:contains()` pseudo-selector không hợp lệ, chuẩn hoá `background-image` shorthand với `no-repeat center/contain`
+- [x] ✅ **Dark Mode CSS** — `@media (prefers-color-scheme: dark)` trong `fastship-design-tokens.css` với 60+ dòng override cho header, footer, navbar, cards, forms, skeleton, chat, social links
+- [x] ✅ **Auth pages CSS variables** — Login/Signup/Forgot: `#888`→`var(--fs-muted)`, `#3CB815`→`var(--fs-green)`, `#fff`→`var(--fs-white)`, thêm link design tokens
+- [x] ✅ **Cart/Index ~30 hardcoded colors → CSS variables** — `#888`→`var(--fs-muted)`, `#e74c3c`→`var(--fs-danger)`, `#f0f0f0`→`var(--fs-border-soft)`, `#333`→`var(--fs-body)`, `#1a1a2e`→`var(--fs-dark)` + JS strings
+- [x] ✅ **DetailRestaurant ~25 hardcoded colors → CSS variables** — CSS style block, inline styles, JS review builder colors, star picker colors
+- [x] ✅ **UI/UX Pro Max editorial typography** — `--fs-letter-spacing`, `--fs-heading-letter-spacing`, premium shadows `--fs-shadow-md/xl`, section spacing tokens
+- [x] ✅ **Footer social icons 30px circular** — Đồng bộ footer với topbar: `width/height: 30px`, hover nền xanh lá
+- [x] ✅ **Card spring animation** — `cubic-bezier(0.34, 1.56, 0.64, 1)` overshoot, `translateY(-8px)`, shadow đậm hơn
+- [x] ✅ **How-it-works hover effects** — Icon scale 1.1 + background hover, card lift, editorial letter-spacing
+- [x] ✅ **Stats row hover** — Lift effect, editorial letter-spacing, refined padding
 - [ ] PayPal/ZaloPay/MoMo integration (đã remove khỏi UI)
 - [ ] Unit tests (chưa có — đã thêm xUnit project + 12 tests GetReviews)
 - [ ] Real payment (Stripe/PayPal/ZaloPay)
@@ -558,7 +567,7 @@ Dự án mã nguồn mở — phát triển bởi đội ngũ ShipFood.
 
 ---
 
-> **Phiên bản**: 3.2 / v4.8 — AdBlock Bypass, Hero Horizontal Slide, Coupon Popup Selector & CSS Refinements  
+> **Phiên bản**: 3.6 / v4.12 — Dark Mode CSS, CSS variable migration (55+ colors), UI/UX Pro Max editorial typography & animations  
 > **Ngôn ngữ**: C# 12, HTML5, CSS3, JavaScript ES6  
 > **Kiến trúc**: ASP.NET Core MVC n-tier  
 > **Database**: MySQL 8+ (MySqlServerVersion 8.0.20)  

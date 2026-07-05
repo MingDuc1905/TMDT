@@ -1,7 +1,7 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/Fastship-v3.2-3CB815?style=for-the-badge&logo=dotnet&logoColor=white&labelColor=111">
-    <img src="https://img.shields.io/badge/Fastship-v3.2-3CB815?style=for-the-badge&logo=dotnet&logoColor=white&labelColor=fff" alt="Fastship v3.2">
+    <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/Fastship-v3.6-3CB815?style=for-the-badge&logo=dotnet&logoColor=white&labelColor=111">
+    <img src="https://img.shields.io/badge/Fastship-v3.6-3CB815?style=for-the-badge&logo=dotnet&logoColor=white&labelColor=fff" alt="Fastship v3.6">
   </picture>
 </p>
 
@@ -391,12 +391,14 @@ TMDT-master/
 ## 🛣️ Roadmap
 
 <details>
-<summary><b>✅ v3.2 — Đã hoàn thành</b></summary>
+<summary><b>✅ v3.4–3.6 — Đã hoàn thành</b></summary>
 
-- [x] 🛡️ **AdBlock Bypass Social Icons** — SVG data:URI icons qua class `fs-icon-anchor-f/i`, tránh bộ lọc chặn
-- [x] 🎠 **Hero Carousel Horizontal Smooth Slide** — Cubic-bezier slide, caption FadeIn từ phải, buttons delay 150ms
-- [x] 🏷️ **Coupon Selection Popup** — Popup modal danh sách mã giảm giá từ API, click auto-apply
-- [x] 🎨 **CSS Refinements** — Xoá `:contains()` không hợp lệ, chuẩn hoá background-image shorthand
+- [x] 🌙 **Dark Mode CSS** — `@media prefers-color-scheme: dark` với 60+ override cho toàn bộ components
+- [x] 🎨 **55+ hardcoded colors → CSS variables** — Cart/Index + DetailRestaurant + Login/Signup/Forgot
+- [x] ✒️ **Editorial typography** — Letter-spacing tokens, premium shadows, section spacing
+- [x] 🔄 **Footer social icons 30px** — Đồng bộ với topbar (circular, green hover)
+- [x] 🃏 **Card spring animation** — Cubic-bezier overshoot, translateY(-8px)
+- [x] 💡 **How-it-works + Stats hover** — Icon scale, card lift effects
 
 </details>
 
@@ -417,12 +419,9 @@ TMDT-master/
 <summary><b>🔜 Tương lai</b></summary>
 
 - [ ] 💳 Real payment integration (PayPal / Stripe / ZaloPay)
-- [ ] 🌙 Dark mode
 - [ ] 🔄 Database migrations (replace EnsureCreated)
 - [ ] 🧪 Unit tests + integration tests
-- [ ] 🚦 API rate limiting
 - [ ] 📦 Service Worker + offline support
-- [ ] 🔍 Search autocomplete
 - [ ] 📸 Image optimization (WebP, lazy loading)
 
 </details>

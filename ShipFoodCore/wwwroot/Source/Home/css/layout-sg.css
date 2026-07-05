@@ -1475,3 +1475,265 @@ img[style*="height:300px"] {
         height: 200px !important;
     }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   UI/UX OPTIMIZATION v5.0 — Section headers, badges, grid
+   ═══════════════════════════════════════════════════════════ */
+
+/* Section headings — refactor từ inline styles thành class */
+.fs-section-title {
+    font-size: clamp(1.5rem, 3vw, 2.2rem);
+    font-weight: 800;
+    color: var(--fs-dark);
+    margin-bottom: 4px;
+}
+.fs-section-sub {
+    font-size: 15px;
+    color: var(--fs-muted);
+    margin-bottom: 0;
+}
+.fs-section-title-sm {
+    font-size: clamp(1.3rem, 2.5vw, 1.8rem);
+    font-weight: 800;
+    color: var(--fs-dark);
+    margin-bottom: 4px;
+}
+.fs-section-sub-sm {
+    font-size: 14px;
+    color: var(--fs-muted);
+    margin-bottom: 0;
+}
+
+/* Outline button utility (xem them) */
+.fs-btn-outline {
+    font-weight: 600;
+    border-radius: 24px;
+}
+.fs-btn-outline-sm {
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 24px;
+}
+
+/* Stats icon */
+.fs-stat-icon {
+    font-size: 24px;
+    color: var(--fs-green);
+    margin-bottom: 6px;
+    display: block;
+}
+
+/* AI Badge — thay thế inline style (AI + fire emoji) */
+.fs-ai-badge {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: linear-gradient(135deg, #f39c12, #e67e22);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(243, 156, 18, 0.3);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    line-height: 1.4;
+    z-index: 2;
+}
+.fs-ai-badge i {
+    font-size: 11px;
+}
+
+/* Price text */
+.fs-price {
+    color: #e74c3c;
+    font-weight: 700;
+    font-size: 14px;
+    margin-top: 4px;
+}
+
+/* Product body compact (dùng cho AI combo cards nhỏ) */
+.product-body-compact {
+    padding: 10px 12px;
+}
+.product-body-compact .product-title {
+    font-size: 13px;
+}
+.product-body-compact .product-address {
+    font-size: 11px;
+}
+
+/* Highlight band grid — 2x2 với FA icons thay emoji */
+.fs-highlight-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    max-width: 320px;
+    margin: 0 auto;
+}
+.fs-highlight-grid-item {
+    background: rgba(255, 255, 255, 0.07);
+    border-radius: 16px;
+    padding: 20px;
+    text-align: center;
+    transition: background .3s ease, transform .3s ease;
+}
+.fs-highlight-grid-item:hover {
+    background: rgba(255, 255, 255, 0.12);
+    transform: translateY(-2px);
+}
+.fs-highlight-grid-item .hg-icon {
+    font-size: 2rem;
+    display: block;
+    line-height: 1;
+}
+.fs-highlight-grid-item .hg-label {
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    margin-top: 8px;
+}
+.fs-highlight-grid-item.highlight-green {
+    background: rgba(60, 184, 21, 0.25);
+}
+
+/* Section badge (vd: MUA HE SAI GON 2026) */
+.fs-section-badge {
+    background: var(--fs-green);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 24px;
+    letter-spacing: 0.5px;
+    display: inline-block;
+    margin-bottom: 12px;
+}
+
+/* Social proof badge trên card — "Đã đặt hôm nay" */
+.fs-order-count-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(4px);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    z-index: 2;
+    line-height: 1.3;
+}
+.fs-order-count-badge i {
+    font-size: 10px;
+    color: #fbbf24;
+}
+.fs-trending-dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #22c55e;
+    margin-right: 4px;
+    animation: fsPulse 2s ease-in-out infinite;
+}
+@keyframes fsPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+
+/* Re-order section — cho user đã login */
+.fs-reorder-section {
+    background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 24px;
+}
+.fs-reorder-section h3 {
+    font-weight: 700;
+    color: var(--fs-dark);
+    margin-bottom: 4px;
+}
+.fs-reorder-section p {
+    color: var(--fs-muted);
+    font-size: 14px;
+    margin: 0;
+}
+.fs-reorder-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.05);
+    transition: transform .2s ease, box-shadow .2s ease;
+    text-decoration: none;
+    color: var(--fs-dark);
+}
+.fs-reorder-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,0,0,.08);
+}
+.fs-reorder-item .reorder-img {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    object-fit: cover;
+    flex-shrink: 0;
+    background: #f0f0f0;
+}
+.fs-reorder-item .reorder-info {
+    flex: 1;
+    min-width: 0;
+}
+.fs-reorder-item .reorder-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--fs-dark);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.fs-reorder-item .reorder-restaurant {
+    font-size: 12px;
+    color: var(--fs-muted);
+}
+.fs-reorder-item .reorder-btn {
+    font-size: 12px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    background: var(--fs-green);
+    color: #fff;
+    font-weight: 600;
+    border: none;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background .2s;
+}
+.fs-reorder-item .reorder-btn:hover {
+    background: #2ea310;
+}
+
+/* Promo band dismiss animation */
+.fs-promo-band.fade-out {
+    opacity: 0;
+    transform: translateY(-100%);
+    transition: opacity .3s ease, transform .3s ease;
+}
+
+/* How it works — improved value props */
+.fs-how-value {
+    font-size: 14px;
+    color: var(--fs-muted);
+    margin: 0;
+    line-height: 1.7;
+}
+.fs-how-highlight {
+    color: var(--fs-green);
+    font-weight: 700;
+}

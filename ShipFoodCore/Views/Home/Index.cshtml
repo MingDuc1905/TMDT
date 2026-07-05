@@ -6,20 +6,20 @@
     Layout = "~/Views/Shared/_LayoutPageHome.cshtml";
     List<tbQuanAn> quanAns = ViewBag.quanAns;
     var idDMActive = ViewBag.idDM as int?;
+
+    // Get current user for personalization
+    var userJson = Context.Session.GetString("user");
+    var currentUser = userJson != null ? System.Text.Json.JsonSerializer.Deserialize<tbUser>(userJson) : null;
 }
 
-@section styles {
-    <style>
-        /* Hero Horizontal Slide — layout-sg.css handles image sizing. This override only ensures min height on mobile. */
-        #header-carousel .carousel-item img { min-height: 320px; }
-    </style>
-}
-
-<!-- ===== PROMO BAND (sweetgreen style "Summer Today. Gone Tomorrow.") ===== -->
+<!-- ===== PROMO BAND ===== -->
 <div class="fs-promo-band position-relative" id="promoBand" role="banner" aria-label="Ưu đãi đặc biệt">
-    🍜 Mùa hè đặc biệt — Giảm 20% cho đơn đầu tiên trong ngày!&nbsp;
-    <a href="/Home/DanhMuc">Khám phá ngay →</a>
-    <button class="fs-promo-dismiss" onclick="document.getElementById('promoBand').style.display='none'" aria-label="Đóng thông báo">✕</button>
+    <i class="fa fa-tag me-1" aria-hidden="true"></i>
+    Mùa hè đặc biệt — Giảm 20% cho đơn đầu tiên trong ngày!&nbsp;
+    <a href="/Home/DanhMuc">Khám phá ngay <i class="fa fa-arrow-right ms-1"></i></a>
+    <button class="fs-promo-dismiss" id="promoDismissBtn" aria-label="Đóng thông báo">
+        <i class="fa fa-times" aria-hidden="true"></i>
+    </button>
 </div>
 
 <!-- ===== HERO CAROUSEL ===== -->
@@ -36,8 +36,12 @@
                                     Ẩm thực Sài Gòn — giao tận cửa trong 30 phút
                                 </h1>
                                 <div class="animated">
-                                    <a href="/Home/DanhMuc?type=food" class="btn btn-primary rounded-pill py-2 py-sm-3 px-4 px-sm-5 me-2 mb-2">🍔 Đồ ăn</a>
-                                    <a href="/Home/DanhMuc?type=drink" class="btn btn-secondary rounded-pill py-2 py-sm-3 px-4 px-sm-5 mb-2">🧋 Đồ uống</a>
+                                    <a href="/Home/DanhMuc?type=food" class="btn btn-primary rounded-pill py-2 py-sm-3 px-4 px-sm-5 me-2 mb-2">
+                                        <i class="fa fa-utensils me-1"></i> Đồ ăn
+                                    </a>
+                                    <a href="/Home/DanhMuc?type=drink" class="btn btn-secondary rounded-pill py-2 py-sm-3 px-4 px-sm-5 mb-2">
+                                        <i class="fa fa-coffee me-1"></i> Đồ uống
+                                    </a>
                                 </div>
                             </div>
                         </div>
@@ -79,52 +83,126 @@
     </div>
 </div>
 
-<!-- ===== STATS ROW (sweetgreen metrics band) ===== -->
+<!-- ===== STATS ROW — với FA icons ===== -->
 <div class="container">
     <div class="fs-stats-row wow fadeInUp" data-wow-delay="0.1s">
         <div class="fs-stat-item">
+            <i class="fa fa-store fs-stat-icon" aria-hidden="true"></i>
             <div class="stat-num">200+</div>
             <div class="stat-label">Quán ăn đối tác</div>
         </div>
         <div class="fs-stat-item">
+            <i class="fa fa-motorcycle fs-stat-icon" aria-hidden="true"></i>
             <div class="stat-num">30′</div>
             <div class="stat-label">Giao hàng trung bình</div>
         </div>
         <div class="fs-stat-item">
+            <i class="fa fa-shopping-bag fs-stat-icon" aria-hidden="true"></i>
             <div class="stat-num">50K+</div>
             <div class="stat-label">Đơn hàng mỗi tháng</div>
         </div>
         <div class="fs-stat-item">
+            <i class="fa fa-star fs-stat-icon" aria-hidden="true"></i>
             <div class="stat-num">4.8★</div>
             <div class="stat-label">Đánh giá trung bình</div>
         </div>
     </div>
 </div>
 
+<!-- ===== RE-ORDER SECTION (chỉ cho user đã login) ===== -->
+@if (currentUser != null)
+{
+    <div class="container">
+        <div class="fs-reorder-section wow fadeInUp" data-wow-delay="0.1s">
+            <div class="row align-items-center mb-3">
+                <div class="col">
+                    <h3><i class="fa fa-history me-2" style="color:var(--fs-green);"></i>Chào mừng trở lại, @currentUser.username!</h3>
+                    <p>Đặt lại món yêu thích của bạn chỉ với một chạm.</p>
+                </div>
+                <div class="col-auto">
+                    <a href="/Cart/LichSuDatHang" class="btn btn-outline-success rounded-pill fs-btn-outline-sm px-4 py-2">
+                        Lịch sử đơn hàng <i class="fa fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="row g-2">
+                <div class="col-6 col-md-3">
+                    <a href="/Cart/LichSuDatHang" class="fs-reorder-item">
+                        <div class="reorder-img d-flex align-items-center justify-content-center" style="background:#e8f5e9;font-size:20px;color:var(--fs-green);">
+                            <i class="fa fa-redo"></i>
+                        </div>
+                        <div class="reorder-info">
+                            <div class="reorder-name">Xem đơn gần nhất</div>
+                            <div class="reorder-restaurant">Đặt lại dễ dàng</div>
+                        </div>
+                        <span class="reorder-btn"><i class="fa fa-chevron-right"></i></span>
+                    </a>
+                </div>
+                <div class="col-6 col-md-3">
+                    <a href="/Home/DanhMuc" class="fs-reorder-item">
+                        <div class="reorder-img d-flex align-items-center justify-content-center" style="background:#fff3e0;font-size:20px;color:#e67e22;">
+                            <i class="fa fa-compass"></i>
+                        </div>
+                        <div class="reorder-info">
+                            <div class="reorder-name">Khám phá món mới</div>
+                            <div class="reorder-restaurant">Gợi ý từ AI</div>
+                        </div>
+                        <span class="reorder-btn"><i class="fa fa-chevron-right"></i></span>
+                    </a>
+                </div>
+                <div class="col-6 col-md-3">
+                    <a href="/Cart" class="fs-reorder-item">
+                        <div class="reorder-img d-flex align-items-center justify-content-center" style="background:#fce4ec;font-size:20px;color:#e74c3c;">
+                            <i class="fa fa-shopping-bag"></i>
+                        </div>
+                        <div class="reorder-info">
+                            <div class="reorder-name">Giỏ hàng</div>
+                            <div class="reorder-restaurant">Tiếp tục đặt món</div>
+                        </div>
+                        <span class="reorder-btn"><i class="fa fa-chevron-right"></i></span>
+                    </a>
+                </div>
+                <div class="col-6 col-md-3">
+                    <a href="/Cart/LichSuDatHang" class="fs-reorder-item">
+                        <div class="reorder-img d-flex align-items-center justify-content-center" style="background:#e3f2fd;font-size:20px;color:#1976d2;">
+                            <i class="fa fa-clock"></i>
+                        </div>
+                        <div class="reorder-info">
+                            <div class="reorder-name">Lịch sử</div>
+                            <div class="reorder-restaurant">Theo dõi đơn hàng</div>
+                        </div>
+                        <span class="reorder-btn"><i class="fa fa-chevron-right"></i></span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 <!-- ===== RESTAURANT LIST SECTION ===== -->
 <div class="container-xxl py-4 pb-5">
     <div class="container">
-        <!-- Section header -->
+        <!-- Section header — dùng class thay inline style -->
         <div class="row align-items-end mb-4 wow fadeInUp" data-wow-delay="0.1s">
             <div class="col">
-                <h2 class="fw-800 mb-1" style="font-size:clamp(1.5rem,3vw,2.2rem);color:var(--fs-dark);">
+                <h2 class="fs-section-title">
                     Quán ăn nổi bật tại TP.HCM
                 </h2>
-                <p class="text-muted mb-0" style="font-size:15px;">
+                <p class="fs-section-sub">
                     Khám phá văn hoá ẩm thực Sài Gòn — hàng trăm hương vị, giao tận nơi
                 </p>
             </div>
             <div class="col-auto d-none d-md-block">
-                <a href="/Home/DanhMuc" class="btn btn-outline-success rounded-pill px-4" style="font-size:14px;font-weight:600;">
+                <a href="/Home/DanhMuc" class="btn btn-outline-success fs-btn-outline-sm px-4">
                     Xem tất cả <i class="fa fa-arrow-right ms-1"></i>
                 </a>
             </div>
         </div>
 
-        <!-- Category filter pills -->
+        <!-- Category filter pills — 🍽 → FA icon -->
         <div class="fs-category-row wow fadeInUp" data-wow-delay="0.15s" id="categoryRow">
             <a href="/Home" class="fs-category-pill @(idDMActive == null ? "active" : "")">
-                🍽 Tất cả
+                <i class="fa fa-th-list me-1"></i> Tất cả
             </a>
             @{
                 foreach (var dm in _db.tbDanhMuc)
@@ -137,7 +215,7 @@
             }
         </div>
 
-        <!-- Cards grid — staggered fade-in (Contemporary Editorial) -->
+        <!-- Cards grid + social proof badges -->
         <div class="row g-3 g-md-4 mt-1">
             @if (quanAns != null && quanAns.Count > 0)
             {
@@ -150,11 +228,16 @@
                             <div class="product-item">
                                 <div class="product-img-wrap">
                                     <img src="~/Source/images/MonAn/@item.hinhanh" alt="@item.tenquanan" loading="lazy" />
+                                    <!-- Social proof: "Đang thịnh hành" badge -->
+                                    <div class="fs-order-count-badge">
+                                        <span class="fs-trending-dot"></span>
+                                        Đang thịnh hành
+                                    </div>
                                 </div>
                                 <div class="product-body">
                                     <div class="product-title">@item.tenquanan</div>
                                     <div class="product-address">
-                                        <i class="fa fa-map-marker-alt me-1" style="color:var(--fs-green);font-size:11px;"></i>@item.diachi
+                                        <i class="fa fa-map-marker-alt me-1 text-green" style="font-size:11px;"></i>@item.diachi
                                     </div>
                                 </div>
                                 <div class="product-footer">
@@ -162,7 +245,7 @@
                                         <i class="fa fa-star"></i>@item.diemdanhgia
                                     </div>
                                     <div class="pf-cell">
-                                        <i class="fa fa-comment-alt" style="color:var(--fs-muted);"></i>&nbsp;@item.soluotdanhgia bình luận
+                                        <i class="fa fa-comment-alt text-muted"></i>&nbsp;@item.soluotdanhgia bình luận
                                     </div>
                                 </div>
                             </div>
@@ -173,7 +256,7 @@
             else
             {
                 <div class="col-12 text-center py-5">
-                    <div style="font-size:48px;">🍽</div>
+                    <div style="font-size:48px;"><i class="fa fa-utensils" aria-hidden="true"></i></div>
                     <h5 class="mt-3 text-muted">Không tìm thấy quán ăn phù hợp</h5>
                     <p class="text-muted small">Thử tìm kiếm với từ khoá khác hoặc chọn danh mục khác.</p>
                     <a href="/Home" class="btn btn-success rounded-pill px-4 mt-2">Xem tất cả quán</a>
@@ -183,7 +266,7 @@
 
         <!-- Mobile: Xem tất cả button -->
         <div class="text-center mt-4 d-md-none">
-            <a href="/Home/DanhMuc" class="btn btn-outline-success rounded-pill px-5" style="font-weight:600;">
+            <a href="/Home/DanhMuc" class="btn btn-outline-success rounded-pill px-5 fs-btn-outline-sm">
                 Xem tất cả quán <i class="fa fa-arrow-right ms-1"></i>
             </a>
         </div>
@@ -200,10 +283,10 @@
         <div class="container">
             <div class="row align-items-end mb-4 wow fadeInUp" data-wow-delay="0.1s">
                 <div class="col">
-                    <h2 class="fw-800 mb-1" style="font-size:clamp(1.3rem,2.5vw,1.8rem);color:var(--fs-dark);">
-                        🤖 Gợi ý Combo từ AI hôm nay
+                    <h2 class="fs-section-title-sm">
+                        <i class="fa fa-robot me-2" style="color:#f39c12;"></i>Gợi ý Combo từ AI hôm nay
                     </h2>
-                    <p class="text-muted mb-0" style="font-size:14px;">
+                    <p class="fs-section-sub-sm">
                         Dựa trên phân tích <strong>hàng ngàn đơn hàng</strong> thực tế — những món thường được đặt cùng nhau
                     </p>
                 </div>
@@ -216,16 +299,16 @@
                             <div class="product-item">
                                 <div class="product-img-wrap">
                                     <img src="~/Source/images/MonAn/@item.hinhanh" alt="@item.tenmon" loading="lazy" />
-                                    <div style="position:absolute;top:8px;left:8px;background:linear-gradient(135deg,#f39c12,#e67e22);color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;box-shadow:0 2px 8px rgba(243,156,18,.3);">
-                                        AI 🔥
+                                    <div class="fs-ai-badge">
+                                        <i class="fa fa-robot"></i> AI
                                     </div>
                                 </div>
-                                <div class="product-body" style="padding:10px 12px;">
-                                    <div class="product-title" style="font-size:13px;">@item.tenmon</div>
-                                    <div class="product-address" style="font-size:11px;">
-                                        <i class="fa fa-map-marker-alt me-1" style="color:var(--fs-green);"></i>@item.tbQuanAn?.tenquanan
+                                <div class="product-body-compact">
+                                    <div class="product-title">@item.tenmon</div>
+                                    <div class="product-address">
+                                        <i class="fa fa-map-marker-alt me-1 text-green"></i>@item.tbQuanAn?.tenquanan
                                     </div>
-                                    <div style="color:#e74c3c;font-weight:700;font-size:14px;margin-top:4px;">@item.giatien?.ToString("N0")đ</div>
+                                    <div class="fs-price">@item.giatien?.ToString("N0")đ</div>
                                 </div>
                             </div>
                         </a>
@@ -236,34 +319,34 @@
     </div>
 }
 
-<!-- ===== HIGHLIGHT BAND (sweetgreen dark band) ===== -->
+<!-- ===== HIGHLIGHT BAND — FA icons thay emoji ===== -->
 <div class="fs-highlight-band wow fadeIn" data-wow-delay="0.1s">
     <div class="container">
         <div class="row align-items-center gy-4">
             <div class="col-lg-7">
-                <span class="badge rounded-pill mb-3" style="background:var(--fs-green);font-size:12px;font-weight:600;padding:6px 14px;letter-spacing:.5px;">MÙA HÈ SÀI GÒN 2026</span>
+                <span class="fs-section-badge">MÙA HÈ SÀI GÒN 2026</span>
                 <h2 class="text-white mb-3">Hôm nay có gì ngon?<br>Đặt ngay — giao nhanh.</h2>
                 <p>Từ cơm tấm Sài Gòn đến trà sữa Quận 1, Fastship đưa hương vị thành phố đến tận bàn của bạn.</p>
-                <a href="/Home/DanhMuc" class="btn btn-outline-light rounded-pill px-5 py-2 mt-2">Khám phá thực đơn →</a>
+                <a href="/Home/DanhMuc" class="btn btn-outline-light rounded-pill px-5 py-2 mt-2">Khám phá thực đơn <i class="fa fa-arrow-right ms-1"></i></a>
             </div>
             <div class="col-lg-5 text-center d-none d-lg-block">
-                <!-- Visual accent block -->
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:320px;margin:0 auto;">
-                    <div style="background:rgba(255,255,255,.07);border-radius:16px;padding:20px;text-align:center;">
-                        <div style="font-size:2.5rem;">🍜</div>
-                        <div style="color:#fff;font-size:13px;font-weight:600;margin-top:8px;">Cơm - Bún - Phở</div>
+                <!-- Visual accent grid — FA icons thay emoji -->
+                <div class="fs-highlight-grid">
+                    <div class="fs-highlight-grid-item">
+                        <i class="fa fa-utensils hg-icon"></i>
+                        <div class="hg-label">Cơm - Bún - Phở</div>
                     </div>
-                    <div style="background:rgba(255,255,255,.07);border-radius:16px;padding:20px;text-align:center;">
-                        <div style="font-size:2.5rem;">🧋</div>
-                        <div style="color:#fff;font-size:13px;font-weight:600;margin-top:8px;">Trà - Cà phê</div>
+                    <div class="fs-highlight-grid-item">
+                        <i class="fa fa-coffee hg-icon"></i>
+                        <div class="hg-label">Trà - Cà phê</div>
                     </div>
-                    <div style="background:rgba(255,255,255,.07);border-radius:16px;padding:20px;text-align:center;">
-                        <div style="font-size:2.5rem;">🍱</div>
-                        <div style="color:#fff;font-size:13px;font-weight:600;margin-top:8px;">Cơm văn phòng</div>
+                    <div class="fs-highlight-grid-item">
+                        <i class="fa fa-briefcase hg-icon"></i>
+                        <div class="hg-label">Cơm văn phòng</div>
                     </div>
-                    <div style="background:rgba(60,184,21,.25);border-radius:16px;padding:20px;text-align:center;">
-                        <div style="font-size:2.5rem;">🛵</div>
-                        <div style="color:#fff;font-size:13px;font-weight:600;margin-top:8px;">Giao nhanh 30′</div>
+                    <div class="fs-highlight-grid-item highlight-green">
+                        <i class="fa fa-motorcycle hg-icon" style="color:#fff;"></i>
+                        <div class="hg-label">Giao nhanh 30′</div>
                     </div>
                 </div>
             </div>
@@ -271,39 +354,49 @@
     </div>
 </div>
 
-<!-- ===== HOW IT WORKS (sweetgreen "All the ways") ===== -->
+<!-- ===== HOW IT WORKS — value proposition improved ===== -->
 <div class="fs-how-section wow fadeIn" data-wow-delay="0.1s">
     <div class="container">
         <div class="text-center mb-5">
-            <h2 class="fw-800" style="font-size:clamp(1.5rem,3vw,2.1rem);color:var(--fs-dark);">Đặt món dễ như thế này</h2>
-            <p class="text-muted" style="font-size:15px;">Ba bước đơn giản để có bữa ăn ngon tại nhà</p>
+            <h2 class="fs-section-title">Đặt món dễ như thế này</h2>
+            <p class="fs-section-sub">Ba bước đơn giản để có bữa ăn ngon tại nhà</p>
         </div>
         <div class="row gy-4 justify-content-center">
             <div class="col-lg-3 col-md-4 col-sm-6">
                 <div class="fs-how-card">
                     <div class="fs-how-icon"><i class="fa fa-search"></i></div>
                     <h5>1. Chọn quán</h5>
-                    <p>Duyệt hàng trăm quán ăn tại TP.HCM, lọc theo danh mục hoặc tìm theo tên.</p>
+                    <p class="fs-how-value">
+                        Duyệt <span class="fs-how-highlight">hàng trăm quán ăn</span> tại TP.HCM,
+                        lọc theo danh mục hoặc tìm theo tên.
+                    </p>
                 </div>
             </div>
             <div class="col-lg-3 col-md-4 col-sm-6">
                 <div class="fs-how-card">
                     <div class="fs-how-icon"><i class="fa fa-shopping-bag"></i></div>
                     <h5>2. Thêm vào giỏ</h5>
-                    <p>Chọn món bạn thích, điều chỉnh số lượng và áp dụng mã khuyến mãi.</p>
+                    <p class="fs-how-value">
+                        Chọn món bạn thích, điều chỉnh số lượng và
+                        <span class="fs-how-highlight">áp dụng mã KM</span>.
+                    </p>
                 </div>
             </div>
             <div class="col-lg-3 col-md-4 col-sm-6">
                 <div class="fs-how-card">
                     <div class="fs-how-icon"><i class="fa fa-motorcycle"></i></div>
                     <h5>3. Nhận hàng</h5>
-                    <p>Shipper giao đến tận tay trong 30 phút. Thanh toán tiền mặt hoặc chuyển khoản.</p>
+                    <p class="fs-how-value">
+                        Shipper giao đến tận tay trong
+                        <span class="fs-how-highlight">30 phút</span>.
+                        Thanh toán tiền mặt hoặc chuyển khoản.
+                    </p>
                 </div>
             </div>
         </div>
         <div class="text-center mt-4">
-            <a href="/Home/Signup" class="btn btn-success rounded-pill px-5 py-2" style="font-weight:700;font-size:15px;">
-                Đăng ký miễn phí →
+            <a href="/Home/Signup" class="btn btn-success rounded-pill px-5 py-2 fs-btn-outline" style="font-size:15px;">
+                Đăng ký miễn phí <i class="fa fa-arrow-right ms-1"></i>
             </a>
         </div>
     </div>
@@ -317,8 +410,16 @@
         if (h) h.classList.toggle('scrolled', window.scrollY > 10);
     });
 
-    // Carousel: Caption animation xu ly hoan toan qua CSS keyframes fsSlideLeft
-    // Khong can JS handler vi CSS animation tu dong chay lai khi class .active chuyen slide
-    // (layout-sg.css da dinh nghia fsSlideLeft keyframes cho h1, .btn, .slideInUp)
+    // Promo band dismiss — fade-out animation thay vì đột ngột biến mất
+    document.addEventListener('DOMContentLoaded', function() {
+        var dismissBtn = document.getElementById('promoDismissBtn');
+        var promoBand = document.getElementById('promoBand');
+        if (dismissBtn && promoBand) {
+            dismissBtn.addEventListener('click', function() {
+                promoBand.classList.add('fade-out');
+                setTimeout(function() { promoBand.style.display = 'none'; }, 300);
+            });
+        }
+    });
 </script>
 }

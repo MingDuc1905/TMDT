@@ -14,13 +14,12 @@
         });
     }
 
-    // ── Carousel Horizontal Slide Smooth — interval 4500, pause:false ──
+    // ── Chuyển Bootstrap Carousel sang crossfade + Ken Burns + pause:false ──
     document.addEventListener('DOMContentLoaded', function () {
         var carouselEl = document.getElementById('header-carousel');
         if (carouselEl) {
-            carouselEl.setAttribute('data-bs-ride', 'carousel');
-            carouselEl.setAttribute('data-bs-interval', '4500');
-            carouselEl.setAttribute('data-bs-pause', 'false');
+            carouselEl.classList.add('carousel-fade');
+            carouselEl.setAttribute('data-bs-pause', 'false'); // Ken Burns zoom liên tục
         }
     });
 
@@ -68,16 +67,9 @@
                 // ── Khởi tạo Bootstrap Carousel với cycle() SAU KHI skeleton biến mất ──
                 var carouselEl = document.getElementById('header-carousel');
                 if (carouselEl) {
-                    // Tạo Carousel instance với interval 4500, pause false
                     var bsCarousel = bootstrap.Carousel.getInstance(carouselEl);
                     if (bsCarousel) {
                         bsCarousel.cycle();
-                    } else {
-                        new bootstrap.Carousel(carouselEl, {
-                            interval: 4500,
-                            pause: false,
-                            ride: 'carousel'
-                        });
                     }
                     // Re-trigger caption transition cho slide đang active
                     var activeSlide = carouselEl.querySelector('.carousel-item.active');

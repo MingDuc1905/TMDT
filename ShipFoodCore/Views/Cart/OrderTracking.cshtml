@@ -1,0 +1,228 @@
+@using ShipFood.Models
+@{
+    ViewBag.Title = "Theo dõi đơn hàng";
+    Layout = "~/Views/Shared/_LayoutPageHome.cshtml";
+    tbDonHang donHang = ViewBag.DonHang;
+    var userJson = Context.Session.GetString("user");
+    tbUser? user = userJson != null ? JsonSerializer.Deserialize<tbUser>(userJson) : null;
+}
+
+@section styles {
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+    .tracking-wrapper { margin-top: 100px; padding: 24px 0 60px; background: #f8f9fa; min-height: 80vh; }
+    @@media (max-width: 768px) { .tracking-wrapper { margin-top: 80px; } }
+
+    .tracking-card { background: #fff; border-radius: 16px; box-shadow: 0 2px 16px rgba(0,0,0,.07); padding: 28px; margin-bottom: 20px; }
+
+    /* ── Progress Bar ── */
+    .fs-tracking-progress { display: flex; align-items: flex-start; justify-content: space-between; padding: 16px 0; }
+    .fs-tracking-step { display: flex; flex-direction: column; align-items: center; position: relative; flex: 1; text-align: center; }
+    .fs-tracking-icon { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; background: #f0f0f0; border: 3px solid #e0e0e0; transition: all .3s; margin-bottom: 6px; }
+    .fs-tracking-step.completed .fs-tracking-icon { background: #3CB815; border-color: #3CB815; }
+    .fs-tracking-step.current .fs-tracking-icon { background: #3CB815; border-color: #3CB815; box-shadow: 0 0 0 4px rgba(60,184,21,.2); animation: pulse 2s infinite; }
+    .fs-tracking-label { font-size: 11px; font-weight: 600; color: #999; }
+    .fs-tracking-step.completed .fs-tracking-label, .fs-tracking-step.current .fs-tracking-label { color: #333; }
+    .fs-tracking-line { position: absolute; top: 22px; left: 50%; width: 100%; height: 3px; background: #e0e0e0; z-index: -1; }
+    .fs-tracking-line.active { background: #3CB815; }
+
+    @@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(60,184,21,.4); } 70% { box-shadow: 0 0 0 10px rgba(60,184,21,0); } 100% { box-shadow: 0 0 0 0 rgba(60,184,21,0); } }
+
+    /* ── Order Info ── */
+    .info-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
+    .info-row:last-child { border-bottom: none; }
+    .info-label { color: #888; }
+    .info-value { font-weight: 600; color: #1a1a2e; text-align: right; }
+
+    /* ── Map ── */
+    #trackingMap { height: 300px; border-radius: 12px; border: 2px solid #e5e7eb; }
+
+    /* ── Shipper Info ── */
+    .shipper-info { display: flex; align-items: center; gap: 14px; padding: 16px; background: linear-gradient(135deg,#f0fff0,#e8f5e9); border-radius: 12px; border: 1px solid #c3e6cb; }
+    .shipper-avatar { width: 48px; height: 48px; border-radius: 50%; background: #3CB815; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 20px; font-weight: 700; }
+    .shipper-name { font-weight: 700; font-size: 15px; }
+    .shipper-phone { font-size: 13px; color: #666; }
+
+    /* ── Order Items ── */
+    .order-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
+    .order-item:last-child { border-bottom: none; }
+    .order-total { font-size: 18px; font-weight: 700; color: #e74c3c; border-top: 2px solid #e74c3c; padding-top: 12px; margin-top: 8px; display: flex; justify-content: space-between; }
+
+    @@media (max-width: 576px) {
+        .tracking-card { padding: 16px; }
+        .fs-tracking-icon { width: 36px; height: 36px; font-size: 14px; }
+        .fs-tracking-label { font-size: 9px; }
+        #trackingMap { height: 200px; }
+    }
+</style>
+}
+
+<div class="tracking-wrapper">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <!-- Progress Bar -->
+                <div class="tracking-card">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+                        <h5 style="font-weight:700;margin:0;">📦 Theo dõi đơn hàng #@donHang.madh</h5>
+                        <span class="badge" style="background:#3CB815;color:#fff;padding:6px 14px;border-radius:20px;font-size:13px;">
+                            @donHang.trangthai
+                        </span>
+                    </div>
+                    <div id="trackingProgress"></div>
+                    <p style="font-size:12px;color:#888;margin:12px 0 0;text-align:center;">
+                        <i class="fa fa-refresh me-1"></i>Trạng thái cập nhật tự động theo thời gian thực
+                    </p>
+                </div>
+
+                <!-- Live Map -->
+                <div class="tracking-card">
+                    <h6 style="font-weight:700;margin-bottom:12px;">📍 Vị trí giao hàng</h6>
+                    <div id="trackingMap"></div>
+                </div>
+
+                <!-- Shipper Info -->
+                @if (donHang.tbShipper != null)
+                {
+                    <div class="tracking-card">
+                        <h6 style="font-weight:700;margin-bottom:12px;">🚚 Shipper của bạn</h6>
+                        <div class="shipper-info">
+                            <div class="shipper-avatar">@(donHang.tbShipper.tenshipper?.Substring(0,1)?.ToUpper() ?? "S")</div>
+                            <div>
+                                <div class="shipper-name">@donHang.tbShipper.tenshipper</div>
+                                <div class="shipper-phone"><i class="fa fa-phone me-1"></i>@donHang.tbShipper.tbUser?.sdt</div>
+                            </div>
+                            <a href="@Url.Action("NhanTin","Home")" class="btn btn-sm btn-success ms-auto" style="border-radius:8px;">
+                                <i class="fab fa-facebook-messenger"></i> Nhắn tin
+                            </a>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <div class="col-lg-4">
+                <!-- Order Summary -->
+                <div class="tracking-card">
+                    <h6 style="font-weight:700;margin-bottom:12px;">🧾 Chi tiết đơn hàng</h6>
+                    @foreach (var ct in donHang.tbChiTietDonHang)
+                    {
+                        <div class="order-item">
+                            <span>@ct.tbMonAn?.tenmon <span class="badge bg-secondary ms-1">x@(ct.soluong)</span></span>
+                            <span>@((ct.dongia * ct.soluong)?.ToString("N0"))đ</span>
+                        </div>
+                    }
+                    <div class="info-row">
+                        <span class="info-label">Tạm tính</span>
+                        <span class="info-value">@donHang.tongtien?.ToString("N0")đ</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Phí giao hàng</span>
+                        <span class="info-value">@donHang.phiship?.ToString("N0")đ</span>
+                    </div>
+                    <div class="order-total">
+                        <span>Tổng cộng</span>
+                        <span>@((donHang.tongtien + donHang.phiship)?.ToString("N0"))đ</span>
+                    </div>
+                </div>
+
+                <!-- Delivery Info -->
+                <div class="tracking-card">
+                    <h6 style="font-weight:700;margin-bottom:12px;">📋 Thông tin giao hàng</h6>
+                    <div class="info-row">
+                        <span class="info-label">Người nhận</span>
+                        <span class="info-value">@donHang.tbThongTinDatHang?.tennguoinhan</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">SĐT</span>
+                        <span class="info-value">@donHang.tbThongTinDatHang?.sdt</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Địa chỉ</span>
+                        <span class="info-value">@donHang.tbThongTinDatHang?.diachi</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Quán</span>
+                        <span class="info-value">@donHang.tbQuanAn?.tenquanan</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Thanh toán</span>
+                        <span class="info-value">@donHang.tbLoaiHinhThanhToan?.tenhinhthuc</span>
+                    </div>
+                    @if (!string.IsNullOrEmpty(donHang.ghichu))
+                    {
+                        <div class="info-row">
+                            <span class="info-label">Ghi chú</span>
+                            <span class="info-value">@donHang.ghichu</span>
+                        </div>
+                    }
+                    <div class="info-row">
+                        <span class="info-label">Ngày đặt</span>
+                        <span class="info-value">@donHang.ngaydathang?.ToString("dd/MM/yyyy HH:mm")</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+<script src="~/js/map.js"></script>
+<script>
+$(document).ready(function() {
+    // ── Initialize Map ──
+    var map = FastShipTracking.initMap('trackingMap', 10.8231, 106.6297, 13);
+
+    // Add restaurant marker (default HCM location for demo)
+    FastShipTracking.addRestaurantMarker(map, 10.8231, 106.6297, '@(donHang.tbQuanAn?.tenquanan ?? "Quán ăn")');
+
+    // ── Render Progress Bar ──
+    FastShipTracking.renderProgressBar('trackingProgress', '@donHang.trangthai');
+
+    // ── Connect SignalR ──
+    var conn = FastShipTracking.createHubConnection(@donHang.madh, {
+        onStatusChanged: function(madh, trangthai, timestamp) {
+            if (madh === @donHang.madh) {
+                FastShipTracking.updateProgressBar('trackingProgress', trangthai);
+                // Update badge
+                $('.tracking-card:first .badge').text(trangthai);
+
+                // Show toast notification
+                var icons = { 'Đã xác nhận': '👍', 'Đang chuẩn bị': '👨‍🍳', 'Đang giao': '🚚', 'Hoàn thành': '✅' };
+                var icon = icons[trangthai] || '📦';
+                showToast('info', icon + ' Đơn hàng đã chuyển sang: <strong>' + trangthai + '</strong>');
+            }
+        },
+        onLocationUpdate: function(madh, lat, lng) {
+            if (madh === @donHang.madh) {
+                FastShipTracking.updateShipperLocation(map, lat, lng, '🚚 Shipper đang giao hàng');
+            }
+        },
+        onShipperAssigned: function(madh, shipperName, shipperPhone) {
+            if (madh === @donHang.madh) {
+                showToast('info', '🚚 Đã có shipper: <strong>' + shipperName + '</strong>');
+            }
+        },
+        onPaymentConfirmed: function(madh, amount) {
+            if (madh === @donHang.madh) {
+                showToast('success', '✅ Thanh toán đã được xác nhận!');
+            }
+        },
+        onConnected: function(conn) {
+            console.log('SignalR connected for order tracking');
+        },
+        onError: function(err) {
+            console.error('SignalR error:', err);
+        }
+    });
+
+    function showToast(type, msg) {
+        var color = type === 'error' ? '#dc3545' : (type === 'success' ? '#28a745' : '#3CB815');
+        var toast = $('<div style="position:fixed;top:80px;right:20px;z-index:9999;background:' + color + ';color:#fff;padding:14px 20px;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.2);font-size:13px;max-width:340px;animation:slideIn .3s ease;">' + msg + '</div>');
+        $('body').append(toast);
+        setTimeout(function(){ toast.fadeOut(400, function(){ $(this).remove(); }); }, 4000);
+    }
+});
+</script>
+}

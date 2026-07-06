@@ -109,7 +109,8 @@ public class RestaurantController : BaseController
                 soLuongBanDuoc = 0
             };
 
-            var chiTietDHs = m.tbChiTietDonHang.Where(ct => ct.mamon == data.maMonAn).ToList();
+            var bientheIds = m.tbBienTheMonAn.Select(b => b.id).ToList();
+            var chiTietDHs = db.tbChiTietDonHang.Where(ct => ct.mamon != null && bientheIds.Contains(ct.mamon.Value)).ToList();
             int totalDiem = 0;
             foreach (var i in chiTietDHs)
             {
@@ -206,19 +207,41 @@ public class RestaurantController : BaseController
         return View();
     }
 
-    public ActionResult nhandon(int id)
+    public async Task<ActionResult> nhandon(int id)
     {
         if (!checkLogin()) return RedirectToAction("Login", "Home");
         var dh = db.tbDonHang.Find(id);
-        if (dh != null) { dh.trangthai = "Đã xác nhận"; db.SaveChanges(); }
+        if (dh != null)
+        {
+            dh.trangthai = "Đã xác nhận";
+            db.SaveChanges();
+
+            // SignalR broadcast real-time đến khách hàng
+            try
+            {
+                await _hubContext.Clients.Group($"order_{id}").SendAsync("orderStatusChanged", id, "Đã xác nhận", DateTime.Now.ToString("HH:mm"));
+            }
+            catch { }
+        }
         return RedirectToAction("OrderList");
     }
 
-    public ActionResult huydon(int id)
+    public async Task<ActionResult> huydon(int id)
     {
         if (!checkLogin()) return RedirectToAction("Login", "Home");
         var dh = db.tbDonHang.Find(id);
-        if (dh != null) { dh.trangthai = "Đã hủy"; db.SaveChanges(); }
+        if (dh != null)
+        {
+            dh.trangthai = "Đã hủy";
+            db.SaveChanges();
+
+            // SignalR broadcast real-time đến khách hàng
+            try
+            {
+                await _hubContext.Clients.Group($"order_{id}").SendAsync("orderStatusChanged", id, "Đã hủy", DateTime.Now.ToString("HH:mm"));
+            }
+            catch { }
+        }
         return RedirectToAction("OrderList");
     }
 
@@ -236,17 +259,19 @@ public class RestaurantController : BaseController
         db.SaveChanges();
 
         // Load thông tin quán để gửi broadcast
-        var quanAn = getQuanAn();
-        try
-        {
-            await _hubContext.Clients.Group("shippers").SendAsync("newPickupOrder", new
+        var quanAn = getQuanAn();            try
             {
-                orderId = dh.madh,
-                restaurantName = quanAn?.tenquanan ?? "Quán ăn",
-                pickupAddress = quanAn?.diachi ?? ""
-            });
-        }
-        catch { /* SignalR broadcast không ảnh hưởng đến luồng chính */ }
+                await _hubContext.Clients.Group("shippers").SendAsync("newPickupOrder", new
+                {
+                    orderId = dh.madh,
+                    restaurantName = quanAn?.tenquanan ?? "Quán ăn",
+                    pickupAddress = quanAn?.diachi ?? ""
+                });
+
+                // Phase 4: Broadcast real-time đến khách hàng
+                await _hubContext.Clients.Group($"order_{dh.madh}").SendAsync("orderStatusChanged", dh.madh, "Chờ shipper lấy hàng", DateTime.Now.ToString("HH:mm"));
+            }
+            catch { /* SignalR broadcast không ảnh hưởng đến luồng chính */ }
 
         return RedirectToAction("OrderList");
     }
@@ -286,12 +311,10 @@ public class RestaurantController : BaseController
         {
             quanAnOld.tenquanan = quanAn.tenquanan;
             if (quanAn.hinhanh != null) quanAnOld.hinhanh = quanAn.hinhanh;
-            if (!string.IsNullOrEmpty(pwd)) quanAnOld.tbUser.pwd = pwd;
             quanAnOld.diachi = quanAn.diachi;
-            // Hash password nếu có thay đổi
-            if (!string.IsNullOrEmpty(pwd) && pwd != quanAnOld.tbUser.pwd)
+            if (!string.IsNullOrEmpty(pwd))
             {
-                quanAnOld.tbUser.pwd = BCrypt.Net.BCrypt.HashPassword(pwd, workFactor: 12);
+                quanAnOld.tbUser.pwd = pwd;
             }
             db.SaveChanges();
         }
@@ -302,6 +325,7 @@ public class RestaurantController : BaseController
     {
         if (!checkLogin()) return RedirectToAction("Login", "Home");
         var quanAn = db.tbQuanAn.Include(q => q.tbMonAns).ThenInclude(m => m.tbDanhMuc)
+            .Include(q => q.tbMonAns).ThenInclude(m => m.tbBienTheMonAns)
             .FirstOrDefault(q => q.userid == getQuanAn().userid);
         if (quanAn == null) return RedirectToAction("Login", "Home");
 
@@ -373,7 +397,7 @@ public class RestaurantController : BaseController
             {
                 monAnOld.tenmon = monAn.tenmon;
                 monAnOld.mota = monAn.mota;
-                monAnOld.giatien = monAn.giatien;
+                // Giá được quản lý qua tbBienTheMonAn, không sửa trực tiếp ở tbMonAn
                 if (monAn.hinhanh != null) monAnOld.hinhanh = monAn.hinhanh;
                 monAnOld.madanhmuc = monAn.madanhmuc;
             }

@@ -195,6 +195,12 @@ builder.Services.AddScoped<ShipFood.Services.GeminiService>(sp =>
     return new ShipFood.Services.GeminiService(apiKey);
 });
 
+// Register ViewComponents
+builder.Services.AddScoped<ShipFood.ViewComponents.FilterBarViewComponent>();
+
+// Register MoMo Payment Service
+builder.Services.AddHttpClient<ShipFood.Services.MoMoService>();
+
 // Add Antiforgery (hỗ trợ AJAX header token cho Mock Payment)
 builder.Services.AddAntiforgery(options =>
 {
@@ -297,9 +303,9 @@ try
             // Step 3: Seed data if DB is empty
             if (!db.tbUsers.Any())
             {
-                string sqlPath = Path.Combine(app.Environment.ContentRootPath, "seed_mysql.sql");
+                string sqlPath = Path.Combine(app.Environment.ContentRootPath, "mysql_utf8.sql");
                 if (!File.Exists(sqlPath))
-                    sqlPath = Path.Combine(app.Environment.ContentRootPath, "..", "seed_mysql.sql");
+                    sqlPath = Path.Combine(app.Environment.ContentRootPath, "..", "mysql_utf8.sql");
 
                 if (File.Exists(sqlPath))
                 {
@@ -319,11 +325,11 @@ try
             }
         }
 
-        // BCrypt fix: mở rộng cột pwd từ VARCHAR(50) → VARCHAR(255)
+        // Plain-text: đảm bảo cột pwd có độ dài phù hợp (VARCHAR(100))
         try
         {
-            db.Database.ExecuteSqlRaw("ALTER TABLE tbUser MODIFY COLUMN pwd VARCHAR(255) NOT NULL;");
-            logger.LogInformation("Column tbUser.pwd expanded to VARCHAR(255) for BCrypt compatibility");
+            db.Database.ExecuteSqlRaw("ALTER TABLE tbUser MODIFY COLUMN pwd VARCHAR(100) NOT NULL;");
+            logger.LogInformation("Column tbUser.pwd set to VARCHAR(100) for plain-text storage");
         }
         catch (Exception ex)
         {
@@ -442,6 +448,9 @@ app.UseRateLimiter();
 
 // Session phải đặt TRƯỚC Authentication để cookie session hoạt động đúng với Google OAuth
 app.UseSession();
+
+// ─── Phase 3: RoleGuard Middleware (must be AFTER UseSession) ───
+app.UseMiddleware<ShipFood.Middleware.RoleGuardMiddleware>();
 
 app.UseAuthentication();
 

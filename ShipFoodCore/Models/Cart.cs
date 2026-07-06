@@ -1,4 +1,21 @@
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace ShipFood.Models;
+
+/// <summary>
+/// Một item trong giỏ hàng, đại diện cho 1 biến thể (size) của món ăn
+/// </summary>
+public class CartItem
+{
+    public int mabienthe { get; set; }       // FK → tbBienTheMonAn.id
+    public int mamon { get; set; }            // FK → tbMonAn.mamon (để nhóm)
+    public string tenmon { get; set; } = "";
+    public string? size { get; set; }         // Ví dụ: "M", "L", null
+    public decimal? giatien { get; set; }
+    public string? hinhanh { get; set; }
+    public int? maquanan { get; set; }
+    public int soLuong { get; set; }
+}
 
 public class Cart
 {
@@ -6,53 +23,53 @@ public class Cart
     public decimal? tongTien { get; set; }
     public int? maquanan { get; set; }
     public int? maKM { get; set; }
-    public List<tbMonAn> monAns { get; set; } = new();
+    public List<CartItem> items { get; set; } = new();
     public tbThongTinDatHang? thongTinDatHang { get; set; }
 
     public Cart()
     {
-        monAns = new List<tbMonAn>();
+        items = new List<CartItem>();
         tongTien = 0;
     }
 
-    public void themMon(tbMonAn monAn, int soLuong)
+    public void themMon(CartItem item, int soLuong)
     {
-        foreach (var i in monAns)
+        foreach (var i in items)
         {
-            if (i.mamon == monAn.mamon)
+            if (i.mabienthe == item.mabienthe)
             {
                 i.soLuong += soLuong;
                 tongTien += i.giatien * soLuong;
                 return;
             }
         }
-        monAn.soLuong = soLuong;
-        monAns.Add(monAn);
-        tongTien += monAn.giatien * soLuong;
+        item.soLuong = soLuong;
+        items.Add(item);
+        tongTien += item.giatien * soLuong;
     }
 
-    public void xoaMon(int maMon)
+    public void xoaMon(int mabienthe)
     {
-        foreach (var i in monAns)
+        foreach (var i in items)
         {
-            if (i.mamon == maMon)
+            if (i.mabienthe == mabienthe)
             {
-                monAns.Remove(i);
+                items.Remove(i);
                 tongTien -= i.giatien * i.soLuong;
                 return;
             }
         }
     }
 
-    public void giamMon(int? maMonAn)
+    public void giamMon(int? mabienthe)
     {
-        foreach (var i in monAns)
+        foreach (var i in items)
         {
-            if (i.mamon == maMonAn)
+            if (i.mabienthe == mabienthe)
             {
                 if (i.soLuong <= 1)
                 {
-                    monAns.Remove(i);
+                    items.Remove(i);
                     tongTien -= i.giatien;
                     break;
                 }
@@ -64,5 +81,24 @@ public class Cart
                 }
             }
         }
+    }
+
+    // ─── Backward-compatible properties ───
+    [NotMapped]
+    public List<tbMonAn> monAns
+    {
+        get
+        {
+            return items.Select(i => new tbMonAn
+            {
+                mamon = i.mamon,
+                tenmon = i.tenmon,
+                hinhanh = i.hinhanh,
+                maquanan = i.maquanan,
+                giatien = i.giatien,
+                soLuong = i.soLuong
+            }).ToList();
+        }
+        set { }
     }
 }

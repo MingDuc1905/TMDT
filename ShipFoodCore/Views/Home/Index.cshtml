@@ -199,6 +199,15 @@
             </div>
         </div>
 
+        <!-- ===== DUAL-FILTER BAR: FILTERBAR VIEWCOMPONENT ===== -->
+        @await Component.InvokeAsync("FilterBar", new {
+            categoryId = ViewBag.idDM,
+            q = ViewBag.txtSearch
+        })
+
+        <!-- ===== SEARCH RESULTS CONTAINER (cho filter AJAX) ===== -->
+        <div id="searchResults"></div>
+
         <!-- Category filter pills — 🍽 → FA icon -->
         <div class="fs-category-row wow fadeInUp" data-wow-delay="0.15s" id="categoryRow">
             <a href="/Home" class="fs-category-pill @(idDMActive == null ? "active" : "")">

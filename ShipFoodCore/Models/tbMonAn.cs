@@ -17,9 +17,6 @@ public partial class tbMonAn
     [MaxLength(500)]
     public string? mota { get; set; }
 
-    [Column(TypeName = "money")]
-    public decimal? giatien { get; set; }
-
     [MaxLength(50)]
     public string? hinhanh { get; set; }
 
@@ -44,10 +41,40 @@ public partial class tbMonAn
     [ForeignKey("madanhmuc")]
     public virtual tbDanhMuc? tbDanhMuc { get; set; }
 
-    public virtual ICollection<tbChiTietDonHang> tbChiTietDonHangs { get; set; } = new HashSet<tbChiTietDonHang>();
-    public virtual ICollection<tbMonAnKhuyenMai> tbMonAnKhuyenMais { get; set; } = new HashSet<tbMonAnKhuyenMai>();
+    /// <summary>
+    /// Danh sách biến thể (size + giá) của món ăn này.
+    /// Mỗi món có ít nhất 1 biến thể mặc định (size = NULL).
+    /// </summary>
+    public virtual ICollection<tbBienTheMonAn> tbBienTheMonAns { get; set; } = new HashSet<tbBienTheMonAn>();
 
-    // Singular aliases for backward compatibility
+    // Singular alias
     [NotMapped]
-    public ICollection<tbChiTietDonHang> tbChiTietDonHang => tbChiTietDonHangs;
+    public ICollection<tbBienTheMonAn> tbBienTheMonAn => tbBienTheMonAns;
+
+    // ─── Backward-compatible (cho Views cũ) ───
+
+    /// <summary>
+    /// Giá tiền. Backing field cho phép setter (dùng khi tạo tbMonAn trong Cart).
+    /// Nếu chưa được set, fallback về giá của biến thể đầu tiên.
+    /// </summary>
+    private decimal? _giatien;
+
+    [NotMapped]
+    public decimal? giatien
+    {
+        get => _giatien ?? tbBienTheMonAns?.FirstOrDefault()?.giatien;
+        set => _giatien = value;
+    }
+
+    /// <summary>
+    /// Chi tiết đơn hàng qua biến thể (backward-compat).
+    /// Truy cập qua navigation: món → biến thể → chi tiết đơn hàng.
+    /// </summary>
+    [NotMapped]
+    public List<tbChiTietDonHang> tbChiTietDonHangs =>
+        tbBienTheMonAns?.SelectMany(b => b.tbChiTietDonHangs ?? Enumerable.Empty<tbChiTietDonHang>()).ToList()
+        ?? new List<tbChiTietDonHang>();
+
+    [NotMapped]
+    public List<tbChiTietDonHang> tbChiTietDonHang => tbChiTietDonHangs;
 }

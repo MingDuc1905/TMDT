@@ -15,7 +15,7 @@ public partial class tbUser
     public string username { get; set; } = null!;
 
     [Required]
-    [MaxLength(255)]
+    [MaxLength(100)]
     public string pwd { get; set; } = null!;
 
     [Required]

@@ -11,7 +11,12 @@ public partial class tbChiTietDonHang
     public int mactdh { get; set; }
 
     public int? madh { get; set; }
+
+    /// <summary>
+    /// FK tới tbBienTheMonAn.id (biến thể size của món ăn)
+    /// </summary>
     public int? mamon { get; set; }
+
     public int? soluong { get; set; }
 
     [Column(TypeName = "money")]
@@ -22,11 +27,15 @@ public partial class tbChiTietDonHang
     public virtual tbDonHang? tbDonHang { get; set; }
 
     [ForeignKey("mamon")]
-    public virtual tbMonAn? tbMonAn { get; set; }
+    public virtual tbBienTheMonAn? tbBienTheMonAn { get; set; }
 
     public virtual ICollection<tbDanhGia> tbDanhGias { get; set; } = new HashSet<tbDanhGia>();
 
     // Singular alias for backward compatibility
     [NotMapped]
     public ICollection<tbDanhGia> tbDanhGia => tbDanhGias;
+
+    // ─── Backward-compatible: tbMonAn qua tbBienTheMonAn ───
+    [NotMapped]
+    public tbMonAn? tbMonAn => tbBienTheMonAn?.tbMonAn;
 }

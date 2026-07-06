@@ -47,6 +47,7 @@ public class RecommendationService
         return await _db.tbMonAn
             .Where(m => recommendIds.Contains(m.mamon))
             .Include(m => m.tbQuanAn)
+            .Include(m => m.tbBienTheMonAns)
             .ToListAsync();
     }
 
@@ -182,6 +183,7 @@ public class RecommendationService
         return await _db.tbMonAn
             .Where(m => ids.Contains(m.mamon))
             .Include(m => m.tbQuanAn)
+            .Include(m => m.tbBienTheMonAns)
             .ToListAsync();
     }
 
@@ -244,6 +246,7 @@ public class RecommendationService
         return await _db.tbMonAn
             .Where(m => topItemIds.Contains(m.mamon))
             .Include(m => m.tbQuanAn)
+            .Include(m => m.tbBienTheMonAns)
             .ToListAsync();
     }
 

@@ -11,7 +11,12 @@ public partial class tbMonAnKhuyenMai
     public int id { get; set; }
 
     public int? makm { get; set; }
+
+    /// <summary>
+    /// FK tới tbBienTheMonAn.id (biến thể size của món ăn)
+    /// </summary>
     public int? mamon { get; set; }
+
     public int? soluong { get; set; }
 
     [MaxLength(50)]
@@ -24,5 +29,9 @@ public partial class tbMonAnKhuyenMai
     public virtual tbKhuyenMai? tbKhuyenMai { get; set; }
 
     [ForeignKey("mamon")]
-    public virtual tbMonAn? tbMonAn { get; set; }
+    public virtual tbBienTheMonAn? tbBienTheMonAn { get; set; }
+
+    // ─── Backward-compatible ───
+    [NotMapped]
+    public tbMonAn? tbMonAn => tbBienTheMonAn?.tbMonAn;
 }

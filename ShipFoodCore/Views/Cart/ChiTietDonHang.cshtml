@@ -127,11 +127,18 @@
                                     </div>
                                 </div>
                             </div>
-                            @if (user != null && user.loaitaikhoan.Equals("Quán ăn") && donHang.trangthai.Equals("Đã đặt"))
+                            @if (user != null && user.loaitaikhoan.Equals("Khách hàng"))
                             {
                                 <div class="row mt-3">
                                     <div class="col-lg-12 d-flex gap-2">
-                                        <a href="~/Restaurant/nhandon/@donHang.madh" class="btn btn-success flex-fill">Nhận đơn</a>
+                                        <a href="~/Cart/OrderTracking?id=@donHang.madh" class="btn btn-outline-success flex-fill" style="border-radius:8px;">📍 Theo dõi đơn hàng</a>
+                                    </div>
+                                </div>
+                            }
+                            @if (user != null && user.loaitaikhoan.Equals("Quán ăn") && donHang.trangthai.Equals("Đã đặt"))
+                            {
+                                <div class="row mt-3">
+                                    <div class="col-lg-12 d-flex gap-2">                                        <a href="~/Restaurant/nhandon/@donHang.madh" class="btn btn-success flex-fill">Nhận đơn</a>
                                         <a href="~/Restaurant/huydon/@donHang.madh" class="btn btn-danger flex-fill">Huỷ đơn</a>
                                     </div>
                                 </div>

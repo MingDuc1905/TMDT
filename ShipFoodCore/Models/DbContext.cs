@@ -11,6 +11,7 @@ public partial class dbFoodyEntities : DbContext
     }
 
     public virtual DbSet<tbAdmin> tbAdmins { get; set; }
+    public virtual DbSet<tbBienTheMonAn> tbBienTheMonAns { get; set; }
     public virtual DbSet<tbChiTietDonHang> tbChiTietDonHangs { get; set; }
     public virtual DbSet<tbDanhGia> tbDanhGias { get; set; }
     public virtual DbSet<tbDanhMuc> tbDanhMucs { get; set; }
@@ -28,6 +29,7 @@ public partial class dbFoodyEntities : DbContext
 
     // Singular aliases for backward compatibility (DbSet to support Add/Remove/Find)
     public DbSet<tbMonAn> tbMonAn => tbMonAns;
+    public DbSet<tbBienTheMonAn> tbBienTheMonAn => tbBienTheMonAns;
     public DbSet<tbQuanAn> tbQuanAn => tbQuanAns;
     public DbSet<tbUser> tbUser => tbUsers;
     public DbSet<tbDanhMuc> tbDanhMuc => tbDanhMucs;
@@ -88,6 +90,13 @@ public partial class dbFoodyEntities : DbContext
             .HasForeignKey(m => m.madanhmuc)
             .OnDelete(DeleteBehavior.Cascade);
 
+        // tbMonAn -> tbBienTheMonAn (1:N) — MỚI
+        modelBuilder.Entity<tbBienTheMonAn>()
+            .HasOne(b => b.tbMonAn)
+            .WithMany(m => m.tbBienTheMonAns)
+            .HasForeignKey(b => b.mamon)
+            .OnDelete(DeleteBehavior.Cascade);
+
         // tbDonHang -> tbChiTietDonHang (1:N)
         modelBuilder.Entity<tbChiTietDonHang>()
             .HasOne(c => c.tbDonHang)
@@ -95,10 +104,10 @@ public partial class dbFoodyEntities : DbContext
             .HasForeignKey(c => c.madh)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // tbMonAn -> tbChiTietDonHang (1:N)
+        // tbBienTheMonAn -> tbChiTietDonHang (1:N) — SỬA: mamon → tbBienTheMonAn.id
         modelBuilder.Entity<tbChiTietDonHang>()
-            .HasOne(c => c.tbMonAn)
-            .WithMany(m => m.tbChiTietDonHangs)
+            .HasOne(c => c.tbBienTheMonAn)
+            .WithMany(b => b.tbChiTietDonHangs)
             .HasForeignKey(c => c.mamon)
             .OnDelete(DeleteBehavior.ClientSetNull);
 
@@ -172,10 +181,10 @@ public partial class dbFoodyEntities : DbContext
             .HasForeignKey(d => d.mattdh)
             .OnDelete(DeleteBehavior.ClientSetNull);
 
-        // tbMonAn -> tbMonAnKhuyenMai (1:N)
+        // tbBienTheMonAn -> tbMonAnKhuyenMai (1:N) — SỬA: mamon → tbBienTheMonAn.id
         modelBuilder.Entity<tbMonAnKhuyenMai>()
-            .HasOne(m => m.tbMonAn)
-            .WithMany(m => m.tbMonAnKhuyenMais)
+            .HasOne(m => m.tbBienTheMonAn)
+            .WithMany(b => b.tbMonAnKhuyenMais)
             .HasForeignKey(m => m.mamon)
             .OnDelete(DeleteBehavior.ClientSetNull);
 

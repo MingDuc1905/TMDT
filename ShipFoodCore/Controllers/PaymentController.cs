@@ -1,8 +1,10 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.SignalR;
 using ShipFood.Hubs;
 using ShipFood.Models;
+using ShipFood.Services;
 
 namespace ShipFood.Controllers;
 
@@ -10,17 +12,16 @@ public class PaymentController : BaseController
 {
     private readonly ILogger<PaymentController> _logger;
     private readonly IHubContext<Chats> _hubContext;
+    private readonly MoMoService _moMoService;
 
-    public PaymentController(dbFoodyEntities context, ILogger<PaymentController> logger, IHubContext<Chats> hubContext)
+    public PaymentController(dbFoodyEntities context, ILogger<PaymentController> logger, IHubContext<Chats> hubContext, MoMoService moMoService)
     {
         db = context;
         _logger = logger;
         _hubContext = hubContext;
+        _moMoService = moMoService;
     }
 
-    /// <summary>
-    /// Xử lý thanh toán mô phỏng - nhận kết quả test (success/failure) từ AJAX
-    /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<JsonResult> ProcessPayment(int? mattdh, string? hoten, string? quan, string? diachicuthe,
@@ -29,40 +30,36 @@ public class PaymentController : BaseController
         if (!CheckLogin())
             return Json(new { success = false, message = "Vui lòng đăng nhập để tiếp tục" });
 
-        // Validate testResult
         if (testResult != "success" && testResult != "failure")
             return Json(new { success = false, message = "Tham số không hợp lệ" });
 
-        // Validate thông tin người nhận (chỉ khi KHÔNG dùng địa chỉ có sẵn)
         if (mattdh == null)
         {
             if (string.IsNullOrWhiteSpace(hoten) || hoten.Length < 2 || hoten.Length > 100)
                 return Json(new { success = false, message = "Họ tên phải từ 2-100 ký tự" });
             if (string.IsNullOrWhiteSpace(SDT) || !System.Text.RegularExpressions.Regex.IsMatch(SDT, @"^0[1-9][0-9]{8,9}$"))
-                return Json(new { success = false, message = "Số điện thoại không hợp lệ — phải là 10-11 số, bắt đầu bằng 0" });
+                return Json(new { success = false, message = "Số điện thoại không hợp lệ" });
             if (string.IsNullOrWhiteSpace(diachicuthe) || diachicuthe.Length < 5)
-                return Json(new { success = false, message = "Địa chỉ cụ thể quá ngắn (ít nhất 5 ký tự)" });
+                return Json(new { success = false, message = "Địa chỉ cụ thể quá ngắn" });
         }
 
         var cart = GetCart();
-        if (cart == null || cart.monAns.Count == 0)
-            return Json(new { success = false, message = "Giỏ hàng trống. Vui lòng thêm món trước khi thanh toán." });
+        if (cart == null || cart.items.Count == 0)
+            return Json(new { success = false, message = "Giỏ hàng trống." });
 
-        // Mô phỏng thanh toán thất bại
         if (testResult == "failure")
         {
             var failures = new[] {
-                "Thẻ của bạn đã hết hạn. Vui lòng kiểm tra lại thông tin thẻ.",
-                "Số dư tài khoản không đủ để thực hiện giao dịch.",
-                "Giao dịch bị từ chối do ngân hàng gặp sự cố. Vui lòng thử lại sau.",
-                "Mã xác thực OTP không hợp lệ. Vui lòng thực hiện lại.",
-                "Phiên thanh toán đã hết hạn. Vui lòng thử lại."
+                "Thẻ của bạn đã hết hạn.",
+                "Số dư tài khoản không đủ.",
+                "Giao dịch bị từ chối do ngân hàng.",
+                "Mã xác thực OTP không hợp lệ.",
+                "Phiên thanh toán đã hết hạn."
             };
             var msg = failures[new System.Random().Next(failures.Length)];
             return Json(new { success = false, message = msg, keepCart = true });
         }
 
-        // Mô phỏng thanh toán thành công -> lưu đơn hàng
         try
         {
             var user = GetCurrentUser();
@@ -91,7 +88,7 @@ public class PaymentController : BaseController
                 db.SaveChanges();
             }
 
-            decimal tongTienMon = cart.monAns.Sum(m => (m.giatien ?? 0) * m.soLuong);
+            decimal tongTienMon = cart.items.Sum(m => (m.giatien ?? 0) * m.soLuong);
             decimal phiShip = 15000;
             decimal discountAmount = 0;
             int? appliedCouponId = null;
@@ -124,12 +121,12 @@ public class PaymentController : BaseController
             db.tbDonHang.Add(dh);
             db.SaveChanges();
 
-            foreach (var i in cart.monAns)
+            foreach (var i in cart.items)
             {
                 db.tbChiTietDonHang.Add(new tbChiTietDonHang
                 {
                     madh    = dh.madh,
-                    mamon   = i.mamon,
+                    mamon   = i.mabienthe,
                     soluong = i.soLuong,
                     dongia  = i.giatien
                 });
@@ -138,9 +135,42 @@ public class PaymentController : BaseController
 
             SetCart(new Cart());
 
+            // ─── MoMo Payment: Nếu chọn thanh toán MoMo, tạo payment request ───
+            string? momoPayUrl = null;
+            if (pttt == 3) // Giả sử mahttt = 3 là MoMo (cần kiểm tra với DB thực tế)
+            {
+                try
+                {
+                    var momoRequest = new MoMoCreatePaymentRequest
+                    {
+                        OrderId = $"FS{dh.madh}_{DateTime.Now:yyyyMMddHHmmss}",
+                        OrderInfo = $"Thanh toan don hang FastShip #{dh.madh}",
+                        Amount = (long)(tongCong * 1000), // MoMo tính theo VND (số nguyên)
+                        RedirectUrl = $"{Request.Scheme}://{Request.Host}/Cart/SuccessView?orderId={dh.madh}",
+                        IpnUrl = $"{Request.Scheme}://{Request.Host}/Payment/MoMoIpn",
+                        RequestType = "captureWallet",
+                        ExtraData = $"{dh.madh}"
+                    };
+
+                    var momoResult = await _moMoService.CreatePaymentAsync(momoRequest);
+                    if (momoResult.IsSuccess)
+                    {
+                        momoPayUrl = momoResult.PayUrl;
+                        _logger.LogInformation("MoMo payment URL created for order #{OrderId}: {PayUrl}", dh.madh, momoPayUrl);
+                    }
+                    else
+                    {
+                        _logger.LogWarning("MoMo payment failed for order #{OrderId}: {Message}", dh.madh, momoResult.Message);
+                    }
+                }
+                catch (Exception momoEx)
+                {
+                    _logger.LogError(momoEx, "MoMo payment creation failed for order #{OrderId}", dh.madh);
+                }
+            }
+
             _logger.LogInformation("Order #{OrderId} placed by user {UserId}", dh.madh, user.userid);
 
-            // ─── SignalR: Broadcast đơn hàng mới đến Quán ăn ───
             try
             {
                 await _hubContext.Clients.Group($"restaurant_{cart.maquanan}").SendAsync("newOrder", new
@@ -152,20 +182,128 @@ public class PaymentController : BaseController
                     time = DateTime.Now.ToString("HH:mm")
                 });
             }
-            catch { /* SignalR broadcast không ảnh hưởng đến luồng chính */ }
+            catch { }
 
             return Json(new
             {
                 success  = true,
                 message  = $"Đặt hàng thành công! Mã đơn hàng: #{dh.madh}",
                 orderId  = dh.madh,
-                trangthai = "Đang xử lý"
+                trangthai = "Đang xử lý",
+                momoPayUrl = momoPayUrl
             });
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "ProcessPayment failed for user {User}", GetCurrentUser()?.userid);
-            return Json(new { success = false, message = $"Lỗi hệ thống: {ex.Message}. Vui lòng thử lại." });
+
+            // Phân loại lỗi chi tiết
+            var errorMessage = ex switch
+            {
+                DbUpdateException due when due.InnerException?.Message?.Contains("FK_") == true
+                    => "Dữ liệu không hợp lệ: ràng buộc khóa ngoại bị vi phạm.",
+                DbUpdateException due when due.InnerException?.Message?.Contains("UNIQUE") == true
+                    => "Dữ liệu bị trùng lặp: đơn hàng này đã tồn tại.",
+                DbUpdateException due when due.InnerException?.Message?.Contains("timeout") == true
+                    => "Kết nối cơ sở dữ liệu bị timeout. Vui lòng thử lại.",
+                OperationCanceledException _
+                    => "Yêu cầu đã bị hủy do quá thời gian chờ. Vui lòng thử lại.",
+                InvalidOperationException ioe when ioe.Message.Contains("session")
+                    => "Phiên đặt hàng đã hết hạn. Vui lòng đăng nhập lại.",
+                _ => $"Lỗi hệ thống: {ex.Message}. Vui lòng thử lại."
+            };
+
+            return Json(new { success = false, message = errorMessage, keepCart = true });
         }
+    }
+
+    // ─── MoMo IPN Callback (MoMo gọi khi có kết quả thanh toán) ───
+    [HttpPost]
+    [AllowAnonymous]
+    public async Task<JsonResult> MoMoIpn()
+    {
+        try
+        {
+            using var reader = new System.IO.StreamReader(Request.Body);
+            var body = await reader.ReadToEndAsync();
+            var ipnParams = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(body);
+
+            if (ipnParams == null)
+                return Json(new { error = "Invalid IPN data" });
+
+            // Xác thực signature
+            if (!_moMoService.VerifyIpnSignature(ipnParams))
+            {
+                _logger.LogWarning("MoMo IPN signature verification failed");
+                return Json(new { error = "Invalid signature" });
+            }
+
+            var resultCode = int.TryParse(ipnParams.GetValueOrDefault("resultCode"), out var code) ? code : -1;
+            var orderId = ipnParams.GetValueOrDefault("orderId") ?? "";
+            var transId = ipnParams.GetValueOrDefault("transId");
+
+            _logger.LogInformation("MoMo IPN received: OrderId={OrderId}, ResultCode={ResultCode}, TransId={TransId}",
+                orderId, resultCode, transId);
+
+            // Parse mã đơn hàng từ orderId (FS{madh}_...)
+            if (orderId.StartsWith("FS"))
+            {
+                var parts = orderId.Split('_');
+                if (parts.Length >= 2 && int.TryParse(parts[0].Substring(2), out var madh))
+                {
+                    var donHang = await db.tbDonHangs.FindAsync(madh);
+                    if (donHang != null)
+                    {
+                        if (resultCode == 0)
+                        {
+                            // Thanh toán thành công
+                            donHang.trangthai = "Đã thanh toán";
+                            donHang.ngaythanhtoan = DateTime.Now;
+                            _logger.LogInformation("MoMo payment confirmed for order #{OrderId}", madh);
+
+                            // SignalR broadcast đến khách hàng
+                            try
+                            {
+                                await _hubContext.Clients.Group($"order_{madh}").SendAsync("paymentConfirmed", madh, donHang.tongtien);
+                            }
+                            catch { }
+                        }
+                        else
+                        {
+                            // Thanh toán thất bại
+                            _logger.LogWarning("MoMo payment failed for order #{OrderId}: ResultCode={ResultCode}", madh, resultCode);
+                            donHang.trangthai = "Chờ thanh toán";
+
+                            try
+                            {
+                                await _hubContext.Clients.Group($"order_{madh}").SendAsync("paymentFailed", madh, ipnParams.GetValueOrDefault("message", "Thanh toán thất bại"));
+                            }
+                            catch { }
+                        }
+                        await db.SaveChangesAsync();
+                    }
+                }
+            }
+
+            // MoMo yêu cầu response OK để không gửi lại IPN
+            return Json(new { error = 0 });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "MoMo IPN callback error");
+            return Json(new { error = -1, message = ex.Message });
+        }
+    }
+
+    // ─── MoMo Payment Return URL (sau khi user thanh toán xong) ───
+    [HttpGet]
+    public IActionResult MoMoReturn(int? orderId)
+    {
+        if (orderId.HasValue)
+        {
+            TempData["OrderSuccess"] = $"Thanh toán MoMo thành công! Mã đơn hàng: #{orderId}";
+            return RedirectToAction("ChiTietDonHang", "Cart", new { id = orderId });
+        }
+        return RedirectToAction("Index", "Cart");
     }
 }

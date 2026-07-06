@@ -1,4 +1,4 @@
-﻿-- ===============================================================
+-- ===============================================================
 -- FASTSHIP - MySQL Database Setup (Railway)
 -- Creates all tables matching C# models + inserts seed data
 -- ===============================================================
@@ -24,6 +24,7 @@ DROP TABLE IF EXISTS tbMonAnKhuyenMai;
 DROP TABLE IF EXISTS tbTinNhan;
 DROP TABLE IF EXISTS tbDonHang;
 DROP TABLE IF EXISTS tbKhuyenMai;
+DROP TABLE IF EXISTS tbBienTheMonAn;
 DROP TABLE IF EXISTS tbMonAn;
 DROP TABLE IF EXISTS tbDanhMuc;
 DROP TABLE IF EXISTS tbThongTinDatHang;
@@ -103,17 +104,29 @@ CREATE TABLE tbDanhMuc (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ===================== tbMonAn =====================
+-- Lưu tên gốc của món ăn, KHÔNG chứa size hay giá (chuyển sang tbBienTheMonAn)
 CREATE TABLE tbMonAn (
     mamon INT AUTO_INCREMENT NOT NULL,
     tenmon VARCHAR(100) NOT NULL,
     mota VARCHAR(500) NULL,
-    giatien DECIMAL(19,4) NULL,
     hinhanh VARCHAR(50) NULL,
     maquanan INT NULL,
     madanhmuc INT NULL,
+    conhang BIT DEFAULT 1,
     PRIMARY KEY (mamon),
     CONSTRAINT fk_monan_quanan FOREIGN KEY (maquanan) REFERENCES tbQuanAn(userid) ON DELETE CASCADE,
     CONSTRAINT fk_monan_danhmuc FOREIGN KEY (madanhmuc) REFERENCES tbDanhMuc(madanhmuc) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ===================== tbBienTheMonAn (MỚI) =====================
+-- Lưu các biến thể size và giá tương ứng cho mỗi món ăn
+CREATE TABLE tbBienTheMonAn (
+    id INT AUTO_INCREMENT NOT NULL,
+    mamon INT NOT NULL,
+    size VARCHAR(10) NULL,
+    giatien DECIMAL(19,4) NULL,
+    PRIMARY KEY (id),
+    CONSTRAINT fk_bienthe_monan FOREIGN KEY (mamon) REFERENCES tbMonAn(mamon) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ===================== tbKhuyenMai =====================
@@ -130,6 +143,7 @@ CREATE TABLE tbKhuyenMai (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ===================== tbMonAnKhuyenMai =====================
+-- mamon giờ là FK tới tbBienTheMonAn.id
 CREATE TABLE tbMonAnKhuyenMai (
     id INT AUTO_INCREMENT NOT NULL,
     makm INT NULL,
@@ -139,7 +153,7 @@ CREATE TABLE tbMonAnKhuyenMai (
     phantramgiam INT NOT NULL,
     PRIMARY KEY (id),
     CONSTRAINT fk_makm_khuyenmai FOREIGN KEY (makm) REFERENCES tbKhuyenMai(makm) ON DELETE CASCADE,
-    CONSTRAINT fk_makm_monan FOREIGN KEY (mamon) REFERENCES tbMonAn(mamon)
+    CONSTRAINT fk_makm_bienthe FOREIGN KEY (mamon) REFERENCES tbBienTheMonAn(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ===================== tbLoaiHinhThanhToan =====================
@@ -187,6 +201,7 @@ CREATE TABLE tbDonHang (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ===================== tbChiTietDonHang =====================
+-- mamon giờ là FK tới tbBienTheMonAn.id
 CREATE TABLE tbChiTietDonHang (
     mactdh INT AUTO_INCREMENT NOT NULL,
     madh INT NULL,
@@ -195,7 +210,7 @@ CREATE TABLE tbChiTietDonHang (
     dongia DECIMAL(19,4) NULL,
     PRIMARY KEY (mactdh),
     CONSTRAINT fk_ctdh_donhang FOREIGN KEY (madh) REFERENCES tbDonHang(madh) ON DELETE CASCADE,
-    CONSTRAINT fk_ctdh_monan FOREIGN KEY (mamon) REFERENCES tbMonAn(mamon)
+    CONSTRAINT fk_ctdh_bienthe FOREIGN KEY (mamon) REFERENCES tbBienTheMonAn(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ===================== tbDanhGia =====================
@@ -293,71 +308,153 @@ INSERT INTO tbDanhMuc (madanhmuc, tendanhmuc, mota, hinhanh) VALUES
 (12, 'Mì phở', 'Mì phở bao gồm một tô nước dùng sôi và bún mì phở.', 'mi_pho.jpg'),
 (13, 'Cơm hộp', 'Cơm hộp thường một phần cơm trắng, kèm theo các loại thức ăn khác nhau được sắp xếp ngăn nắp trong một hộp đựng cơm.', 'com_hop.jpg');
 
--- ==================== tbMonAn ====================
-INSERT INTO tbMonAn (mamon, tenmon, mota, giatien, hinhanh, maquanan, madanhmuc) VALUES
-(1, 'Trà tắc', 'Trà và tắc.', 10000.0000, 'tratac.jpg', 6, 2),
-(2, 'Pizza thập cẩm _ Size M', 'Thịt, xúc xích, ớt chuông, bắp và phô mai', 80000.0000, 'banh_mi_op_la.jpg', 6, 8),
-(3, 'Pizza Bò _ Size M', 'Bò, ớt chuông, bắp và phô mai', 70000.0000, 'pizza.jpg', 6, 8),
-(4, 'Pizza xúc xích _ Size M', 'Xúc xích, bắp, phô mai và ớt chuông', 70000.0000, 'pizza.jpg', 6, 8),
-(5, 'Pizza hải sản _ Size M', 'Tôm, mực, ớt chuông, bắp, phô mai', 95000.0000, 'pizza.jpg', 6, 8),
-(6, 'Cơm trắng + đậu nhồi thịt sốt cà chua', 'Món phụ ăn kèm', 40000.0000, 'comdaunhoithit.jpg', 7, 13),
-(7, 'Cơm trắng + sườn xào chua ngọt', 'Món phụ ăn kèm', 40000.0000, 'comsuonxao.jpg', 7, 13),
-(8, 'Combo cơm gà rang xả ớt + nước', 'Coca hoặc trà tắc hoặc nước khoáng lạt', 50000.0000, 'combo_comga.jpg', 7, 1),
-(9, 'Cơm trắng + đậu nhồi thịt + rau xào theo ngày', 'Rau theo mùa', 40000.0000, 'comdaurau.jpg', 7, 13),
-(10, 'Coca', 'Nước ngọt', 10000.0000, 'coca.jpg', 7, 2),
-(11, 'Mẹt A', 'Bao gồm: thịt luộc + đậu khuôn + chả quế + chả cốm', 40000.0000, 'metabc.jpg', 8, 12),
-(12, 'Mẹt B', 'Bao gồm: Bún, đậu khuôn, thịt, chả cốm, chả quế, nem rán, phèo luộc', 50000.0000, 'metabc.jpg', 8, 12),
-(13, 'Mẹt C', 'Bao gồm: bún, đậu khuôn, thịt, chả cốm, dồi, phèo luộc, lưỡi, nem rán', 75000.0000, 'metabc.jpg', 8, 12),
-(14, 'Mẹt nem nướng cuốn', 'Nem nướng Nha Trang', 70000.0000, 'metnemnuongcuon.jpg', 8, 1),
-(15, 'Mẹt cuốn tá lá', 'Ram tôm đất + Nem nướng Nha Trang', 75000.0000, 'metcuontala.jpg', 8, 1),
-(16, 'Chà Bông Chay', 'Trộn với cơm trắng hoặc thêm rong biển sấy và đậu phộng muối để có món cơm trộn vừa ngon lại không ngấy', 35000.0000, 'cha_bong_chay.jpg', 9, 3),
-(17, 'Nấm rim mè', 'Có thể trộn gỏi, ăn cùng cơm trắng hoặc ăn vặt đều ngon', 40000.0000, 'nam_rim.jpg', 9, 13),
-(18, 'Cơm Ngọc Bích', 'Cơm được trộn với nước cốt dừa và cải bó xôi xay nhuyễn. Ăn kèm là các loại hạt cùng chả rong biển. Mùi vị thơm béo, lạ miệng', 38000.0000, 'com_ngoc_bich.jpg', 9, 3),
-(19, 'Nấm Sốt Bơ Tỏi', 'Nấm đùi gà được tắm đẫm trong sốt bơ tỏi. Khi ăn sẽ kèm bánh mì. Hương bị béo ngậy, thơm bơ, ngon đến khó tả', 58000.0000, 'nam_sot_bo_toi.jpg', 9, 3),
-(20, 'Mì quảng', 'Hương vị đậm đà được và vị ngọt tự nhiên từ rau củ, quyện với nước nhân mì nấu từ nghệ, thêm vị giòn bùi của đậu phộng và bánh tráng ăn kèm', 29000.0000, 'mi_quang_chay.jpg', 9, 3),
-(21, 'Chân gà nướng(3cặp)', '3 cặp', 39000.0000, 'chan_ga.jpg', 10, 7),
-(22, 'Cánh gà nướng(2 cánh)', '2 cánh', 38000.0000, 'canh_ga.jpg', 10, 7),
-(23, 'Thịt xiên nướng', '5 xiên', 60000.0000, 'thit_xien_nuong.jpg', 10, 7),
-(24, 'Chim cút nướng(2con)', '2 con', 64000.0000, 'chim_cut_nuong.jpg', 10, 7),
-(25, 'Ếch nướng(2con)', '2 con', 56000.0000, 'ech_nuong.jpg', 10, 7),
-(26, 'TRÀ MÃNG CẦU Sz L', 'Khách thích uống Trà thái xanh thì note lại cho quán. Bánh flan, 3v khúc bạch, 2v pudding, thạch pho mai, củ năng, trân châu đen hoặc trắng, 3v pho mai viên', 33000.0000, 'ts_dac_biet.jpg', 11, 2),
-(27, 'TRÀ MÃNG CẦU Sz L', 'Món này khách không chọn up sz giùm quán nhé, chỉ có 1sz', 28000.0000, 'tra_mang_cau.jpg', 11, 2),
-(28, 'Trà trái cây Nhiệt đới Size L', 'Món này khách không chọn up sz giùm quán nhé, chỉ có 1sz', 28000.0000, 'tra_trai_cay.jpg', 11, 2),
-(29, 'Trà Long nhãn thái lan Size L', 'Món này khách không chọn up sz giùm quán nhé, chỉ có 1sz. Trà long nhãn + trân châu trắng uống thanh mát', 28000.0000, 'st_thot_not.jpg', 11, 2),
-(30, 'Sữa Tươi THỐT NỐT Rim sz M', 'Ko điều chỉnh đc lượng đường', 35000.0000, 'st_thot_not.jpg', 11, 2),
-(31, 'TRÀ SEN HILAND', '', 29000.0000, 'tra_sen.jpg', 11, 2),
-(32, 'Trà Dâu Tằm', '', 20000.0000, 'tra_dau_tam.jpg', 11, 2),
-(33, 'Đặc biệt Trà Trái cây ly 1lit (khách ghi chú trà)', 'Trà 1 lít gồm: TRÀ ĐÀO - dâu tằm - trà ổi - trà xoài - trà dâu - trà kiwi (KHÁCH KO NOTE QUÁN SẼ TỰ LÀM)', 30000.0000, 'tra_trai_cay_dbiet.jpg', 11, 2),
-(34, 'LY Trà sữa Pho mai viên + củ năng + t/c', '3viên pho mai, 1 vá củ năng, 1 vá trân châu', 29000.0000, 'ts_phomai_cunang.jpg', 11, 2),
-(35, 'Trà sữa THÁI XANH (full thạch nhà làm+ Flan)', 'Trà sữa + trân châu + thạch nhà làm + Flan', 28000.0000, 'ts_thai_xanh.jpg', 11, 2),
-(36, 'Bún mắm thịt heo quay', 'Bún mắm + heo quay', 35000.0000, 'bun_mam_heo_quay.jpg', 12, 12),
-(37, 'Bún mắm thập cẩm', 'Bún mắm thập cẩm', 45000.0000, 'bun_mam_thap_cam.jpg', 12, 12),
-(38, 'Nem - 1 cây', '1 cây', 5000.0000, 'nem.jpg', 12, 12),
-(39, 'BÚN HEO QUAY ĐẶC BIỆT', '', 45000.0000, '.jpg', 12, 12),
-(40, 'Bún mắm nem - chả', '', 35000.0000, '.jpg', 12, 12),
-(41, 'HEO QUAY CÚNG THẦN TÀI. (100gr)', 'ĐỂ NGUYÊN HOẶC CHẶT MIẾNG NHỎ', 40000.0000, 'heo_quay.jpg', 12, 1),
-(42, 'Nước mía', '', 10000.0000, '.jpg', 12, 2),
-(43, 'Thịt heo quay thêm(100gram)', '', 40000.0000, 'heo_quay.jpg', 12, 1),
-(44, 'Bún mắm thịt heo quay - nem', '', 40000.0000, '.jpg', 12, 12),
-(45, 'BÚN HEO QUAY ĐẶC BIỆT', '', 45000.0000, '.jpg', 12, 12),
-(46, 'Gà Xé Kèm Xôi Xéo', 'Gà hấp + xôi', 275000.0000, 'ga_xe_xoi.jpg', 13, 9),
-(47, 'Gà Quay Đặc Biệt', 'Gà quay nguyên con', 235000.0000, 'ga_quay.jpg', 13, 9),
-(48, 'Gà hấp hành', 'Chặt theo yêu cầu', 225000.0000, 'ga_hap_hanh.jpg', 13, 9),
-(49, 'Gà rang muối', 'Chặt miếng', 265000.0000, 'ga_rang_muoi.jpg', 13, 9),
-(50, 'Combo 0,5 Gà quay + Xôi', 'Nửa con gà + xôi', 190000.0000, 'combo_ga_xoi.jpg', 13, 9),
-(51, 'SASHIMI MIX SỐT CAY KIỂU THÁI LAN', 'CÁ HỒI, CÁ NGỪ, CÁ TRẮNG SỐT CAY KIỂU THÁI', 104000.0000, 'sashimi_kieu_thai.jpg', 14, 11),
-(52, 'Set cá hồi vs lươn tươi ngon', 'Sushi cá hồi 5 viên Sushi cá hồi 9 4 viên Sushi lươn 5 viên', 199000.0000, 'set_cahoi_luon.jpg', 14, 11),
-(53, 'Set cá hồi tươi ngon', 'Thành phần gồm: - Sashimi cá hồi - Cơm cuộn cá hồi bơ - Sushi cá hồi chín sốt cay', 198000.0000, 'set_ca_hoi.jpg', 14, 11),
-(54, 'SET NGON - BỔ - RẺ 7', 'Đồ ăn ngon những miếng sashimi tươi ngon, béo ngậy', 189000.0000, 'set_7.jpg', 14, 11),
-(55, 'Gừng + Rong Nho', 'Gừng đỏ và rong nho', 57000.0000, 'gung_rong_nho.jpg', 14, 11),
-(56, 'SET TAKE AWAY A', 'Maki trứng tôm 8 viên, sushi thanh cua, sushi cá hồi chín sốt cay', 95000.0000, 'set_take_away.jpg', 14, 11),
-(57, 'Bento cake', '', 110000.0000, 'bento.jpg', 15, 10),
-(58, 'Bánh kem decor dễ thương', 'Ngẫu nhiên', 250000.0000, 'banh_kem_dthuong.jpg', 15, 10),
-(59, 'Bông lan trứng muối trang trí sinh nhật size 16', 'Ngẫu nhiên', 220000.0000, 'bong_lan_trung_muoi.jpg', 15, 10),
-(60, 'Tiramisu mix bông lan trứng muối - set 9 hộp', '9 hộp', 300000.0000, 'tiramisu_9hop.jpg', 15, 10),
-(61, 'Bánh kem trẻ em', 'Ngẫu nhiên', 270000.0000, 'banh_kem_tre_em.jpg', 15, 10),
-(62, 'Bánh kem trái cây s16', 'Size 16, ngẫu nhiên', 320000.0000, 'banh_kem_trai_cay.jpg', 15, 10),
-(63, 'Set hoa và bánh', 'Hộp gồm bánh và hoa trang trí', 350000.0000, 'set_hoa_banh.jpg', 15, 10);
+-- ==================== tbMonAn (đã bỏ giatien + Size khỏi tên) ====================
+INSERT INTO tbMonAn (mamon, tenmon, mota, hinhanh, maquanan, madanhmuc, conhang) VALUES
+(1, 'Trà tắc', 'Trà và tắc.', 'tratac.jpg', 6, 2, 1),
+(2, 'Pizza thập cẩm', 'Thịt, xúc xích, ớt chuông, bắp và phô mai', 'banh_mi_op_la.jpg', 6, 8, 1),
+(3, 'Pizza Bò', 'Bò, ớt chuông, bắp và phô mai', 'pizza.jpg', 6, 8, 1),
+(4, 'Pizza xúc xích', 'Xúc xích, bắp, phô mai và ớt chuông', 'pizza.jpg', 6, 8, 1),
+(5, 'Pizza hải sản', 'Tôm, mực, ớt chuông, bắp, phô mai', 'pizza.jpg', 6, 8, 1),
+(6, 'Cơm trắng + đậu nhồi thịt sốt cà chua', 'Món phụ ăn kèm', 'comdaunhoithit.jpg', 7, 13, 1),
+(7, 'Cơm trắng + sườn xào chua ngọt', 'Món phụ ăn kèm', 'comsuonxao.jpg', 7, 13, 1),
+(8, 'Combo cơm gà rang xả ớt + nước', 'Coca hoặc trà tắc hoặc nước khoáng lạt', 'combo_comga.jpg', 7, 1, 1),
+(9, 'Cơm trắng + đậu nhồi thịt + rau xào theo ngày', 'Rau theo mùa', 'comdaurau.jpg', 7, 13, 1),
+(10, 'Coca', 'Nước ngọt', 'coca.jpg', 7, 2, 1),
+(11, 'Mẹt A', 'Bao gồm: thịt luộc + đậu khuôn + chả quế + chả cốm', 'metabc.jpg', 8, 12, 1),
+(12, 'Mẹt B', 'Bao gồm: Bún, đậu khuôn, thịt, chả cốm, chả quế, nem rán, phèo luộc', 'metabc.jpg', 8, 12, 1),
+(13, 'Mẹt C', 'Bao gồm: bún, đậu khuôn, thịt, chả cốm, dồi, phèo luộc, lưỡi, nem rán', 'metabc.jpg', 8, 12, 1),
+(14, 'Mẹt nem nướng cuốn', 'Nem nướng Nha Trang', 'metnemnuongcuon.jpg', 8, 1, 1),
+(15, 'Mẹt cuốn tá lá', 'Ram tôm đất + Nem nướng Nha Trang', 'metcuontala.jpg', 8, 1, 1),
+(16, 'Chà Bông Chay', 'Trộn với cơm trắng hoặc thêm rong biển sấy và đậu phộng muối', 'cha_bong_chay.jpg', 9, 3, 1),
+(17, 'Nấm rim mè', 'Có thể trộn gỏi, ăn cùng cơm trắng hoặc ăn vặt đều ngon', 'nam_rim.jpg', 9, 13, 1),
+(18, 'Cơm Ngọc Bích', 'Cơm trộn nước cốt dừa và cải bó xôi xay nhuyễn', 'com_ngoc_bich.jpg', 9, 3, 1),
+(19, 'Nấm Sốt Bơ Tỏi', 'Nấm đùi gà sốt bơ tỏi, ăn kèm bánh mì', 'nam_sot_bo_toi.jpg', 9, 3, 1),
+(20, 'Mì quảng', 'Hương vị đậm đà từ rau củ, nghệ, đậu phộng và bánh tráng', 'mi_quang_chay.jpg', 9, 3, 1),
+(21, 'Chân gà nướng', '3 cặp', 'chan_ga.jpg', 10, 7, 1),
+(22, 'Cánh gà nướng', '2 cánh', 'canh_ga.jpg', 10, 7, 1),
+(23, 'Thịt xiên nướng', '5 xiên', 'thit_xien_nuong.jpg', 10, 7, 1),
+(24, 'Chim cút nướng', '2 con', 'chim_cut_nuong.jpg', 10, 7, 1),
+(25, 'Ếch nướng', '2 con', 'ech_nuong.jpg', 10, 7, 1),
+(26, 'Trà Mãng Cầu', 'Bánh flan, khúc bạch, pudding, thạch pho mai, củ năng, trân châu', 'ts_dac_biet.jpg', 11, 2, 1),
+(27, 'Trà Mãng Cầu', 'Chỉ có 1 size', 'tra_mang_cau.jpg', 11, 2, 1),
+(28, 'Trà trái cây Nhiệt đới', 'Chỉ có 1 size', 'tra_trai_cay.jpg', 11, 2, 1),
+(29, 'Trà Long nhãn thái lan', 'Trà long nhãn + trân châu trắng thanh mát', 'st_thot_not.jpg', 11, 2, 1),
+(30, 'Sữa Tươi Thốt Nốt Rim', 'Ko điều chỉnh được lượng đường', 'st_thot_not.jpg', 11, 2, 1),
+(31, 'Trà Sen Highland', '', 'tra_sen.jpg', 11, 2, 1),
+(32, 'Trà Dâu Tằm', '', 'tra_dau_tam.jpg', 11, 2, 1),
+(33, 'Đặc biệt Trà Trái cây ly 1lit', 'Trà đào, dâu tằm, ổi, xoài, dâu, kiwi', 'tra_trai_cay_dbiet.jpg', 11, 2, 1),
+(34, 'Trà sữa Pho mai viên + củ năng', '3 viên pho mai, củ năng, trân châu', 'ts_phomai_cunang.jpg', 11, 2, 1),
+(35, 'Trà sữa Thái Xanh', 'Trà sữa + trân châu + thạch nhà làm + Flan', 'ts_thai_xanh.jpg', 11, 2, 1),
+(36, 'Bún mắm thịt heo quay', 'Bún mắm + heo quay', 'bun_mam_heo_quay.jpg', 12, 12, 1),
+(37, 'Bún mắm thập cẩm', 'Bún mắm thập cẩm', 'bun_mam_thap_cam.jpg', 12, 12, 1),
+(38, 'Nem', '1 cây', 'nem.jpg', 12, 12, 1),
+(39, 'Bún heo quay đặc biệt', '', '.jpg', 12, 12, 1),
+(40, 'Bún mắm nem - chả', '', '.jpg', 12, 12, 1),
+(41, 'Heo quay cúng thần tài (100gr)', 'Để nguyên hoặc chặt miếng nhỏ', 'heo_quay.jpg', 12, 1, 1),
+(42, 'Nước mía', '', '.jpg', 12, 2, 1),
+(43, 'Thịt heo quay thêm (100gram)', '', 'heo_quay.jpg', 12, 1, 1),
+(44, 'Bún mắm thịt heo quay - nem', '', '.jpg', 12, 12, 1),
+(45, 'Bún heo quay đặc biệt', '', '.jpg', 12, 12, 1),
+(46, 'Gà Xé Kèm Xôi Xéo', 'Gà hấp + xôi', 'ga_xe_xoi.jpg', 13, 9, 1),
+(47, 'Gà Quay Đặc Biệt', 'Gà quay nguyên con', 'ga_quay.jpg', 13, 9, 1),
+(48, 'Gà hấp hành', 'Chặt theo yêu cầu', 'ga_hap_hanh.jpg', 13, 9, 1),
+(49, 'Gà rang muối', 'Chặt miếng', 'ga_rang_muoi.jpg', 13, 9, 1),
+(50, 'Combo 0,5 Gà quay + Xôi', 'Nửa con gà + xôi', 'combo_ga_xoi.jpg', 13, 9, 1),
+(51, 'Sashimi Mix Sốt Cay Kiểu Thái Lan', 'Cá hồi, cá ngừ, cá trắng sốt cay kiểu Thái', 'sashimi_kieu_thai.jpg', 14, 11, 1),
+(52, 'Set cá hồi vs lươn tươi ngon', 'Sushi cá hồi + sushi lươn', 'set_cahoi_luon.jpg', 14, 11, 1),
+(53, 'Set cá hồi tươi ngon', 'Sashimi cá hồi + cơm cuộn cá hồi bơ + sushi cá hồi chín sốt cay', 'set_ca_hoi.jpg', 14, 11, 1),
+(54, 'Set Ngon - Bổ - Rẻ 7', 'Những miếng sashimi tươi ngon, béo ngậy', 'set_7.jpg', 14, 11, 1),
+(55, 'Gừng + Rong Nho', 'Gừng đỏ và rong nho', 'gung_rong_nho.jpg', 14, 11, 1),
+(56, 'Set Take Away A', 'Maki trứng tôm 8 viên, sushi thanh cua, sushi cá hồi chín sốt cay', 'set_take_away.jpg', 14, 11, 1),
+(57, 'Bento cake', '', 'bento.jpg', 15, 10, 1),
+(58, 'Bánh kem decor dễ thương', 'Ngẫu nhiên', 'banh_kem_dthuong.jpg', 15, 10, 1),
+(59, 'Bông lan trứng muối size 16', 'Ngẫu nhiên', 'bong_lan_trung_muoi.jpg', 15, 10, 1),
+(60, 'Tiramisu mix bông lan trứng muối - set 9 hộp', '9 hộp', 'tiramisu_9hop.jpg', 15, 10, 1),
+(61, 'Bánh kem trẻ em', 'Ngẫu nhiên', 'banh_kem_tre_em.jpg', 15, 10, 1),
+(62, 'Bánh kem trái cây s16', 'Size 16, ngẫu nhiên', 'banh_kem_trai_cay.jpg', 15, 10, 1),
+(63, 'Set hoa và bánh', 'Hộp gồm bánh và hoa trang trí', 'set_hoa_banh.jpg', 15, 10, 1);
+
+-- ==================== tbBienTheMonAn (MỚI) ====================
+-- Mỗi món có ít nhất 1 biến thể mặc định (size=NULL) với giá gốc
+-- Món có nhiều size thì tạo nhiều dòng
+INSERT INTO tbBienTheMonAn (mamon, size, giatien) VALUES
+-- Quán 6: Koneko Pizza
+(1,  NULL,   10000),   -- Trà tắc (1 size)
+(2,  'M',    80000),   -- Pizza thập cẩm size M
+(2,  'L',    120000),  -- Pizza thập cẩm size L (giả định)
+(3,  'M',    70000),   -- Pizza Bò size M
+(3,  'L',    110000),  -- Pizza Bò size L (giả định)
+(4,  'M',    70000),   -- Pizza xúc xích size M
+(4,  'L',    110000),  -- Pizza xúc xích size L
+(5,  'M',    95000),   -- Pizza hải sản size M
+(5,  'L',    135000),  -- Pizza hải sản size L
+-- Quán 7: Cơm 1990
+(6,  NULL,   40000),
+(7,  NULL,   40000),
+(8,  NULL,   50000),
+(9,  NULL,   40000),
+(10, NULL,   10000),
+-- Quán 8: Bún Đậu Mắm Tôm Gia Di
+(11, NULL,   40000),
+(12, NULL,   50000),
+(13, NULL,   75000),
+(14, NULL,   70000),
+(15, NULL,   75000),
+-- Quán 9: Quán Chay An Lạc Tâm
+(16, NULL,   35000),
+(17, NULL,   40000),
+(18, NULL,   38000),
+(19, NULL,   58000),
+(20, NULL,   29000),
+-- Quán 10: Chân Gà Nướng Bà Hồng
+(21, NULL,   39000),
+(22, NULL,   38000),
+(23, NULL,   60000),
+(24, NULL,   64000),
+(25, NULL,   56000),
+-- Quán 11: Trà Long
+(26, 'L',    33000),
+(27, 'L',    28000),
+(28, 'L',    28000),
+(29, 'L',    28000),
+(30, 'M',    35000),
+(31, NULL,   29000),
+(32, NULL,   20000),
+(33, NULL,   30000),
+(34, NULL,   29000),
+(35, NULL,   28000),
+-- Quán 12: Bún Mắm Bà Đông
+(36, NULL,   35000),
+(37, NULL,   45000),
+(38, NULL,   5000),
+(39, NULL,   45000),
+(40, NULL,   35000),
+(41, NULL,   40000),
+(42, NULL,   10000),
+(43, NULL,   40000),
+(44, NULL,   40000),
+(45, NULL,   45000),
+-- Quán 13: Đàng Hoàng
+(46, NULL,   275000),
+(47, NULL,   235000),
+(48, NULL,   225000),
+(49, NULL,   265000),
+(50, NULL,   190000),
+-- Quán 14: Sushi Totoro
+(51, NULL,   104000),
+(52, NULL,   199000),
+(53, NULL,   198000),
+(54, NULL,   189000),
+(55, NULL,   57000),
+(56, NULL,   95000),
+-- Quán 15: 43 Bakery
+(57, NULL,   110000),
+(58, NULL,   250000),
+(59, NULL,   220000),
+(60, NULL,   300000),
+(61, NULL,   270000),
+(62, NULL,   320000),
+(63, NULL,   350000);
 
 -- ==================== tbKhuyenMai ====================
 INSERT INTO tbKhuyenMai (makm, tenkm, mota, loaikm, phantramgiam, dieukien, ngaybatdau, ngayketthuc) VALUES
@@ -366,10 +463,11 @@ INSERT INTO tbKhuyenMai (makm, tenkm, mota, loaikm, phantramgiam, dieukien, ngay
 (3, 'Khuyến mãi mua hàng lớn', 'Giảm giá 10% cho hóa đơn từ 1 triệu trở lên', 'Giảm giá', 10, 'Hóa đơn từ 1 triệu', '2024-05-01 00:00:00', '2024-05-10 00:00:00');
 
 -- ==================== tbMonAnKhuyenMai ====================
+-- mamon giờ là id của tbBienTheMonAn
 INSERT INTO tbMonAnKhuyenMai (id, makm, mamon, soluong, trangthai, phantramgiam) VALUES
-(1, 1, 1, 48, 'Hết hạn', 20),
-(2, 2, 2, 30, 'Hết hạn', 30),
-(3, 2, 3, 20, 'Hết hạn', 10);
+(1, 1, 1, 48, 'Hết hạn', 20),    -- Trà tắc id=1
+(2, 2, 2, 30, 'Hết hạn', 30),    -- Pizza thập cẩm M id=2
+(3, 2, 4, 20, 'Hết hạn', 10);    -- Pizza Bò M id=4
 
 -- ==================== tbLoaiHinhThanhToan ====================
 INSERT INTO tbLoaiHinhThanhToan (mahttt, tenhinhthuc, mota) VALUES
@@ -390,10 +488,11 @@ INSERT INTO tbDonHang (madh, maquan, mattdh, ngaydathang, trangthai, tongtien, h
 (2, 6, 1, '2024-05-16 08:00:00', 'Đã đặt', 90000.0000, 1, 'Ghi chú đơn hàng', 1, 0.0000, 5000.0000, '2024-05-20 08:00:00', '2024-05-20 08:00:00', 3);
 
 -- ==================== tbChiTietDonHang ====================
+-- mamon giờ là id của tbBienTheMonAn
 INSERT INTO tbChiTietDonHang (mactdh, madh, mamon, soluong, dongia) VALUES
-(1, 1, 1, 1, 50000.0000),
-(2, 1, 2, 2, 75000.0000),
-(3, 2, 2, 1, 60000.0000);
+(1, 1, 1, 1, 50000.0000),   -- Trà tắc (bienthe id=1)
+(2, 1, 2, 1, 80000.0000),   -- Pizza thập cẩm M (bienthe id=2)
+(3, 2, 2, 1, 60000.0000);   -- Pizza thập cẩm M (bienthe id=2)
 
 -- ==================== tbDanhGia ====================
 INSERT INTO tbDanhGia (madg, mactdh, diemdanhgia, nhanxet, hinhanh) VALUES

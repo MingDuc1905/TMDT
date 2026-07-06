@@ -1,0 +1,415 @@
+@using ShipFood.Models
+@{
+    var categories = ViewBag.Categories as List<tbDanhMuc> ?? new List<tbDanhMuc>();
+    int? activeCatId = ViewBag.ActiveCategoryId as int?;
+    string sortBy = ViewBag.SortBy as string ?? "suggest";
+    bool isPromo = ViewBag.IsPromo as bool? ?? false;
+    bool isBestSeller = ViewBag.IsBestSeller as bool? ?? false;
+    bool isNearMe = ViewBag.IsNearMe as bool? ?? false;
+    string? maxPriceLevel = ViewBag.MaxPriceLevel as string;
+    string? maxDiet = ViewBag.MaxDiet as string;
+    string mode = ViewBag.Mode as string ?? "delivery";
+    string? query = ViewBag.Query as string;
+}
+
+<!-- ===== DUAL-FILTER BAR ===== -->
+<div class="fs-filter-bar" id="filterBar">
+    <div class="container">
+        <div class="fs-filter-bar-inner">
+            <!-- Nút "Lọc chi tiết" (mở Bottom Sheet) -->
+            <button type="button" class="fs-filter-detail-btn" id="openFilterSheet" aria-label="Mở bộ lọc chi tiết"
+                    onclick="openFilterSheet()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                    <line x1="4" y1="6" x2="20" y2="6"/>
+                    <line x1="8" y1="12" x2="20" y2="12"/>
+                    <line x1="12" y1="18" x2="20" y2="18"/>
+                    <circle cx="6" cy="6" r="1.5" fill="currentColor"/>
+                    <circle cx="10" cy="12" r="1.5" fill="currentColor"/>
+                    <circle cx="14" cy="18" r="1.5" fill="currentColor"/>
+                </svg>
+                <span>Bộ lọc</span>
+                <span class="fs-filter-badge" id="filterActiveBadge" style="display:none;">1</span>
+            </button>
+
+            <!-- Quick Filter Chips (Horizontal Scroll) -->
+            <div class="fs-filter-chips" id="filterChips">
+                <button type="button" class="fs-chip @(isPromo ? "active" : "")" data-filter="promo" onclick="toggleChip('promo')">
+                    🔥 Khuyến mãi
+                </button>
+                <button type="button" class="fs-chip @(isBestSeller ? "active" : "")" data-filter="bestseller" onclick="toggleChip('bestseller')">
+                    ⭐ Bán chạy
+                </button>
+                <button type="button" class="fs-chip" data-filter="nearme" onclick="toggleChip('nearme')">
+                    📍 Gần đây
+                </button>
+                <button type="button" class="fs-chip" data-filter="quick" onclick="toggleChip('quick')">
+                    ⚡ Dưới 30 phút
+                </button>
+                <button type="button" class="fs-chip" data-filter="rated" onclick="toggleChip('rated')">
+                    👍 Đánh giá tốt (Từ 4.4)
+                </button>
+                <button type="button" class="fs-chip @(mode == "pickup" ? "active" : "")" data-filter="mode" onclick="toggleChip('mode')">
+                    🚶 Tự đến lấy
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== BOTTOM SHEET (Filter chi tiết) ===== -->
+<div class="fs-bottom-sheet-overlay" id="filterSheetOverlay" onclick="closeFilterSheet(event)">
+    <div class="fs-bottom-sheet" id="filterSheet">
+        <div class="fs-sheet-handle"></div>
+        <div class="fs-sheet-header">
+            <h4>Bộ lọc tìm kiếm</h4>
+            <button type="button" class="fs-sheet-close" onclick="closeFilterSheet()">&times;</button>
+        </div>
+
+        <div class="fs-sheet-body">
+            <!-- Cách thức -->
+            <div class="fs-sheet-section">
+                <label class="fs-sheet-label">Cách thức</label>
+                <div class="fs-radio-group">
+                    <label class="fs-radio @(mode == "delivery" ? "active" : "")">
+                        <input type="radio" name="filterMode" value="delivery" @(mode == "delivery" ? "checked" : "") onchange="updateFilter()">
+                        🛵 Giao hàng
+                    </label>
+                    <label class="fs-radio @(mode == "pickup" ? "active" : "")">
+                        <input type="radio" name="filterMode" value="pickup" @(mode == "pickup" ? "checked" : "") onchange="updateFilter()">
+                        🚶 Tự đến lấy
+                    </label>
+                </div>
+            </div>
+
+            <!-- Sắp xếp -->
+            <div class="fs-sheet-section">
+                <label class="fs-sheet-label">Sắp xếp theo</label>
+                <div class="fs-radio-group">
+                    <label class="fs-radio @(sortBy == "suggest" ? "active" : "")">
+                        <input type="radio" name="sortBy" value="suggest" @(sortBy == "suggest" ? "checked" : "") onchange="updateFilter()">
+                        ✨ Gợi ý
+                    </label>
+                    <label class="fs-radio @(sortBy == "rating" ? "active" : "")">
+                        <input type="radio" name="sortBy" value="rating" @(sortBy == "rating" ? "checked" : "") onchange="updateFilter()">
+                        ⭐ Đánh giá
+                    </label>
+                    <label class="fs-radio @(sortBy == "price_asc" ? "active" : "")">
+                        <input type="radio" name="sortBy" value="price_asc" @(sortBy == "price_asc" ? "checked" : "") onchange="updateFilter()">
+                        💰 Giá: Thấp → Cao
+                    </label>
+                    <label class="fs-radio @(sortBy == "price_desc" ? "active" : "")">
+                        <input type="radio" name="sortBy" value="price_desc" @(sortBy == "price_desc" ? "checked" : "") onchange="updateFilter()">
+                        💰 Giá: Cao → Thấp
+                    </label>
+                </div>
+            </div>
+
+            <!-- Khoảng giá -->
+            <div class="fs-sheet-section">
+                <label class="fs-sheet-label">Khoảng giá</label>
+                <div class="fs-price-grid">
+                    @{
+                        var priceLevels = new[] {
+                            new { Value = "", Label = "Tất cả" },
+                            new { Value = "1", Label = "1$" },
+                            new { Value = "2", Label = "2$" },
+                            new { Value = "3", Label = "3$" },
+                            new { Value = "4", Label = "4$" }
+                        };
+                    }
+                    @foreach (var pl in priceLevels)
+                    {
+                        <button type="button" class="fs-price-btn @(maxPriceLevel == pl.Value ? "active" : "")"
+                                data-value="@pl.Value" onclick="selectPriceLevel('@pl.Value')">
+                            @pl.Label
+                        </button>
+                    }
+                </div>
+            </div>
+
+            <!-- Loại ẩm thực (Grid) -->
+            <div class="fs-sheet-section">
+                <label class="fs-sheet-label">Loại ẩm thực</label>
+                <div class="fs-category-grid">
+                    <button type="button" class="fs-cat-btn @(activeCatId == null ? "active" : "")" data-value=""
+                            onclick="selectCategory('')">
+                        🍽️ Tất cả
+                    </button>
+                    @foreach (var cat in categories)
+                    {
+                        <button type="button" class="fs-cat-btn @(activeCatId == cat.madanhmuc ? "active" : "")"
+                                data-value="@cat.madanhmuc" onclick="selectCategory(@cat.madanhmuc)">
+                            @cat.tendanhmuc
+                        </button>
+                    }
+                </div>
+            </div>
+
+            <!-- Tùy chọn quán (Checkbox) -->
+            <div class="fs-sheet-section">
+                <label class="fs-sheet-label">Tùy chọn thêm</label>
+                <div class="fs-checkbox-group">
+                    <label class="fs-checkbox @(isPromo ? "active" : "")">
+                        <input type="checkbox" @(isPromo ? "checked" : "") onchange="toggleSheetCheckbox('promo', this)">
+                        🔥 Có khuyến mãi
+                    </label>
+                    <label class="fs-checkbox @(isBestSeller ? "active" : "")">
+                        <input type="checkbox" @(isBestSeller ? "checked" : "") onchange="toggleSheetCheckbox('bestseller', this)">
+                        ⭐ Bán chạy nhất
+                    </label>
+                    <label class="fs-checkbox">
+                        <input type="checkbox" onchange="toggleSheetCheckbox('vegetarian', this)">
+                        🌱 Đồ chay
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="fs-sheet-footer">
+            <button type="button" class="fs-btn-reset" onclick="resetFilters()">Đặt lại</button>
+            <button type="button" class="fs-btn-apply" onclick="applyFilters()">Áp dụng</button>
+        </div>
+    </div>
+</div>
+
+<style>
+/* ─── FILTER BAR STYLES ─── */
+.fs-filter-bar {
+    background: var(--fs-white);
+    border-bottom: 1px solid var(--fs-border-soft);
+    padding: 8px 0;
+    position: sticky;
+    top: 76px;
+    z-index: 100;
+    box-shadow: 0 1px 4px rgba(0,0,0,.04);
+}
+.fs-filter-bar-inner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.fs-filter-detail-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border: 1.5px solid var(--fs-border);
+    border-radius: 10px;
+    background: var(--fs-white);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--fs-body);
+    flex-shrink: 0;
+    transition: all .2s;
+    position: relative;
+}
+.fs-filter-detail-btn:hover { border-color: var(--fs-green); color: var(--fs-green); }
+.fs-filter-badge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    background: var(--fs-danger);
+    color: #fff;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.fs-filter-chips {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    flex: 1;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding: 2px 0;
+}
+.fs-filter-chips::-webkit-scrollbar { display: none; }
+.fs-chip {
+    white-space: nowrap;
+    padding: 7px 18px;
+    border: 1.5px solid var(--fs-border);
+    border-radius: 20px;
+    background: var(--fs-white);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--fs-muted);
+    transition: all .2s;
+    flex-shrink: 0;
+}
+.fs-chip:hover { border-color: var(--fs-green); color: var(--fs-green); }
+.fs-chip.active {
+    background: var(--fs-green);
+    color: #fff;
+    border-color: var(--fs-green);
+}
+
+/* ─── BOTTOM SHEET ─── */
+.fs-bottom-sheet-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,.5);
+    z-index: 9999;
+    align-items: flex-end;
+    justify-content: center;
+}
+.fs-bottom-sheet-overlay.open { display: flex; }
+.fs-bottom-sheet {
+    background: #fff;
+    border-radius: 20px 20px 0 0;
+    width: 100%;
+    max-width: 600px;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    animation: slideUp .3s ease;
+}
+@@keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+}
+.fs-sheet-handle {
+    width: 36px; height: 4px;
+    background: #ddd;
+    border-radius: 2px;
+    margin: 10px auto 0;
+}
+.fs-sheet-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px 12px;
+    border-bottom: 1px solid #eee;
+}
+.fs-sheet-header h4 { margin: 0; font-weight: 700; font-size: 17px; }
+.fs-sheet-close {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    border: none;
+    background: #f0f0f0;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #666;
+    transition: all .2s;
+}
+.fs-sheet-close:hover { background: var(--fs-danger); color: #fff; }
+.fs-sheet-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 20px 16px;
+}
+.fs-sheet-section { margin: 16px 0; }
+.fs-sheet-label {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1a1a2e;
+    display: block;
+    margin-bottom: 10px;
+}
+.fs-radio-group, .fs-checkbox-group { display: flex; flex-wrap: wrap; gap: 8px; }
+.fs-radio, .fs-checkbox {
+    padding: 10px 16px;
+    border: 1.5px solid #dee2e6;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all .2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.fs-radio:hover, .fs-checkbox:hover { border-color: var(--fs-green); }
+.fs-radio.active, .fs-checkbox.active {
+    border-color: var(--fs-green);
+    background: #f0fff0;
+    color: var(--fs-green);
+}
+.fs-radio input, .fs-checkbox input { display: none; }
+.fs-price-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+}
+.fs-price-btn {
+    padding: 10px;
+    border: 1.5px solid #dee2e6;
+    border-radius: 10px;
+    background: #fff;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+    transition: all .2s;
+}
+.fs-price-btn:hover { border-color: var(--fs-green); }
+.fs-price-btn.active {
+    background: var(--fs-green);
+    color: #fff;
+    border-color: var(--fs-green);
+}
+.fs-category-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+.fs-cat-btn {
+    padding: 10px 8px;
+    border: 1.5px solid #dee2e6;
+    border-radius: 10px;
+    background: #fff;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    text-align: center;
+    transition: all .2s;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.fs-cat-btn:hover { border-color: var(--fs-green); }
+.fs-cat-btn.active {
+    background: var(--fs-green);
+    color: #fff;
+    border-color: var(--fs-green);
+}
+.fs-sheet-footer {
+    display: flex;
+    gap: 10px;
+    padding: 14px 20px 20px;
+    border-top: 1px solid #eee;
+}
+.fs-btn-reset, .fs-btn-apply {
+    flex: 1;
+    padding: 12px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    transition: opacity .2s;
+}
+.fs-btn-reset {
+    background: #f0f0f0;
+    color: #666;
+}
+.fs-btn-apply {
+    background: var(--fs-green);
+    color: #fff;
+}
+.fs-btn-apply:hover { opacity: .88; }
+@@media (max-width: 576px) {
+    .fs-category-grid { grid-template-columns: repeat(2, 1fr); }
+    .fs-price-grid { grid-template-columns: repeat(3, 1fr); }
+    .fs-filter-bar { top: 68px; }
+}
+</style>

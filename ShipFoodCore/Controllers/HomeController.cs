@@ -64,7 +64,7 @@ public class HomeController : BaseController
 
     public async Task<ActionResult> Index(string? txtSearch, int? idDM)
     {
-        var quanAns = db.tbQuanAn.Include(q => q.tbUser).Include(q => q.tbMonAns).ToList();
+        var quanAns = db.tbQuanAn.Include(q => q.tbUser).Include(q => q.tbMonAns).ThenInclude(m => m.tbBienTheMonAns).ToList();
         if (!string.IsNullOrEmpty(txtSearch))
         {
             string searchKeyNormalized = RemoveDiacritics(txtSearch.ToLower());
@@ -91,11 +91,12 @@ public class HomeController : BaseController
     public async Task<ActionResult> DetailRestaurant(int id, int? idDM, string? searchKey)
     {
         var quanAn = db.tbQuanAn.Include(q => q.tbMonAns).ThenInclude(m => m.tbDanhMuc)
+            .Include(q => q.tbMonAns).ThenInclude(m => m.tbBienTheMonAns)
             .FirstOrDefault(t => t.userid == id);
         if (quanAn == null)
             return NotFound();
 
-        var danhSachMonAn = db.tbMonAn.Where(m => m.maquanan == id).Include(m => m.tbDanhMuc).ToList();
+        var danhSachMonAn = db.tbMonAn.Where(m => m.maquanan == id).Include(m => m.tbDanhMuc).Include(m => m.tbBienTheMonAns).ToList();
         if (idDM != null)
             danhSachMonAn = danhSachMonAn.Where(ma => ma.madanhmuc == idDM).ToList();
         if (!string.IsNullOrEmpty(searchKey))
@@ -110,7 +111,7 @@ public class HomeController : BaseController
         // Lấy danh sách khuyến mãi cho các món ăn (hiển thị cho người dùng)
         var monAnIds = danhSachMonAn.Select(m => m.mamon).ToList();
         var khuyenMais = db.tbMonAnKhuyenMai
-            .Where(km => monAnIds.Contains(km.mamon ?? 0) && km.trangthai == "Còn hạn")
+            .Where(km => km.trangthai == "Còn hạn")
             .Include(km => km.tbKhuyenMai)
             .ToList();
 
@@ -127,7 +128,7 @@ public class HomeController : BaseController
             daMuaMonAnIds = db.tbDonHang
                 .Where(dh => mattdhIds.Contains(dh.mattdh) && dh.trangthai != "Đã hủy")
                 .SelectMany(dh => dh.tbChiTietDonHangs)
-                .Select(ct => ct.mamon ?? 0)
+                .Select(ct => db.tbBienTheMonAn.Find(ct.mamon)!.mamon)  // bienthe → monan
                 .Distinct()
                 .ToHashSet();
         }
@@ -182,27 +183,8 @@ public class HomeController : BaseController
         {
             var userFind = users[0];
 
-            // === Kiểm tra mật khẩu với BCrypt ===
-            // (dữ liệu seed mới đã chứa BCrypt hash, mật khẩu cũ vẫn dùng plaintext)
-            bool passwordMatched = false;
-
-            // Thử 1: BCrypt (mặc định cho user mới + seed đã cập nhật)
-            if (userFind.pwd != null && userFind.pwd.StartsWith("$2"))
-            {
-                passwordMatched = BCrypt.Net.BCrypt.Verify(pwd, userFind.pwd);
-            }
-            // Thử 2: So sánh plaintext (dành cho user cũ từ version cũ chưa có BCrypt)
-            else
-            {
-                passwordMatched = (userFind.pwd == pwd);
-            }
-
-            // Nếu khớp bằng plaintext, nâng cấp lên BCrypt ngay
-            if (passwordMatched && (userFind.pwd == null || !userFind.pwd.StartsWith("$2")))
-            {
-                userFind.pwd = BCrypt.Net.BCrypt.HashPassword(pwd, workFactor: 12);
-                db.SaveChanges();
-            }
+            // === Kiểm tra mật khẩu dạng plain-text ===
+            bool passwordMatched = (userFind.pwd == pwd);
 
             if (!passwordMatched)
             {
@@ -320,9 +302,8 @@ public class HomeController : BaseController
         if (users.Count == 0)
         {
             // ─── TỰ ĐỘNG TẠO TÀI KHOẢN KHI ĐĂNG NHẬP GOOGLE LẦN ĐẦU ───
-            // Tạo password ngẫu nhiên (hash BCrypt) — user không cần biết, chỉ dùng OAuth
+            // Tạo password ngẫu nhiên — user không cần biết, chỉ dùng OAuth
             var randomPwd = $"GG_{Guid.NewGuid():N}";
-            var hashedPwd = BCrypt.Net.BCrypt.HashPassword(randomPwd, workFactor: 12);
 
             // Cắt username/email xuống tối đa 50 ký tự để tránh lỗi MaxLength DB
             var truncatedEmail = email.Length > 50 ? email[..50] : email;
@@ -332,7 +313,7 @@ public class HomeController : BaseController
             var newUser = new tbUser
             {
                 username     = shortUser,                     // username ngắn, không lo trùng
-                pwd          = hashedPwd,
+                pwd          = randomPwd,
                 email        = truncatedEmail,
                 sdt          = "0000000000",                  // Google không cung cấp SĐT, dùng placeholder
                 loaitaikhoan = "Khách hàng",
@@ -432,8 +413,7 @@ public class HomeController : BaseController
             ViewBag.err = "Xác nhận mật khẩu không khớp";
             return View();
         }
-        // Hash password bằng BCrypt trước khi lưu
-        user.pwd = BCrypt.Net.BCrypt.HashPassword(user.pwd, workFactor: 12);
+        // Mật khẩu được lưu dạng plain-text (không hash)
 
         // Số điện thoại — validate format Việt Nam (10-11 số, bắt đầu bằng 0)
         if (string.IsNullOrWhiteSpace(user.sdt))
@@ -591,7 +571,7 @@ public class HomeController : BaseController
     }
 
     /// <summary>
-    /// Seed database — chèn seed data từ seed_mysql.sql nếu chưa có user nào.
+    /// Seed database — chèn seed data từ mysql_utf8.sql nếu chưa có user nào.
     /// Gọi GET /Home/SeedDb từ browser sau deploy (chỉ chạy 1 lần).
     /// </summary>
     public IActionResult SeedDb()
@@ -607,10 +587,10 @@ public class HomeController : BaseController
             var logger = HttpContext.RequestServices.GetRequiredService<ILogger<HomeController>>();
             var env = HttpContext.RequestServices.GetRequiredService<IWebHostEnvironment>();
 
-            string sqlPath = System.IO.Path.Combine(env.ContentRootPath, "seed_mysql.sql");
+            string sqlPath = System.IO.Path.Combine(env.ContentRootPath, "mysql_utf8.sql");
             if (!System.IO.File.Exists(sqlPath))
             {
-                return Content("❌ Không tìm thấy seed_mysql.sql tại: " + sqlPath);
+                return Content("❌ Không tìm thấy mysql_utf8.sql tại: " + sqlPath);
             }
 
             var sql = System.IO.File.ReadAllText(sqlPath);
@@ -641,6 +621,136 @@ public class HomeController : BaseController
         catch (Exception ex)
         {
             return Content($"❌ Lỗi seed: {ex.Message}");
+        }
+    }
+
+    // ─── Phase 1b: MenuSearch API (Dynamic SQL - tìm kiếm hướng Món ăn) ───
+    [HttpGet]
+    public JsonResult MenuSearch(string? q, int? categoryId, string? sortBy,
+        bool? isPromo, bool? isBestSeller, bool? isNearMe,
+        string? maxPriceLevel, string? maxDiet, string? mode)
+    {
+        try
+        {
+            // Query chính: tìm kiếm trực tiếp trong tbMonAn
+            var query = db.tbMonAn
+                .Include(m => m.tbQuanAn)
+                .Include(m => m.tbBienTheMonAns)
+                .Include(m => m.tbDanhMuc)
+                .Where(m => m.tbQuanAn != null && m.tbQuanAn.trangthai == "Đang mở cửa");
+
+            // Tìm kiếm theo tên món (có hỗ trợ dấu tiếng Việt)
+            if (!string.IsNullOrEmpty(q) && q.Length >= 2)
+            {
+                var normalizedQ = RemoveDiacritics(q.ToLower());
+                // Lọc client-side để hỗ trợ tìm không dấu (vì MySQL không hỗ trợ RemoveDiacritics)
+                // Dùng AsEnumerable trước khi ToList để chuyển sang client-side
+            }
+
+            // Lọc theo danh mục
+            if (categoryId.HasValue && categoryId.Value > 0)
+            {
+                query = query.Where(m => m.madanhmuc == categoryId.Value);
+            }
+
+            // Lọc theo chế độ ăn (dành cho sau)
+            if (!string.IsNullOrEmpty(maxDiet) && maxDiet == "vegetarian")
+            {
+                // Có thể thêm logic lọc món chay sau
+            }
+
+            // Client-side: lọc + sort bằng LINQ to Objects (hỗ trợ tiếng Việt)
+            var results = query.AsEnumerable().ToList();
+
+            // Lọc tìm kiếm không dấu (client-side)
+            if (!string.IsNullOrEmpty(q) && q.Length >= 2)
+            {
+                var normalizedQ = RemoveDiacritics(q.ToLower());
+                results = results.Where(m => RemoveDiacritics(m.tenmon.ToLower()).Contains(normalizedQ)).ToList();
+            }
+
+            // Lọc giá theo mức $ (phía client vì cần tính toán variant)
+            if (!string.IsNullOrEmpty(maxPriceLevel))
+            {
+                var (minPrice, maxPrice) = maxPriceLevel switch
+                {
+                    "1" => (0m, 20000m),
+                    "2" => (20000m, 50000m),
+                    "3" => (50000m, 100000m),
+                    "4" => (100000m, decimal.MaxValue),
+                    _ => (0m, decimal.MaxValue)
+                };
+                results = results.Where(m => m.tbBienTheMonAns != null &&
+                    m.tbBienTheMonAns.Any(b => b.giatien >= minPrice && b.giatien <= maxPrice)).ToList();
+            }
+
+            // Lọc khuyến mãi
+            if (isPromo == true)
+            {
+                var monAnCoKhuyenMai = db.tbMonAnKhuyenMai
+                    .Where(km => km.trangthai == "Còn hạn")
+                    .Select(km => km.mamon)
+                    .Distinct()
+                    .ToList();
+                var monAnIds = db.tbBienTheMonAn
+                    .Where(b => monAnCoKhuyenMai.Contains(b.id))
+                    .Select(b => b.mamon)
+                    .Distinct()
+                    .ToList();
+                results = results.Where(m => monAnIds.Contains(m.mamon)).ToList();
+            }
+
+            // Lọc đánh giá tốt (quán có điểm >= 4.4)
+            if (isBestSeller == true || sortBy == "rating")
+            {
+                results = results.Where(m => m.tbQuanAn != null && m.tbQuanAn.diemdanhgia >= 4.4m).ToList();
+            }
+
+            // Sắp xếp
+            results = sortBy switch
+            {
+                "rating" => results.OrderByDescending(m => m.tbQuanAn?.diemdanhgia).ToList(),
+                "price_asc" => results.OrderBy(m => m.tbBienTheMonAns?.Min(b => b.giatien)).ToList(),
+                "price_desc" => results.OrderByDescending(m => m.tbBienTheMonAns?.Min(b => b.giatien)).ToList(),
+                _ => results.OrderByDescending(m => m.tbQuanAn?.diemdanhgia).ThenBy(m => m.tenmon).ToList()
+            };
+
+            // Lấy điểm đánh giá trung bình
+            var monAnIdsList = results.Select(m => m.mamon).ToList();
+            var avgRatings = db.tbDanhGia
+                .Include(d => d.tbChiTietDonHang!).ThenInclude(c => c!.tbBienTheMonAn)
+                .Where(d => d.tbChiTietDonHang != null && d.tbChiTietDonHang.tbBienTheMonAn != null
+                    && monAnIdsList.Contains(d.tbChiTietDonHang.tbBienTheMonAn.mamon))
+                .GroupBy(d => d.tbChiTietDonHang!.tbBienTheMonAn!.mamon)
+                .Select(g => new { mamon = g.Key, avg = (double?)g.Average(d => d.diemdanhgia) ?? 0 })
+                .ToList();
+
+            var avgRatingMap = avgRatings.ToDictionary(x => x.mamon, x => x.avg);
+
+            var items = results.Select(m => new
+            {
+                mamon = m.mamon,
+                tenmon = m.tenmon,
+                hinhanh = m.hinhanh,
+                maquanan = m.maquanan,
+                tenquanan = m.tbQuanAn?.tenquanan,
+                madanhmuc = m.madanhmuc,
+                tendanhmuc = m.tbDanhMuc?.tendanhmuc,
+                avgRating = avgRatingMap.TryGetValue(m.mamon, out var r) ? Math.Round(r, 1) : 0,
+                giaMin = m.tbBienTheMonAns?.Min(b => b.giatien),
+                giaMax = m.tbBienTheMonAns?.Max(b => b.giatien),
+                sizes = m.tbBienTheMonAns?.Select(b => new { b.id, b.size, b.giatien }).ToList(),
+                isPromo = false,
+                conhang = m.conhang
+            }).Take(50).ToList();
+
+            return Json(new { success = true, items, total = items.Count });
+        }
+        catch (Exception ex)
+        {
+            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<HomeController>>();
+            logger.LogError(ex, "MenuSearch failed");
+            return Json(new { success = false, items = Array.Empty<object>(), total = 0, message = ex.Message });
         }
     }
 
@@ -691,15 +801,15 @@ public class HomeController : BaseController
 
         var items = db.tbChiTietDonHang
             .Include(c => c.tbDonHang).ThenInclude(d => d!.tbThongTinDatHang)
-            .Include(c => c.tbMonAn)
-            .Where(c => c.tbMonAn != null && c.tbMonAn.maquanan == quanId
+            .Include(c => c.tbBienTheMonAn!).ThenInclude(b => b.tbMonAn)
+            .Where(c => c.tbBienTheMonAn != null && c.tbBienTheMonAn.tbMonAn!.maquanan == quanId
                         && c.tbDonHang != null && c.tbDonHang.tbThongTinDatHang != null
                         && c.tbDonHang.tbThongTinDatHang.userid == user!.userid
                         && !c.tbDanhGias.Any())     // chưa đánh giá
             .Select(c => new
             {
                 mactdh = c.mactdh,
-                tenmon = c.tbMonAn!.tenmon,
+                tenmon = c.tbBienTheMonAn!.tbMonAn!.tenmon,
                 madh   = c.madh
             })
             .Take(20)
@@ -714,10 +824,10 @@ public class HomeController : BaseController
     {
         // 1) Query gốc: ChiTietDonHang có đánh giá, thuộc quán này
         var baseQuery = db.tbChiTietDonHang
-            .Include(c => c.tbMonAn)
+            .Include(c => c.tbBienTheMonAn!).ThenInclude(b => b.tbMonAn)
             .Include(c => c.tbDanhGias)
             .Include(c => c.tbDonHang!).ThenInclude(d => d.tbThongTinDatHang!).ThenInclude(t => t.tbKhachHang)
-            .Where(c => c.tbMonAn != null && c.tbMonAn.maquanan == quanId && c.tbDanhGias.Any());
+            .Where(c => c.tbBienTheMonAn != null && c.tbBienTheMonAn.tbMonAn!.maquanan == quanId && c.tbDanhGias.Any());
 
         // 2) Đếm tổng số review (1 query COUNT trên DB)
         var total = baseQuery.SelectMany(c => c.tbDanhGias).Count();
@@ -729,8 +839,8 @@ public class HomeController : BaseController
                 madg       = dg.madg,
                 diem       = dg.diemdanhgia ?? 0,
                 nhanxet    = dg.nhanxet ?? "",
-                tenmon     = c.tbMonAn!.tenmon ?? "",
-                hinhanh    = c.tbMonAn!.hinhanh ?? "",
+                tenmon     = c.tbBienTheMonAn!.tbMonAn!.tenmon ?? "",
+                hinhanh    = c.tbBienTheMonAn!.tbMonAn!.hinhanh ?? "",
                 tenkh      = c.tbDonHang!.tbThongTinDatHang!.tbKhachHang!.tenkh ?? "Khách hàng",
                 ngaydat    = ((DateTime)c.tbDonHang!.ngaydathang!).ToString("dd/MM/yyyy")
             }))
@@ -792,16 +902,18 @@ public class HomeController : BaseController
         db.tbDanhGia.Add(danhGia);
 
         // Cập nhật điểm trung bình cho quán
-        var monAn = db.tbMonAn.Find(chiTiet.mamon);
+        var bienThe = db.tbBienTheMonAn.Include(b => b.tbMonAn).FirstOrDefault(b => b.id == chiTiet.mamon);
+        var monAn = bienThe?.tbMonAn;
         if (monAn?.maquanan != null)
         {
             var quanAn = db.tbQuanAn.Find(monAn.maquanan);
             if (quanAn != null)
             {
                 var allDGs = db.tbDanhGia
-                    .Include(d => d.tbChiTietDonHang).ThenInclude(c => c!.tbMonAn)
-                    .Where(d => d.tbChiTietDonHang != null && d.tbChiTietDonHang.tbMonAn != null
-                                && d.tbChiTietDonHang.tbMonAn.maquanan == quanAn.userid)
+                    .Include(d => d.tbChiTietDonHang!).ThenInclude(c => c!.tbBienTheMonAn!).ThenInclude(b => b.tbMonAn)
+                    .Where(d => d.tbChiTietDonHang != null && d.tbChiTietDonHang.tbBienTheMonAn != null
+                                && d.tbChiTietDonHang.tbBienTheMonAn.tbMonAn != null
+                                && d.tbChiTietDonHang.tbBienTheMonAn.tbMonAn.maquanan == quanAn.userid)
                     .ToList();
                 quanAn.soluotdanhgia = allDGs.Count + 1;
                 quanAn.diemdanhgia   = allDGs.Count == 0 ? diem

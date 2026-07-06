@@ -109,3 +109,33 @@
     </div>
 </div>
 
+@section scripts {
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+<script>
+// Phase 5: Admin Dashboard Real-time — tự động cập nhật đơn mới
+$(document).ready(function() {
+    var conn = new signalR.HubConnectionBuilder()
+        .withUrl('/nhantin')
+        .withAutomaticReconnect()
+        .build();
+
+    conn.on('newOrder', function(data) {
+        var toast = $('<div style="position:fixed;top:80px;right:20px;z-index:9999;background:#3CB815;color:#fff;padding:14px 20px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.2);font-size:13px;max-width:380px;">'
+            + '<strong>📦 Đơn hàng mới!</strong><br>'
+            + 'Mã ĐH: #' + data.orderId + ' — ' + (data.customerName || 'Khách') + '<br>'
+            + '<small>' + (data.totalAmount || 0).toLocaleString('vi-VN') + ' đ</small>'
+            + '</div>');
+        $('body').append(toast);
+        setTimeout(function(){ toast.fadeOut(400, function(){ $(this).remove(); }); }, 6000);
+        setTimeout(function() { location.reload(); }, 2000);
+    });
+
+    conn.on('orderStatusChanged', function(madh, trangthai) {
+        $('a[href*="OrderDetail?id=' + madh + '"]').closest('tr').css('background', '#fffde7');
+        setTimeout(function() { $('a[href*="OrderDetail?id=' + madh + '"]').closest('tr').css('background', ''); }, 3000);
+    });
+
+    conn.start().catch(function(err) { console.error('Admin SignalR:', err); });
+});
+</script>
+}

@@ -1,14 +1,19 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using ShipFood.Hubs;
 using ShipFood.Models;
 
 namespace ShipFood.Controllers;
 
 public class ShipperController : BaseController
 {
-    public ShipperController(dbFoodyEntities context)
+    private readonly IHubContext<Chats> _hubContext;
+
+    public ShipperController(dbFoodyEntities context, IHubContext<Chats> hubContext)
     {
         db = context;
+        _hubContext = hubContext;
     }
 
     private bool checkShipper()
@@ -103,10 +108,10 @@ public class ShipperController : BaseController
         if (existingUser != null)
         {
             existingUser.sdt = user.sdt;
-            // Chỉ hash password nếu có thay đổi (không rỗng, khác current)
+            // Chỉ cập nhật password nếu có thay đổi (không rỗng, khác current)
             if (!string.IsNullOrEmpty(user.pwd) && user.pwd != existingUser.pwd)
             {
-                existingUser.pwd = BCrypt.Net.BCrypt.HashPassword(user.pwd, workFactor: 12);
+                existingUser.pwd = user.pwd;
             }
             db.SaveChanges();
         }
@@ -173,13 +178,14 @@ public class ShipperController : BaseController
     public ActionResult NhanTin() => View();
 
     [HttpPost]
-    public JsonResult UpdateDonHang(string status, int id)
+    public async Task<JsonResult> UpdateDonHang(string status, int id)
     {
         if (!checkShipper())
             return Json(new { success = false, message = "Không có quyền thực hiện" });
         string? trangthai = null;
         if (status == "lh") trangthai = "Đã lấy";
         if (status == "ht") trangthai = "Hoàn thành";
+        if (status == "dg") trangthai = "Đang giao";
 
         if (trangthai != null)
         {
@@ -190,6 +196,14 @@ public class ShipperController : BaseController
                 if (trangthai == "Hoàn thành")
                     donhang.ngaythanhtoan = DateTime.Now;
                 db.SaveChanges();
+
+                // SignalR broadcast real-time đến khách hàng
+                try
+                {
+                    await _hubContext.Clients.Group($"order_{id}").SendAsync("orderStatusChanged", id, trangthai, DateTime.Now.ToString("HH:mm"));
+                }
+                catch { }
+
                 return Json(new { success = true, message = "Order status updated successfully" });
             }
         }

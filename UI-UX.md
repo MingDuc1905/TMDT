@@ -1,6 +1,6 @@
 # Fastship (ShipFood) — UI/UX Documentation (Full)
 
-> **Phiên bản**: 5.0 — Phase 1-5 Full Upgrade: Dual-Filter Bar, MoMo Payment, RoleGuard Middleware, Real-time Order Tracking, Admin Dashboard Real-time  
+> **Phiên bản**: 5.1 — Bảo mật API, chuẩn hóa DB, MoMo Refund, Data Protection, Fix 5 critical bugs  
 > **Cập nhật**: Tháng 7, 2026  
 > **Mô tả**: Tài liệu thiết kế giao diện & trải nghiệm người dùng toàn diện cho nền tảng đặt đồ ăn Fastship  
 > **Tài liệu liên quan**: Project.md — Tổng quan kiến trúc & phát triển
@@ -2079,10 +2079,10 @@ LOGIN ──→ DASHBOARD (with LIVE MAP)
 
 ---
 
-> **Document Version**: 5.0 (Full)  
+> **Document Version**: 5.1 (Full)  
 > **Cập nhật**: Tháng 7, 2026  
-> **Based on**: ...  
-> **Key changes v5.0**: ...
+> **Based on**: Project.md  
+> **Key changes v5.1**: Bảo mật API (CheckRoleJson 403), Chuẩn hóa DB (DECIMAL(2,1), ON DELETE RESTRICT), MoMo Refund + momo_trans_id, Data Protection keys bền vững, Fix 5 critical bugs (NotMapped Include, Find trong LINQ, FK khuyenMai)
 
 ---
 

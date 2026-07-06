@@ -1,7 +1,7 @@
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/Fastship-v3.6-3CB815?style=for-the-badge&logo=dotnet&logoColor=white&labelColor=111">
-    <img src="https://img.shields.io/badge/Fastship-v3.6-3CB815?style=for-the-badge&logo=dotnet&logoColor=white&labelColor=fff" alt="Fastship v3.6">
+    <img src="https://img.shields.io/badge/Fastship-v5.1-3CB815?style=for-the-badge&logo=dotnet&logoColor=white&labelColor=fff" alt="Fastship v5.1">
   </picture>
 </p>
 
@@ -18,6 +18,7 @@
   <a href="https://dotnet.microsoft.com/download/dotnet/8.0"><img src="https://img.shields.io/badge/.NET_8-512BD4?style=flat-square&logo=dotnet&logoColor=white" alt=".NET 8"></a>
   <a href="https://www.mysql.com/"><img src="https://img.shields.io/badge/MySQL-4479A1?style=flat-square&logo=mysql&logoColor=white" alt="MySQL"></a>
   <a href="https://learn.microsoft.com/en-us/aspnet/core/signalr/"><img src="https://img.shields.io/badge/SignalR-512BD4?style=flat-square&logo=dotnet&logoColor=white" alt="SignalR"></a>
+  <a href="https://leafletjs.com/"><img src="https://img.shields.io/badge/MoMo_Sandbox-A50064?style=flat-square&logo=data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMTIgMkM2LjQ4IDIgMiA2LjQ4IDIgMTJzNC40OCAxMCAxMCAxMCAxMC00LjQ4IDEwLTEwUzE3LjUyIDIgMTIgMnptMCAxOGMtNC40MSAwLTgtMy41OS04LThzMy41OS04IDgtOCA4IDMuNTkgOCA4LTMuNTkgOC04IDh6IiBmaWxsPSJ3aGl0ZSIvPjwvc3ZnPg==&logoColor=white" alt="MoMo Payment"></a>
   <a href="https://leafletjs.com/"><img src="https://img.shields.io/badge/Leaflet.js-199900?style=flat-square&logo=leaflet&logoColor=white" alt="Leaflet.js"></a>
   <a href="https://ai.google.dev/"><img src="https://img.shields.io/badge/Gemini_AI-4285F4?style=flat-square&logo=googlegemini&logoColor=white" alt="Gemini AI"></a>
   <a href="https://getbootstrap.com/"><img src="https://img.shields.io/badge/Bootstrap_5-7952B3?style=flat-square&logo=bootstrap&logoColor=white" alt="Bootstrap 5"></a>
@@ -101,8 +102,8 @@
     </tr>
     <tr>
       <td align="center">
-        <b>🛡️ BCrypt</b><br>
-        <sub>Password hashing<br>workFactor 12</sub>
+        <b>🔐 Plain-text</b><br>
+        <sub>Password comparison<br>user.pwd == pwd</sub>
       </td>
       <td align="center">
         <b>📱 Responsive</b><br>
@@ -302,7 +303,7 @@ dotnet run
   </tr>
   <tr>
     <td><b>Auth</b></td>
-    <td>BCrypt.Net-Next</td>
+    <td>Cookie + Session</td>
     <td><b>Font</b></td>
     <td>Inter (Google Fonts)</td>
     <td><b>CI/CD</b></td>

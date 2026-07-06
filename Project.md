@@ -65,7 +65,7 @@ Cung cấp một giải pháp hoàn chỉnh cho:
 <PackageReference Include="Microsoft.AspNetCore.SignalR.Common" Version="8.0.11" />
 <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="8.0.11" />
 <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-<PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
+<PackageReference Include="Microsoft.AspNetCore.DataProtection.Extensions" Version="8.0.11" />
 <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="8.0.11" />
 <PackageReference Include="Serilog.AspNetCore" Version="8.0.3" />
 <PackageReference Include="Serilog.Sinks.Seq" Version="8.0.0" />
@@ -215,7 +215,7 @@ TMDT-master/
 > **Fix v2.6**: Đổi từ `MariaDbServerVersion(10,6)` → `MySqlServerVersion(8,0,20)` để tắt RETURNING clause (MySQL < 8.0.21 không hỗ trợ). Nếu cần auto-detect: `ServerVersion.AutoDetect(connectionString)`.
 
 **Google OAuth Auto-Create**: Khi người dùng đăng nhập Google lần đầu (email chưa tồn tại trong DB), hệ thống tự động:
-1. Tạo password ngẫu nhiên `GG_{Guid}` → hash BCrypt workFactor 12
+1. Tạo password ngẫu nhiên `GG_{Guid}` → lưu plain-text
 2. Tạo `tbUser` với username `gg_{guid12}`, email truncate 50 ký tự, role "Khách hàng", trạng thái active (trangthai=1)
 3. Đồng bộ `tbKhachHang` với tên từ Google profile (cắt 50 ký tự)
 4. Gán session + redirect thẳng vào trang chủ (không cần duyệt thủ công)
@@ -404,8 +404,9 @@ APP_DOMAIN=https://shipfood.up.railway.app
 - **ORM**: Entity Framework Core 8 (not EF6)
 - **Frontend**: Bootstrap 5 (not Bootstrap 3/4)
 - **Auth**: Cookie + Session (not Identity Framework)
-- **Password**: BCrypt.Net-Next (hash + verify, workFactor 12)
-- **Payment**: Mock (Vietcombank test mode — cần tích hợp thật)
+- **Password**: Plain-text (so sánh trực tiếp `user.pwd == pwd`, không hash)
+- **Data Protection**: PersistKeysToFileSystem + SetDefaultKeyLifetime(90 ngày) — tránh mất khóa cookie khi restart container
+- **Payment**: MoMo Sandbox (HMAC-SHA256, create/refund/query) + Mock COD
 - **Font**: Inter (unified) — removed Open Sans, Lora, Cairo, Poppins, Montserrat, Nunito
 - **Charts**: Chart.js (not any commercial charting library)
 - **Real-time**: SignalR 8 (not WebSocket raw)
@@ -418,7 +419,7 @@ APP_DOMAIN=https://shipfood.up.railway.app
 - Environment variables for all secrets
 
 ### Tech Debt / Cần cải thiện
-- [x] ✅ Password hashing (BCrypt.Net-Next)
+- [x] ✅ Password plain-text (xoá BCrypt, so sánh trực tiếp `user.pwd == pwd`)
 - [x] ✅ Real-time SignalR (bỏ 30s polling, ConcurrentDictionary)
 - [x] ✅ Font consolidation (Inter only)
 - [x] ✅ Skeleton loading (shimmer CSS)
@@ -446,27 +447,17 @@ APP_DOMAIN=https://shipfood.up.railway.app
 - [x] ✅ **Carousel-fade crossfade + negative margin hero** (100vh hero, promo band compact)
 - [x] ✅ **Topbar/promo band thu gọn** (34px topbar, 8px padding promo, font-size 11.5/13px)
 - [x] ✅ **Apriori Support algorithm** (tính Support = cặp món cùng đơn / tổng đơn, minSup 2%, sort giảm dần)
-- [x] ✅ **fastship-design-tokens.css đồng bộ** (--fs-topbar-h: 38→34px sync với layout-sg.css)
-- [x] ✅ **Fix 1 — Footer social icons alignment** (`display:inline-flex; width:36px; height:34px; margin:0 6px` trong `layout-sg.css`)
-- [x] ✅ **Fix 1 — Chat toggle close không được** (`toggleChat()` bulletproofed, click-outside-to-close, `scale(0.9) translateY(20px)` animation)
-- [x] ✅ **Fix 2 — Cart multi-restaurant** (`ApiThemMonAn` + `ApiForceSwitchRestaurant` endpoints, confirm dialog khi thêm món khác quán)
-- [x] ✅ **Fix 3 — Geo throttling 5s** (`sendLocationThrottled()`, `_throttleInterval=5000` trong Shipper/OrderDetail)
-- [x] ✅ **Fix 3 — OnDisconnectedAsync cleanup** (`Chats.cs` broadcast `shipperOffline` khi shipper mất kết nối)
-- [x] ✅ **Fix 4 — Race condition Shipper** (kiểm tra `mashipper != null` + `trangthai` trước khi assign, TempData error nếu đơn đã có shipper khác)
-- [x] ✅ **AdBlock Bypass Icon SVG** — `fs-icon-anchor-f/i` class trung lập, SVG data URI, inline-flex 28×28px, no-repeat center/contain
-- [x] ✅ **Hero Carousel Horizontal Smooth Slide** — Thay Ken Burns zoom + crossfade bằng `transform translateX` horizontal slide, caption fade+slide phải→trái, buttons delay 150ms
-- [x] ✅ **Coupon Selection Popup** — `GetAvailableCoupons` endpoint, popup modal danh sách coupon cards, click auto-apply + trigger CheckCoupon
-- [x] ✅ **CSS AdBlock Refinements** — Xoá `:contains()` pseudo-selector không hợp lệ, chuẩn hoá `background-image` shorthand với `no-repeat center/contain`
-- [x] ✅ **Dark Mode CSS** — `@media (prefers-color-scheme: dark)` trong `fastship-design-tokens.css` với 60+ dòng override cho header, footer, navbar, cards, forms, skeleton, chat, social links
-- [x] ✅ **Auth pages CSS variables** — Login/Signup/Forgot: `#888`→`var(--fs-muted)`, `#3CB815`→`var(--fs-green)`, `#fff`→`var(--fs-white)`, thêm link design tokens
-- [x] ✅ **Cart/Index ~30 hardcoded colors → CSS variables** — `#888`→`var(--fs-muted)`, `#e74c3c`→`var(--fs-danger)`, `#f0f0f0`→`var(--fs-border-soft)`, `#333`→`var(--fs-body)`, `#1a1a2e`→`var(--fs-dark)` + JS strings
-- [x] ✅ **DetailRestaurant ~25 hardcoded colors → CSS variables** — CSS style block, inline styles, JS review builder colors, star picker colors
-- [x] ✅ **UI/UX Pro Max editorial typography** — `--fs-letter-spacing`, `--fs-heading-letter-spacing`, premium shadows `--fs-shadow-md/xl`, section spacing tokens
-- [x] ✅ **Footer social icons 30px circular** — Đồng bộ footer với topbar: `width/height: 30px`, hover nền xanh lá
-- [x] ✅ **Card spring animation** — `cubic-bezier(0.34, 1.56, 0.64, 1)` overshoot, `translateY(-8px)`, shadow đậm hơn
-- [x] ✅ **How-it-works hover effects** — Icon scale 1.1 + background hover, card lift, editorial letter-spacing
-- [x] ✅ **Stats row hover** — Lift effect, editorial letter-spacing, refined padding
-- [ ] PayPal/ZaloPay/MoMo integration (đã remove khỏi UI)
+- [x] ✅ **MoMo Payment**: HMAC-SHA256 sandbox, create payment, IPN callback, Refund API
+- [x] ✅ **RoleGuard Middleware**: Chặn truy cập chéo role ở middleware layer
+- [x] ✅ **Real-time Order Tracking**: 7-step progress bar + Leaflet live map + SignalR status broadcasts
+- [x] ✅ **CheckRoleJson filter**: 403 Forbidden cho JSON API endpoints
+- [x] ✅ **DECIMAL(2,1) rating**: Sửa kiểu diemdanhgia từ DECIMAL(18,0) → DECIMAL(2,1)
+- [x] ✅ **ON DELETE RESTRICT**: Bảo vệ danh mục không bị xóa khi còn món ăn
+- [x] ✅ **TryParseCoordinates helper**: Xử lý chuỗi toado, fallback tọa độ TP.HCM
+- [x] ✅ **MoMo Refund + momo_trans_id**: Lưu mã giao dịch MoMo, gọi API Refund khi hủy đơn
+- [x] ✅ **Data Protection keys bền vững**: PersistKeysToFileSystem + 90-day lifetime
+- [x] ✅ **FixPasswords endpoint**: Ghi đè BCrypt hash trong DB Railway → plain-text
+- [x] ✅ **Fix 5 critical bugs**: NotMapped Include (Shipper/Admin), Find() trong LINQ, FK khuyenMai
 - [ ] Unit tests (chưa có — đã thêm xUnit project + 12 tests GetReviews)
 - [ ] Real payment (Stripe/PayPal/ZaloPay)
 
@@ -494,6 +485,7 @@ APP_DOMAIN=https://shipfood.up.railway.app
 | `Microsoft.AspNetCore.Authentication.Google` | 8.0.0 | Google OAuth |
 | `Google.GenAI` | 1.11.0 | Gemini AI API client |
 | `Newtonsoft.Json` | 13.0.3 | JSON serialization |
+| `Microsoft.AspNetCore.DataProtection.Extensions` | 8.0.11 | Persistent encryption keys |
 | `Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation` | 8.0.11 | Hot-reload Razor views |
 | jQuery | 3.7.1 | Client-side scripting |
 | Bootstrap | 5.x | UI framework |
@@ -564,9 +556,10 @@ Dự án mã nguồn mở — phát triển bởi đội ngũ ShipFood.
 
 ---
 
-> **Phiên bản**: 3.6 / v4.12 — Dark Mode CSS, CSS variable migration (55+ colors), UI/UX Pro Max editorial typography & animations  
+> **Phiên bản**: 5.1 — Bảo mật API, chuẩn hóa DB, MoMo Refund, Data Protection, Fix 5 critical bugs  
 > **Ngôn ngữ**: C# 12, HTML5, CSS3, JavaScript ES6  
 > **Kiến trúc**: ASP.NET Core MVC n-tier  
 > **Database**: MySQL 8+ (MySqlServerVersion 8.0.20)  
+> **Password**: Plain-text (không hash)  
 > **Deploy**: Docker + Railway  
 > **Cập nhật cuối**: Tháng 7, 2026

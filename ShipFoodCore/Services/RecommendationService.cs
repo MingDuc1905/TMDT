@@ -453,7 +453,7 @@ public class RecommendationService
 
         var allMonAn = await _db.tbMonAn
             .Include(m => m.tbQuanAn)
-            .Include(m => m.tbChiTietDonHangs)
+            .Include(m => m.tbBienTheMonAns).ThenInclude(b => b.tbChiTietDonHangs)
             .ToListAsync();
 
         // Ưu tiên món có tên chứa từ khóa theo khung giờ, và có số lượng bán cao

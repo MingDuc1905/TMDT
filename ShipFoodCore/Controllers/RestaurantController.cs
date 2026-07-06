@@ -484,7 +484,7 @@ public class RestaurantController : BaseController
         if (user == null) return null!;
         return db.tbQuanAn.Include(q => q.tbUser) // Load tbUser để tránh NullReferenceException
             .Include(q => q.tbMonAns).ThenInclude(m => m.tbDanhMuc)
-            .Include(q => q.tbMonAns).ThenInclude(m => m.tbChiTietDonHangs).ThenInclude(c => c.tbDanhGias)
+            .Include(q => q.tbMonAns).ThenInclude(m => m.tbBienTheMonAns).ThenInclude(b => b.tbChiTietDonHangs).ThenInclude(c => c.tbDanhGias)
             .Include(q => q.tbDonHangs).ThenInclude(d => d.tbThongTinDatHang).ThenInclude(tt => tt.tbKhachHang)
             .FirstOrDefault(q => q.userid == user.userid) ?? null!;
     }

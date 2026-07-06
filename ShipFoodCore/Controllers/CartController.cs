@@ -148,7 +148,10 @@ public class CartController : BaseController
     // ─── Helper: build CartItem from tbBienTheMonAn.id ───
     private CartItem? BienTheToCartItem(int mabienthe)
     {
-        var bt = db.tbBienTheMonAn.Include(b => b.tbMonAn).FirstOrDefault(b => b.id == mabienthe);
+        // Try tbBienTheMonAn.id first, then fallback to tbBienTheMonAn.mamon (tbMonAn FK)
+        // DetailRestaurant sends tbMonAn.mamon, API sends tbBienTheMonAn.id
+        var bt = db.tbBienTheMonAn.Include(b => b.tbMonAn).FirstOrDefault(b => b.id == mabienthe)
+               ?? db.tbBienTheMonAn.Include(b => b.tbMonAn).FirstOrDefault(b => b.mamon == mabienthe);
         if (bt?.tbMonAn == null) return null;
         return new CartItem
         {
@@ -171,7 +174,8 @@ public class CartController : BaseController
         if (soLuong <= 0)
         {
             TempData["CartError"] = "Hãy chọn số lượng trước khi thêm";
-            var bt = db.tbBienTheMonAn.Include(b => b.tbMonAn).FirstOrDefault(b => b.id == maMonAn);
+            var bt = db.tbBienTheMonAn.Include(b => b.tbMonAn).FirstOrDefault(b => b.id == maMonAn)
+                  ?? db.tbBienTheMonAn.Include(b => b.tbMonAn).FirstOrDefault(b => b.mamon == maMonAn);
             if (bt?.tbMonAn != null)
                 return RedirectToAction("DetailRestaurant", "Home", new { id = bt.tbMonAn.maquanan });
             return RedirectToAction("Index", "Home");

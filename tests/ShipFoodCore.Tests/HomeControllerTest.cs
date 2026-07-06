@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Moq;
@@ -9,6 +10,17 @@ namespace ShipFood.Tests;
 
 public class HomeControllerTest
 {
+    /// <summary>
+    /// Serialize the anonymous object inside JsonResult.Value to JSON
+    /// and parse into a public JsonElement (cross-assembly safe).
+    /// </summary>
+    private static JsonElement ParseResult(JsonResult? result)
+    {
+        ArgumentNullException.ThrowIfNull(result);
+        var json = JsonSerializer.Serialize(result.Value);
+        return JsonDocument.Parse(json).RootElement;
+    }
+
     /// <summary>
     /// Seed an in-memory DbContext with test data for reviews (tbDanhGia)
     /// with a controlled number of reviews across multiple restaurants.
@@ -61,6 +73,18 @@ public class HomeControllerTest
             maquanan = quanId
         };
 
+        // ── Biến thể món ăn (bridge: tbChiTietDonHang.mamon → tbBienTheMonAn.id → tbMonAn.mamon) ──
+        // FK chain hiện tại: ct.mamon → tbBienTheMonAn.id, tbBienTheMonAn.mamon → tbMonAn.mamon
+        // GetReviews query: Where(c => c.tbBienTheMonAn.tbMonAn.maquanan == quanId)
+        var bienTheId = quanId * 10 + 2; // unique id, khác với monAn.mamon
+        var bienThe = new tbBienTheMonAn
+        {
+            id = bienTheId,
+            mamon = monAn.mamon,
+            size = "Vừa",
+            giatien = 35000
+        };
+
         // ── Chi tiết đơn hàng + Đánh giá ──
         var chiTietList = new List<tbChiTietDonHang>();
         var danhGiaList = new List<tbDanhGia>();
@@ -72,10 +96,9 @@ public class HomeControllerTest
             {
                 mactdh = mactdh,
                 madh = quanId * 10 + 1,
-                mamon = quanId * 10 + 1,
+                mamon = bienTheId,        // ← FK sang tbBienTheMonAn.id (không phải tbMonAn.mamon!)
                 soluong = 1,
-                tbDonHang = dh,
-                tbMonAn = monAn
+                tbDonHang = dh
             };
             chiTietList.Add(chiTiet);
 
@@ -99,6 +122,7 @@ public class HomeControllerTest
         context.tbThongTinDatHang.Add(ttdh);
         context.tbDonHang.Add(dh);
         context.tbMonAn.Add(monAn);
+        context.tbBienTheMonAn.Add(bienThe);
         foreach (var ct in chiTietList) context.tbChiTietDonHang.Add(ct);
         foreach (var dg in danhGiaList) context.tbDanhGia.Add(dg);
 
@@ -134,15 +158,14 @@ public class HomeControllerTest
 
         // Act
         var result = controller.GetReviews(quanId, page: 1, pageSize: 3) as JsonResult;
-        var data = result?.Value as dynamic;
+        var data = ParseResult(result);
 
         // Assert
-        Assert.NotNull(data);
-        Assert.True((bool)data.success);
-        Assert.Equal(10, (int)data.total);               // total across all pages
-        Assert.Equal(3, ((IEnumerable<object>)data.reviews).Count()); // page has 3 items
-        Assert.Equal(1, (int)data.page);
-        Assert.Equal(3, (int)data.pageSize);
+        Assert.True(data.GetProperty("success").GetBoolean());
+        Assert.Equal(10, data.GetProperty("total").GetInt32());
+        Assert.Equal(3, data.GetProperty("reviews").GetArrayLength()); // page has 3 items
+        Assert.Equal(1, data.GetProperty("page").GetInt32());
+        Assert.Equal(3, data.GetProperty("pageSize").GetInt32());
     }
 
     [Fact]
@@ -154,13 +177,11 @@ public class HomeControllerTest
 
         // Act
         var result = controller.GetReviews(quanId, page: 2, pageSize: 3) as JsonResult;
-        var data = result?.Value as dynamic;
+        var data = ParseResult(result);
 
         // Assert
-        Assert.NotNull(data);
-        Assert.True((bool)data.success);
-        Assert.Equal(3, ((IEnumerable<object>)data.reviews).Count());
-        Assert.Equal(2, (int)data.page);
+        Assert.Equal(3, data.GetProperty("reviews").GetArrayLength());
+        Assert.Equal(2, data.GetProperty("page").GetInt32());
     }
 
     [Fact]
@@ -172,14 +193,13 @@ public class HomeControllerTest
 
         // Act
         var result = controller.GetReviews(quanId, page: 3, pageSize: 4) as JsonResult;
-        var data = result?.Value as dynamic;
+        var data = ParseResult(result);
 
         // Assert
-        Assert.NotNull(data);
-        Assert.True((bool)data.success);
-        Assert.Equal(2, ((IEnumerable<object>)data.reviews).Count()); // last page has 2
-        Assert.Equal(3, (int)data.page);
-        Assert.Equal(4, (int)data.pageSize);
+        Assert.True(data.GetProperty("success").GetBoolean());
+        Assert.Equal(2, data.GetProperty("reviews").GetArrayLength()); // last page has 2
+        Assert.Equal(3, data.GetProperty("page").GetInt32());
+        Assert.Equal(4, data.GetProperty("pageSize").GetInt32());
     }
 
     [Fact]
@@ -191,14 +211,13 @@ public class HomeControllerTest
 
         // Act
         var result = controller.GetReviews(quanId, page: 2, pageSize: 5) as JsonResult;
-        var data = result?.Value as dynamic;
+        var data = ParseResult(result);
 
         // Assert
-        Assert.NotNull(data);
-        Assert.True((bool)data.success);
-        Assert.Empty(data.reviews);                        // empty list
-        Assert.Equal(5, (int)data.total);                  // total still 5
-        Assert.Equal(2, (int)data.page);
+        Assert.True(data.GetProperty("success").GetBoolean());
+        Assert.Empty(data.GetProperty("reviews").EnumerateArray());
+        Assert.Equal(5, data.GetProperty("total").GetInt32()); // total still 5
+        Assert.Equal(2, data.GetProperty("page").GetInt32());
     }
 
     [Fact]
@@ -210,33 +229,31 @@ public class HomeControllerTest
 
         // Act
         var result = controller.GetReviews(quanId, page: 1, pageSize: 5) as JsonResult;
-        var data = result?.Value as dynamic;
+        var data = ParseResult(result);
 
         // Assert
-        Assert.NotNull(data);
-        Assert.True((bool)data.success);
-        Assert.Empty(data.reviews);
-        Assert.Equal(0, (int)data.total);
-        Assert.Equal(0, (double)data.avgDiem);
+        Assert.True(data.GetProperty("success").GetBoolean());
+        Assert.Empty(data.GetProperty("reviews").EnumerateArray());
+        Assert.Equal(0, data.GetProperty("total").GetInt32());
+        Assert.Equal(0.0, data.GetProperty("avgDiem").GetDouble());
     }
 
     [Fact]
     public void GetReviews_NonExistentQuanId_ReturnsSuccessWithEmpty()
     {
         // Arrange
-        var (context, _ /* realQuanId we ignore */) = CreateSeedData(5);
+        var (context, _) = CreateSeedData(5);
         var controller = CreateController(context);
 
         // Act — use quanId that does NOT exist in seed
         var result = controller.GetReviews(quanId: 9999, page: 1, pageSize: 5) as JsonResult;
-        var data = result?.Value as dynamic;
+        var data = ParseResult(result);
 
         // Assert
-        Assert.NotNull(data);
-        Assert.True((bool)data.success);
-        Assert.Empty(data.reviews);
-        Assert.Equal(0, (int)data.total);
-        Assert.Equal(0, (double)data.avgDiem);
+        Assert.True(data.GetProperty("success").GetBoolean());
+        Assert.Empty(data.GetProperty("reviews").EnumerateArray());
+        Assert.Equal(0, data.GetProperty("total").GetInt32());
+        Assert.Equal(0.0, data.GetProperty("avgDiem").GetDouble());
     }
 
     [Fact]
@@ -248,12 +265,12 @@ public class HomeControllerTest
 
         // Act
         var result = controller.GetReviews(quanId, page: 1, pageSize: 10) as JsonResult;
-        var data = result?.Value as dynamic;
+        var data = ParseResult(result);
 
         // Assert
-        Assert.NotNull(data);
-        Assert.Equal(7, (int)data.total);
-        Assert.Equal(7, ((IEnumerable<object>)data.reviews).Count()); // all on one page
+        Assert.True(data.GetProperty("success").GetBoolean());
+        Assert.Equal(7, data.GetProperty("total").GetInt32());
+        Assert.Equal(7, data.GetProperty("reviews").GetArrayLength()); // all on one page
     }
 
     [Fact]
@@ -265,12 +282,11 @@ public class HomeControllerTest
 
         // Act
         var result = controller.GetReviews(quanId, page: 1, pageSize: 10) as JsonResult;
-        var data = result?.Value as dynamic;
+        var data = ParseResult(result);
 
         // Assert
-        Assert.NotNull(data);
         // Scores: 1,2,3,4,5,1,2,3,4,5 → sum=30, avg=3.0
-        Assert.Equal(3.0, (double)data.avgDiem, precision: 1);
+        Assert.Equal(3.0, data.GetProperty("avgDiem").GetDouble(), precision: 1);
     }
 
     [Fact]
@@ -282,14 +298,13 @@ public class HomeControllerTest
 
         // Act
         var result = controller.GetReviews(quanId, page: 1, pageSize: 5) as JsonResult;
-        var data = result?.Value as dynamic;
+        var data = ParseResult(result);
 
         // Assert — should be in descending madg order
-        Assert.NotNull(data);
-        var reviews = ((IEnumerable<object>)data.reviews).Cast<dynamic>().ToList();
+        var reviews = data.GetProperty("reviews").EnumerateArray().ToList();
         Assert.Equal(5, reviews.Count);
 
-        var madgList = reviews.Select(r => (int)r.madg).ToList();
+        var madgList = reviews.Select(r => r.GetProperty("madg").GetInt32()).ToList();
         // Seed creates madg: 5+offset, 4+offset, 3+offset, 2+offset, 1+offset
         var offset = quanId * 100;
         Assert.Equal([5 + offset, 4 + offset, 3 + offset, 2 + offset, 1 + offset], madgList);
@@ -304,19 +319,19 @@ public class HomeControllerTest
 
         // Act — use default parameters (page=1, pageSize=5)
         var result = controller.GetReviews(quanId, page: 1) as JsonResult;
-        var data = result?.Value as dynamic;
+        var data = ParseResult(result);
 
         // Assert
-        Assert.NotNull(data);
-        Assert.Equal(12, (int)data.total);
-        Assert.Equal(5, ((IEnumerable<object>)data.reviews).Count()); // default pageSize=5
-        Assert.Equal(5, (int)data.pageSize);
+        Assert.True(data.GetProperty("success").GetBoolean());
+        Assert.Equal(12, data.GetProperty("total").GetInt32());
+        Assert.Equal(5, data.GetProperty("reviews").GetArrayLength()); // default pageSize=5
+        Assert.Equal(5, data.GetProperty("pageSize").GetInt32());
     }
 
     [Fact]
     public void GetReviews_MultipleRestaurants_DoesNotLeakReviews()
     {
-        // Arrange: seed both restaurants into the SAME context using existingContext parameter
+        // Arrange: seed both restaurants into the SAME context
         var options = new DbContextOptionsBuilder<dbFoodyEntities>()
             .UseInMemoryDatabase(databaseName: $"GetReviews_Isolation_{Guid.NewGuid()}")
             .Options;
@@ -324,27 +339,26 @@ public class HomeControllerTest
         var context = new dbFoodyEntities(options);
 
         // Restaurant 1 (quanId 1001) — 3 reviews
-        var (_, _) = CreateSeedData(3, existingContext: context, quanIdOverride: 1001);
+        CreateSeedData(3, existingContext: context, quanIdOverride: 1001);
 
         // Restaurant 2 (quanId 2002) — 2 reviews
-        var (_, _) = CreateSeedData(2, existingContext: context, quanIdOverride: 2002);
+        CreateSeedData(2, existingContext: context, quanIdOverride: 2002);
 
         var controller = CreateController(context);
 
         // Act — get reviews for Restaurant 2 only
         var result = controller.GetReviews(quanId: 2002, page: 1, pageSize: 10) as JsonResult;
-        var data = result?.Value as dynamic;
+        var data = ParseResult(result);
 
         // Assert — only 2 reviews for Restaurant 2 should be returned
-        Assert.NotNull(data);
-        Assert.True((bool)data.success);
-        Assert.Equal(2, (int)data.total);
-        Assert.Equal(2, ((IEnumerable<object>)data.reviews).Count());
+        Assert.True(data.GetProperty("success").GetBoolean());
+        Assert.Equal(2, data.GetProperty("total").GetInt32());
+        Assert.Equal(2, data.GetProperty("reviews").GetArrayLength());
 
         // Also verify Restaurant 1 still has 3 reviews (data integrity)
         var result2 = controller.GetReviews(quanId: 1001, page: 1, pageSize: 10) as JsonResult;
-        var data2 = result2?.Value as dynamic;
-        Assert.Equal(3, (int)data2.total);
+        var data2 = ParseResult(result2);
+        Assert.Equal(3, data2.GetProperty("total").GetInt32());
     }
 
     [Fact]
@@ -356,15 +370,15 @@ public class HomeControllerTest
 
         // Act — get page 1 and page 2
         var result1 = controller.GetReviews(quanId, page: 1, pageSize: 3) as JsonResult;
-        var data1 = result1?.Value as dynamic;
+        var data1 = ParseResult(result1);
 
         var result2 = controller.GetReviews(quanId, page: 2, pageSize: 3) as JsonResult;
-        var data2 = result2?.Value as dynamic;
+        var data2 = ParseResult(result2);
 
         // Assert — avgDiem should be the SAME across pages (computed from all reviews, not page subset)
-        Assert.NotNull(data1);
-        Assert.NotNull(data2);
-        Assert.Equal((double)data1.avgDiem, (double)data2.avgDiem, precision: 1);
-        Assert.Equal(3.0, (double)data1.avgDiem, precision: 1);
+        Assert.True(data1.GetProperty("success").GetBoolean());
+        Assert.True(data2.GetProperty("success").GetBoolean());
+        Assert.Equal(data1.GetProperty("avgDiem").GetDouble(), data2.GetProperty("avgDiem").GetDouble(), precision: 1);
+        Assert.Equal(3.0, data1.GetProperty("avgDiem").GetDouble(), precision: 1);
     }
 }

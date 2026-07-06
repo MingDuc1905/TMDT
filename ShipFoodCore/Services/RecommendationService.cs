@@ -290,7 +290,7 @@ public class RecommendationService
     /// </summary>
     public async Task<List<object>> GetRestaurantAprioriInsights(int restaurantId, int take = 5)
     {
-        // Lấy tất cả món của quán này
+        // Lấy tất cả món của quán này (tbMonAn.mamon)
         var monAnIds = await _db.tbMonAn
             .Where(m => m.maquanan == restaurantId)
             .Select(m => m.mamon)
@@ -302,6 +302,13 @@ public class RecommendationService
             .Where(m => monAnIds.Contains(m.mamon))
             .ToDictionaryAsync(m => m.mamon, m => m.tenmon);
 
+        // 🐛 FIX: Chuyển tbMonAn.mamon → tbBienTheMonAn.id để so sánh với ct.mamon (FK→tbBienTheMonAn.id)
+        var bientheIds = await _db.tbBienTheMonAn
+            .Where(b => monAnIds.Contains(b.mamon))
+            .Select(b => b.id)
+            .ToListAsync();
+        if (bientheIds.Count < 2) return new List<object>();
+
         // Lấy các đơn hoàn thành có chứa ít nhất 2 món của quán này
         var completedMadhs = await _db.tbDonHang
             .Where(d => d.trangthai == "Hoàn thành" && d.maquan == restaurantId)
@@ -310,10 +317,11 @@ public class RecommendationService
         var completedList = completedMadhs.Where(x => x.HasValue).Select(x => x!.Value).ToList();
         if (completedList.Count == 0) return new List<object>();
 
+        // 🐛 FIX: Dùng bientheIds thay vì monAnIds khi filter ct.mamon
         var orderGroups = await _db.tbChiTietDonHang
             .Where(ct => ct.madh != null && ct.mamon != null
                       && completedList.Contains(ct.madh!.Value)
-                      && monAnIds.Contains(ct.mamon!.Value))
+                      && bientheIds.Contains(ct.mamon!.Value))
             .Select(ct => new { ct.madh, ct.mamon })
             .ToListAsync();
 
@@ -323,7 +331,7 @@ public class RecommendationService
             .ToList();
 
         var pairCounts = new Dictionary<(int, int), int>();
-        var itemTotalOrders = new Dictionary<int, int>(); // số đơn chứa từng món
+        var itemTotalOrders = new Dictionary<int, int>();
 
         foreach (var group in groupsByOrder)
         {
@@ -344,12 +352,19 @@ public class RecommendationService
             }
         }
 
+        // 🐛 FIX: Chuyển tbBienTheMonAn.id → tbMonAn.mamon để tra trong monAnMap
+        var bientheIdToMonAnId = await _db.tbBienTheMonAn
+            .Where(b => bientheIds.Contains(b.id))
+            .ToDictionaryAsync(b => b.id, b => b.mamon);
+
         // Tính Confidence và Support cho từng cặp
         var insights = pairCounts
             .Select(p => new
             {
-                ItemA = p.Key.Item1,
-                ItemB = p.Key.Item2,
+                BientheIdA = p.Key.Item1,
+                BientheIdB = p.Key.Item2,
+                MonIdA = bientheIdToMonAnId.GetValueOrDefault(p.Key.Item1, 0),
+                MonIdB = bientheIdToMonAnId.GetValueOrDefault(p.Key.Item2, 0),
                 PairCount = p.Value,
                 Support = (decimal)p.Value / completedList.Count,
                 ConfidenceAtoB = itemTotalOrders.TryGetValue(p.Key.Item1, out var cntA) && cntA > 0
@@ -363,8 +378,8 @@ public class RecommendationService
 
         return insights.Select(r => (object)new
         {
-            TenMonA = monAnMap.GetValueOrDefault(r.ItemA, ""),
-            TenMonB = monAnMap.GetValueOrDefault(r.ItemB, ""),
+            TenMonA = monAnMap.GetValueOrDefault(r.MonIdA, ""),
+            TenMonB = monAnMap.GetValueOrDefault(r.MonIdB, ""),
             Support = Math.Round(r.Support * 100, 1),
             ConfidenceAtoB = Math.Round(r.ConfidenceAtoB * 100, 1),
             ConfidenceBtoA = Math.Round(r.ConfidenceBtoA * 100, 1),
@@ -393,17 +408,36 @@ public class RecommendationService
             .Where(m => m.madanhmuc != null)
             .ToDictionaryAsync(m => m.mamon, m => m.madanhmuc!.Value);
 
+        // 🐛 FIX: Bridge tbMonAn.mamon → tbBienTheMonAn.id để filter ct.mamon đúng FK
+        var bientheToMonAn = await _db.tbBienTheMonAn
+            .Where(b => monToDm.Keys.Contains(b.mamon))
+            .ToDictionaryAsync(b => b.id, b => b.mamon);
+        var bientheIds = bientheToMonAn.Keys.ToList();
+
+        if (bientheIds.Count == 0) return new List<object>();
+
         var orderGroups = await _db.tbChiTietDonHang
             .Where(ct => ct.madh != null && ct.mamon != null
                       && completedList.Contains(ct.madh!.Value)
-                      && monToDm.Keys.Contains(ct.mamon!.Value))
+                      && bientheIds.Contains(ct.mamon!.Value))
             .Select(ct => new { ct.madh, ct.mamon })
             .ToListAsync();
 
         var groupsByOrder = orderGroups
             .GroupBy(x => x.madh)
-            .Where(g => g.Select(x => monToDm.GetValueOrDefault(x.mamon!.Value, 0))
-                          .Distinct().Count() >= 2)
+            .Where(g =>
+            {
+                // Chuyển tbBienTheMonAn.id → tbMonAn.mamon → danh mục
+                var monIds = g.Select(x => bientheToMonAn.GetValueOrDefault(x.mamon!.Value, 0))
+                              .Where(id => id > 0)
+                              .Distinct()
+                              .ToList();
+                var dmIds = monIds.Select(mid => monToDm.GetValueOrDefault(mid, 0))
+                                  .Where(id => id > 0)
+                                  .Distinct()
+                                  .ToList();
+                return dmIds.Count >= 2;
+            })
             .ToList();
 
         var pairCounts = new Dictionary<(int, int), int>();
@@ -411,11 +445,15 @@ public class RecommendationService
 
         foreach (var group in groupsByOrder)
         {
-            var dmIds = group
-                .Select(x => monToDm.GetValueOrDefault(x.mamon!.Value, 0))
+            var monIds = group
+                .Select(x => bientheToMonAn.GetValueOrDefault(x.mamon!.Value, 0))
                 .Where(id => id > 0)
                 .Distinct()
                 .ToList();
+            var dmIds = monIds.Select(mid => monToDm.GetValueOrDefault(mid, 0))
+                              .Where(id => id > 0)
+                              .Distinct()
+                              .ToList();
             foreach (var dmId in dmIds)
             {
                 dmTotalOrders.TryGetValue(dmId, out var cnt);

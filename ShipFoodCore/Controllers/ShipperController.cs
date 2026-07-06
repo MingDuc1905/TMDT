@@ -134,32 +134,34 @@ public class ShipperController : BaseController
         if (sh == null || !checkShipper()) return RedirectToAction("Login", "Home");
         if (id == null) return RedirectToAction("Index");
 
-        // ─── RACE CONDITION: Kiểm tra đơn đã có shipper khác nhận chưa ───
-        var donhang = db.tbDonHang.Find(id);
-        if (donhang == null)
-        {
-            TempData["ShipperError"] = "Đơn hàng không tồn tại";
-            return RedirectToAction("Index");
-        }
+        // ─── RACE CONDITION FIX: Atomic SQL UPDATE để tránh 2 shipper nhận cùng 1 đơn ───
+        // Dùng ExecuteSqlRaw với WHERE mashipper IS NULL để đảm bảo chỉ 1 shipper claim thành công
+        var updatedRows = db.Database.ExecuteSqlRaw(
+            @"UPDATE tbDonHang SET mashipper = {0}, trangthai = N'Chờ shipper lấy hàng'
+              WHERE madh = {1} AND mashipper IS NULL
+              AND (trangthai = N'Đã xác nhận' OR trangthai = N'Chờ shipper lấy hàng')",
+            sh.userid, id);
 
-        if (donhang.mashipper != null && donhang.mashipper != sh.userid)
+        if (updatedRows == 0)
         {
-            TempData["ShipperError"] = "Đơn hàng đã được shipper khác tiếp nhận";
-            return RedirectToAction("Index");
-        }
-
-        if (donhang.trangthai != "Đã xác nhận" && donhang.trangthai != "Chờ shipper lấy hàng")
-        {
-            TempData["ShipperError"] = "Đơn hàng không còn ở trạng thái chờ nhận";
-            return RedirectToAction("Index");
-        }
-
-        // ─── Tranh đơn: dùng giao dịch nguyên tử để tránh 2 shipper nhận cùng lúc ───
-        if (donhang.mashipper == null)
-        {
-            donhang.mashipper = sh.userid;
-            donhang.trangthai = "Chờ shipper lấy hàng";
-            db.SaveChanges();
+            // Kiểm tra nguyên nhân: shipper khác đã nhận, hoặc đơn ko ở trạng thái chờ
+            var donhangCheck = db.tbDonHang.Find(id);
+            if (donhangCheck == null)
+            {
+                TempData["ShipperError"] = "Đơn hàng không tồn tại";
+                return RedirectToAction("Index");
+            }
+            if (donhangCheck.mashipper != null && donhangCheck.mashipper != sh.userid)
+            {
+                TempData["ShipperError"] = "Đơn hàng đã được shipper khác tiếp nhận";
+                return RedirectToAction("Index");
+            }
+            if (donhangCheck.trangthai != "Đã xác nhận" && donhangCheck.trangthai != "Chờ shipper lấy hàng")
+            {
+                TempData["ShipperError"] = "Đơn hàng không còn ở trạng thái chờ nhận";
+                return RedirectToAction("Index");
+            }
+            // Trường hợp chính shipper này đã claim rồi (reload trang) → cho qua
         }
 
         var listctdh = db.tbChiTietDonHang

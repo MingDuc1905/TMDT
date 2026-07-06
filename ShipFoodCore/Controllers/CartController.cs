@@ -479,6 +479,20 @@ public class CartController : BaseController
         if (localCart == null || localCart.items == null || localCart.items.Count == 0)
             return Json(new { success = false, message = "Giỏ hàng trống" });
 
+        // ⚠️ Fix multi-device: Nếu user vừa đặt hàng thành công trong 5 phút gần đây, không restore localStorage cũ
+        var user = GetCurrentUser();
+        var recentOrder = db.tbDonHang
+            .Where(dh => dh.tbThongTinDatHang != null && dh.tbThongTinDatHang.userid == user!.userid)
+            .OrderByDescending(dh => dh.ngaydathang)
+            .FirstOrDefault();
+        if (recentOrder != null && recentOrder.ngaydathang != null 
+            && (DateTime.Now - recentOrder.ngaydathang.Value).TotalMinutes < 5)
+        {
+            // User vừa đặt hàng (trong 5 phút) → không restore localStorage cũ
+            // Xóa localStorage (frontend sẽ gọi clearCartLocal)
+            return Json(new { success = true, justOrdered = true });
+        }
+
         // Chỉ restore nếu session cart đang trống
         var sessionCart = GetCart();
         if (sessionCart != null && sessionCart.items.Any())

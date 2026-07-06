@@ -81,6 +81,11 @@ function syncCartFromLocal() {
     })
     .then(function(r) { return r.json(); })
     .then(function(res) {
+        if (res.justOrdered) {
+            // User vừa đặt hàng thành công trên thiết bị khác → xóa localStorage cũ
+            clearCartLocal();
+            return;
+        }
         if (res.success && res.redirect) {
             window.location.href = res.redirect;
         }

@@ -133,9 +133,9 @@ public class PaymentController : BaseController
             }
             db.SaveChanges();
 
-            SetCart(new Cart());
-
             // ─── MoMo Payment: Nếu chọn thanh toán MoMo (mahttt=5), tạo payment request ───
+            // ⚠️ Fix: KHÔNG xóa cart trước khi MoMo API hoàn tất
+            // Nếu MoMo thất bại, user vẫn còn cart để thử lại
             string? momoPayUrl = null;
             if (pttt == 5) // mahttt=5 = MoMo (xem tbLoaiHinhThanhToan seed)
             {
@@ -170,6 +170,10 @@ public class PaymentController : BaseController
             }
 
             _logger.LogInformation("Order #{OrderId} placed by user {UserId}", dh.madh, user.userid);
+
+            // ─── Chỉ xóa cart sau khi MoMo API đã được gọi (dù thành công hay thất bại) ───
+            // Cart được clear sau khi MoMo attempt để nếu MoMo thất bại, user còn giỏ hàng để thử lại
+            SetCart(new Cart());
 
             try
             {

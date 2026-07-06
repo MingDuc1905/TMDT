@@ -226,9 +226,10 @@ public class RestaurantControllerTests
         hubMock.Setup(h => h.Clients).Returns(hubClientsMock.Object);
         hubClientsMock.Setup(c => c.Group(It.IsAny<string>())).Returns(clientProxyMock.Object);
 
-        var recoMock = new Mock<RecommendationService>(null!);
+        // Dùng real RecommendationService (không mock) — method GetRestaurantAprioriInsights không phải virtual
+        var reco = new RecommendationService(context);
 
-        var controller = new RestaurantController(context, envMock.Object, hubMock.Object, recoMock.Object);
+        var controller = new RestaurantController(context, envMock.Object, hubMock.Object, reco);
 
         // Setup HttpContext with Session
         var httpContext = new DefaultHttpContext();

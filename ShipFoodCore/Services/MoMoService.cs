@@ -14,7 +14,7 @@ public class MoMoService
     private readonly ILogger<MoMoService> _logger;
     private readonly HttpClient _httpClient;
 
-    // MoMo Sandbox credentials (có thể cấu hình qua appsettings.json hoặc env vars)
+    // MoMo API credentials — chỉ đọc từ Environment Variables, KHÔNG hardcode
     private readonly string _endpoint;
     private readonly string _partnerCode;
     private readonly string _accessKey;
@@ -26,11 +26,48 @@ public class MoMoService
         _logger = logger;
         _httpClient = httpClient;
 
-        // Đọc từ cấu hình, fallback về sandbox mặc định
-        _endpoint = _configuration["MoMo:Endpoint"] ?? "https://test-payment.momo.vn/v2/gateway/api/create";
-        _partnerCode = _configuration["MoMo:PartnerCode"] ?? "MOMO";
-        _accessKey = _configuration["MoMo:AccessKey"] ?? "F8BBA842ECF85";
-        _secretKey = _configuration["MoMo:SecretKey"] ?? "K951B6PE1waDMi640xX08PD3vg6EkVlz";
+        // ════════════════════════════════════════════════════════════
+        // ⚠️  BẢO MẬT: Toàn bộ MoMo credentials đọc từ biến môi trường
+        //     Không hardcode bất kỳ key nào trong mã nguồn!
+        //
+        // Các biến môi trường cần cấu hình (trên Railway hoặc .env):
+        //   MOMO_ENDPOINT      = https://test-payment.momo.vn/v2/gateway/api/create
+        //   MOMO_PARTNER_CODE  = (PartnerCode do MoMo cấp)
+        //   MOMO_ACCESS_KEY    = (AccessKey do MoMo cấp)
+        //   MOMO_SECRET_KEY    = (SecretKey do MoMo cấp)
+        //   MOMO_QUERY_ENDPOINT= https://test-payment.momo.vn/v2/gateway/api/query
+        // ════════════════════════════════════════════════════════════
+
+        _endpoint = GetRequiredEnv("MOMO_ENDPOINT", "https://test-payment.momo.vn/v2/gateway/api/create");
+        _partnerCode = GetRequiredEnv("MOMO_PARTNER_CODE");
+        _accessKey = GetRequiredEnv("MOMO_ACCESS_KEY");
+        _secretKey = GetRequiredEnv("MOMO_SECRET_KEY");
+    }
+
+    /// <summary>
+    /// Đọc biến môi trường, throw exception nếu thiếu (trừ khi có defaultValue)
+    /// </summary>
+    private string GetRequiredEnv(string name, string? defaultValue = null)
+    {
+        var value = Environment.GetEnvironmentVariable(name);
+        if (!string.IsNullOrEmpty(value))
+            return value;
+
+        // Thử đọc từ IConfiguration (appsettings.json / secret.json)
+        value = _configuration[name.Replace("_", ":")];
+        if (!string.IsNullOrEmpty(value))
+            return value;
+
+        if (defaultValue != null)
+        {
+            _logger.LogWarning("MoMo: Environment variable {VarName} not set — using default value (development only)", name);
+            return defaultValue;
+        }
+
+        var msg = $"MoMo: Environment variable '{name}' is not set. " +
+                  $"Please configure it on Railway (Settings → Environment Variables) or locally in .env file.";
+        _logger.LogError(msg);
+        throw new InvalidOperationException(msg);
     }
 
     /// <summary>
@@ -121,7 +158,7 @@ public class MoMoService
             };
 
             var jsonContent = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
-            var queryEndpoint = _configuration["MoMo:QueryEndpoint"] ?? "https://test-payment.momo.vn/v2/gateway/api/query";
+            var queryEndpoint = Environment.GetEnvironmentVariable("MOMO_QUERY_ENDPOINT") ?? "https://test-payment.momo.vn/v2/gateway/api/query";
 
             var response = await _httpClient.PostAsync(queryEndpoint, jsonContent);
             var responseBody = await response.Content.ReadAsStringAsync();

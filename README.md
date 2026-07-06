@@ -204,7 +204,7 @@ dotnet restore
 mysql -u root -p -e "CREATE DATABASE dbFoody CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 
 # Import seed data (categories, users, menu items)
-mysql -u root -p dbFoody < ../seed_mysql.sql
+mysql -u root -p dbFoody < ../mysql_utf8.sql
 ```
 
 Sửa file `appsettings.json` hoặc set environment variables:
@@ -378,8 +378,7 @@ TMDT-master/
 │   └── Program.cs             # Startup configuration
 ├── Dockerfile                 # Multi-stage build
 ├── railway.json               # Railway config
-├── database_full.sql          # Full DB dump
-├── seed_mysql.sql             # Seed data
+├── mysql_utf8.sql             # Combined seed data (categories, users, menus) + UTF-8 init
 ├── UI-UX.md                   # Design documentation
 └── Project.md                 # Technical documentation
 ```

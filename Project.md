@@ -145,10 +145,7 @@ TMDT-master/
 ├── UI-UX.md                         # Comprehensive UI/UX documentation (17 sections)
 ├── Architectural-Solution.md        # Architectural solution document (15 giải pháp cải thiện)
 ├── Project.md                       # This file
-├── database_full.sql                # Full MySQL database dump
-├── seed_mysql.sql                   # Initial seed data (categories, users, menus)
-├── inserts.txt                      # Additional insert scripts
-├── mysql_utf8.sql                   # UTF-8 configuration script
+├── mysql_utf8.sql                   # Combined seed data (categories, users, menus) + UTF-8 init
 ├── Dockerfile                       # Multi-stage Docker build (SDK + runtime)
 ├── railway.json                     # Railway deployment config
 ├── .agents/skills/                  # Codebuff skill rules
@@ -243,7 +240,7 @@ TMDT-master/
 | `tbTinNhan` | Tin nhắn chat | N:1 → tbDonHang |
 | `City/District` | Địa danh | — |
 
-**Seed data**: `seed_mysql.sql` — categories, users, restaurants, menu items (tự động seed khi DB được tạo lần đầu)
+**Seed data**: `mysql_utf8.sql` — categories, users, restaurants, menu items (tự động seed khi DB được tạo lần đầu)
 
 ---
 
@@ -336,7 +333,7 @@ TMDT-master/
 
 ### Database Initialization
 - `EnsureCreated()` tự động tạo bảng khi chạy lần đầu
-- `seed_mysql.sql` tự động seed data nếu DB trống
+- `mysql_utf8.sql` tự động seed data nếu DB trống
 - App vẫn start kể cả khi MySQL chưa sẵn sàng (try-catch)
 
 ### Environment Variables
@@ -523,7 +520,7 @@ dotnet restore
 ### 3. Cấu hình MySQL
 - Cài đặt MySQL 8+ hoặc MariaDB 10.6+
 - Tạo database: `CREATE DATABASE dbFoody CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`
-- Import seed data: `mysql -u root -p dbFoody < seed_mysql.sql`
+- Import seed data: `mysql -u root -p dbFoody < mysql_utf8.sql`
 
 ### 4. Cấu hình Connection String
 Trong `appsettings.json` hoặc environment variables:

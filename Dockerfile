@@ -18,7 +18,7 @@ RUN dotnet publish ShipFoodCore/ShipFoodCore.csproj -c Release -o /app/publish -
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
 COPY --from=build /app/publish .
-COPY seed_mysql.sql ./seed_mysql.sql
+COPY mysql_utf8.sql ./mysql_utf8.sql
 
 EXPOSE 8080
 ENV ASPNETCORE_URLS=http://+:8080

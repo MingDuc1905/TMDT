@@ -50,7 +50,7 @@ public class AdminController : BaseController
             .FirstOrDefault(d => d.madh == id);
         var chitietdh = db.tbChiTietDonHang
             .Where(ct => ct.madh == id)
-            .Include(c => c.tbMonAn).ThenInclude(m => m.tbDanhMuc)
+            .Include(c => c.tbBienTheMonAn!).ThenInclude(b => b.tbMonAn!).ThenInclude(m => m.tbDanhMuc)
             .ToList();
         ViewBag.chitietdonhang = chitietdh;
         return View(donhang);

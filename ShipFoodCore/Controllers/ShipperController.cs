@@ -164,7 +164,7 @@ public class ShipperController : BaseController
 
         var listctdh = db.tbChiTietDonHang
             .Where(ct => ct.madh == id)
-            .Include(c => c.tbMonAn).ThenInclude(m => m.tbDanhMuc)
+            .Include(c => c.tbBienTheMonAn!).ThenInclude(b => b.tbMonAn!).ThenInclude(m => m.tbDanhMuc)
             .ToList();
         var dh = db.tbDonHang
             .Include(l => l.tbQuanAn)

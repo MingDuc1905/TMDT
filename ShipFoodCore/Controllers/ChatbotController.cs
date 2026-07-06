@@ -171,8 +171,8 @@ public class ChatbotController : BaseController
         if (!isRecommend) return null;
 
         var topMonAn = db.tbChiTietDonHang
-            .Where(ct => ct.tbMonAn != null)
-            .GroupBy(ct => new { ct.mamon, ten = ct.tbMonAn!.tenmon, gia = ct.tbMonAn!.giatien })
+            .Where(ct => ct.tbBienTheMonAn != null && ct.tbBienTheMonAn.tbMonAn != null)
+            .GroupBy(ct => new { ct.mamon, ten = ct.tbBienTheMonAn!.tbMonAn!.tenmon, gia = ct.tbBienTheMonAn!.tbMonAn!.giatien })
             .Select(g => new
             {
                 ten = g.Key.ten,

@@ -113,6 +113,7 @@ public class HomeController : BaseController
         var khuyenMais = db.tbMonAnKhuyenMai
             .Where(km => km.trangthai == "Còn hạn")
             .Include(km => km.tbKhuyenMai)
+            .Include(km => km.tbBienTheMonAn) // Cần để truy cập tbMonAn qua tbBienTheMonAn
             .ToList();
 
         // Lấy danh sách món ăn người dùng đã mua (nếu đã đăng nhập)
@@ -125,10 +126,12 @@ public class HomeController : BaseController
                 .Where(t => t.userid == userId)
                 .Select(t => (int?)t.mattdh)
                 .ToList();
-            daMuaMonAnIds = db.tbDonHang
-                .Where(dh => mattdhIds.Contains(dh.mattdh) && dh.trangthai != "Đã hủy")
-                .SelectMany(dh => dh.tbChiTietDonHangs)
-                .Select(ct => db.tbBienTheMonAn.Find(ct.mamon)!.mamon)  // bienthe → monan
+            daMuaMonAnIds = db.tbChiTietDonHang
+                .Where(ct => ct.tbDonHang != null
+                    && mattdhIds.Contains(ct.tbDonHang.mattdh)
+                    && ct.tbDonHang.trangthai != "Đã hủy")
+                .Where(ct => ct.tbBienTheMonAn != null && ct.tbBienTheMonAn.tbMonAn != null)
+                .Select(ct => ct.tbBienTheMonAn!.tbMonAn!.mamon)
                 .Distinct()
                 .ToHashSet();
         }

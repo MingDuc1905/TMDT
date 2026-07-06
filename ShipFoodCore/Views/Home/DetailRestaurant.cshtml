@@ -375,7 +375,7 @@
                                     </div>
                                     @foreach (var item in ViewBag.DanhSachMonAn)
                                     {
-                                        var khuyenMai = khuyenMais?.FirstOrDefault(km => km.mamon == item.mamon);
+                                        var khuyenMai = khuyenMais?.FirstOrDefault(km => km.tbBienTheMonAn?.mamon == item.mamon);
                                         var giaGoc = item.giatien;
                                         var giaKhuyenMai = giaGoc;
                                         if (khuyenMai != null && khuyenMai.phantramgiam > 0)

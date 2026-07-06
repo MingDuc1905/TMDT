@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.RateLimiting;
 using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.DataProtection;
 using ShipFood.Models;
 using Serilog;
 
@@ -184,6 +185,30 @@ builder.Services.AddDbContext<dbFoodyEntities>(options =>
 
 // Add HttpContextAccessor for session access
 builder.Services.AddHttpContextAccessor();
+
+// ─── Mục 5: Data Protection — lưu khóa mã hóa Cookie bền vững ───
+// Tránh mất khóa khi container restart → user bị đăng xuất hàng loạt
+// Trên Railway: set DATA_PROTECTION_KEY_DIR trỏ đến thư mục persistent (VD: /data/dpk/)
+try
+{
+    var keyRingPath = Environment.GetEnvironmentVariable("DATA_PROTECTION_KEY_DIR")
+        ?? Path.Combine(Directory.GetCurrentDirectory(), "dpk");
+    Directory.CreateDirectory(keyRingPath);
+
+    builder.Services.AddDataProtection()
+        .PersistKeysToFileSystem(new DirectoryInfo(keyRingPath))
+        .SetApplicationName("FastShip")
+        .SetDefaultKeyLifetime(TimeSpan.FromDays(90));
+
+    Log.Information("Data Protection configured (keys dir: {KeyDir})", keyRingPath);
+}
+catch (Exception ex)
+{
+    Log.Warning(ex, "Could not configure Data Protection — using ephemeral keys (users may be logged out on restart)");
+}
+
+// ─── Mục 5: Cookie Authentication đã cấu hình SlidingExpiration=true, ExpireTimeSpan=30 ngày ───
+// Session idle timeout = 1 ngày, đảm bảo người dùng không bị mất session khi reload
 
 // Register Services
 builder.Services.AddScoped<ShipFood.Services.RecommendationService>();

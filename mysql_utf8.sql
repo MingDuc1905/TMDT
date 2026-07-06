@@ -72,7 +72,7 @@ CREATE TABLE tbShipper (
     tenshipper VARCHAR(50) NOT NULL,
     diachi VARCHAR(250) NOT NULL,
     toado VARCHAR(100) NULL,
-    diemdanhgia DECIMAL(18,0) NULL,
+    diemdanhgia DECIMAL(2,1) NULL,
     soluotdanhgia INT NULL,
     trangthai VARCHAR(50) NULL,
     hinhanh VARCHAR(100) NULL,
@@ -87,7 +87,7 @@ CREATE TABLE tbQuanAn (
     diachi VARCHAR(250) NOT NULL,
     toado VARCHAR(100) NULL,
     soluotdanhgia INT NULL,
-    diemdanhgia DECIMAL(18,0) NULL,
+    diemdanhgia DECIMAL(2,1) NULL,
     trangthai VARCHAR(50) NULL,
     hinhanh VARCHAR(100) NULL,
     PRIMARY KEY (userid),
@@ -115,7 +115,7 @@ CREATE TABLE tbMonAn (
     conhang BIT DEFAULT 1,
     PRIMARY KEY (mamon),
     CONSTRAINT fk_monan_quanan FOREIGN KEY (maquanan) REFERENCES tbQuanAn(userid) ON DELETE CASCADE,
-    CONSTRAINT fk_monan_danhmuc FOREIGN KEY (madanhmuc) REFERENCES tbDanhMuc(madanhmuc) ON DELETE CASCADE
+    CONSTRAINT fk_monan_danhmuc FOREIGN KEY (madanhmuc) REFERENCES tbDanhMuc(madanhmuc) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ===================== tbBienTheMonAn (MỚI) =====================
@@ -192,6 +192,7 @@ CREATE TABLE tbDonHang (
     ngaygiaohang DATETIME NULL,
     ngaythanhtoan DATETIME NULL,
     mashipper INT NULL,
+    momo_trans_id VARCHAR(100) NULL,
     PRIMARY KEY (madh),
     CONSTRAINT fk_donhang_quanan FOREIGN KEY (maquan) REFERENCES tbQuanAn(userid) ON DELETE SET NULL,
     CONSTRAINT fk_donhang_ttdh FOREIGN KEY (mattdh) REFERENCES tbThongTinDatHang(mattdh) ON DELETE SET NULL,

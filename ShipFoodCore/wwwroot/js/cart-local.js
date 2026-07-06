@@ -15,6 +15,21 @@ function saveCartToLocal(cartData) {
     }
 }
 
+// ─── Kiểm tra trạng thái đăng nhập ───
+// Kiểm tra qua cookie ASP.NET + session indicator trong DOM
+function isUserLoggedIn() {
+    // Ưu tiên kiểm tra cookie ASP.NET Authentication
+    // Chỉ check .AspNetCore.Cookies (không check .Session vì session cookie tồn tại cho cả visitor chưa login)
+    var hasAuthCookie = document.cookie.indexOf('.AspNetCore.Cookies') !== -1;
+    
+    // Fallback: kiểm tra các element DOM chỉ hiện khi đã login
+    var hasUserElement = document.querySelector('#user-info') !== null
+        || document.querySelector('.user-avatar') !== null
+        || document.querySelector('.nav-user-dropdown') !== null;
+    
+    return hasAuthCookie || hasUserElement;
+}
+
 // ─── Load cart from localStorage ───
 function loadCartFromLocal() {
     try {
@@ -39,6 +54,13 @@ function clearCartLocal() {
 function syncCartFromLocal() {
     var localCart = loadCartFromLocal();
     if (!localCart || !localCart.items || localCart.items.length === 0) return;
+
+    // ⚠️ Mục 3: Kiểm tra trạng thái đăng nhập trước khi restore
+    // Nếu user đã checkout ở thiết bị khác, xóa localStorage cũ
+    if (!isUserLoggedIn()) {
+        clearCartLocal();
+        return;
+    }
 
     // Check if session cart is empty, then restore from local
     var hasSessionCart = document.querySelector('#cart-items-container') !== null;

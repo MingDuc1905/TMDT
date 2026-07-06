@@ -183,6 +183,66 @@ public class MoMoService
     }
 
     /// <summary>
+    /// Hoàn tiền MoMo (Refund) — gọi API refund của MoMo Sandbox
+    /// Được sử dụng khi hủy đơn hàng đã thanh toán qua MoMo
+    /// </summary>
+    public async Task<MoMoCreatePaymentResponse> RefundAsync(string orderId, long amount, string description = "", long? transId = null)
+    {
+        try
+        {
+            var refundId = $"REFUND_{orderId}_{DateTime.Now:yyyyMMddHHmmss}";
+            var transIdValue = transId?.ToString() ?? "";
+            // MoMo Refund API yêu cầu transId trong raw signature nếu có
+            var rawSignature = string.IsNullOrEmpty(transIdValue)
+                ? $"accessKey={_accessKey}&amount={amount}&description={description}&orderId={orderId}&partnerCode={_partnerCode}&requestId={refundId}&requestType=refund"
+                : $"accessKey={_accessKey}&amount={amount}&description={description}&orderId={orderId}&partnerCode={_partnerCode}&requestId={refundId}&requestType=refund&transId={transIdValue}";
+            var signature = ComputeHmacSha256(rawSignature, _secretKey);
+
+            var refundEndpoint = Environment.GetEnvironmentVariable("MOMO_REFUND_ENDPOINT")
+                ?? "https://test-payment.momo.vn/v2/gateway/api/refund";
+
+            var payload = new Dictionary<string, object>
+            {
+                { "partnerCode", _partnerCode },
+                { "requestId", refundId },
+                { "orderId", orderId },
+                { "amount", amount },
+                { "description", description },
+                { "transId", transIdValue },
+                { "requestType", "refund" },
+                { "signature", signature },
+                { "lang", "vi" }
+            };
+
+            var jsonContent = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
+
+            _logger.LogInformation("MoMo Refund: OrderId={OrderId}, Amount={Amount}", orderId, amount);
+
+            var response = await _httpClient.PostAsync(refundEndpoint, jsonContent);
+            var responseBody = await response.Content.ReadAsStringAsync();
+
+            _logger.LogInformation("MoMo Refund Response: {Response}", responseBody);
+
+            var result = JsonSerializer.Deserialize<MoMoCreatePaymentResponse>(responseBody, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            return result ?? new MoMoCreatePaymentResponse
+            {
+                ResultCode = -1,
+                Message = "Failed to parse MoMo refund response"
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "MoMo Refund failed for OrderId={OrderId}", orderId);
+            return new MoMoCreatePaymentResponse
+            {
+                ResultCode = -1,
+                Message = $"Lỗi kết nối MoMo Refund: {ex.Message}"
+            };
+        }
+    }
+
+    /// <summary>
     /// Xác thực signature từ MoMo IPN callback
     /// </summary>
     public bool VerifyIpnSignature(Dictionary<string, string> ipnParams)

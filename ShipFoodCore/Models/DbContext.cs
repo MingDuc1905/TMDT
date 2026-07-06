@@ -84,11 +84,12 @@ public partial class dbFoodyEntities : DbContext
             .OnDelete(DeleteBehavior.Cascade);
 
         // tbDanhMuc -> tbMonAn (1:N)
+        // ⚠️ RESTRICT: Không cho phép xóa danh mục nếu còn món ăn
         modelBuilder.Entity<tbMonAn>()
             .HasOne(m => m.tbDanhMuc)
             .WithMany(d => d.tbMonAns)
             .HasForeignKey(m => m.madanhmuc)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
 
         // tbMonAn -> tbBienTheMonAn (1:N) — MỚI
         modelBuilder.Entity<tbBienTheMonAn>()

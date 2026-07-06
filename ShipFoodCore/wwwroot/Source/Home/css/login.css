@@ -10,7 +10,7 @@ body {
 .auth-page-wrapper {
     min-height: 100dvh;
     height: auto;
-    overflow: visible;
+    overflow-y: auto;  /* Cho phép scroll khi bàn phím ảo mở trên mobile */
 }
 .auth-main {
     flex: 1;

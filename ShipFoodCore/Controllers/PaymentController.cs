@@ -259,7 +259,8 @@ public class PaymentController : BaseController
                             // Thanh toán thành công
                             donHang.trangthai = "Đã thanh toán";
                             donHang.ngaythanhtoan = DateTime.Now;
-                            _logger.LogInformation("MoMo payment confirmed for order #{OrderId}", madh);
+                            donHang.momo_trans_id = transId; // Lưu mã giao dịch MoMo để dùng cho Refund
+                            _logger.LogInformation("MoMo payment confirmed for order #{OrderId}, TransId={TransId}", madh, transId);
 
                             // SignalR broadcast đến khách hàng
                             try

@@ -66,6 +66,9 @@ public class CartController : BaseController
     [HttpGet]
     public JsonResult GetAvailableCoupons()
     {
+        var roleCheck = CheckRoleJson("Khách hàng");
+        if (roleCheck != null) return roleCheck;
+
         var now = DateTime.Now;
         var coupons = db.tbKhuyenMai
             .Where(k => (k.ngayketthuc == null || k.ngayketthuc >= now)
@@ -88,6 +91,9 @@ public class CartController : BaseController
     [HttpGet]
     public JsonResult GetTopCoupons()
     {
+        var roleCheck = CheckRoleJson("Khách hàng");
+        if (roleCheck != null) return roleCheck;
+
         var now = DateTime.Now;
         var coupons = db.tbKhuyenMai
             .Where(k => (k.ngayketthuc == null || k.ngayketthuc >= now)
@@ -110,6 +116,9 @@ public class CartController : BaseController
     [ValidateAntiForgeryToken]
     public JsonResult CheckCoupon(string code, decimal tongTien)
     {
+        var roleCheck = CheckRoleJson("Khách hàng");
+        if (roleCheck != null) return roleCheck;
+
         if (string.IsNullOrWhiteSpace(code))
             return Json(new { success = false, message = "Vui lòng nhập mã khuyến mãi" });
 

@@ -40,6 +40,9 @@ public partial class tbDonHang
 
     public int? mashipper { get; set; }
 
+    [MaxLength(100)]
+    public string? momo_trans_id { get; set; }
+
     // Navigation
     [ForeignKey("maquan")]
     public virtual tbQuanAn? tbQuanAn { get; set; }

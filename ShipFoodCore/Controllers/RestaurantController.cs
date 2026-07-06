@@ -232,7 +232,45 @@ public class RestaurantController : BaseController
         var dh = db.tbDonHang.Find(id);
         if (dh != null)
         {
+            var oldStatus = dh.trangthai;
             dh.trangthai = "Đã hủy";
+
+            // ─── MoMo Refund: Nếu đơn đã thanh toán qua MoMo, tự động hoàn tiền ───
+            bool isMoMoPayment = dh.hinhthucthanhtoan == 3 || dh.hinhthucthanhtoan == 5;
+            if (isMoMoPayment && dh.tongtien > 0 && (oldStatus == "Đã đặt" || oldStatus == "Đã xác nhận" || oldStatus == "Đã thanh toán"))
+            {
+                try
+                {
+                    var moMoService = HttpContext.RequestServices.GetRequiredService<ShipFood.Services.MoMoService>();
+                    // Đọc momo_trans_id đã lưu từ IPN callback (nếu có)
+                    long? transId = null;
+                    if (!string.IsNullOrEmpty(dh.momo_trans_id) && long.TryParse(dh.momo_trans_id, out var parsedTransId))
+                    {
+                        transId = parsedTransId;
+                    }
+                    var refundResult = await moMoService.RefundAsync(
+                        orderId: $"FS{dh.madh}_{DateTime.Now:yyyyMMddHHmmss}",
+                        amount: (long)(dh.tongtien * 1000),
+                        description: $"Hoàn tiền đơn hàng FastShip #{dh.madh}",
+                        transId: transId
+                    );
+                    var logger = HttpContext.RequestServices.GetRequiredService<ILogger<RestaurantController>>();
+                    if (refundResult.IsSuccess)
+                    {
+                        logger.LogInformation("MoMo refund successful for order #{OrderId}, amount: {Amount}", dh.madh, dh.tongtien);
+                    }
+                    else
+                    {
+                        logger.LogWarning("MoMo refund failed for order #{OrderId}: {Message}", dh.madh, refundResult.Message);
+                    }
+                }
+                catch (Exception refundEx)
+                {
+                    var logger = HttpContext.RequestServices.GetRequiredService<ILogger<RestaurantController>>();
+                    logger.LogError(refundEx, "MoMo refund failed for order #{OrderId}", dh.madh);
+                }
+            }
+
             db.SaveChanges();
 
             // SignalR broadcast real-time đến khách hàng
@@ -422,8 +460,8 @@ public class RestaurantController : BaseController
     [HttpPost]
     public async Task<JsonResult> ToggleConHang(int mamon)
     {
-        if (!checkLogin())
-            return Json(new { success = false, message = "Chưa đăng nhập" });
+        var roleCheck = CheckRoleJson("Quán ăn");
+        if (roleCheck != null) return roleCheck;
 
         var monAn = await db.tbMonAns.FindAsync(mamon);
         if (monAn == null)

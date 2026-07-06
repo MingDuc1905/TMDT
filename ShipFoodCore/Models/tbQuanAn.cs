@@ -23,7 +23,7 @@ public partial class tbQuanAn
 
     public int? soluotdanhgia { get; set; }
 
-    [Column(TypeName = "decimal(18,0)")]
+    [Column(TypeName = "decimal(2,1)")]
     public decimal? diemdanhgia { get; set; }
 
     [MaxLength(50)]

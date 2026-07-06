@@ -43,4 +43,24 @@ public abstract class BaseController : Controller
         var cartJson = JsonSerializer.Serialize(cart, _jsonOptions);
         HttpContext.Session.SetString("cart", cartJson);
     }
+
+    /// <summary>
+    /// Kiểm tra quyền truy cập cho JSON API endpoints.
+    /// Nếu không đăng nhập hoặc sai role → trả về JsonResult 403 Forbidden
+    /// </summary>
+    protected JsonResult? CheckRoleJson(string requiredRole)
+    {
+        var user = GetCurrentUser();
+        if (user == null)
+        {
+            Response.StatusCode = 403;
+            return Json(new { success = false, message = "Vui lòng đăng nhập để tiếp tục" });
+        }
+        if (!user.loaitaikhoan.Equals(requiredRole))
+        {
+            Response.StatusCode = 403;
+            return Json(new { success = false, message = "Bạn không có quyền thực hiện thao tác này" });
+        }
+        return null; // OK
+    }
 }

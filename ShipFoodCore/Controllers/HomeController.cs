@@ -571,6 +571,73 @@ public class HomeController : BaseController
     }
 
     /// <summary>
+    /// Ghi đè BCrypt hash trong database Railway bằng plain-text password
+    /// Chạy 1 lần sau deploy để fix lỗi login do database cũ còn BCrypt hash
+    /// URL: GET /Home/FixPasswords
+    /// </summary>
+    public IActionResult FixPasswords()
+    {
+        try
+        {
+            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<HomeController>>();
+            int updated = 0;
+
+            // Lấy danh sách user có password bắt đầu bằng $2 (BCrypt hash)
+            var bcryptUsers = db.tbUser.Where(u => u.pwd.StartsWith("$2")).ToList();
+
+            if (bcryptUsers.Count == 0)
+            {
+                return Content("✅ Không có user nào dùng BCrypt hash. Mọi thứ đã ổn!");
+            }
+
+            foreach (var user in bcryptUsers)
+            {
+                // Map password theo userid dựa trên seed data
+                var plainPwd = user.userid switch
+                {
+                    1 => "abcdef",            // tranthib
+                    2 => "qwerty",            // levanc
+                    3 => "shipy456",          // shippery
+                    4 => "shipz789",          // shipperz
+                    5 => "xyz123",            // phamthid
+                    6 => "konekopizza",       // Koneko Pizza
+                    7 => "com1990nvs",        // Cơm 1990
+                    8 => "bundaugiadi",       // Bún Đậu Gia Di
+                    9 => "quanchayanlactam",  // Quán Chay An Lạc Tâm
+                    10 => "changanuongbahong",// Chân Gà Nướng Bà Hồng
+                    11 => "tralong",          // Trà Long
+                    12 => "bunmambadong",     // Bún Mắm Bà Đông
+                    13 => "danghoanggatre",   // Đàng Hoàng
+                    14 => "sushitotoro",      // Sushi Totoro
+                    15 => "43bakery",         // 43 Bakery
+                    16 => "admin1",           // Admin 1
+                    17 => "admin2",           // Admin 2
+                    18 => "admin3",           // Admin 3
+                    _ => null                  // User không có trong seed → skip
+                };
+
+                if (plainPwd != null)
+                {
+                    user.pwd = plainPwd;
+                    updated++;
+                }
+            }
+
+            db.SaveChanges();
+
+            return Content($"✅ Đã sửa {updated}/{bcryptUsers.Count} user từ BCrypt hash → plain-text password." +
+                $"\n\nCác user đã fix: {string.Join(", ", bcryptUsers.Where(u => u.userid <= 18).Select(u => u.username))}" +
+                $"\n\nGiờ bạn có thể login với mật khẩu seed tương ứng!");
+        }
+        catch (Exception ex)
+        {
+            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<HomeController>>();
+            logger.LogError(ex, "FixPasswords failed");
+            return Content($"❌ Lỗi: {ex.Message}");
+        }
+    }
+
+    /// <summary>
     /// Seed database — chèn seed data từ mysql_utf8.sql nếu chưa có user nào.
     /// Gọi GET /Home/SeedDb từ browser sau deploy (chỉ chạy 1 lần).
     /// </summary>

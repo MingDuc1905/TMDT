@@ -145,13 +145,14 @@ public class CartController : BaseController
         });
     }
 
-    // ─── Helper: build CartItem from tbBienTheMonAn.id ───
-    private CartItem? BienTheToCartItem(int mabienthe)
+    // ─── Helper: build CartItem from mamon or bientheId ───
+    private CartItem? BienTheToCartItem(int maMonAn)
     {
-        // Try tbBienTheMonAn.id first, then fallback to tbBienTheMonAn.mamon (tbMonAn FK)
-        // DetailRestaurant sends tbMonAn.mamon, API sends tbBienTheMonAn.id
-        var bt = db.tbBienTheMonAn.Include(b => b.tbMonAn).FirstOrDefault(b => b.id == mabienthe)
-               ?? db.tbBienTheMonAn.Include(b => b.tbMonAn).FirstOrDefault(b => b.mamon == mabienthe);
+        // ⚠️ VIEWS gửi tbMonAn.mamon (VD: 12 = "Mẹt B"), không phải tbBienTheMonAn.id!
+        // Tìm theo tbBienTheMonAn.mamon (FK→tbMonAn) TRƯỚC để khớp đúng món.
+        // Fallback: tìm theo b.id (nếu có API gửi thẳng tbBienTheMonAn.id)
+        var bt = db.tbBienTheMonAn.Include(b => b.tbMonAn).FirstOrDefault(b => b.mamon == maMonAn)
+               ?? db.tbBienTheMonAn.Include(b => b.tbMonAn).FirstOrDefault(b => b.id == maMonAn);
         if (bt?.tbMonAn == null) return null;
         return new CartItem
         {
@@ -272,7 +273,7 @@ public class CartController : BaseController
         {
             success = true,
             conflict = false,
-            soLuong = cart.items.FirstOrDefault(m => m.mabienthe == maMonAn)?.soLuong ?? soLuong,
+            soLuong = FindCartItemByMamon(cart, maMonAn)?.soLuong ?? soLuong,
             cartTotal = cart.tongTien?.ToString("N0") + " đ",
             cartGrandTotal = (cart.tongTien + 15000)?.ToString("N0") + " đ",
             redirect = Url.Action("Index", "Cart")
@@ -320,7 +321,7 @@ public class CartController : BaseController
         cart.themMon(item, soLuong);
         SetCart(cart);
 
-        var cartItem = cart.items.FirstOrDefault(m => m.mabienthe == maMonAn);
+        var cartItem = FindCartItemByMamon(cart, maMonAn);
         return Json(new
         {
             success = true,
@@ -329,6 +330,12 @@ public class CartController : BaseController
             cartTotal = cart.tongTien?.ToString("N0") + " đ",
             cartGrandTotal = (cart.tongTien + 15000)?.ToString("N0") + " đ"
         });
+    }
+
+    // ─── Helper: tìm CartItem trong giỏ theo tbMonAn.mamon (vì view gửi mamon) ───
+    private CartItem? FindCartItemByMamon(Cart cart, int maMonAn)
+    {
+        return cart?.items.FirstOrDefault(m => m.mamon == maMonAn);
     }
 
     [HttpGet]
@@ -340,13 +347,14 @@ public class CartController : BaseController
         var cart = GetCart();
         if (cart != null)
         {
-            var existingItem = cart.items.FirstOrDefault(m => m.mabienthe == maMonAn);
+            var existingItem = FindCartItemByMamon(cart, maMonAn);
             if (existingItem != null && existingItem.soLuong <= 1)
             {
                 SetCart(cart);
                 return RedirectToAction("Index");
             }
-            cart.giamMon(maMonAn);
+            if (existingItem != null)
+                cart.giamMon(existingItem.mabienthe);
             SetCart(cart);
         }
         return RedirectToAction("Index");
@@ -362,7 +370,7 @@ public class CartController : BaseController
         if (cart == null)
             return Json(new { success = false, message = "Giỏ hàng trống" });
 
-        var existingItem = cart.items.FirstOrDefault(m => m.mabienthe == maMonAn);
+        var existingItem = FindCartItemByMamon(cart, maMonAn);
         if (existingItem != null && existingItem.soLuong <= 1)
         {
             return Json(new
@@ -375,10 +383,11 @@ public class CartController : BaseController
             });
         }
 
-        cart.giamMon(maMonAn);
+        if (existingItem != null)
+            cart.giamMon(existingItem.mabienthe);
         SetCart(cart);
 
-        var item = cart.items.FirstOrDefault(m => m.mabienthe == maMonAn);
+        var item = FindCartItemByMamon(cart, maMonAn);
         return Json(new
         {
             success = true,
@@ -398,7 +407,9 @@ public class CartController : BaseController
         var cart = GetCart();
         if (cart != null)
         {
-            cart.xoaMon(maMonAn);
+            var item = FindCartItemByMamon(cart, maMonAn);
+            if (item != null)
+                cart.xoaMon(item.mabienthe);
             SetCart(cart);
         }
         return RedirectToAction("Index");

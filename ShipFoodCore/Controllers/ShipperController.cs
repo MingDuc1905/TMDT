@@ -33,7 +33,7 @@ public class ShipperController : BaseController
               from tbDonHang dh 
               Join tbThongTinDatHang tt On dh.mattdh = tt.mattdh 
               Join tbQuanAn qa On dh.maquan = qa.userid 
-              Where dh.trangthai = N'Đã xác nhận' and dh.mashipper is NULL 
+              Where dh.trangthai = N'Chờ shipper lấy hàng' and dh.mashipper is NULL 
               Order by dh.madh DESC"
         ).ToList();
         return View(listdh);
@@ -194,7 +194,18 @@ public class ShipperController : BaseController
             {
                 donhang.trangthai = trangthai;
                 if (trangthai == "Hoàn thành")
+                {
                     donhang.ngaythanhtoan = DateTime.Now;
+                    // Cộng phí ship vào ví shipper
+                    if (donhang.phiship > 0)
+                    {
+                        var shipperUser = db.tbUser.Find(donhang.mashipper);
+                        if (shipperUser != null)
+                        {
+                            shipperUser.vitien += donhang.phiship;
+                        }
+                    }
+                }
                 db.SaveChanges();
 
                 // SignalR broadcast real-time đến khách hàng

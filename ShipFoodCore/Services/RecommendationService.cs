@@ -19,33 +19,44 @@ public class RecommendationService
     {
         if (userId == null) return await GetTrendingItems(take);
 
-        var orderedMonIds = await _db.tbChiTietDonHang
+        // orderedMonIds = tbBienTheMonAn.id values (ct.mamon = FK→tbBienTheMonAn.id)
+        var orderedBientheIds = await _db.tbChiTietDonHang
             .Where(ct => ct.tbDonHang!.tbThongTinDatHang!.userid == userId)
             .Select(ct => ct.mamon)
             .Distinct()
             .ToListAsync();
 
-        if (orderedMonIds.Count == 0)
+        if (orderedBientheIds.Count == 0)
             return await GetTrendingItems(take);
 
-        var similarUserOrders = await _db.tbChiTietDonHang
+        var similarUserBientheIds = await _db.tbChiTietDonHang
             .Where(ct => ct.tbDonHang!.tbThongTinDatHang!.userid != userId
-                        && orderedMonIds.Contains(ct.mamon ?? 0))
+                        && orderedBientheIds.Contains(ct.mamon ?? 0))
             .Select(ct => ct.mamon)
             .Distinct()
             .ToListAsync();
 
-        var recommendIds = similarUserOrders
-            .Where(id => !orderedMonIds.Contains(id))
+        var recommendBientheIds = similarUserBientheIds
+            .Where(id => !orderedBientheIds.Contains(id))
             .Distinct()
             .Take(take)
             .ToList();
 
-        if (recommendIds.Count == 0)
+        if (recommendBientheIds.Count == 0)
+            return await GetTrendingItems(take);
+
+        // Chuyển tbBienTheMonAn.id → tbMonAn.mamon để query tbMonAn
+        var recommendMonAnIds = await _db.tbBienTheMonAn
+            .Where(b => recommendBientheIds.Contains(b.id))
+            .Select(b => b.mamon)
+            .Distinct()
+            .ToListAsync();
+
+        if (recommendMonAnIds.Count == 0)
             return await GetTrendingItems(take);
 
         return await _db.tbMonAn
-            .Where(m => recommendIds.Contains(m.mamon))
+            .Where(m => recommendMonAnIds.Contains(m.mamon))
             .Include(m => m.tbQuanAn)
             .Include(m => m.tbBienTheMonAns)
             .ToListAsync();
@@ -87,14 +98,22 @@ public class RecommendationService
 
         var inputCount = inputMonIds.Count;
 
-        // Bước 2: Tìm orderIds chứa TẤT CẢ món đầu vào
-        // Dùng GroupBy → HAVING COUNT(DISTINCT mamon) = inputCount
+        // inputMonIds là tbMonAn.mamon, cần chuyển sang tbBienTheMonAn.id để so sánh với ct.mamon
+        var inputBientheIds = await _db.tbBienTheMonAn
+            .Where(b => inputMonIds.Contains(b.mamon))
+            .Select(b => b.id)
+            .ToListAsync();
+
+        if (inputBientheIds.Count == 0) return await GetPopularPairs(take);
+        var inputBientheCount = inputBientheIds.Count;
+
+        // Bước 2: Tìm orderIds chứa TẤT CẢ biến thể đầu vào
         var orderIdsWithAllInput = await _db.tbChiTietDonHang
-            .Where(ct => inputMonIds.Contains(ct.mamon ?? 0)
+            .Where(ct => inputBientheIds.Contains(ct.mamon ?? 0)
                       && ct.madh != null
                       && completedMadhList.Contains(ct.madh!.Value))
             .GroupBy(ct => ct.madh)
-            .Where(g => g.Select(ct => ct.mamon).Distinct().Count() == inputCount)
+            .Where(g => g.Select(ct => ct.mamon).Distinct().Count() == inputBientheCount)
             .Select(g => g.Key)
             .ToListAsync();
 
@@ -103,15 +122,15 @@ public class RecommendationService
         var countOrdersWithInput = orderIdsWithInputList.Count;
         if (countOrdersWithInput == 0) return await GetPopularPairs(take);
 
-        // Bước 3: Tìm các món B xuất hiện cùng A trong cùng đơn hàng
+        // Bước 3: Tìm các biến thể B xuất hiện cùng A trong cùng đơn hàng
         var candidateGroups = await _db.tbChiTietDonHang
             .Where(ct => orderIdsWithInputList.Contains(ct.madh ?? 0)
-                      && !inputMonIds.Contains(ct.mamon ?? 0)
+                      && !inputBientheIds.Contains(ct.mamon ?? 0)
                       && ct.mamon != null)
             .GroupBy(ct => ct.mamon)
             .Select(g => new
             {
-                MonId = g.Key,
+                BientheId = g.Key,
                 OrderCount = g.Select(x => x.madh).Distinct().Count()
             })
             .ToListAsync();
@@ -125,7 +144,7 @@ public class RecommendationService
         var filtered = candidateGroups
             .Select(c => new
             {
-                MonId = c.MonId,
+                BientheId = c.BientheId,
                 OrderCount = c.OrderCount,
                 Support = (decimal)c.OrderCount / totalOrders,
                 Confidence = countOrdersWithInput > 0
@@ -144,7 +163,7 @@ public class RecommendationService
             filtered = candidateGroups
                 .Select(c => new
                 {
-                    MonId = c.MonId,
+                    BientheId = c.BientheId,
                     OrderCount = c.OrderCount,
                     Support = (decimal)c.OrderCount / totalOrders,
                     Confidence = countOrdersWithInput > 0
@@ -164,7 +183,7 @@ public class RecommendationService
             filtered = candidateGroups
                 .Select(c => new
                 {
-                    MonId = c.MonId,
+                    BientheId = c.BientheId,
                     OrderCount = c.OrderCount,
                     Support = (decimal)c.OrderCount / totalOrders,
                     Confidence = countOrdersWithInput > 0
@@ -177,11 +196,17 @@ public class RecommendationService
                 .ToList();
         }
 
-        var ids = filtered.Select(r => r.MonId ?? 0).ToList();
-        if (ids.Count == 0) return new List<tbMonAn>();
+        // Chuyển tbBienTheMonAn.id → tbMonAn.mamon
+        var bientheIds = filtered.Select(r => r.BientheId ?? 0).ToList();
+        if (bientheIds.Count == 0) return new List<tbMonAn>();
+        var monAnIds = await _db.tbBienTheMonAn
+            .Where(b => bientheIds.Contains(b.id))
+            .Select(b => b.mamon)
+            .Distinct()
+            .ToListAsync();
 
         return await _db.tbMonAn
-            .Where(m => ids.Contains(m.mamon))
+            .Where(m => monAnIds.Contains(m.mamon))
             .Include(m => m.tbQuanAn)
             .Include(m => m.tbBienTheMonAns)
             .ToListAsync();
@@ -243,8 +268,17 @@ public class RecommendationService
 
         if (topItemIds.Count == 0) return await GetTrendingItems(take);
 
+        // Chuyển tbBienTheMonAn.id → tbMonAn.mamon
+        var monAnIds = await _db.tbBienTheMonAn
+            .Where(b => topItemIds.Contains(b.id))
+            .Select(b => b.mamon)
+            .Distinct()
+            .ToListAsync();
+
+        if (monAnIds.Count == 0) return await GetTrendingItems(take);
+
         return await _db.tbMonAn
-            .Where(m => topItemIds.Contains(m.mamon))
+            .Where(m => monAnIds.Contains(m.mamon))
             .Include(m => m.tbQuanAn)
             .Include(m => m.tbBienTheMonAns)
             .ToListAsync();
@@ -499,8 +533,15 @@ public class RecommendationService
         }
 
         var ids = trending.Select(t => t.monId ?? 0).ToList();
+        // Chuyển tbBienTheMonAn.id → tbMonAn.mamon
+        var monAnIds = await _db.tbBienTheMonAn
+            .Where(b => ids.Contains(b.id))
+            .Select(b => b.mamon)
+            .Distinct()
+            .ToListAsync();
+        if (monAnIds.Count == 0) return new List<tbMonAn>();
         return await _db.tbMonAn
-            .Where(m => ids.Contains(m.mamon))
+            .Where(m => monAnIds.Contains(m.mamon))
             .Include(m => m.tbQuanAn)
             .ToListAsync();
     }

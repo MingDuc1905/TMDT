@@ -81,12 +81,14 @@ public class RestaurantController : BaseController
                                     select ma).Count(),
                     tongSoLuongBanRa = (from dm in db.tbDanhMuc
                                          join ma in db.tbMonAn on dm.madanhmuc equals ma.madanhmuc
-                                         join ctdh in db.tbChiTietDonHang on ma.mamon equals ctdh.mamon
+                                         join b in db.tbBienTheMonAn on ma.mamon equals b.mamon
+                                         join ctdh in db.tbChiTietDonHang on b.id equals ctdh.mamon
                                          where ma.maquanan == quanAn.userid && dm.madanhmuc == idDanhMuc
                                          select ctdh.soluong).Sum() ?? 0,
                     doanhThu = (double?)(from dm in db.tbDanhMuc
                                          join ma in db.tbMonAn on dm.madanhmuc equals ma.madanhmuc
-                                         join ctdh in db.tbChiTietDonHang on ma.mamon equals ctdh.mamon
+                                         join b in db.tbBienTheMonAn on ma.mamon equals b.mamon
+                                         join ctdh in db.tbChiTietDonHang on b.id equals ctdh.mamon
                                          where ma.maquanan == quanAn.userid && dm.madanhmuc == idDanhMuc
                                          select ctdh.soluong * ctdh.dongia).Sum() ?? 0
                 };
@@ -151,7 +153,8 @@ public class RestaurantController : BaseController
         var quanAn = getQuanAn();
 
         var monAnKhuyenMais = (from ma in db.tbMonAn
-                               join makm in db.tbMonAnKhuyenMai on ma.mamon equals makm.mamon
+                               join b in db.tbBienTheMonAn on ma.mamon equals b.mamon
+                               join makm in db.tbMonAnKhuyenMai on b.id equals makm.mamon
                                where ma.maquanan == quanAn.userid
                                select makm).ToList();
 

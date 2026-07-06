@@ -135,9 +135,9 @@ public class PaymentController : BaseController
 
             SetCart(new Cart());
 
-            // ─── MoMo Payment: Nếu chọn thanh toán MoMo, tạo payment request ───
+            // ─── MoMo Payment: Nếu chọn thanh toán MoMo (mahttt=5), tạo payment request ───
             string? momoPayUrl = null;
-            if (pttt == 3) // Giả sử mahttt = 3 là MoMo (cần kiểm tra với DB thực tế)
+            if (pttt == 5) // mahttt=5 = MoMo (xem tbLoaiHinhThanhToan seed)
             {
                 try
                 {

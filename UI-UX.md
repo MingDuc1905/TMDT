@@ -1,6 +1,6 @@
 # Fastship (ShipFood) — UI/UX Documentation (Full)
 
-> **Phiên bản**: 4.12 — Dark Mode CSS, CSS variable migration toàn diện (100+ colors), UI/UX Pro Max editorial typography & animations  
+> **Phiên bản**: 5.0 — Phase 1-5 Full Upgrade: Dual-Filter Bar, MoMo Payment, RoleGuard Middleware, Real-time Order Tracking, Admin Dashboard Real-time  
 > **Cập nhật**: Tháng 7, 2026  
 > **Mô tả**: Tài liệu thiết kế giao diện & trải nghiệm người dùng toàn diện cho nền tảng đặt đồ ăn Fastship  
 > **Tài liệu liên quan**: Project.md — Tổng quan kiến trúc & phát triển
@@ -34,6 +34,21 @@
 22. [Backlog & Improvements](#22-backlog--improvements)
     - [22.3 ✅ Completed in v3.3 — Layout Architecture Overhaul](#223--completed-in-v33--layout-architecture-overhaul)
     - [22.4 Future Improvements](#224-future-improvements)
+23. [Dual-Filter Bar & Cart Persistence](#23-dual-filter-bar--cart-persistence-grab-ui)
+    - [23.1 FilterBar ViewComponent](#231-filterbar-viewcomponent)
+    - [23.2 Bottom Sheet Filter UI](#232-bottom-sheet-filter-ui)
+    - [23.3 Cart LocalStorage Persistence](#233-cart-localstorage-persistence)
+24. [MoMo Payment Integration](#24-momo-payment-integration)
+    - [24.1 MoMoService](#241-momoservice)
+    - [24.2 Payment Flow](#242-payment-flow)
+25. [RoleGuard Middleware](#25-roleguard-middleware)
+26. [Order Tracking & Live Map](#26-order-tracking--live-map)
+    - [26.1 OrderTracking View](#261-ordertracking-view)
+    - [26.2 7-Step Progress Bar](#262-7-step-progress-bar)
+    - [26.3 map.js Shared Module](#263-mapjs-shared-module)
+27. [Dashboard Real-time Updates](#27-dashboard-real-time-updates)
+    - [27.1 Admin Dashboard SignalR](#271-admin-dashboard-signalr)
+    - [27.2 Restaurant Real-time Broadcasts](#272-restaurant-real-time-broadcasts)
 
 ---
 
@@ -2064,20 +2079,264 @@ LOGIN ──→ DASHBOARD (with LIVE MAP)
 
 ---
 
-> **Document Version**: 4.12 (Full)  
+> **Document Version**: 5.0 (Full)  
 > **Cập nhật**: Tháng 7, 2026  
-> **Based on**: Actual source code analysis of 8 Controllers, 30+ Views, 15+ Models, 10+ CSS files, 5 Layout files, 1 SignalR Hub, 4 sessions of responsive mobile fixes + 1 theme unification + 1 icon cleanup + 1 UI/UX Logic Fixes + 1 UI/UX Pro Max skill session  
-> **Key changes v4.12**:  
-> - 🌙 **Dark Mode CSS** — `@media prefers-color-scheme: dark` với 60+ dòng override cho header, footer, navbar, cards, forms, skeleton, chat, social links  
-> - 🎨 **CSS variable migration** — ~55 hardcoded colors → CSS variables ở Cart/Index.cshtml (30) + DetailRestaurant.cshtml (25), bao gồm CSS, inline styles, JS strings  
-> - 🔐 **Auth pages CSS variables** — Login/Signup/Forgot thay `#888`→`var(--fs-muted)`, `#3CB815`→`var(--fs-green)`, `#fff`→`var(--fs-white)`, thêm link design tokens  
-> - ✒️ **Editorial typography tokens** — `--fs-letter-spacing`, `--fs-heading-letter-spacing`, premium shadows (`--fs-shadow-md/xl`), section spacing tokens  
-> - 🔄 **Footer social icons 30px** — Đồng bộ footer với topbar (30px circular, green hover, bỏ border)  
-> - 🃏 **Card spring animation** — `cubic-bezier(0.34, 1.56, 0.64, 1)` overshoot, translateY(-8px), shadow đậm hơn  
-> - 💡 **How-it-works + Stats hover** — Icon scale 1.1 + card lift effects  
-> - 📐 **UI-UX.md**: v4.12 — Dark Mode, CSS variable migration, editorial typography  
-> - 📐 **Project.md**: v3.6 — cập nhật backlog, version, tính năng mới  
-> - 📐 **README.md**: v3.6 — badge update, roadmap v3.4-3.6  
+> **Based on**: ...  
+> **Key changes v5.0**: ...
+
+---
+
+## 23. Dual-Filter Bar & Cart Persistence (Grab UI)
+
+### 23.1 FilterBar ViewComponent
+
+**File**: `ViewComponents/FilterBarViewComponent.cs` + `Views/Shared/Components/FilterBar/Default.cshtml`
+
+ViewComponent nhận `categoryId` và `q` (search query) từ ViewBag, render:
+
+- **Horizontal scroll chip bar**: Các chip filter (Khuyến mãi, Bán chạy, Gần đây, Đánh giá tốt, $, $$, $$$, $$$$)
+- **Nút "Bộ lọc"**: Kích hoạt Bottom Sheet
+- **Chip active**: Xanh lá (`var(--fs-green)`), có icon ✕ để remove
+
+```
+┌──────────────────────────────────────────────────┐
+│ [🍕 Tất cả] [🔥 Khuyến mãi] [⭐ Đánh giá tốt]    │
+│ [💰 $] [💰 $$] [💵 $$$]     [☰ Bộ lọc]          │ ← horizontal scroll
+└──────────────────────────────────────────────────┘
+```
+
+### 23.2 Bottom Sheet Filter UI
+
+**File**: `wwwroot/js/filter.js`
+
+Bottom Sheet với 4 sections:
+
+```
+┌──────────────────────────────────────────┐
+│  ──── ──── ──── (drag handle)     [✕]   │
+│  🔍 Bộ lọc tìm kiếm                      │
+├──────────────────────────────────────────┤
+│  📊 Sắp xếp theo (Radio)                 │
+│  ○ Gợi ý  ○ Đánh giá  ○ Phí ship         │
+│                                           │
+│  🏷️ Tùy chọn (Checkbox)                  │
+│  ☑ Khuyến mãi  ☐ Bán chạy  ☐ Gần đây     │
+│                                           │
+│  🍽 Loại ẩm thực (Grid)                  │
+│  [Tất cả🍽] [Đồ ăn🍚] [Đồ uống🧋] [Chay🥗]│
+│  [Bánh🥟] [Tráng miệng🍰] ...             │
+│                                           │
+│  💰 Khoảng giá (Price levels)            │
+│  [$ 0-20k] [$$ 20-50k] [$$$ 50-100k]     │
+│  [$$$$ 100k+]                             │
+├──────────────────────────────────────────┤
+│  [Áp dụng]                 [Đặt lại]     │
+└──────────────────────────────────────────┘
+```
+
+**Two-way sync**: Chip ↔ Bottom Sheet state đồng bộ 2 chiều — click chip mở sheet và highlight đúng mục, chọn trong sheet tự động cập nhật chip.
+
+### 23.3 Cart LocalStorage Persistence
+
+**File**: `wwwroot/js/cart-local.js`
+
+- Tự động lưu giỏ hàng vào `localStorage` khi có thay đổi
+- Khi load trang: khôi phục cart từ localStorage qua API `RestoreFromLocal`
+- Dùng XHR monkey-patch để phát hiện AJAX thay đổi số lượng
+- Fallback: Session cart được ưu tiên nếu tồn tại
+
+---
+
+## 24. MoMo Payment Integration
+
+### 24.1 MoMoService
+
+**File**: `Services/MoMoService.cs`
+
+Service tích hợp MoMo sandbox API với:
+
+| Method | Mô tả |
+|--------|-------|
+| `CreatePaymentAsync(orderId, amount, orderInfo)` | Tạo request thanh toán MoMo, trả về payUrl |
+| `QueryTransactionAsync(orderId)` | Kiểm tra trạng thái giao dịch |
+| `ComputeHmacSha256(message, secretKey)` | HMAC-SHA256 signature cho MoMo requests |
+
+**Security**: Toàn bộ keys đọc từ `Environment.GetEnvironmentVariable()` (MOMO_PARTNER_CODE, MOMO_ACCESS_KEY, MOMO_SECRET_KEY) — throws `InvalidOperationException` nếu thiếu.
+
+### 24.2 Payment Flow
+
+```
+Customer Checkout ──→ PaymentController.ProcessPayment
+                              │
+                    ┌─────────┴─────────┐
+                    ▼                   ▼
+              MoMo (payUrl)          COD (immediate)
+                    │                   │
+                    ▼                   ▼
+        MoMoIpn callback ←───    SuccessView
+        (cập nhật trạng thái)
+```
+
+---
+
+## 25. RoleGuard Middleware
+
+**File**: `Middleware/RoleGuardMiddleware.cs`
+
+Middleware toàn cục chặn truy cập chéo role:
+
+| Route prefix | Role required |
+|-------------|---------------|
+| `/Admin` | `Admin` |
+| `/Restaurant` | `Quán ăn` |
+| `/Shipper` | `Shipper` |
+
+**Cơ chế**:
+- Đọc `loaitaikhoan` từ session user
+- So sánh với route map (case-insensitive)
+- Nếu sai role → 403 + redirect về dashboard phù hợp
+- Middleware được đăng ký **sau** `UseSession()` trong pipeline
+
+---
+
+## 26. Order Tracking & Live Map
+
+### 26.1 OrderTracking View
+
+**File**: `Views/Cart/OrderTracking.cshtml`
+
+Trang theo dõi đơn hàng real-time:
+
+```
+┌──────────────────────────────────────────────┐
+│  📦 Chi tiết đơn hàng #123                    │
+│  ┌──────────────────────────────────────┐    │
+│  │  Quán: Koneko Pizza                  │    │
+│  │  Món: Pizza thập cẩm ×2              │    │
+│  │  Địa chỉ: 48 Cao Thắng, Quận 3       │    │
+│  │  Tổng: 120.000đ                       │    │
+│  └──────────────────────────────────────┘    │
+│                                              │
+│  ┌── 7-STEP PROGRESS BAR ───────────────┐    │
+│  │  ✅ ── ✅ ── ⏳ ── ○ ── ○ ── ○ ── ○  │    │
+│  │  Đã   Xác  Chuẩn Chờ   Đã   Đang  Hoàn│    │
+│  │  đặt  nhận bị    Shipper Lấy Giao  thành│    │
+│  └──────────────────────────────────────┘    │
+│                                              │
+│  ┌── LEAFLET LIVE MAP ─────────────────┐     │
+│  │  🗺️ [Map hiển thị vị trí shipper]   │     │
+│  │  📍 Shipper: đang di chuyển          │     │
+│  │  🏪 Quán ăn: [marker]               │     │
+│  │  🏠 Giao đến: [marker]               │     │
+│  └──────────────────────────────────────┘     │
+└──────────────────────────────────────────────┘
+```
+
+### 26.2 7-Step Progress Bar
+
+| Step | Trạng thái | Icon |
+|------|-----------|------|
+| 0 | Đã đặt | 📋 |
+| 1 | Đã xác nhận | ✅ |
+| 2 | Đang chuẩn bị | 👨‍🍳 |
+| 3 | Chờ shipper lấy hàng | 📍 |
+| 3.5 | Đã thanh toán (MoMo) | 💳 |
+| 4 | Đã lấy | 📦 |
+| 5 | Đang giao | 🚚 |
+| 6 | Hoàn thành | 🎉 |
+
+Mỗi step có: icon, label, đường kết nối (completed = xanh, active = pulse, pending = xám)
+
+### 26.3 map.js Shared Module
+
+**File**: `wwwroot/js/map.js`
+
+Module JS chia sẻ cho toàn bộ tracking map:
+
+```javascript
+var FastShipTracking = {
+    STATUS_FLOW: [...],  // 8 trạng thái
+    connection: null,    // SignalR hub connection
+    map: null,           // Leaflet map instance
+    shipperMarker: null, // Moving marker
+    
+    initMap: function(elementId, lat, lng) { ... },
+    initSignalR: function(orderId) { ... },
+    renderProgressBar: function(currentStatus) { ... },
+    getStatusStep: function(status) { ... },
+    init: function(opts) { ... }  // One-call setup
+};
+```
+
+**SignalR events**:
+- `orderStatusChanged(orderId, status)` → cập nhật progress bar
+- `shipperLocationUpdate(orderId, lat, lng)` → di chuyển marker trên map
+- `shipperAssigned(orderId, shipperName)` → hiển thị tên shipper
+
+---
+
+## 27. Dashboard Real-time Updates
+
+### 27.1 Admin Dashboard SignalR
+
+**File**: `Views/Admin/Order.cshtml`
+
+Admin quản lý đơn hàng với real-time notifications:
+
+```javascript
+// Admin/Order.cshtml
+var connection = new signalR.HubConnectionBuilder()
+    .withUrl('/nhantin')
+    .withAutomaticReconnect()
+    .build();
+
+connection.on('newOrder', function(orderId) {
+    // Hiển thị toast notification + reload table
+    showNotification('📦 Đơn hàng mới #' + orderId);
+    $('#orderTable').DataTable().ajax.reload();
+});
+
+connection.on('orderStatusChanged', function(orderId, status) {
+    // Cập nhật badge trạng thái + reload
+    $('#orderTable').DataTable().ajax.reload();
+});
+
+connection.start();
+```
+
+### 27.2 Restaurant Real-time Broadcasts
+
+| Controller Action | SignalR Event | Group |
+|------------------|---------------|-------|
+| `nhandon` (nhận đơn) | `orderStatusChanged` → `order_{id}` | Customer nghe |
+| `huydon` (hủy đơn) | `orderStatusChanged` → `order_{id}` | Customer nghe |
+| `hoantatdon` (chuẩn bị xong) | `orderStatusChanged` → `order_{id}` + `newPickupOrder` → shippers | Customer + Shipper |
+
+### 27.3 Shipper Real-time Broadcasts
+
+| Controller Action | SignalR Event | Group |
+|------------------|---------------|-------|
+| `UpdateDonHang` (cập nhật trạng thái) | `orderStatusChanged` → `order_{id}` | Customer nghe |
+| Map location stream | `shipperLocationUpdate` → `order_{id}` | Customer map update |
+
+---
+
+### v5.0 — Phase 1-5: Dual-Filter Bar, MoMo, RoleGuard, Real-time Tracking, Dashboard (NEW)
+
+| Task | Status | Files | Chi tiết |
+|------|--------|-------|----------|
+| **Dual-Filter Bar** | ✅ | `FilterBarViewComponent.cs`, `Default.cshtml` | ViewComponent with horizontal chip bar, bottom sheet, Grab-like UX |
+| **MenuSearch API** | ✅ | `HomeController.cs` | Dynamic SQL: LEFT JOIN khuyến mãi, WHERE rating ≥ 4.4, price range, ORDER BY |
+| **filter.js** | ✅ | `wwwroot/js/filter.js` | Bottom sheet, chip-sheet two-way sync, AJAX search, price level, category grid |
+| **Cart localStorage** | ✅ | `cart-local.js`, `CartController.cs` | Auto-save/restore cart, RestoreFromLocal endpoint, XHR monkey-patch |
+| **MoMo Service** | ✅ | `MoMoService.cs`, `PaymentController.cs` | HMAC-SHA256 sandbox, create/query payment, IPN callback, env var config |
+| **RoleGuard Middleware** | ✅ | `RoleGuardMiddleware.cs`, `Program.cs` | Route permission map, 403 redirect, after UseSession |
+| **OrderTracking view** | ✅ | `OrderTracking.cshtml`, `CartController.cs` | 7-step progress bar, Leaflet live map, SignalR orderStatusChanged |
+| **map.js shared module** | ✅ | `wwwroot/js/map.js` | Leaflet + SignalR hub, STATUS_FLOW, renderProgressBar, getStatusStep, FastShipTracking |
+| **Restaurant broadcasts** | ✅ | `RestaurantController.cs` | nhandon/huydon/hoantatdon async SendAsync to order_{id} group |
+| **Shipper broadcasts** | ✅ | `ShipperController.cs` | UpdateDonHang async, status change broadcast to order group |
+| **Admin real-time** | ✅ | `Admin/Order.cshtml` | SignalR newOrder notification, orderStatusChanged refresh |
+| **Navigation links** | ✅ | `ChiTietDonHang.cshtml`, `LichSuDatHang.cshtml` | Tracking link cho customer + restaurant |
 
 ---
 

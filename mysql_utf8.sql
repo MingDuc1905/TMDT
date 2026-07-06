@@ -282,7 +282,7 @@ INSERT INTO tbShipper (userid, tenshipper, diachi, toado, diemdanhgia, soluotdan
 
 -- ==================== tbQuanAn ====================
 INSERT INTO tbQuanAn (userid, tenquanan, diachi, toado, soluotdanhgia, diemdanhgia, trangthai, hinhanh) VALUES
-(6, 'Koneko Pizza', 'K57H10/12 Bà Bang Nhãn, P. Hòa Hải,  Quận Bình Thạnh, TP. Hồ Chí Minh', NULL, 75, 5, 'Đóng cửa', 'koneko.jpg'),
+(6, 'Koneko Pizza', 'K57H10/12 Bà Bang Nhãn, P. Hòa Hải,  Quận Bình Thạnh, TP. Hồ Chí Minh', NULL, 75, 5, 'Đang mở cửa', 'koneko.jpg'),
 (7, 'Cơm 1990 - Ngô Văn Sở', '61 Ngô Văn Sở, P.Hòa Khánh Nam,  Quận 12, TP. Hồ Chí Minh', NULL, 300, 5, 'Đang mở cửa', 'com1990.jpg'),
 (8, 'Bún Đậu Mắm Tôm Gia Di - Nguyễn Văn Thoại', '100 Nguyễn Văn Thoại, P. Mỹ An,  Quận Bình Thạnh, TP. Hồ Chí Minh', NULL, 100, 5, 'Đang mở cửa', 'bundaugiadi.jpg'),
 (9, 'Quán Chay An Lạc Tâm - Phan Đăng Lưu', '117 Phan Đăng Lưu, P. Hòa Cường Bắc,  Quận 3, TP. Hồ Chí Minh', NULL, 100, 5, 'Đang mở cửa', 'quanchayanlactam.jpg'),
@@ -459,16 +459,16 @@ INSERT INTO tbBienTheMonAn (mamon, size, giatien) VALUES
 
 -- ==================== tbKhuyenMai ====================
 INSERT INTO tbKhuyenMai (makm, tenkm, mota, loaikm, phantramgiam, dieukien, ngaybatdau, ngayketthuc) VALUES
-(1, 'Khuyến mãi mùa hè', 'Giảm giá 20% cho tất cả sản phẩm mùa hè', 'Giảm giá', 20, 'Sản phẩm mùa hè', '2024-06-01 00:00:00', '2024-08-31 00:00:00'),
-(2, 'Khuyến mãi sinh nhật', 'Giảm 30% cho khách hàng sinh nhật trong tháng', 'Giảm giá', 30, 'Khách hàng sinh nhật', '2024-01-01 00:00:00', '2024-05-17 00:00:00'),
-(3, 'Khuyến mãi mua hàng lớn', 'Giảm giá 10% cho hóa đơn từ 1 triệu trở lên', 'Giảm giá', 10, 'Hóa đơn từ 1 triệu', '2024-05-01 00:00:00', '2024-05-10 00:00:00');
+(1, 'Khuyến mãi mùa hè', 'Giảm giá 20% cho tất cả sản phẩm mùa hè', 'Giảm giá', 20, 'Sản phẩm mùa hè', '2026-06-01 00:00:00', '2026-08-31 00:00:00'),
+(2, 'Khuyến mãi sinh nhật', 'Giảm 30% cho khách hàng sinh nhật trong tháng', 'Giảm giá', 30, 'Khách hàng sinh nhật', '2026-01-01 00:00:00', '2026-12-31 00:00:00'),
+(3, 'Khuyến mãi mua hàng lớn', 'Giảm giá 10% cho hóa đơn từ 1 triệu trở lên', 'Giảm giá', 10, 'Hóa đơn từ 1 triệu', '2026-01-01 00:00:00', '2026-12-31 00:00:00');
 
 -- ==================== tbMonAnKhuyenMai ====================
 -- mamon giờ là id của tbBienTheMonAn
 INSERT INTO tbMonAnKhuyenMai (id, makm, mamon, soluong, trangthai, phantramgiam) VALUES
-(1, 1, 1, 48, 'Hết hạn', 20),    -- Trà tắc id=1
-(2, 2, 2, 30, 'Hết hạn', 30),    -- Pizza thập cẩm M id=2
-(3, 2, 4, 20, 'Hết hạn', 10);    -- Pizza Bò M id=4
+(1, 1, 1, 48, 'Còn hạn', 20),    -- Trà tắc id=1
+(2, 2, 2, 30, 'Còn hạn', 30),    -- Pizza thập cẩm M id=2
+(3, 2, 4, 20, 'Còn hạn', 10);    -- Pizza Bò M id=4
 
 -- ==================== tbLoaiHinhThanhToan ====================
 INSERT INTO tbLoaiHinhThanhToan (mahttt, tenhinhthuc, mota) VALUES

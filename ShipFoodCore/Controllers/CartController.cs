@@ -52,11 +52,8 @@ public class CartController : BaseController
             return RedirectToAction("Index");
         }
 
-        var excludedMethods = new[] { "ZaloPay", "Momo", "Paypal" };
-        ViewBag.phuongthuctt = db.tbLoaiHinhThanhToan
-            .AsEnumerable()
-            .Where(t => !excludedMethods.Any(e => t.tenhinhthuc.Contains(e, StringComparison.OrdinalIgnoreCase)))
-            .ToList();
+        // Hiển thị tất cả phương thức thanh toán (bao gồm MoMo, ZaloPay, Paypal)
+        ViewBag.phuongthuctt = db.tbLoaiHinhThanhToan.ToList();
         ViewBag.diachicosan = db.tbThongTinDatHang.Where(tt => tt.userid == user!.userid).ToList();
         ViewBag.cart = cart;
         ViewBag.CouponList = db.tbKhuyenMai.Where(k => k.ngayketthuc == null || k.ngayketthuc >= DateTime.Now).Take(5).ToList();

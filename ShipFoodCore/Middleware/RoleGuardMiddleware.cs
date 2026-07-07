@@ -1,6 +1,5 @@
 using ShipFood.Models;
 using System.Text.Json;
-using System.Text.RegularExpressions;
 
 namespace ShipFood.Middleware;
 
@@ -13,13 +12,23 @@ public class RoleGuardMiddleware
     private readonly RequestDelegate _next;
     private readonly ILogger<RoleGuardMiddleware> _logger;
 
+    // Danh sách các đường dẫn được bỏ qua hoàn toàn (không cần đăng nhập)
+    private static readonly HashSet<string> BypassPaths = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "/health",
+        "/Home/Error",
+        "/Home/Login",
+        "/Home/Logout",
+        "/Home/Signup",
+        "/nhantin",  // SignalR hub
+    };
+
     // Route → Role mapping
     private static readonly Dictionary<string, string> RouteRoleMap = new(StringComparer.OrdinalIgnoreCase)
     {
         { "/admin", "Admin" },
         { "/restaurant", "Quán ăn" },
         { "/shipper", "Shipper" },
-        // Cart/Checkout dành cho Khách hàng (hoặc đã đăng nhập)
     };
 
     public RoleGuardMiddleware(RequestDelegate next, ILogger<RoleGuardMiddleware> logger)
@@ -32,71 +41,104 @@ public class RoleGuardMiddleware
     {
         var path = context.Request.Path.Value?.ToLowerInvariant() ?? "";
 
-        // Chỉ kiểm tra các route cần bảo vệ
+        // ═══ Bỏ qua các đường dẫn bypass (không cần kiểm tra) ═══
+        foreach (var bp in BypassPaths)
+        {
+            if (path.StartsWith(bp, StringComparison.OrdinalIgnoreCase))
+            {
+                await _next(context);
+                return;
+            }
+        }
+
+        // ═══ Xác định role yêu cầu cho route hiện tại ═══
         string? requiredRole = null;
         foreach (var kvp in RouteRoleMap)
         {
-            if (path.StartsWith(kvp.Key))
+            if (path.StartsWith(kvp.Key, StringComparison.OrdinalIgnoreCase))
             {
                 requiredRole = kvp.Value;
                 break;
             }
         }
 
-        if (requiredRole != null)
+        // ═══ Không cần role → cho qua (kể cả chưa đăng nhập) ═══
+        // Giúp 404, CSS/JS, static files không bị redirect về Login
+        if (requiredRole == null)
         {
-            // Lấy user từ session
-            var userJson = context.Session.GetString("user");
-            tbUser? user = null;
-            if (!string.IsNullOrEmpty(userJson))
-            {
-                try
-                {
-                    user = JsonSerializer.Deserialize<tbUser>(userJson);
-                }
-                catch { }
-            }
+            await _next(context);
+            return;
+        }
 
-            if (user == null)
+        // ═══ Lấy user từ session ═══
+        var userJson = context.Session.GetString("user");
+        tbUser? user = null;
+        if (!string.IsNullOrEmpty(userJson))
+        {
+            try { user = JsonSerializer.Deserialize<tbUser>(userJson); }
+            catch { }
+        }
+
+        // ═══ Chưa đăng nhập → redirect về login ═══
+        if (user == null)
+        {
+            // AJAX → JSON 401
+            if (context.Request.Headers["X-Requested-With"] == "XMLHttpRequest" ||
+                context.Request.Headers["Accept"].ToString().Contains("application/json"))
             {
-                // Chưa đăng nhập → redirect về login
-                context.Response.Redirect("/Home/Login");
+                context.Response.StatusCode = 401;
+                context.Response.ContentType = "application/json";
+                await context.Response.WriteAsync(JsonSerializer.Serialize(new
+                {
+                    success = false,
+                    message = "Phiên đăng nhập đã hết. Vui lòng đăng nhập lại.",
+                    redirectUrl = "/Home/Login"
+                }));
                 return;
             }
 
-            if (user.loaitaikhoan != requiredRole)
+            context.Response.Redirect("/Home/Login");
+            return;
+        }
+
+        // ═══ Sai role → redirect về trang phù hợp ═══
+        if (user.loaitaikhoan != requiredRole)
+        {
+            _logger.LogWarning("RoleGuard: User {UserId} ({Role}) tried to access {Path} (required: {RequiredRole})",
+                user.userid, user.loaitaikhoan, path, requiredRole);
+
+            var redirectUrl = user.loaitaikhoan switch
             {
-                _logger.LogWarning("RoleGuard: User {UserId} ({Role}) tried to access {Path} (required: {RequiredRole})",
-                    user.userid, user.loaitaikhoan, path, requiredRole);
+                "Khách hàng" => "/Home",
+                "Quán ăn" => "/Restaurant",
+                "Shipper" => "/Shipper",
+                "Admin" => "/Admin",
+                _ => "/Home/Login"
+            };
 
-                // Redirect user to their correct dashboard
-                var redirectUrl = user.loaitaikhoan switch
+            // Tránh redirect loop
+            if (path.StartsWith(redirectUrl.ToLowerInvariant()))
+            {
+                _logger.LogWarning("RoleGuard redirect loop detected for User {UserId} — redirecting to /Home", user.userid);
+                redirectUrl = "/Home";
+            }
+
+            if (context.Request.Headers["X-Requested-With"] == "XMLHttpRequest" ||
+                context.Request.Headers["Accept"].ToString().Contains("application/json"))
+            {
+                context.Response.StatusCode = 403;
+                context.Response.ContentType = "application/json";
+                await context.Response.WriteAsync(JsonSerializer.Serialize(new
                 {
-                    "Khách hàng" => "/Home",
-                    "Quán ăn" => "/Restaurant",
-                    "Shipper" => "/Shipper",
-                    "Admin" => "/Admin",
-                    _ => "/Home"
-                };
-
-                // For AJAX requests, return JSON
-                if (context.Request.Headers["X-Requested-With"] == "XMLHttpRequest" ||
-                    context.Request.Headers["Accept"].ToString().Contains("application/json"))
-                {
-                    context.Response.StatusCode = 403;
-                    context.Response.ContentType = "application/json";
-                    await context.Response.WriteAsync(JsonSerializer.Serialize(new
-                    {
-                        success = false,
-                        message = "Bạn không có quyền truy cập trang này.",
-                        redirectUrl
-                    }));
-                    return;
-                }
-
-                context.Response.Redirect(redirectUrl);
+                    success = false,
+                    message = "Bạn không có quyền truy cập trang này.",
+                    redirectUrl
+                }));
                 return;
             }
+
+            context.Response.Redirect(redirectUrl);
+            return;
         }
 
         await _next(context);

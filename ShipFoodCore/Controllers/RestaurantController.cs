@@ -25,6 +25,12 @@ public class RestaurantController : BaseController
     {
         if (!checkLogin()) return RedirectToAction("Login", "Home");
         var QuanAn = getQuanAn();
+        if (QuanAn == null)
+        {
+            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<RestaurantController>>();
+            logger.LogWarning("Restaurant user logged in but no tbQuanAn record found for userId {UserId}", GetCurrentUser()?.userid);
+            return RedirectToAction("Logout", "Home");
+        }
 
         ViewBag.soLuongMonAn = QuanAn.tbMonAn.Count;
         ViewBag.tongDoanhThu = (double?)QuanAn.tbDonHang.Sum(dh => dh.tongtien) ?? 0;

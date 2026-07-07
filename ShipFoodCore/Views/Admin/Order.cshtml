@@ -39,11 +39,11 @@
                                     <tr class="btn-reveal-trigger">
                                         <td data-label="Đơn hàng" class="py-2">
                                             <a href="management-order-details.html"> <strong>#@item.madh</strong></a> bởi tài xế
-                                            <strong>@(item.tbShipper == null ? "Trống" : item.tbShipper.tenshipper)</strong><br /><strong>@item.tbQuanAn.tenquanan</strong>
+                                            <strong>@(item.tbShipper == null ? "Trống" : item.tbShipper.tenshipper)</strong><br /><strong>@(item.tbQuanAn?.tenquanan ?? "N/A")</strong>
                                         </td>
-                                        <td data-label="Ngày" class="py-2">@item.ngaydathang.Value.ToString("dd/MM/yyyy")</td>
+                                        <td data-label="Ngày" class="py-2">@(item.ngaydathang?.ToString("dd/MM/yyyy") ?? "N/A")</td>
                                         <td data-label="Giao đến" class="py-2">
-                                            <strong>@item.tbThongTinDatHang.tennguoinhan</strong>, @item.tbThongTinDatHang.diachi
+                                            <strong>@(item.tbThongTinDatHang?.tennguoinhan ?? "N/A")</strong>, @(item.tbThongTinDatHang?.diachi ?? "N/A")
                                             <p class="mb-0 text-500">@item.ghichu</p>
                                         </td>
                                         <td data-label="Trạng thái" class="py-2 text-right">

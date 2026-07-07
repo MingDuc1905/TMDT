@@ -418,16 +418,29 @@ public class CartController : BaseController
             return RedirectToAction("Login", "Home");
 
         var user = GetCurrentUser();
-        var donHangs = db.tbDonHang
-            .Include(dh => dh.tbThongTinDatHang)
-            .Include(dh => dh.tbQuanAn)
-            .Include(dh => dh.tbChiTietDonHangs)
-            .Where(dh => dh.tbThongTinDatHang!.userid == user!.userid)
-            .OrderBy(dh => dh.ngaydathang)
-            .ToList();
-        donHangs.Reverse();
-        ViewBag.donHangs = donHangs;
-        return View();
+        if (user == null)
+            return RedirectToAction("Login", "Home");
+
+        try
+        {
+            var donHangs = db.tbDonHang
+                .Include(dh => dh.tbThongTinDatHang)
+                .Include(dh => dh.tbQuanAn)
+                .Include(dh => dh.tbChiTietDonHangs).ThenInclude(c => c.tbBienTheMonAn!).ThenInclude(b => b.tbMonAn)
+                .Where(dh => dh.tbThongTinDatHang != null && dh.tbThongTinDatHang.userid == user.userid)
+                .OrderByDescending(dh => dh.ngaydathang)
+                .ToList();
+            ViewBag.donHangs = donHangs;
+            return View();
+        }
+        catch (Exception ex)
+        {
+            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<CartController>>();
+            logger.LogError(ex, "LichSuDatHang failed for user {UserId}", user.userid);
+            TempData["CartError"] = "Không thể tải lịch sử đơn hàng. Vui lòng thử lại sau.";
+            ViewBag.donHangs = new List<tbDonHang>();
+            return View();
+        }
     }
 
     public ActionResult ChiTietDonHang(int? id)
@@ -436,12 +449,18 @@ public class CartController : BaseController
             return RedirectToAction("Login", "Home");
         if (id == null)
             return RedirectToAction("LichSuDatHang");
-        ViewBag.donHang = db.tbDonHang
+        var donHang = db.tbDonHang
             .Include(d => d.tbChiTietDonHangs).ThenInclude(c => c.tbBienTheMonAn!).ThenInclude(b => b.tbMonAn)
             .Include(d => d.tbThongTinDatHang)
             .Include(d => d.tbShipper).ThenInclude(s => s.tbUser)
             .Include(d => d.tbLoaiHinhThanhToan)
             .FirstOrDefault(d => d.madh == id);
+        if (donHang == null)
+        {
+            TempData["CartError"] = "Không tìm thấy đơn hàng #" + id;
+            return RedirectToAction("LichSuDatHang");
+        }
+        ViewBag.donHang = donHang;
         return View();
     }
 
@@ -535,93 +554,35 @@ public class CartController : BaseController
 
     public ActionResult FailureView() => View();
 
-    public ActionResult SuccessView()
+    // ─── MoMo Redirect Landing: Không tạo đơn mới, chỉ hiển thị kết quả ───
+    // orderId được truyền qua query string từ MoMo redirect
+    public ActionResult SuccessView(int? orderId)
     {
         var user = GetCurrentUser();
         if (user == null) return RedirectToAction("Login", "Home");
 
-        var cart = GetCart();
-        if (cart == null || cart.items.Count == 0) return RedirectToAction("Index", "Cart");
-
-        string? hoten = TempData["hoten"] as string;
-        string? quan = TempData["quan"] as string;
-        string? diachicuthe = TempData["diachicuthe"] as string;
-        string? diachiadd = TempData["diachiadd"] as string;
-        string? SDT = TempData["SDT"] as string;
-        int pttt = int.TryParse(TempData["pttt"] as string, out var p) ? p : 1;
-        int? mattdh = int.TryParse(TempData["mattdh"] as string, out var m) ? m : null;
-        string? note = TempData["note"] as string;
-
-        if (mattdh == null)
+        if (orderId == null)
         {
-            if (string.IsNullOrWhiteSpace(hoten) || hoten.Length < 2 || hoten.Length > 100)
+            // Nếu không có orderId, thử lấy từ TempData (trường hợp MoMo redirect có orderId trong TempData)
+            if (TempData["OrderSuccess"] != null)
             {
-                TempData["CartError"] = "Họ tên phải từ 2-100 ký tự";
-                return RedirectToAction("Checkout");
+                ViewBag.SuccessMessage = TempData["OrderSuccess"].ToString();
+                ViewBag.OrderId = TempData["OrderId"];
+                return View();
             }
-            if (string.IsNullOrWhiteSpace(SDT) || !System.Text.RegularExpressions.Regex.IsMatch(SDT, @"^0[1-9][0-9]{8,9}$"))
-            {
-                TempData["CartError"] = "Số điện thoại không hợp lệ — phải là 10-11 số, bắt đầu bằng 0";
-                return RedirectToAction("Checkout");
-            }
+            return RedirectToAction("LichSuDatHang");
         }
 
-        tbThongTinDatHang ttdh;
-        if (mattdh != null)
+        // Kiểm tra đơn hàng có tồn tại không
+        var donHang = db.tbDonHang.Find(orderId);
+        if (donHang != null)
         {
-            ttdh = db.tbThongTinDatHang.Find(mattdh)!;
-            if (ttdh == null)
-            {
-                TempData["CartError"] = "Địa chỉ không hợp lệ";
-                return RedirectToAction("Checkout");
-            }
-        }
-        else
-        {
-            ttdh = new tbThongTinDatHang
-            {
-                userid = user!.userid,
-                sdt = SDT ?? "",
-                diachi = $"{diachiadd}, {diachicuthe}, {quan}, TP. Hồ Chí Minh",
-                toado = null,
-                tennguoinhan = hoten ?? ""
-            };
-            db.tbThongTinDatHang.Add(ttdh);
-            db.SaveChanges();
+            ViewBag.SuccessMessage = $"Thanh toán MoMo thành công! Mã đơn hàng: #{orderId}";
+            ViewBag.OrderId = orderId;
+            return View();
         }
 
-        decimal tongTienMon = cart.items.Sum(m => (m.giatien ?? 0) * m.soLuong);
-        decimal phiShip = 15000;
-        decimal tongCong = tongTienMon + phiShip;
-
-        var dh = new tbDonHang
-        {
-            maquan = cart.maquanan,
-            mattdh = ttdh.mattdh,
-            ngaydathang = DateTime.Now,
-            trangthai = "Đã đặt",
-            tongtien = tongTienMon,
-            hinhthucthanhtoan = pttt,
-            ghichu = note,
-            phiship = phiShip
-        };
-        db.tbDonHang.Add(dh);
-        db.SaveChanges();
-
-        foreach (var i in cart.items)
-        {
-            db.tbChiTietDonHang.Add(new tbChiTietDonHang
-            {
-                madh = dh.madh,
-                mamon = i.mabienthe,
-                soluong = i.soLuong,
-                dongia = i.giatien
-            });
-        }
-        db.SaveChanges();
-
-        SetCart(new Cart());
-        TempData["OrderSuccess"] = "Đặt hàng thành công! Mã đơn hàng: #" + dh.madh;
-        return View();
+        TempData["CartError"] = "Không tìm thấy đơn hàng. Vui lòng thử lại.";
+        return RedirectToAction("LichSuDatHang");
     }
 }

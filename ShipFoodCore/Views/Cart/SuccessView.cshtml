@@ -1,7 +1,8 @@
 ﻿@{
     ViewBag.Title = "Đặt hàng thành công";
     Layout = "~/Views/Shared/_LayoutPageHome.cshtml";
-    var successMsg = TempData["OrderSuccess"] as string ?? "Đặt hàng thành công!";
+    var successMsg = ViewBag.SuccessMessage ?? TempData["OrderSuccess"] as string ?? "Đặt hàng thành công!";
+    var orderId = ViewBag.OrderId ?? TempData["OrderId"];
 }
 
 <style>

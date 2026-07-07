@@ -173,7 +173,17 @@
                     window.location.href = targetUrl;
                 },
                 error: function(xhr) {
+                    // ═══ CỐ GẮNG LẤY THÔNG BÁO LỖI CHI TIẾT TỪ SERVER ═══
                     var msg = 'Lỗi kết nối. Vui lòng thử lại sau.';
+
+                    try {
+                        var resp = JSON.parse(xhr.responseText);
+                        if (resp && (resp.message || resp.error)) {
+                            msg = resp.message || resp.error;
+                        }
+                    } catch (e) {
+                        // Không parse được JSON, dùng status code
+                    }
 
                     if (xhr.status === 429) {
                         try {
@@ -181,24 +191,20 @@
                             var retryAfter = resp.retryAfter
                                 || xhr.getResponseHeader('Retry-After')
                                 || 30;
-                            msg = (resp.error || resp.message || 'Quá nhiều yêu cầu. Vui lòng thử lại sau.')
+                            msg = (msg || 'Quá nhiều yêu cầu. Vui lòng thử lại sau.')
                                 + ' <strong>Thử lại sau ' + retryAfter + ' giây.</strong>';
                         } catch (e) {
                             var retryHeader = xhr.getResponseHeader('Retry-After');
                             msg = 'Quá nhiều yêu cầu đăng nhập. Vui lòng thử lại sau'
                                 + (retryHeader ? ' ' + retryHeader + ' giây.' : ' ít phút.');
                         }
-                        showLoginError(msg);
                     } else if (xhr.status === 400) {
-                        msg = 'Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.';
-                        showLoginError(msg);
+                        msg = msg || 'Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.';
                     } else if (xhr.status === 500) {
-                        msg = 'Lỗi máy chủ. Vui lòng thử lại sau.';
-                        showLoginError(msg);
-                    } else {
-                        showLoginError(msg);
+                        msg = msg || 'Lỗi máy chủ. Vui lòng thử lại sau.';
                     }
 
+                    showLoginError(msg);
                     $btn.prop('disabled', false).html('Đăng nhập');
                 }
             });

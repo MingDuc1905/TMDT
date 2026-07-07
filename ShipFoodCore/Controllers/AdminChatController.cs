@@ -24,17 +24,26 @@ public class AdminChatController : BaseController
         if (!checkAdmin())
             return RedirectToAction("Login", "Home");
 
-        // Lấy danh sách đơn hàng gần đây (có thể chat)
-        var donHangs = db.tbDonHang
-            .Include(d => d.tbQuanAn)
-            .Include(d => d.tbThongTinDatHang)
-            .Include(d => d.tbShipper)
-            .Include(d => d.tbChiTietDonHangs)
-            .OrderByDescending(d => d.ngaydathang)
-            .Take(50)
-            .ToList();
+        try
+        {
+            // Lấy danh sách đơn hàng gần đây (có thể chat)
+            var donHangs = db.tbDonHang
+                .Include(d => d.tbQuanAn)
+                .Include(d => d.tbThongTinDatHang)
+                .Include(d => d.tbShipper)
+                .Include(d => d.tbChiTietDonHangs)
+                .OrderByDescending(d => d.ngaydathang)
+                .Take(50)
+                .ToList();
 
-        return View(donHangs);
+            return View(donHangs);
+        }
+        catch (Exception ex)
+        {
+            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<AdminChatController>>();
+            logger.LogError(ex, "AdminChat Index failed");
+            return View(new List<tbDonHang>());
+        }
     }
 
     /// <summary>
@@ -67,9 +76,11 @@ public class AdminChatController : BaseController
 
             return Json(new { success = true });
         }
-        catch
+        catch (Exception ex)
         {
-            return Json(new { success = false, error = "Lỗi khi gửi tin nhắn" });
+            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<AdminChatController>>();
+            logger.LogError(ex, "SendMessage failed for order {OrderId}", orderId);
+            return Json(new { success = false, error = $"Lỗi gửi tin nhắn: {ex.Message}" });
         }
     }
 
@@ -137,7 +148,9 @@ public class AdminChatController : BaseController
         }
         catch (Exception ex)
         {
-            return Json(new { success = false, error = ex.Message });
+            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<AdminChatController>>();
+            logger.LogError(ex, "CustomerSendMessage failed");
+            return Json(new { success = false, error = $"Lỗi gửi tin nhắn: {ex.Message}" });
         }
     }
 
@@ -178,42 +191,53 @@ public class AdminChatController : BaseController
         if (!checkAdmin())
             return Json(new { success = false });
 
-        var conversations = db.tbTinNhans
-            .Where(t => t.makh != null)
-            .GroupBy(t => t.makh)
-            .Select(g => new
-            {
-                userId = g.Key,
-                lastMessage = g.OrderByDescending(t => t.matn).First().noidung ?? "",
-                lastTime = g.Max(t => t.matn),
-                messageCount = g.Count(),
-                hasUnread = g.Any(t => t.mashipper == null) // ch?a có admin tr? l?i
-            })
-            .OrderByDescending(x => x.lastTime)
-            .Take(50)
-            .ToList();
-
-        var userIds = conversations.Select(c => c.userId).ToList();
-        var users = db.tbUser.Where(u => userIds.Contains(u.userid)).ToList();
-        var khachHangs = db.tbKhachHang.Where(k => userIds.Contains(k.userid)).ToList();
-
-        var result = conversations.Select(c =>
+        try
         {
-            var user = users.FirstOrDefault(u => u.userid == c.userId);
-            var kh = khachHangs.FirstOrDefault(k => k.userid == c.userId);
-            return new
-            {
-                userId = c.userId,
-                tenkh = kh?.tenkh ?? user?.username ?? "Khách",
-                username = user?.username ?? "",
-                sdt = user?.sdt ?? "",
-                lastMessage = c.lastMessage.Length > 80 ? c.lastMessage.Substring(0, 80) + "..." : c.lastMessage,
-                messageCount = c.messageCount,
-                hasUnread = c.hasUnread
-            };
-        }).ToList();
+            // Lọc tin nhắn của khách hàng (makh != null), group theo userId
+            var messageGroups = db.tbTinNhans
+                .Where(t => t.makh != null && t.makh.HasValue)
+                .AsEnumerable()
+                .GroupBy(t => t.makh!.Value)
+                .Select(g => new
+                {
+                    userId = g.Key,
+                    lastMessage = g.OrderByDescending(t => t.matn).First().noidung ?? "",
+                    lastTime = g.Max(t => t.matn),
+                    messageCount = g.Count(),
+                    hasUnread = g.Any(t => t.mashipper == null)
+                })
+                .OrderByDescending(x => x.lastTime)
+                .Take(50)
+                .ToList();
 
-        return Json(new { success = true, data = result });
+            var userIds = messageGroups.Select(c => c.userId).ToList();
+            var users = db.tbUser.Where(u => userIds.Contains(u.userid)).ToList();
+            var khachHangs = db.tbKhachHang.Where(k => userIds.Contains(k.userid)).ToList();
+
+            var result = messageGroups.Select(c =>
+            {
+                var user = users.FirstOrDefault(u => u.userid == c.userId);
+                var kh = khachHangs.FirstOrDefault(k => k.userid == c.userId);
+                return new
+                {
+                    userId = c.userId,
+                    tenkh = kh?.tenkh ?? user?.username ?? "Khách",
+                    username = user?.username ?? "",
+                    sdt = user?.sdt ?? "",
+                    lastMessage = c.lastMessage.Length > 80 ? c.lastMessage.Substring(0, 80) + "..." : c.lastMessage,
+                    messageCount = c.messageCount,
+                    hasUnread = c.hasUnread
+                };
+            }).ToList();
+
+            return Json(new { success = true, data = result });
+        }
+        catch (Exception ex)
+        {
+            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<AdminChatController>>();
+            logger.LogError(ex, "GetConversations failed");
+            return Json(new { success = false, data = new object[0], message = ex.Message });
+        }
     }
 
     /// <summary>
@@ -225,28 +249,31 @@ public class AdminChatController : BaseController
         if (!checkAdmin())
             return Json(new { success = false });
 
-        var user = db.tbUser.Find(userId);
-        if (user == null)
-            return Json(new { success = false, message = "Không tìm thấy người dùng" });
-
-        var messages = db.tbTinNhans
-            .Where(t => t.makh == userId)
-            .OrderBy(t => t.matn)
-            .Select(t => new
-            {
-                id = t.matn,
-                content = t.noidung ?? "",
-                sender = t.mashipper != null ? "Shipper" : (t.makh != null ? "Khách hàng" : "Admin"),
-                orderId = t.madh
-            })
-            .ToList();
-
-        return Json(new
+        try
         {
-            success = true,
-            data = messages,
-            customerName = user.username
-        });
+            var user = db.tbUser.Find(userId);
+            var customerName = user?.username ?? "Khách #" + userId;
+
+            var messages = db.tbTinNhans
+                .Where(t => t.makh == userId)
+                .OrderBy(t => t.matn)
+                .Select(t => new
+                {
+                    id = t.matn,
+                    content = t.noidung ?? "",
+                    sender = t.mashipper != null ? "Shipper" : (t.makh != null ? "Khách hàng" : "Admin"),
+                    orderId = t.madh
+                })
+                .ToList();
+
+            return Json(new { success = true, data = messages, customerName });
+        }
+        catch (Exception ex)
+        {
+            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<AdminChatController>>();
+            logger.LogError(ex, "GetCustomerMessages failed for userId {UserId}", userId);
+            return Json(new { success = false, data = new object[0], message = ex.Message });
+        }
     }
 
     /// <summary>
@@ -278,9 +305,11 @@ public class AdminChatController : BaseController
 
             return Json(new { success = true });
         }
-        catch
+        catch (Exception ex)
         {
-            return Json(new { success = false, error = "Lỗi khi gửi tin nhắn" });
+            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<AdminChatController>>();
+            logger.LogError(ex, "SendMessageToCustomer failed for user {UserId}", userId);
+            return Json(new { success = false, error = $"Lỗi gửi tin nhắn: {ex.Message}" });
         }
     }
 

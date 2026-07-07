@@ -243,10 +243,16 @@ public class HomeController : BaseController
         }
         catch (Exception ex)
         {
-            // Log chi tiết để debug — hiển thị lỗi thân thiện cho người dùng
+            // Log chi tiết để debug
             var logger = HttpContext.RequestServices.GetRequiredService<ILogger<HomeController>>();
-            logger.LogError(ex, "Login failed for user {User}", usernameOrPhone);
-            ViewBag.LoginFail = "Lỗi hệ thống: " + ex.Message;
+            logger.LogError(ex, "Login failed for user {User}: {Error}", usernameOrPhone, ex.Message);
+            // Hiển thị lỗi cụ thể — không che giấu để user biết chính xác vấn đề
+            ViewBag.LoginFail = ex switch
+            {
+                InvalidOperationException _ when ex.Message.Contains("Session") => "Phiên đăng nhập hết hạn. Vui lòng thử lại.",
+                System.Data.Common.DbException _ => "Lỗi kết nối cơ sở dữ liệu. Vui lòng thử lại sau.",
+                _ => $"Lỗi: {ex.Message}"
+            };
             return View();
         }
     }

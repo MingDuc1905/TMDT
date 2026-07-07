@@ -407,19 +407,27 @@ app.Use(async (context, next) =>
     }
     catch (Exception ex)
     {
+        var traceId = System.Diagnostics.Activity.Current?.Id ?? context.TraceIdentifier;
         var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "Unhandled exception at {Path}", context.Request.Path);
+        logger.LogError(ex, "Unhandled exception at {Path} | Trace: {TraceId}", context.Request.Path, traceId);
 
         if (context.Request.Headers["X-Requested-With"] == "XMLHttpRequest" ||
             context.Request.Headers["Accept"].ToString().Contains("application/json"))
         {
             context.Response.StatusCode = 500;
             context.Response.ContentType = "application/json";
-            await context.Response.WriteAsync("{\"success\":false,\"message\":\"Lỗi máy chủ nội bộ. Vui lòng thử lại sau.\"}");
+            var errorResponse = System.Text.Json.JsonSerializer.Serialize(new
+            {
+                success = false,
+                message = $"Lỗi máy chủ nội bộ. Vui lòng thử lại sau. (Mã lỗi: {traceId})",
+                traceId = traceId
+            });
+            await context.Response.WriteAsync(errorResponse);
         }
         else
         {
-            context.Response.Redirect("/Home/Error");
+            // Hiển thị trace ID cho user để dễ dàng tra cứu lỗi
+            context.Response.Redirect($"/Home/Error?traceId={traceId}");
         }
     }
 });

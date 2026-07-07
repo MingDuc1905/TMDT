@@ -56,15 +56,15 @@
                         <div style="background:#fff;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,.06);padding:24px;">
                             <div style="border-bottom:1.5px solid #e5e7eb;padding-bottom:12px;margin-bottom:12px;">
                                 <small style="color:#888;font-size:11px;text-transform:uppercase;letter-spacing:.5px;font-weight:600;">Họ tên người nhận</small>
-                                <p style="margin:4px 0 0;font-size:15px;font-weight:600;color:#1a1a2e;">@donHang.tbThongTinDatHang.tennguoinhan</p>
+                                <p style="margin:4px 0 0;font-size:15px;font-weight:600;color:#1a1a2e;">@(donHang.tbThongTinDatHang?.tennguoinhan ?? "N/A")</p>
                             </div>
                             <div style="border-bottom:1.5px solid #e5e7eb;padding-bottom:12px;margin-bottom:12px;">
                                 <small style="color:#888;font-size:11px;text-transform:uppercase;letter-spacing:.5px;font-weight:600;">Địa chỉ giao hàng</small>
-                                <p style="margin:4px 0 0;font-size:14px;color:#1a1a2e;">@donHang.tbThongTinDatHang.diachi</p>
+                                <p style="margin:4px 0 0;font-size:14px;color:#1a1a2e;">@(donHang.tbThongTinDatHang?.diachi ?? "N/A")</p>
                             </div>
                             <div style="border-bottom:1.5px solid #e5e7eb;padding-bottom:12px;margin-bottom:12px;">
                                 <small style="color:#888;font-size:11px;text-transform:uppercase;letter-spacing:.5px;font-weight:600;">Số điện thoại</small>
-                                <p style="margin:4px 0 0;font-size:14px;color:#1a1a2e;">@donHang.tbThongTinDatHang.sdt</p>
+                                <p style="margin:4px 0 0;font-size:14px;color:#1a1a2e;">@(donHang.tbThongTinDatHang?.sdt ?? "N/A")</p>
                             </div>
                             <div style="border-bottom:1.5px solid #e5e7eb;padding-bottom:12px;margin-bottom:12px;">
                                 <small style="color:#888;font-size:11px;text-transform:uppercase;letter-spacing:.5px;font-weight:600;">Ghi chú đơn hàng</small>
@@ -72,14 +72,14 @@
                             </div>
                             <div style="border-bottom:1.5px solid #e5e7eb;padding-bottom:12px;margin-bottom:12px;">
                                 <small style="color:#888;font-size:11px;text-transform:uppercase;letter-spacing:.5px;font-weight:600;">Shipper</small>
-                                <p style="margin:4px 0 0;font-size:14px;font-weight:600;color:#1a1a2e;">@(donHang.tbShipper != null ? donHang.tbShipper.tenshipper + " - " + donHang.tbShipper.tbUser.sdt : "Chưa có shipper")</p>
-                                @if (user != null && user.loaitaikhoan.Equals("Khách hàng"))
+                                <p style="margin:4px 0 0;font-size:14px;font-weight:600;color:#1a1a2e;">@(donHang.tbShipper != null ? donHang.tbShipper.tenshipper + " - " + (donHang.tbShipper.tbUser?.sdt ?? "N/A") : "Chưa có shipper")</p>
+                                @if (user != null && user.loaitaikhoan == "Khách hàng")
                                 {
                                     <a href="@Url.Action("NhanTin", "Home")" style="display:inline-flex;align-items:center;gap:6px;margin-top:8px;padding:8px 16px;background:#3CB815;color:#fff;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600;">
                                         <i class="fab fa-facebook-messenger"></i> Chat ngay!
                                     </a>
                                 }
-                                @if (user != null && user.loaitaikhoan.Equals("Khách hàng") && donHang.trangthai.Equals("Đang giao"))
+                                @if (user != null && user.loaitaikhoan == "Khách hàng" && donHang.trangthai == "Đang giao")
                                 {
                                     <div class="mt-3">
                                         <div id="order-tracking-map" style="height:250px; border-radius:12px; border:2px solid #3CB815;"></div>
@@ -91,12 +91,12 @@
 
                     <div class="col-lg-4 col-md-6" style="margin:20px auto">
                         <div class="checkout__order">
-                            <h4>Đơn hàng (@donHang.trangthai)</h4>
+                            <h4>Đơn hàng (@(donHang.trangthai ?? "N/A"))</h4>
                             <div class="checkout__order__products">Món ăn <span>Tổng tiền</span></div>
                             <ul>
                                 @foreach (var i in donHang.tbChiTietDonHang)
                                 {
-                                    <li>@i.tbMonAn.tenmon (@i.soluong) <span>@((i.tbMonAn.giatien * i.soluong)?.ToString("N0")) VNĐ</span></li>
+                                    <li>@(i.tbMonAn?.tenmon ?? "N/A") (@i.soluong) <span>@((i.tbMonAn?.giatien * i.soluong)?.ToString("N0")) VNĐ</span></li>
                                 }
                             </ul>
                             <!-- ═══ FIX ĐÈ CHỮ: dùng flexbox space-between mỗi dòng ─── -->
@@ -123,11 +123,11 @@
                                 <div class="col-lg-12">
                                     <div style="border-bottom:1.5px solid #e5e7eb;padding-bottom:10px;">
                                         <small style="color:#888;font-size:11px;text-transform:uppercase;letter-spacing:.5px;font-weight:600;">Phương thức thanh toán</small>
-                                        <p style="margin:4px 0 0;font-size:14px;font-weight:600;color:#1a1a2e;">@donHang.tbLoaiHinhThanhToan.tenhinhthuc</p>
+                                        <p style="margin:4px 0 0;font-size:14px;font-weight:600;color:#1a1a2e;">@(donHang.tbLoaiHinhThanhToan?.tenhinhthuc ?? "N/A")</p>
                                     </div>
                                 </div>
                             </div>
-                            @if (user != null && user.loaitaikhoan.Equals("Khách hàng"))
+                            @if (user != null && user.loaitaikhoan == "Khách hàng")
                             {
                                 <div class="row mt-3">
                                     <div class="col-lg-12 d-flex gap-2">
@@ -135,7 +135,7 @@
                                     </div>
                                 </div>
                             }
-                            @if (user != null && user.loaitaikhoan.Equals("Quán ăn") && donHang.trangthai.Equals("Đã đặt"))
+                            @if (user != null && user.loaitaikhoan == "Quán ăn" && donHang.trangthai == "Đã đặt")
                             {
                                 <div class="row mt-3">
                                     <div class="col-lg-12 d-flex gap-2">                                        <a href="~/Restaurant/nhandon/@donHang.madh" class="btn btn-success flex-fill">Nhận đơn</a>

@@ -79,8 +79,10 @@
             
             <div class="divider">hoặc bằng tài khoản</div>
             
-            <input type="text" name="usernameOrPhone" placeholder="Tên đăng nhập hoặc số điện thoại" autocomplete="username" required />
-            <input type="password" name="pwd" placeholder="Mật khẩu" autocomplete="current-password" required />
+            <label for="login-username" class="visually-hidden">Tên đăng nhập hoặc số điện thoại</label>
+            <input type="text" id="login-username" name="usernameOrPhone" placeholder="Tên đăng nhập hoặc số điện thoại" autocomplete="username" required />
+            <label for="login-pwd" class="visually-hidden">Mật khẩu</label>
+            <input type="password" id="login-pwd" name="pwd" placeholder="Mật khẩu" autocomplete="current-password" required />
             @if (ViewBag.LoginFail != null)
             {
                 <div class="alert alert-danger" role="alert">

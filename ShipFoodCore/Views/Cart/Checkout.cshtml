@@ -211,7 +211,7 @@
                                                  transition:all .2s;"
                                                  onmouseenter="this.style.opacity='.85'"
                                                  onmouseleave="this.style.opacity='1'">
-                                                @(isFirst ? "🔥 " : "")@c.tenkm
+                                                @(isFirst ? Html.Raw("<i class='fas fa-fire' style='margin-right:2px;'></i> ") : Html.Raw(""))@c.tenkm
                                                 <span style="font-weight:400;font-size:11.5px;opacity:.85">(-@(c.phantramgiam ?? 0)%)</span>
                                                 @if (isFirst)
                                                 {
@@ -564,7 +564,7 @@
             headers: { 'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() },
             success: function(r) {
                 if (r.success) {
-                    showResultPopup(true, 'Đặt hàng thành công! 🎉', r.message || '', r.orderId);
+                    showResultPopup(true, 'Đặt hàng thành công!', r.message || '', r.orderId);
                 } else {
                     showResultPopup(false, 'Thanh toán thất bại', r.message || 'Đã xảy ra lỗi. Vui lòng thử lại.');
                 }

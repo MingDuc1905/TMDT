@@ -112,7 +112,7 @@
         .cart-wrapper .cart-item img { border-radius: 12px; }
         .cart-wrapper .cart-summary { box-shadow: 0 4px 20px rgba(0,0,0,.07); }
         .cart-wrapper .cart-body { box-shadow: 0 4px 20px rgba(0,0,0,.07); }
-        .cart-header { background: linear-gradient(135deg,#3CB815,#27a001); color:var(--fs-white); border-radius: 16px 16px 0 0; padding: 20px 28px; }
+        .cart-header { background: linear-gradient(135deg,#3CB815,#27a001); color:var(--fs-white); border-radius: var(--fs-radius, 12px) var(--fs-radius, 12px) 0 0; padding: 20px 28px; }
         .cart-header h3 { margin: 0; font-weight: 700; font-size: 20px; }
         .cart-body { background: var(--fs-white); border-radius: 0 0 16px 16px; box-shadow: 0 4px 20px rgba(0,0,0,.07); overflow: hidden; }
         .cart-item { display: flex; align-items: center; gap: 16px; padding: 18px 24px; border-bottom: 1px solid var(--fs-border-soft); transition: background .15s; }
@@ -129,14 +129,16 @@
         .item-total { font-weight: 700; font-size: 15px; color: var(--fs-danger); min-width: 110px; text-align: right; }
         .delete-btn { color: var(--fs-muted-soft); cursor: pointer; padding: 6px; border-radius: 8px; transition: all .15s; border: none; background: none; }
         .delete-btn:hover { color: var(--fs-danger); background: #fff0f0; }
-        .cart-summary { background: var(--fs-white); border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,.07); padding: 24px; }
+        .cart-summary { background: var(--fs-white); border-radius: var(--fs-radius, 12px); box-shadow: 0 4px 20px rgba(0,0,0,.07); padding: 24px; }
         .summary-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 14px; }
         .summary-total { display: flex; justify-content: space-between; padding-top: 12px; margin-top: 8px; border-top: 2px solid var(--fs-danger); font-size: 18px; font-weight: 700; color: var(--fs-danger); }
-        .btn-checkout-go { display: block; width: 100%; padding: 14px; background: linear-gradient(135deg,#3CB815,#27a001); color:var(--fs-white); border: none; border-radius: 10px; font-size: 15px; font-weight: 700; text-align: center; text-decoration: none; cursor: pointer; transition: opacity .2s; margin-top: 16px; }
+        .btn-checkout-go { display: block; width: 100%; padding: 14px; background: linear-gradient(135deg,#3CB815,#27a001); color:var(--fs-white); border: none; border-radius: var(--fs-radius, 12px); font-size: 15px; font-weight: 700; text-align: center; text-decoration: none; cursor: pointer; transition: opacity .2s; margin-top: 16px; }
         .btn-checkout-go:hover { opacity:.88; color:#fff; text-decoration:none; }
         .empty-cart { text-align: center; padding: 60px 24px; }
         .empty-cart svg { opacity: .25; margin-bottom: 16px; }
         .restaurant-badge { display: inline-flex; align-items: center; gap: 6px; background: #f0fff0; border: 1px solid #c3e6cb; color: var(--fs-success); padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 500; }
+        /* ─── popIn animation cho confirm modal ─── */
+        @@keyframes popIn { 0%{transform:scale(.8);opacity:0} 100%{transform:scale(1);opacity:1} }
     </style>
 }
 
@@ -222,7 +224,7 @@
                     <div class="col-lg-12 mb-4">
                         <div class="cart-summary">
                             <div style="font-size:15px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px;color:var(--fs-dark);">
-                                <span style="font-size:20px;">🤖</span>
+                                <i class="fas fa-robot" style="font-size:20px;color:#f39c12;"></i>
                                 Có thể bạn đã bỏ quên
                                 <span style="font-size:10px;background:linear-gradient(135deg,#f39c12,#e67e22);color:var(--fs-white);padding:2px 8px;border-radius:4px;font-weight:600;">AI</span>
                             </div>
@@ -293,7 +295,32 @@
 
 @section scripts {
 <script>
-$(document).ready(function () {
+        // ─── Show confirmation modal (thay confirm()) ───
+    function showCartConfirm(msg, confirmUrl) {
+        var overlay = $('<div class="cart-confirm-overlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.55);z-index:99999;display:flex;align-items:center;justify-content:center;">');
+        var box = $('<div style="background:#fff;border-radius:16px;max-width:400px;width:90%;padding:28px 24px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.2);animation:popIn .3s ease;">');
+        box.append('<div style="width:56px;height:56px;background:#fff3e0;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;"><i class="fas fa-exclamation-triangle" style="font-size:24px;color:#f39c12;"></i></div>');
+        box.append('<h5 style="font-weight:700;margin-bottom:8px;">Xác nhận đổi quán</h5>');
+        box.append('<p style="font-size:14px;color:#666;margin-bottom:20px;">' + msg + '</p>');
+        var btnGroup = $('<div style="display:flex;gap:10px;">');
+        btnGroup.append('<button class="btn btn-outline-secondary flex-fill" onclick="$(this).closest(\'.cart-confirm-overlay\').remove();" style="border-radius:10px;padding:10px;">Hủy</button>');
+        btnGroup.append('<button class="btn btn-success flex-fill" onclick="window.location.href=\'' + confirmUrl + '\'" style="border-radius:10px;padding:10px;">Xóa & đặt mới</button>');
+        box.append(btnGroup);
+        overlay.append(box);
+        overlay.click(function(e) { if(e.target===this) $(this).remove(); });
+        $('body').append(overlay);
+    }
+
+    // ─── Show toast notification (dùng chung) ───
+    function showCartToast(type, msg) {
+        var color = type === 'error' ? '#dc3545' : '#28a745';
+        var icon = type === 'error' ? 'fas fa-exclamation-circle' : 'fas fa-check-circle';
+        var toast = $('<div style="position:fixed;top:24px;right:24px;z-index:99999;background:' + color + ';color:#fff;padding:14px 20px;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.2);font-size:14px;max-width:360px;"><i class="' + icon + ' me-2"></i>' + msg + '</div>');
+        $('body').append(toast);
+        setTimeout(function(){ toast.fadeOut(400, function(){ $(this).remove(); }); }, 3500);
+    }
+
+    $(document).ready(function () {
     // API JSON endpoints - tr? v? JSON thay vì parse HTML
     var tangApiUrl = '@Url.Action("ApiTangSoLuong","Cart")';
     var giamApiUrl = '@Url.Action("ApiGiamSoLuong","Cart")';
@@ -312,7 +339,7 @@ $(document).ready(function () {
                     color: isFirst ? 'var(--fs-white)' : 'var(--fs-body)',
                     border: isFirst ? '1.5px solid var(--fs-green)' : '1.5px solid var(--fs-border)'
                 });
-                badge.html((isFirst ? '🔥 ' : '') + c.tenkm + ' <span style="font-weight:400;opacity:.85">(-' + c.phantramgiam + '%)</span>');
+                badge.html((isFirst ? '<i class="fas fa-fire" style="margin-right:2px;"></i> 🔥 ' : '') + c.tenkm + ' <span style="font-weight:400;opacity:.85">(-' + c.phantramgiam + '%)</span>');
                 badge.hover(
                     function(){ $(this).css('opacity','.85'); },
                     function(){ $(this).css('opacity','1'); }
@@ -358,7 +385,7 @@ $(document).ready(function () {
 var conflictNewSoLuong = @(TempData["ConflictNewSoLuong"] ?? "1");
         var conflictUrl = '@Url.Action("ApiForceSwitchRestaurant", "Cart")';
 
-        if (confirm('Giỏ hàng của bạn đã có món ăn thuộc quán khác. Bạn có muốn xóa giỏ hàng cũ để bắt đầu đặt món tại quán mới này không?')) {
+                if (confirm('Giỏ hàng của bạn đã có món ăn thuộc quán khác. Bạn có muốn xóa giỏ hàng cũ để bắt đầu đặt món tại quán mới này không?')) {
             window.location.href = conflictUrl + '?maMonAn=' + conflictNewMonId + '&soLuong=' + conflictNewSoLuong;
         }
         </text>
@@ -384,10 +411,10 @@ var conflictNewSoLuong = @(TempData["ConflictNewSoLuong"] ?? "1");
                     window.location.href = forceUrl;
                 }
             } else {
-                alert(res.message || 'Lỗi khi thêm món vào giỏ hàng');
+                showCartToast('error', res.message || 'Lỗi khi thêm món vào giỏ hàng');
             }
         }).fail(function() {
-            alert('Lỗi kết nối. Vui lòng thử lại.');
+            showCartToast('error', 'Lỗi kết nối. Vui lòng thử lại.');
         });
     });
 });

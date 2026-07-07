@@ -34,7 +34,7 @@
             <!-- Quick Filter Chips (Horizontal Scroll) -->
             <div class="fs-filter-chips" id="filterChips">
                 <button type="button" class="fs-chip @(isPromo ? "active" : "")" data-filter="promo" onclick="toggleChip('promo')">
-                    🔥 Khuyến mãi
+                    <i class="fas fa-fire"></i> Khuyến mãi
                 </button>
                 <button type="button" class="fs-chip @(isBestSeller ? "active" : "")" data-filter="bestseller" onclick="toggleChip('bestseller')">
                     ⭐ Bán chạy
@@ -133,7 +133,7 @@
                 <div class="fs-category-grid">
                     <button type="button" class="fs-cat-btn @(activeCatId == null ? "active" : "")" data-value=""
                             onclick="selectCategory('')">
-                        🍽️ Tất cả
+                        <i class="fas fa-utensils"></i> Tất cả
                     </button>
                     @foreach (var cat in categories)
                     {
@@ -151,7 +151,7 @@
                 <div class="fs-checkbox-group">
                     <label class="fs-checkbox @(isPromo ? "active" : "")">
                         <input type="checkbox" @(isPromo ? "checked" : "") onchange="toggleSheetCheckbox('promo', this)">
-                        🔥 Có khuyến mãi
+                        <i class="fas fa-fire"></i> Có khuyến mãi
                     </label>
                     <label class="fs-checkbox @(isBestSeller ? "active" : "")">
                         <input type="checkbox" @(isBestSeller ? "checked" : "") onchange="toggleSheetCheckbox('bestseller', this)">

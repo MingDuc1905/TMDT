@@ -339,7 +339,7 @@
                     color: isFirst ? 'var(--fs-white)' : 'var(--fs-body)',
                     border: isFirst ? '1.5px solid var(--fs-green)' : '1.5px solid var(--fs-border)'
                 });
-                badge.html((isFirst ? '<i class="fas fa-fire" style="margin-right:2px;"></i> 🔥 ' : '') + c.tenkm + ' <span style="font-weight:400;opacity:.85">(-' + c.phantramgiam + '%)</span>');
+                badge.html((isFirst ? '<i class="fas fa-fire" style="margin-right:2px;"></i> ' : '') + c.tenkm + ' <span style="font-weight:400;opacity:.85">(-' + c.phantramgiam + '%)</span>');
                 badge.hover(
                     function(){ $(this).css('opacity','.85'); },
                     function(){ $(this).css('opacity','1'); }

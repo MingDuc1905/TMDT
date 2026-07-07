@@ -408,7 +408,7 @@
                     data: { q: q },
                     success: function(res) {
                         if (!res || !res.length) {
-                            autocompleteBox.innerHTML = '<div style="padding:16px;text-align:center;color:#888;font-size:13px;">🚫 Không tìm thấy món ăn hoặc quán ăn phù hợp</div>';
+                            autocompleteBox.innerHTML = '<div style="padding:16px;text-align:center;color:#888;font-size:13px;"><i class="fas fa-search-minus" style="margin-right:4px;"></i>Không tìm thấy món ăn hoặc quán ăn phù hợp</div>';
                             autocompleteBox.style.display = 'block';
                             return;
                         }
@@ -420,7 +420,7 @@
                             a.style.cssText = 'display:flex;align-items:center;gap:12px;padding:8px 16px;text-decoration:none;color:#333;border-bottom:1px solid #f0f0f0;transition:background .15s;';
                             a.onmouseenter = function(){ this.style.background = '#f5f6fa'; };
                             a.onmouseleave = function(){ this.style.background = ''; };
-                            a.innerHTML = '<div style="width:40px;height:40px;border-radius:8px;overflow:hidden;flex-shrink:0;background:#eee;display:flex;align-items:center;justify-content:center;font-size:18px;">' + (item.icon || '🍽') + '</div>'
+                            a.innerHTML = '<div style="width:40px;height:40px;border-radius:8px;overflow:hidden;flex-shrink:0;background:#eee;display:flex;align-items:center;justify-content:center;font-size:18px;">' + (item.icon || '<i class="fas fa-utensils" style="color:#888;"></i>') + '</div>'
                                 + '<div style="flex:1;min-width:0">'
                                 + '<div style="font-size:14px;font-weight:600;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escHtml(item.name) + '</div>'
                                 + '<div style="font-size:12px;color:#888;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escHtml(item.address || '') + '</div>'

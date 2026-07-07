@@ -430,7 +430,7 @@
                                     @if (muaKem != null && muaKem.Any())
                                     {
                                         <div class="menu-group" style="margin-top: 30px;">
-                                            <div class="title-menu"><strong>🛒 Thường được mua kèm</strong></div>
+                                            <div class="title-menu"><strong><i class="fas fa-shopping-cart" style="color:#3CB815;"></i> Thường được mua kèm</strong></div>
                                             @foreach (var item in muaKem)
                                             {
                                                 <div class="item-restaurant-row" style="display:flex;align-items:center;padding:10px 0;border-bottom:1px solid var(--fs-border-soft);">
@@ -453,7 +453,7 @@
                                     @if (trendingNow != null && trendingNow.Any())
                                     {
                                         <div class="menu-group" style="margin-top: 20px;">
-                                            <div class="title-menu"><strong>🔥 Gợi ý cho khung giờ này</strong></div>
+                                            <div class="title-menu"><strong><i class="fas fa-clock" style="color:#f39c12;"></i> Gợi ý cho khung giờ này</strong></div>
                                             <div style="display: flex; gap: 12px; overflow-x: auto; padding: 10px 0;">
                                                 @foreach (var item in trendingNow)
                                                 {
@@ -489,7 +489,7 @@
         <div class="fs-bottom-sheet" id="categorySheet">
             <div class="fs-bs-handle"></div>
             <div class="fs-bs-header">
-                <h3>📂 Danh mục món ăn</h3>
+                <h3><i class="fas fa-list" style="color:var(--fs-green);"></i> Danh mục món ăn</h3>
                 <button class="fs-bs-close" onclick="closeCategorySheet()" aria-label="Đóng">✕</button>
             </div>
             <div class="fs-bs-list" id="categorySheetList">

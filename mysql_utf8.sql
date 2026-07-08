@@ -105,6 +105,7 @@ CREATE TABLE tbDanhMuc (
 
 -- ===================== tbMonAn =====================
 -- Lưu tên gốc của món ăn, KHÔNG chứa size hay giá (chuyển sang tbBienTheMonAn)
+-- isDeleted: soft-delete flag để bảo toàn lịch sử hóa đơn
 CREATE TABLE tbMonAn (
     mamon INT AUTO_INCREMENT NOT NULL,
     tenmon VARCHAR(100) NOT NULL,
@@ -113,8 +114,9 @@ CREATE TABLE tbMonAn (
     maquanan INT NULL,
     madanhmuc INT NULL,
     conhang BIT DEFAULT 1,
+    isDeleted BIT DEFAULT 0 COMMENT 'Soft delete: 1=đã xóa, 0=đang hoạt động',
     PRIMARY KEY (mamon),
-    CONSTRAINT fk_monan_quanan FOREIGN KEY (maquanan) REFERENCES tbQuanAn(userid) ON DELETE CASCADE,
+    CONSTRAINT fk_monan_quanan FOREIGN KEY (maquanan) REFERENCES tbQuanAn(userid) ON DELETE RESTRICT,
     CONSTRAINT fk_monan_danhmuc FOREIGN KEY (madanhmuc) REFERENCES tbDanhMuc(madanhmuc) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -508,6 +510,27 @@ INSERT INTO tbTinNhan (matn, madh, noidung, mashipper, makh) VALUES
 (4, 2, 'Đơn hàng của bạn đã được xác nhận', 3, 1),
 (5, 2, 'Đơn hàng của bạn đang được vận chuyển', 3, 1),
 (6, 2, 'Giao hàng đã thành công', 3, 1);
+
+-- ===============================================================
+-- Khôi phục kiểm tra khóa ngoại
+-- ===============================================================
+-- ===================== tbLichSuSuDungKhuyenMai =====================
+-- Lưu vết lịch sử sử dụng mã giảm giá của từng User
+-- Giúp kiểm tra tần suất sử dụng mã trước khi cho phép áp dụng
+CREATE TABLE tbLichSuSuDungKhuyenMai (
+    id INT AUTO_INCREMENT NOT NULL,
+    userid INT NOT NULL,
+    makm INT NOT NULL,
+    ngaydung DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    madh INT NULL COMMENT 'Mã đơn hàng đã áp dụng mã',
+    PRIMARY KEY (id),
+    INDEX idx_lskm_user (userid),
+    INDEX idx_lskm_makm (makm),
+    INDEX idx_lskm_ngay (ngaydung),
+    CONSTRAINT fk_lskm_user FOREIGN KEY (userid) REFERENCES tbUser(userid) ON DELETE CASCADE,
+    CONSTRAINT fk_lskm_khuyenmai FOREIGN KEY (makm) REFERENCES tbKhuyenMai(makm) ON DELETE CASCADE,
+    CONSTRAINT fk_lskm_donhang FOREIGN KEY (madh) REFERENCES tbDonHang(madh) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ===============================================================
 -- Khôi phục kiểm tra khóa ngoại

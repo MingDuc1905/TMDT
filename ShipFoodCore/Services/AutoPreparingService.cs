@@ -41,34 +41,49 @@ public class AutoPreparingService : BackgroundService
                 // Tìm đơn đã được nhà hàng xác nhận và chưa được xử lý
                 // (Đơn ở trạng thái "Đã xác nhận" quá 5 giây → tự động chuyển "Đang chuẩn bị")
                 var cutoff = DateTime.Now.AddSeconds(-5);
-                var confirmedOrders = await db.tbDonHangs
+                // ponytail: AsNoTracking() cho SELECT, chỉ lấy ID tối thiểu, sau đó Attach để update
+                var orderIds = await db.tbDonHangs
+                    .AsNoTracking()
                     .Where(d => d.trangthai == "Đã xác nhận" && d.ngaydathang <= cutoff)
-                    .Include(d => d.tbQuanAn)
+                    .Select(d => d.madh)
                     .Take(5)
                     .ToListAsync(stoppingToken);
 
-                foreach (var donHang in confirmedOrders)
+                // Batch-fetch tất cả thông tin quán trước khi loop — 1 query thay vì N queries
+                var orderInfos = await db.tbDonHangs
+                    .AsNoTracking()
+                    .Where(d => orderIds.Contains(d.madh))
+                    .Select(d => new { d.madh, d.maquan, QuanTen = d.tbQuanAn!.tenquanan })
+                    .ToListAsync(stoppingToken);
+
+                var orderInfoDict = orderInfos.ToDictionary(o => o.madh);
+
+                foreach (var orderId in orderIds)
                 {
+                    // Attach entity với chỉ ID, update 1 cột — tối ưu SQL
+                    var donHang = new tbDonHang { madh = orderId };
+                    db.tbDonHangs.Attach(donHang);
                     donHang.trangthai = "Đang chuẩn bị";
-                    _logger.LogInformation("Order #{OrderId} auto-transitioned to 'Đang chuẩn bị'", donHang.madh);
+                    _logger.LogInformation("Order #{OrderId} auto-transitioned to 'Đang chuẩn bị'", orderId);
 
                     // SignalR broadcast tìm Shipper
                     try
                     {
+                        var info = orderInfoDict.GetValueOrDefault(orderId);
                         await _hubContext.Clients.All.SendAsync(
                             "newOrderReady",
-                            donHang.madh,
-                            donHang.maquan,
-                            donHang.tbQuanAn?.tenquanan ?? "",
+                            orderId,
+                            info?.maquan,
+                            info?.QuanTen ?? "",
                             stoppingToken);
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogWarning(ex, "SignalR broadcast failed for order #{OrderId}", donHang.madh);
+                        _logger.LogWarning(ex, "SignalR broadcast failed for order #{OrderId}", orderId);
                     }
                 }
 
-                if (confirmedOrders.Any())
+                if (orderIds.Any())
                 {
                     await db.SaveChangesAsync(stoppingToken);
                 }

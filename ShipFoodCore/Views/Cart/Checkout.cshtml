@@ -553,10 +553,14 @@
         if (couponVal) formData.makhuyenmai = parseInt(couponVal);
         formData.testResult = testResult;
 
-        // Disable nút
-        var btnText = testResult === 'failure' ? 'Giả lập...' : '<i class="fas fa-spinner fa-spin me-2"></i>Đang xử lý...';
+        // ═══ 3b: Idempotency Lock — disable nút + spinner ═══
+        // Chặn hoàn toàn việc gửi request trùng lặp do người dùng click nhiều lần
+        if (window._paymentInProgress) return;
+        window._paymentInProgress = true;
+
+        var btnText = testResult === 'failure' ? '<i class="fas fa-spinner fa-spin me-2"></i>Đang giả lập...' : '<i class="fas fa-spinner fa-spin me-2"></i>Đang xử lý...';
         $('#btn-submit-cod').prop('disabled', true).html(btnText);
-        $('button[onclick*="submitPayment"]').prop('disabled', true);
+        $('button[onclick*="submitPayment"]').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
 
         $.ajax({
             url: URL_PROCESS_PAYMENT, type: 'POST',
@@ -601,6 +605,7 @@
                 showResultPopup(false, 'Thanh toán thất bại', msg);
             },
             complete: function() {
+                window._paymentInProgress = false;
                 $('button[onclick*="submitPayment"]').prop('disabled', false);
                 $('#btn-submit-cod').prop('disabled', false).html('<i class="fas fa-check-circle me-2"></i>Xác nhận đặt hàng');
             }

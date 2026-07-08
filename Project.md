@@ -30,8 +30,9 @@ Cung cấp một giải pháp hoàn chỉnh cho:
 | **ORM** | Entity Framework Core (Pomelo) | 8.0.11 / 8.0.2 |
 | **Database** | MySQL 8+ (MariaDB-compatible) | 8.0.20+ |
 | **Template Engine** | Razor (Runtime Compilation) | 8.0.11 |
-| **Real-time** | SignalR (Groups-based) | 8.0.11 |
+| **Real-time** | SignalR (Groups-based, 12 methods) | 8.0.11 |
 | **AI Chatbot** | Google Gemini API | gemini-3.5-flash |
+| **Background Service** | AutoPreparingService (polling 10s) | — |
 | **Google OAuth** | ASP.NET Core Authentication (tự động tạo tài khoản lần đầu) | 8.0.0 |
 | **Charts** | Chart.js | Bundle |
 | **Auth** | Cookie Authentication + Session | ASP.NET Core |
@@ -112,12 +113,12 @@ TMDT-master/
 │   │   └── DonHangDangLam.cs        # Raw SQL order queries
 │   │
 │   ├── Hubs/                        # SignalR hubs
-│   │   └── Chats.cs                 # /nhantin hub (6 methods, 2 groups)
+│   │   └── Chats.cs                 # /nhantin hub (12 methods, 5 groups)
 │   │
 │   ├── Services/                    # Business logic services
-│   │   ├── RecommendationService.cs  # ML-based recommendations (4 algorithms)
+│   │   ├── RecommendationService.cs  # ML-based recommendations (8 algorithms)
 │   │   ├── GeminiService.cs         # Gemini AI API integration
-│   │   └── AutoPreparingService.cs  # BackgroundService: 5s preparing → SignalR
+│   │   └── AutoPreparingService.cs  # BackgroundService: 10s polling → SignalR
 │   │
 │   ├── Utils/                       # Helper utilities
 │   │   └── TinhToan.cs             # Shipping fee calculation
@@ -163,10 +164,10 @@ TMDT-master/
 | **Tìm kiếm quán ăn** | Server-side, không phân biệt dấu Unicode, tìm theo tên/user/món + lọc danh mục |
 | **Thực đơn chi tiết** | Danh mục sidebar + tìm món + filter "Đã mua" + khuyến mãi badge |
 | **Giỏ hàng** | Session-based (JSON), AJAX quantity, coupon, 3 address modes |
-| **Thanh toán** | COD (immediate) + Chuyển khoản (mock: Vietcombank + test buttons) |
+| **Thanh toán** | COD (immediate) + MoMo (HMAC-SHA256 sandbox) + Chuyển khoản (mock: Vietcombank) |
 | **Đánh giá** | AJAX star picker + textarea + "Xem thêm" paginate 6/lần |
 | **Lịch sử đơn** | DataTable với sort/search + trạng thái badge màu + emoji |
-| **Gợi ý** | 4 thuật toán: collaborative filtering, market basket, time-based, trending |
+| **Gợi ý** | 8 thuật toán: collaborative filtering, Apriori (multi-element), popular pairs, time-based, trending (48h), restaurant insights, category insights |
 | **Chat** | AI chatbot (Gemini) + Admin support (SignalR) |
 
 ### 2. 🏪 Quán Ăn (Restaurant)
@@ -214,33 +215,49 @@ TMDT-master/
 **Connection**: `dbFoodyEntities` (Pomelo.EntityFrameworkCore.MySql)
 > **Fix v2.6**: Đổi từ `MariaDbServerVersion(10,6)` → `MySqlServerVersion(8,0,20)` để tắt RETURNING clause (MySQL < 8.0.21 không hỗ trợ). Nếu cần auto-detect: `ServerVersion.AutoDetect(connectionString)`.
 
+> **⚠️ Quan trọng**: `tbChiTietDonHang.mamon` là FK → `tbBienTheMonAn.id` (không phải `tbMonAn.mamon`). Mọi Apriori query cần bridge mapping qua tbBienTheMonAn.
+
 **Google OAuth Auto-Create**: Khi người dùng đăng nhập Google lần đầu (email chưa tồn tại trong DB), hệ thống tự động:
 1. Tạo password ngẫu nhiên `GG_{Guid}` → lưu plain-text
 2. Tạo `tbUser` với username `gg_{guid12}`, email truncate 50 ký tự, role "Khách hàng", trạng thái active (trangthai=1)
 3. Đồng bộ `tbKhachHang` với tên từ Google profile (cắt 50 ký tự)
 4. Gán session + redirect thẳng vào trang chủ (không cần duyệt thủ công)
 
-**Tables** (16 bảng):
+**Tables** (17 bảng):
 | Bảng | Mô tả | Quan hệ |
 |------|-------|---------|
 | `tbUser` | Người dùng (4 roles) | 1:1 → tbKhachHang, tbQuanAn, tbShipper, tbAdmin |
 | `tbKhachHang` | Khách hàng | 1:N → tbThongTinDatHang, tbTinNhan |
 | `tbQuanAn` | Quán ăn | 1:N → tbMonAn, tbDonHang |
-| `tbMonAn` | Món ăn | N:1 → tbDanhMuc; 1:N → tbChiTietDonHang, tbMonAnKhuyenMai |
-| `tbDanhMuc` | Danh mục món | 1:N → tbMonAn |
+| `tbMonAn` | Món ăn | N:1 → tbDanhMuc; 1:N → tbBienTheMonAn |
+| `tbBienTheMonAn` | **NEW** Biến thể món (size: M/L/XL) | N:1 → tbMonAn; 1:N → tbChiTietDonHang, tbMonAnKhuyenMai |
+| `tbDanhMuc` | Danh mục món | 1:N → tbMonAn (RESTRICT) |
 | `tbDonHang` | Đơn hàng | N:1 → tbQuanAn, tbKhuyenMai, tbLoaiHinhThanhToan, tbShipper |
-| `tbChiTietDonHang` | Chi tiết đơn | N:1 → tbMonAn, 1:N → tbDanhGia |
+| `tbChiTietDonHang` | Chi tiết đơn | N:1 → tbBienTheMonAn (mamon = FK→tbBienTheMonAn.id), 1:N → tbDanhGia |
 | `tbDanhGia` | Đánh giá | N:1 → tbChiTietDonHang |
 | `tbKhuyenMai` | Khuyến mãi | 1:N → tbMonAnKhuyenMai, tbDonHang |
-| `tbMonAnKhuyenMai` | KM của món | N:1 → tbMonAn, tbKhuyenMai |
+| `tbMonAnKhuyenMai` | KM của món | N:1 → tbBienTheMonAn (mamon), tbKhuyenMai |
 | `tbLoaiHinhThanhToan` | Hình thức TT | 1:N → tbDonHang |
 | `tbThongTinDatHang` | Địa chỉ giao | 1:N → tbDonHang |
 | `tbShipper` | Shipper | 1:N → tbDonHang, tbTinNhan |
 | `tbAdmin` | Quản trị viên | 1:1 → tbUser |
-| `tbTinNhan` | Tin nhắn chat | N:1 → tbDonHang |
+| `tbTinNhan` | Tin nhắn chat | N:1 → tbDonHang, tbKhachHang, tbShipper |
 | `City/District` | Địa danh | — |
 
-**Seed data**: `mysql_utf8.sql` — categories, users, restaurants, menu items (tự động seed khi DB được tạo lần đầu)
+**Key columns**:
+| Bảng | Cột | Mô tả |
+|------|------|-------|
+| `tbDonHang` | `momo_trans_id` | **NEW** Lưu mã giao dịch MoMo để dùng cho Refund |
+| `tbMonAn` | `conhang` | **NEW** BIT DEFAULT 1 — toggle còn hàng/hết (toggle 1-click AJAX) |
+| `tbMonAn` | `giatien` | Giá gốc (đã thay thế bằng quản lý qua tbBienTheMonAn) |
+
+**Seed data**: `mysql_utf8.sql` — categories, users, restaurants, menu items (tự động seed khi DB được tạo lần đầu).
+
+**ViewModels (không phải bảng)**:
+- `DonHangDangLam` — Kết quả raw SQL cho Shipper FREE-PICK
+- `DataAnalytic` + `DataAnalyticDanhMuc` — Analytics cho Restaurant Dashboard
+- `LichSuDonHang` — Lịch sử đơn hàng (hiện không dùng)
+- `Cart` — Session-based cart (JSON serialize/deserialize)
 
 ---
 
@@ -259,12 +276,7 @@ TMDT-master/
 | Shipper | `"Shipper"` | `/Shipper/*` |
 | Customer | `"Khách hàng"` | `/Home/*`, `/Cart/*` |
 
-### BaseController shared methods
-- `CheckLogin()` — kiểm tra session "user"
-- `GetCurrentUser()` → `tbUser?` — deserialize từ session JSON
-- `SetSessionUser(tbUser)` — serialize user vào session
-- `GetCart()` → `Cart?` — lấy giỏ hàng từ session
-- `SetCart(Cart)` — lưu giỏ hàng vào session
+
 
 ---
 
@@ -294,26 +306,48 @@ TMDT-master/
 | `GET` | `/AdminChat/GetUnreadCount` | AdminChat | Unread message count |
 | `GET` | `/AdminChat/GetUserOrders` | AdminChat | User's orders for chat |
 | `GET` | `/Home/SearchAutocomplete?q=` | Home | Search autocomplete (debounce 300ms) |
+| `GET` | `/Home/MenuSearch` | Home | **NEW** Dynamic SQL menu search — filter by category, price, promo, rating |
+| `GET` | `/Home/FixPasswords` | Home | **NEW** Ghi đè BCrypt hash → plain-text password (1 lần sau deploy) |
+| `GET` | `/Home/SeedDb` | Home | **NEW** Seed database từ mysql_utf8.sql |
 | `POST` | `/Restaurant/ToggleConHang` | Restaurant | AJAX toggle 1-click hết hàng |
 | `GET` | `/Restaurant/hoantatdon/{id}` | Restaurant | Chuẩn bị xong → status 'Chờ shipper lấy hàng' + SignalR broadcast to shippers |
 | `GET` | `/health` | — | Healthcheck (no DB needed, always 200 OK) |
-| `POST` | `/Home/GoogleResponse` | Home | **NEW** Google OAuth callback (auto-create + redirect) |
+| `POST` | `/Home/GoogleResponse` | Home | Google OAuth callback (auto-create + redirect) |
 
 ### SignalR Hub
 - **Endpoint**: `/nhantin` 
 - **Hub**: `Chats.cs` (12 methods, 5 group types)
-  - `Message` — Broadcast to all
-  - `AdminSendMessage` / `CustomerSendMessage` — Chat via Groups (không dùng ConnectionId)
+  - `Message(message, id)` — Broadcast to all
+  - `AdminSendMessage(message, orderId, connectionId)` — Admin → group `order_{orderId}`
+  - `CustomerSendMessage(message, orderId, userName)` — Customer → group `order_{orderId}`
   - `JoinOrderGroup(orderId)` — Join per-order group `order_{orderId}`
   - `JoinCustomerSupportGroup(userId)` — Join per-user group `customer_{userId}`
   - `JoinRestaurantGroup(restaurantId)` — Join restaurant group `restaurant_{restaurantId}` (newOrder events)
   - `JoinShipperGroup()` — Join shippers broadcast group `shippers` (newPickupOrder events)
-  - `SendToOrderGroup(msg, orderId, senderName, role)` — Send within order group
-  - `NotifyNewMessage(userId, count)` — Real-time unread badge
-  - `NotifyShippersNewPickup(orderId, restaurantName, pickupAddress)` — Broadcast to shippers group
-  - **`UpdateLocation(orderId, lat, lng)`** — Shipper coordinate streaming → `order_{orderId}` group
-  - `OnConnectedAsync` / `OnDisconnectedAsync` — Connection tracking với `ConcurrentDictionary`
-  - `IsUserOnline(userId)` / `GetUserConnectionId(userId)` — Static helper methods
+  - `SendToOrderGroup(message, orderId, senderName, role)` — Send within order group
+  - `NotifyNewMessage(userId, count)` — Real-time unread badge to `customer_{userId}`
+  - `NotifyShippersNewPickup(orderId, restaurantName, pickupAddress)` — Broadcast to `shippers` group
+  - `UpdateLocation(orderId, lat, lng)` — Shipper coordinate streaming → `order_{orderId}` group
+  - `OnConnectedAsync` — Track connection + broadcast `userOnline` (đọc userId từ query string)
+  - `OnDisconnectedAsync` — Remove tracking + broadcast `userOffline` + `shipperOffline`
+
+**Static helpers**:
+  - `IsUserOnline(userId)` → `bool`
+  - `GetUserConnectionId(userId)` → `string?`
+
+**Connection tracking**: `ConcurrentDictionary<string, int>` (connId → userId) + `ConcurrentDictionary<int, string>` (userId → connId)
+
+**SignalR client events (listen)**:
+  - `orderStatusChanged(orderId, status, time)` — Broadcast từ Restaurant/Shipper
+  - `shipperLocationUpdate(orderId, lat, lng)` — Live coordinates từ Shipper
+  - `newOrder(data)` — Restaurant nhận đơn mới khi thanh toán
+  - `newPickupOrder(data)` — Shipper nhận đơn chờ lấy hàng
+  - `paymentConfirmed(orderId, amount)` — Xác nhận thanh toán
+  - `paymentFailed(orderId, message)` — Thanh toán thất bại
+  - `adminMessage(message, orderId, sender)` — Admin gửi tin nhắn
+  - `customerMessage(message, orderId, userName)` — Khách hàng gửi tin nhắn
+  - `unreadCountUpdate(count)` — Badge tin nhắn chưa đọc
+  - `userOnline(userId, isOnline)` — Trạng thái online/offline
 
 ---
 
@@ -372,28 +406,38 @@ APP_DOMAIN=https://shipfood.up.railway.app
 
 | Loại | Algorithm | Implementation |
 |------|-----------|----------------|
-| **Personalized** | Collaborative filtering | Tìm user cùng sở thích → gợi ý món chưa đặt |
-| **Frequently Bought Together** | Apriori Support + Confidence (min 2%, min 50%) | Support = count(A∩B)/D, Confidence = count(A∩B)/count(A). 3-level fallback. Hỗ trợ đa phần tử (A,B,C→D). |
+| **Personalized** | Collaborative filtering | Tìm user cùng sở thích → gợi ý món chưa đặt. Fallback: trending |
+| **Apriori (Multi-element)** | Support + Confidence (min 2%, min 50%) | Support = count(A∩B)/D, Confidence = count(A∩B)/count(A). 3-level fallback. Hỗ trợ đa phần tử (A,B,C→D). |
+| **Popular Pairs** | Co-occurrence counting | Đếm cặp món xuất hiện cùng đơn → top N cặp phổ biến nhất. Dùng cho trang chủ "Gợi ý Combo" |
 | **Time-based** | Keyword matching | Theo giờ: sáng (phở/bún) / trưa (cơm) / tối (lẩu/nướng) / khuya (trà sữa) |
-| **Trending** | Sales volume (48h) | Top bán chạy 48h, fallback all-time |
+| **Trending (48h)** | Sales volume (48h) | Top bán chạy 48h, fallback all-time |
+| **Restaurant Insights** | Apriori grouped by restaurant | **NEW** Phân tích cặp món bán chéo cho Dashboard Nhà hàng. Bridge: tbBienTheMonAn.id ↔ tbMonAn.mamon |
+| **Category Insights** | Apriori grouped by category | **NEW** Phân tích liên kết Danh mục cho Admin Dashboard. Bridge: tbMonAn.mamon → tbBienTheMonAn.id → tbDanhMuc |
+
+**Implementation Notes**:
+- `tbChiTietDonHang.mamon` là FK → `tbBienTheMonAn.id` (không phải `tbMonAn.mamon`)
+- Tất cả Apriori queries đều cần bridge mapping: `tbMonAn.mamon → tbBienTheMonAn.id → ct.mamon`
+- 3-level fallback: (1) Support + Confidence ngưỡng → (2) Chỉ Confidence → (3) Top Confidence không lọc
 
 ---
 
 ## 🤖 AI Chatbot (Gemini)
 
 ### API
-- **Model**: `gemini-3.5-flash` (free tier) — comment in code: gemini-2.0-flash retired as of 1/6/2026
-- **System prompt**: Tiếng Việt, ngắn gọn, thân thiện
+- **Model**: `gemini-3.5-flash` (free tier) — gemini-2.0-flash retired as of 1/6/2026
+- **System prompt**: Tiếng Việt, ngắn gọn, thân thiện, dùng `systemInstruction` chính thức của Gemini API
 - **Context**: Phí ship 15,000đ (free ≥100,000đ), giao 30-45 phút, 7:00-21:30
+- **Temperature**: 0.7, **MaxOutputTokens**: 800
 
 ### Database Queries
-- `#123` hoặc `mã 123` → Tra cứu đơn hàng (trạng thái + emoji)
-- "gợi ý", "nên ăn", "bán chạy" → Top 5 món bán chạy
+- `#123` hoặc `mã 123` hoặc `đơn 123` hoặc `order 123` hoặc `tra 123` → Tra cứu đơn hàng (trạng thái + emoji + thông tin shipper)
+- "gợi ý", "nên ăn", "bán chạy", "hot", "ngon", "món gì", "đề xuất", "gọi ý" → Top 5 món bán chạy (GroupBy + Sum)
 
 ### Features
-- Contextual quick replies (dựa trên từ khóa)
-- Conversation history (20 messages trong session)
-- Fallback: hướng dẫn dùng lệnh khi Gemini không khả dụng
+- `EnableRateLimiting("gemini-policy")` — 5 requests/minute per user
+- Contextual quick replies (dựa trên từ khóa trong message)
+- Conversation history (20 messages trong session, lưu dạng JSON)
+- Fallback: hướng dẫn dùng lệnh khi Gemini không khả dụng hoặc chưa cấu hình API key
 
 ---
 
@@ -409,7 +453,7 @@ APP_DOMAIN=https://shipfood.up.railway.app
 - **Payment**: MoMo Sandbox (HMAC-SHA256, create/refund/query) + Mock COD
 - **Font**: Inter (unified) — removed Open Sans, Lora, Cairo, Poppins, Montserrat, Nunito
 - **Charts**: Chart.js (not any commercial charting library)
-- **Real-time**: SignalR 8 (not WebSocket raw)
+- **Real-time**: SignalR 8 (not WebSocket raw, 12 methods, 5 group types)
 - **AI**: Google Gemini gemini-3.5-flash (free tier, not any paid AI service)
 - **Deploy**: Docker + Railway (not IIS)
 
@@ -431,7 +475,7 @@ APP_DOMAIN=https://shipfood.up.railway.app
 - [x] ✅ Search autocomplete (debounce 300ms)
 - [x] ✅ AJAX Toggle 1-Click hết hàng
 - [x] ✅ Mock Payment Webhook + SignalR broadcast
-- [x] ✅ Auto-preparing 5s simulation (BackgroundService)
+- [x] ✅ **Auto-preparing 10s polling (BackgroundService)**
 - [x] ✅ Redis Distributed Session
 - [x] ✅ Server-side pagination cho reviews (GetReviews IQueryable)
 - [x] ✅ CORS policy (ALLOWED_ORIGINS, AllowCredentials)
@@ -458,7 +502,7 @@ APP_DOMAIN=https://shipfood.up.railway.app
 - [x] ✅ **Data Protection keys bền vững**: PersistKeysToFileSystem + 90-day lifetime
 - [x] ✅ **FixPasswords endpoint**: Ghi đè BCrypt hash trong DB Railway → plain-text
 - [x] ✅ **Fix 5 critical bugs**: NotMapped Include (Shipper/Admin), Find() trong LINQ, FK khuyenMai
-- [ ] Unit tests (chưa có — đã thêm xUnit project + 12 tests GetReviews)
+- [x] ✅ **Unit tests**: ShipFoodCore.Tests (HomeControllerTest, RestaurantControllerTests, RecommendationServiceTests)
 - [ ] Real payment (Stripe/PayPal/ZaloPay)
 
 ---

@@ -30,6 +30,11 @@ public partial class tbMonAn
     /// </summary>
     public bool conhang { get; set; } = true;
 
+    /// <summary>
+    /// Soft delete flag: 1 = đã xóa (bảo toàn lịch sử hóa đơn), 0 = đang hoạt động
+    /// </summary>
+    public bool isDeleted { get; set; }
+
     // Non-mapped property for cart quantity
     [NotMapped]
     public int soLuong { get; set; }

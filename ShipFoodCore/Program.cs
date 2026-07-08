@@ -379,6 +379,50 @@ try
         {
             logger.LogWarning("Could not add tbMonAn.conhang column: {Error}", ex.Message);
         }
+
+        // 1a: Thêm cột isDeleted cho tbMonAn (soft delete)
+        try
+        {
+            db.Database.ExecuteSqlRaw(@"
+                SET @exist := (SELECT COUNT(*) FROM information_schema.COLUMNS 
+                    WHERE TABLE_NAME = 'tbMonAn' AND COLUMN_NAME = 'isDeleted' AND TABLE_SCHEMA = DATABASE());
+                SET @sql := IF(@exist = 0,
+                    'ALTER TABLE tbMonAn ADD COLUMN isDeleted BIT DEFAULT 0 AFTER conhang',
+                    'SELECT 1');
+                PREPARE stmt FROM @sql;
+                EXECUTE stmt;
+                DEALLOCATE PREPARE stmt;");
+            logger.LogInformation("Column tbMonAn.isDeleted ensured (BIT DEFAULT 0)");
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning("Could not add tbMonAn.isDeleted column: {Error}", ex.Message);
+        }
+
+        // 1b: Thêm bảng tbLichSuSuDungKhuyenMai nếu chưa có
+        try
+        {
+            db.Database.ExecuteSqlRaw(@"
+                CREATE TABLE IF NOT EXISTS tbLichSuSuDungKhuyenMai (
+                    id INT AUTO_INCREMENT NOT NULL,
+                    userid INT NOT NULL,
+                    makm INT NOT NULL,
+                    ngaydung DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    madh INT NULL,
+                    PRIMARY KEY (id),
+                    INDEX idx_lskm_user (userid),
+                    INDEX idx_lskm_makm (makm),
+                    INDEX idx_lskm_ngay (ngaydung),
+                    CONSTRAINT fk_lskm_user FOREIGN KEY (userid) REFERENCES tbUser(userid) ON DELETE CASCADE,
+                    CONSTRAINT fk_lskm_khuyenmai FOREIGN KEY (makm) REFERENCES tbKhuyenMai(makm) ON DELETE CASCADE,
+                    CONSTRAINT fk_lskm_donhang FOREIGN KEY (madh) REFERENCES tbDonHang(madh) ON DELETE SET NULL
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+            logger.LogInformation("Table tbLichSuSuDungKhuyenMai ensured");
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning("Could not create tbLichSuSuDungKhuyenMai: {Error}", ex.Message);
+        }
     }
 }
 catch (Exception ex)

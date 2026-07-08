@@ -74,10 +74,21 @@
 @section scripts {
 <script>
 // ─── Task 2c: AJAX Toggle 1-Click Hết hàng nhanh ───
+// ═══ 4b: Optimistic UI — cập nhật ngay UI trước khi AJAX hoàn tất ═══
 function toggleConHang(btn) {
     var mamon = $(btn).data('mamon');
     var $btn = $(btn);
+    
+    // Lưu trạng thái cũ để rollback nếu thất bại
+    var wasConHang = $btn.hasClass('btn-success');
+    
+    // Optimistic update: chuyển UI ngay lập tức
     $btn.prop('disabled', true);
+    if (wasConHang) {
+        $btn.text('⚪ Hết hàng').removeClass('btn-success').addClass('btn-secondary');
+    } else {
+        $btn.text('🔴 Còn hàng').removeClass('btn-secondary').addClass('btn-success');
+    }
 
     $.ajax({
         url: '@Url.Action("ToggleConHang", "Restaurant")',
@@ -89,15 +100,30 @@ function toggleConHang(btn) {
                     .toggleClass('btn-success btn-secondary')
                     .attr('aria-label', (res.conhang ? '🔴 Còn hàng' : '⚪ Hết hàng') + ' - Bấm để đổi trạng thái');
                 showToast(res.message);
+            } else {
+                // Rollback nếu server trả về lỗi
+                rollbackToggle($btn, wasConHang);
+                showToast('❌ ' + (res.message || 'Lỗi'));
             }
         },
         error: function() {
+            // Rollback nếu mạng lỗi
+            rollbackToggle($btn, wasConHang);
             showToast('❌ Lỗi kết nối, vui lòng thử lại');
         },
         complete: function() {
             $btn.prop('disabled', false);
         }
     });
+}
+
+// Rollback về trạng thái cũ khi API thất bại
+function rollbackToggle($btn, wasConHang) {
+    if (wasConHang) {
+        $btn.text('🔴 Còn hàng').removeClass('btn-secondary').addClass('btn-success');
+    } else {
+        $btn.text('⚪ Hết hàng').removeClass('btn-success').addClass('btn-secondary');
+    }
 }
 
 function showToast(msg) {

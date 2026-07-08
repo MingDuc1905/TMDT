@@ -270,9 +270,9 @@
                 <div class="detail-restaurant-info">
                     <nav aria-label="breadcrumb">
                         <ol class="breadcrumb">
-                            <li class="breadcrumb-item"><a class="breadcrumb-link" rel="nofollow" href="">Home</a></li>
-                            <li class="breadcrumb-item"><a class="breadcrumb-link" rel="nofollow" href="/Home">TP. Hồ Chí Minh</a></li>
-                            <li class="breadcrumb-item"><a class="breadcrumb-link" rel="nofollow" href="/">@Model.tenquanan</a></li>
+                            <li class="breadcrumb-item"><a class="breadcrumb-link" href="/">Trang chủ</a></li>
+                            <li class="breadcrumb-item"><a class="breadcrumb-link" href="/Home">TP. Hồ Chí Minh</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">@Model.tenquanan</li>
                         </ol>
                     </nav>
                     <div class="kind-restaurant">
@@ -417,7 +417,10 @@
                                                             <form action="~/Cart/ThemMonAn" method="get" onsubmit="return validateCartForm(this)">
                                                                 <input name="soLuong" type="number" value="1" min="1" />
                                                                 <input name="maMonAn" type="hidden" value="@item.mamon" />
-                                                                <button type="submit" class="btn btn-success">Thêm</button>
+                                                                <button type="submit" class="btn btn-success add-to-cart-btn"
+                                                                        data-mamon="@item.mamon"
+                                                                        data-soluong="1"
+                                                                        onclick="return optimisticAddToCart(this, event)">Thêm</button>
                                                             </form>
                                                         </div>
                                                     </div>
@@ -622,6 +625,71 @@
                 return false;
             }
             return true;
+        }
+
+        // ═══ 4c: Optimistic UI — Add to Cart via AJAX ═══
+        function optimisticAddToCart(btn, event) {
+            event.preventDefault();
+            var $btn = $(btn);
+            if ($btn.prop('disabled') || $btn.data('adding')) return false;
+            
+            var form = $btn.closest('form');
+            var maMonAn = parseInt(form.find('input[name="maMonAn"]').val());
+            var soLuong = parseInt(form.find('input[name="soLuong"]').val()) || 1;
+            
+            // Optimistic: đổi text nút ngay
+            var origHtml = $btn.html();
+            $btn.data('adding', true).prop('disabled', true)
+                .html('<i class="fas fa-spinner fa-spin"></i> Đang thêm...')
+                .removeClass('btn-success').addClass('btn-secondary');
+            
+            $.ajax({
+                url: '/Cart/ApiThemMonAn',
+                type: 'GET',
+                data: { maMonAn: maMonAn, soLuong: soLuong },
+                success: function(res) {
+                    if (res.success) {
+                        // Success: hiển thị feedback
+                        $btn.html('<i class="fas fa-check"></i> ✅').removeClass('btn-secondary').addClass('btn-success');
+                        showCartToast('✅ Đã thêm vào giỏ hàng');
+                        
+                        // Cập nhật badge giỏ hàng nếu có
+                        var badge = document.querySelector('.cart-badge');
+                        if (badge && res.cartTotal) {
+                            badge.textContent = res.cartTotal;
+                        }
+                    } else if (res.conflict) {
+                        // Multi-restaurant conflict
+                        $btn.html(origHtml).prop('disabled', false).removeClass('btn-secondary').addClass('btn-success');
+                        if (confirm('Giỏ hàng đang có món từ ' + res.currentRestaurant + '. Bạn muốn chuyển sang ' + res.newRestaurant + ' không?')) {
+                            window.location.href = '/Cart/ApiForceSwitchRestaurant?maMonAn=' + maMonAn + '&soLuong=' + soLuong;
+                        }
+                    } else {
+                        // Rollback
+                        $btn.html(origHtml).prop('disabled', false).removeClass('btn-secondary').addClass('btn-success');
+                        showCartToast('❌ ' + (res.message || 'Lỗi'));
+                    }
+                },
+                error: function() {
+                    // Rollback
+                    $btn.html(origHtml).prop('disabled', false).removeClass('btn-secondary').addClass('btn-success');
+                    showCartToast('❌ Lỗi kết nối');
+                },
+                complete: function() {
+                    $btn.data('adding', false);
+                    // Restore sau 1.5s
+                    setTimeout(function() {
+                        $btn.html(origHtml).prop('disabled', false).removeClass('btn-secondary').addClass('btn-success');
+                    }, 1500);
+                }
+            });
+            return false;
+        }
+
+        function showCartToast(msg) {
+            var t = $('<div style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 20px;border-radius:8px;z-index:99999;font-size:14px;box-shadow:0 4px 12px rgba(0,0,0,0.2);">' + msg + '</div>');
+            $('body').append(t);
+            setTimeout(function(){ t.fadeOut(400, function(){ t.remove(); }); }, 2500);
         }
         document.addEventListener('DOMContentLoaded', function() {
             document.querySelectorAll('input[name="soLuong"]').forEach(function(input) {

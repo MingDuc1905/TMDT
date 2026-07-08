@@ -22,6 +22,7 @@
   <a href="https://leafletjs.com/"><img src="https://img.shields.io/badge/Leaflet.js-199900?style=flat-square&logo=leaflet&logoColor=white" alt="Leaflet.js"></a>
   <a href="https://ai.google.dev/"><img src="https://img.shields.io/badge/Gemini_AI-4285F4?style=flat-square&logo=googlegemini&logoColor=white" alt="Gemini AI"></a>
   <a href="https://getbootstrap.com/"><img src="https://img.shields.io/badge/Bootstrap_5-7952B3?style=flat-square&logo=bootstrap&logoColor=white" alt="Bootstrap 5"></a>
+  <a href="https://fontawesome.com/"><img src="https://img.shields.io/badge/Font_Awesome_5-528DD7?style=flat-square&logo=fontawesome&logoColor=white" alt="Font Awesome 5"></a>
   <a href="https://www.docker.com/"><img src="https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white" alt="Docker"></a>
   <a href="https://railway.app/"><img src="https://img.shields.io/badge/Railway-0B0D0E?style=flat-square&logo=railway&logoColor=white" alt="Railway"></a>
   <a href="https://www.chartjs.org/"><img src="https://img.shields.io/badge/Chart.js-FF6384?style=flat-square&logo=chartdotjs&logoColor=white" alt="Chart.js"></a>
@@ -297,7 +298,7 @@ dotnet run
     <td><b>AI</b></td>
     <td>Gemini API (flash)</td>
     <td><b>Icons</b></td>
-    <td>Font Awesome 5 + LineIcons</td>
+    <td>Font Awesome 5</td>
     <td><b>Auth</b></td>
     <td>Cookie + Session + Google OAuth</td>
   </tr>

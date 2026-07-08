@@ -13,10 +13,17 @@ FastShipTracking.initMap = function(elementId, centerLat, centerLng, zoomLevel) 
         return null;
     }
 
+    // ═══ 4a: Mobile Leaflet fix — tắt drag/scroll zoom trên mobile ═══
+    // Kiểm tra thiết bị di động: nếu là mobile/tablet, tắt kéo thả và scroll zoom
+    // để giải phóng không gian cuộn dọc tự nhiên cho trang web
+    var isMobile = window.innerWidth < 768 || ('ontouchstart' in window);
+
     var map = L.map(elementId, {
         center: [centerLat || 10.8231, centerLng || 106.6297],
         zoom: zoomLevel || 13,
-        zoomControl: true
+        zoomControl: !isMobile,
+        dragging: !isMobile,
+        scrollWheelZoom: isMobile ? 'center' : true
     });
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {

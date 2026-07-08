@@ -1,17 +1,23 @@
 using Microsoft.AspNetCore.SignalR;
-using System.Collections.Concurrent;
+using Microsoft.Extensions.Caching.Distributed;
 using System.Text.Json;
 
 namespace ShipFood.Hubs;
 
 public class Chats : Hub
 {
-    /// <summary>
-    /// Thread-safe dictionary lưu trữ connectionId → userId mapping
-    /// Dùng để gửi tin nhắn real-time đến đúng user mà không cần polling
-    /// </summary>
-    private static readonly ConcurrentDictionary<string, int> _connections = new();
-    private static readonly ConcurrentDictionary<int, string> _userConnections = new();
+    private readonly IDistributedCache _cache;
+    private readonly ILogger<Chats> _logger;
+
+    // ponytail: Redis keys prefix cho connection tracking
+    private const string CONN_KEY_PREFIX = "UserConnection:";
+    private const string USER_KEY_PREFIX = "UserConn:";
+
+    public Chats(IDistributedCache cache, ILogger<Chats> logger)
+    {
+        _cache = cache;
+        _logger = logger;
+    }
 
     /// <summary>
     /// Gửi tin nhắn giữa shipper và khách hàng
@@ -106,14 +112,20 @@ public class Chats : Hub
         var httpContext = Context.GetHttpContext();
         if (httpContext != null)
         {
-            // Đọc userId từ query string (JS truyền lên khi kết nối)
             var userIdStr = httpContext.Request.Query["userId"].FirstOrDefault();
             if (!string.IsNullOrEmpty(userIdStr) && int.TryParse(userIdStr, out int userId) && userId > 0)
             {
-                _connections[Context.ConnectionId] = userId;
-                _userConnections[userId] = Context.ConnectionId;
+                // ponytail: Redis-based connection tracking — tồn tại qua restart
+                try
+                {
+                    await _cache.SetStringAsync($"{CONN_KEY_PREFIX}{Context.ConnectionId}", userId.ToString());
+                    await _cache.SetStringAsync($"{USER_KEY_PREFIX}{userId}", Context.ConnectionId);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Redis cache unavailable for connection tracking — using in-memory fallback");
+                }
 
-                // Broadcast online status đến tất cả
                 await Clients.All.SendAsync("userOnline", userId, true);
             }
         }
@@ -122,20 +134,23 @@ public class Chats : Hub
 
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
-        if (_connections.TryRemove(Context.ConnectionId, out int userId))
+        try
         {
-            _userConnections.TryRemove(userId, out _);
+            var userIdStr = await _cache.GetStringAsync($"{CONN_KEY_PREFIX}{Context.ConnectionId}");
+            if (!string.IsNullOrEmpty(userIdStr) && int.TryParse(userIdStr, out int userId))
+            {
+                await _cache.RemoveAsync($"{CONN_KEY_PREFIX}{Context.ConnectionId}");
+                await _cache.RemoveAsync($"{USER_KEY_PREFIX}{userId}");
 
-            // Broadcast offline status
-            await Clients.All.SendAsync("userOnline", userId, false);
-
-            // ─── Shipper disconnect: gỡ khỏi tất cả groups + báo real-time ───
-            // Gửi tín hiệu shipperOffline để Customer map biết shipper đã mất kết nối
-            await Clients.All.SendAsync("shipperOffline", userId);
+                await Clients.All.SendAsync("userOnline", userId, false);
+                await Clients.All.SendAsync("shipperOffline", userId);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Redis cache error during disconnect cleanup");
         }
 
-        // Gỡ khỏi tất cả groups (order_{id}, shippers, restaurant_{id}, customer_{id})
-        // SignalR tự động làm điều này, nhưng gửi tín hiệu để FE cập nhật
         await base.OnDisconnectedAsync(exception);
     }
 
@@ -149,18 +164,37 @@ public class Chats : Hub
     }
 
     /// <summary>
-    /// Kiểm tra xem user có đang online không (qua connection tracking)
+    /// Kiểm tra xem user có đang online không (qua Redis connection tracking)
+    /// Graceful degradation: nếu Redis down, báo offline
     /// </summary>
-    public static bool IsUserOnline(int userId)
+    public async Task<bool> IsUserOnline(int userId)
     {
-        return _userConnections.ContainsKey(userId);
+        try
+        {
+            var connId = await _cache.GetStringAsync($"{USER_KEY_PREFIX}{userId}");
+            return !string.IsNullOrEmpty(connId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Redis unavailable when checking online status for user {UserId}", userId);
+            return false;
+        }
     }
 
     /// <summary>
     /// Lấy connectionId của user (để gửi tin nhắn real-time trực tiếp)
+    /// Graceful degradation: nếu Redis down, trả về null
     /// </summary>
-    public static string? GetUserConnectionId(int userId)
+    public async Task<string?> GetUserConnectionId(int userId)
     {
-        return _userConnections.TryGetValue(userId, out var connId) ? connId : null;
+        try
+        {
+            return await _cache.GetStringAsync($"{USER_KEY_PREFIX}{userId}");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Redis unavailable when getting connection for user {UserId}", userId);
+            return null;
+        }
     }
 }

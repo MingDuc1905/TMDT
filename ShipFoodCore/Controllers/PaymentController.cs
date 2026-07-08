@@ -47,6 +47,9 @@ public class PaymentController : BaseController
         if (cart == null || cart.items.Count == 0)
             return Json(new { success = false, message = "Giỏ hàng trống." });
 
+        if (cart.maquanan == null)
+            return Json(new { success = false, message = "Giỏ hàng không có thông tin quán ăn. Vui lòng thêm món lại." });
+
         if (testResult == "failure")
         {
             var failures = new[] {
@@ -88,7 +91,21 @@ public class PaymentController : BaseController
                 db.SaveChanges();
             }
 
-            decimal tongTienMon = cart.items.Sum(m => (m.giatien ?? 0) * m.soLuong);
+            // ═══ 3a: BẮT BUỘC re-read giá từ DB ═══
+            // Không tin tưởng giatien từ Frontend/localStorage, phải truy vấn giá mới nhất từ tbBienTheMonAn
+            decimal tongTienMon = 0;
+            foreach (var item in cart.items)
+            {
+                var bt = db.tbBienTheMonAn.Find(item.mabienthe);
+                if (bt?.giatien == null)
+                {
+                    return Json(new { success = false, message = $"Món '{item.tenmon}' không còn tồn tại hoặc đã thay đổi giá. Vui lòng tải lại giỏ hàng." });
+                }
+                // Ghi đè giá từ DB, không dùng giá frontend gửi lên
+                item.giatien = bt.giatien;
+                tongTienMon += (bt.giatien ?? 0) * item.soLuong;
+            }
+
             decimal phiShip = 15000;
             decimal discountAmount = 0;
             int? appliedCouponId = null;
@@ -170,6 +187,19 @@ public class PaymentController : BaseController
             }
 
             _logger.LogInformation("Order #{OrderId} placed by user {UserId}", dh.madh, user.userid);
+
+            // ─── 1h: Ghi nhận lịch sử sử dụng mã giảm giá ───
+            if (appliedCouponId != null)
+            {
+                db.tbLichSuSuDungKhuyenMai.Add(new tbLichSuSuDungKhuyenMai
+                {
+                    userid = user!.userid,
+                    makm = appliedCouponId.Value,
+                    ngaydung = DateTime.Now,
+                    madh = dh.madh
+                });
+                db.SaveChanges();
+            }
 
             // ─── Chỉ xóa cart sau khi MoMo API đã được gọi (dù thành công hay thất bại) ───
             // Cart được clear sau khi MoMo attempt để nếu MoMo thất bại, user còn giỏ hàng để thử lại

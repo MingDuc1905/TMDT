@@ -59,18 +59,26 @@
         <h2 style="font-size:20px;margin-bottom:20px;color:var(--fs-dark);">Đăng ký tài khoản</h2>
         <form id="authForm" action="~/Home/Signup" method="post" onsubmit="return validateSignupForm()">
             @Html.AntiForgeryToken()
+            <label for="reg-hoten" class="visually-hidden">Họ tên</label>
             <input type="text" id="reg-hoten" name="hoten" placeholder="Họ tên" autocomplete="name" required />
+            <label for="reg-username" class="visually-hidden">Tên đăng nhập</label>
             <input type="text" id="reg-username" name="username" placeholder="Username" autocomplete="username" required />
+            <label for="reg-pwd" class="visually-hidden">Mật khẩu</label>
             <input type="password" id="reg-pwd" name="pwd" placeholder="Mật khẩu" autocomplete="new-password" required />
+            <label for="reg-repeatpw" class="visually-hidden">Nhập lại mật khẩu</label>
             <input type="password" id="reg-repeatpw" name="repeatpw" placeholder="Nhập lại mật khẩu" autocomplete="new-password" required />
+            <label for="reg-loaitaikhoan" class="visually-hidden">Loại tài khoản</label>
             <select id="reg-loaitaikhoan" name="loaitaikhoan" required>
                 <option value="" disabled selected>Chọn loại tài khoản</option>
                 <option value="Khách hàng">Khách hàng</option>
                 <option value="Quán ăn">Quán ăn</option>
                 <option value="Shipper">Shipper</option>
             </select>
+            <label for="reg-sdt" class="visually-hidden">Số điện thoại</label>
             <input type="tel" id="reg-sdt" name="sdt" placeholder="Số điện thoại" autocomplete="tel" required />
+            <label for="reg-email" class="visually-hidden">Email</label>
             <input type="email" id="reg-email" name="email" placeholder="Email" autocomplete="email" required />
+            <label for="reg-diachi" class="visually-hidden">Địa chỉ</label>
             <input type="text" id="reg-diachi" name="diachi" placeholder="Địa chỉ" autocomplete="street-address" required />
         @if (ViewBag.err != null)
         {

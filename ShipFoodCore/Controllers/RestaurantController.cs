@@ -459,7 +459,12 @@ public class RestaurantController : BaseController
         if (id != null)
         {
             var monAn = db.tbMonAn.Find(id);
-            if (monAn != null) db.tbMonAn.Remove(monAn);
+            if (monAn != null)
+            {
+                // ⚠️ Soft delete: chỉ đánh dấu isDeleted = true, không xóa cứng
+                // Giúp bảo toàn lịch sử hóa đơn trong tbChiTietDonHang
+                monAn.isDeleted = true;
+            }
             db.SaveChanges();
         }
         return RedirectToAction("ProductList");

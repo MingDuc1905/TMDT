@@ -25,6 +25,7 @@ public partial class dbFoodyEntities : DbContext
     public virtual DbSet<tbShipper> tbShippers { get; set; }
     public virtual DbSet<tbThongTinDatHang> tbThongTinDatHangs { get; set; }
     public virtual DbSet<tbTinNhan> tbTinNhans { get; set; }
+    public virtual DbSet<tbLichSuSuDungKhuyenMai> tbLichSuSuDungKhuyenMais { get; set; }
     public virtual DbSet<tbUser> tbUsers { get; set; }
 
     // Singular aliases for backward compatibility (DbSet to support Add/Remove/Find)
@@ -43,6 +44,7 @@ public partial class dbFoodyEntities : DbContext
     public DbSet<tbAdmin> tbAdmin => tbAdmins;
     public DbSet<tbMonAnKhuyenMai> tbMonAnKhuyenMai => tbMonAnKhuyenMais;
     public DbSet<tbDanhGia> tbDanhGia => tbDanhGias;
+    public DbSet<tbLichSuSuDungKhuyenMai> tbLichSuSuDungKhuyenMai => tbLichSuSuDungKhuyenMais;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -77,11 +79,13 @@ public partial class dbFoodyEntities : DbContext
             .OnDelete(DeleteBehavior.ClientSetNull);
 
         // tbQuanAn -> tbMonAn (1:N)
+        // ⚠️ RESTRICT: Chuyển từ CASCADE sang RESTRICT để bảo vệ soft-delete
+        // Khi Quán ăn bị xóa, món ăn chỉ được đánh dấu isDeleted = true thay vì xóa cứng
         modelBuilder.Entity<tbMonAn>()
             .HasOne(m => m.tbQuanAn)
             .WithMany(q => q.tbMonAns)
             .HasForeignKey(m => m.maquanan)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
 
         // tbDanhMuc -> tbMonAn (1:N)
         // ⚠️ RESTRICT: Không cho phép xóa danh mục nếu còn món ăn

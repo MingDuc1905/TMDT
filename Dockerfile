@@ -1,4 +1,9 @@
 # ==========================================================
+# FastShip - Docker Build (Railway CI trigger)
+# Optimizations: DebugType=none, GlobalizationInvariant=1
+# ==========================================================
+
+# ==========================================================
 # Stage 1: Build
 # ==========================================================
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build

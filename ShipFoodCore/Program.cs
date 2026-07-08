@@ -399,6 +399,25 @@ try
             logger.LogWarning("Could not add tbMonAn.isDeleted column: {Error}", ex.Message);
         }
 
+        // 1a-bis: Thêm cột momo_trans_id cho tbDonHang (dùng cho MoMo Refund)
+        try
+        {
+            db.Database.ExecuteSqlRaw(@"
+                SET @exist := (SELECT COUNT(*) FROM information_schema.COLUMNS 
+                    WHERE TABLE_NAME = 'tbDonHang' AND COLUMN_NAME = 'momo_trans_id' AND TABLE_SCHEMA = DATABASE());
+                SET @sql := IF(@exist = 0,
+                    'ALTER TABLE tbDonHang ADD COLUMN momo_trans_id VARCHAR(100) NULL AFTER ngaythanhtoan',
+                    'SELECT 1');
+                PREPARE stmt FROM @sql;
+                EXECUTE stmt;
+                DEALLOCATE PREPARE stmt;");
+            logger.LogInformation("Column tbDonHang.momo_trans_id ensured (VARCHAR(100) NULL)");
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning("Could not add tbDonHang.momo_trans_id column: {Error}", ex.Message);
+        }
+
         // 1b: Thêm bảng tbLichSuSuDungKhuyenMai nếu chưa có
         // Chạy TRƯỚC khi app nhận request để tránh lỗi DbUpdateException khi thanh toán
         try

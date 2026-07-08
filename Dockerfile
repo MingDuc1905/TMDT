@@ -9,8 +9,11 @@ COPY ShipFoodCore/ShipFoodCore.csproj ./ShipFoodCore/
 RUN dotnet restore ShipFoodCore/ShipFoodCore.csproj
 
 # Copy everything else and publish
+# Railway Optimizations: DebugType=none (-10MB), DebugSymbols=false (-5MB)
 COPY . .
-RUN dotnet publish ShipFoodCore/ShipFoodCore.csproj -c Release -o /app/publish --no-restore
+RUN dotnet publish ShipFoodCore/ShipFoodCore.csproj -c Release -o /app/publish --no-restore \
+    -p:DebugType=none \
+    -p:DebugSymbols=false
 
 # ==========================================================
 # Stage 2: Runtime
@@ -22,5 +25,6 @@ COPY mysql_utf8.sql ./mysql_utf8.sql
 
 EXPOSE 8080
 ENV ASPNETCORE_URLS=http://+:8080
+ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1
 
 ENTRYPOINT ["dotnet", "ShipFoodCore.dll"]

@@ -95,46 +95,62 @@ function syncCartFromLocal() {
     });
 }
 
-// ─── Monkey-patch cart actions to also save to localStorage ───
-function patchCartActions() {
-    var origOpen = XMLHttpRequest.prototype.open;
-    XMLHttpRequest.prototype.open = function() {
-        this.addEventListener('load', function() {
-            // After any cart API call, save current cart state to localStorage
-            var cartTotalEl = document.querySelector('#cart-total');
-            if (cartTotalEl) {
-                var cartData = {
-                    tongTien: parseFloat(cartTotalEl.textContent.replace(/[^0-9]/g, '')) || 0,
-                    items: []
-                };
-                // Parse items from DOM
-                document.querySelectorAll('.cart-item').forEach(function(item) {
-                    var name = item.querySelector('.item-name')?.textContent?.trim() || '';
-                    var priceText = item.querySelector('.item-price')?.textContent?.trim() || '0';
-                    var price = parseFloat(priceText.replace(/[^0-9]/g, '')) || 0;
-                    var qtyText = item.querySelector('.qty-num')?.textContent?.trim() || '0';
-                    var qty = parseInt(qtyText) || 0;
-                    var mamon = item.querySelector('[data-mamon]')?.dataset?.mamon;
-                    var img = item.querySelector('img')?.getAttribute('src') || '';
+// ─── Helper: trích xuất giỏ hàng từ DOM (dùng chung) ───
+function extractCartFromDOM() {
+    var cartTotalEl = document.querySelector('#cart-total');
+    if (!cartTotalEl) return null;
 
-                    if (mamon) {
-                        cartData.items.push({
-                            mamon: parseInt(mamon),
-                            tenmon: name,
-                            giatien: price,
-                            soLuong: qty,
-                            hinhanh: img
-                        });
-                    }
-                });
-
-                if (cartData.items.length > 0 || cartData.tongTien > 0) {
-                    saveCartToLocal(cartData);
-                }
-            }
-        });
-        origOpen.apply(this, arguments);
+    var data = {
+        tongTien: parseFloat(cartTotalEl.textContent.replace(/[^0-9]/g, '')) || 0,
+        items: []
     };
+
+    document.querySelectorAll('.cart-item').forEach(function(item) {
+        var name = item.querySelector('.item-name')?.textContent?.trim() || '';
+        var priceText = item.querySelector('.item-price')?.textContent?.trim() || '0';
+        var price = parseFloat(priceText.replace(/[^0-9]/g, '')) || 0;
+        var qtyText = item.querySelector('.qty-num')?.textContent?.trim() || '0';
+        var qty = parseInt(qtyText) || 0;
+        var mamon = item.querySelector('[data-mamon]')?.dataset?.mamon;
+        var img = item.querySelector('img')?.getAttribute('src') || '';
+
+        if (mamon) {
+            data.items.push({
+                mamon: parseInt(mamon),
+                tenmon: name,
+                giatien: price,
+                soLuong: qty,
+                hinhanh: img
+            });
+        }
+    });
+
+    return data;
+}
+
+// ─── Save cart to localStorage after cart API calls ───
+// Dùng jQuery ajaxSuccess (có filter) thay vì monkey-patch XHR.prototype.open
+// giúp tránh memory leak và ảnh hưởng đến các AJAX request khác
+function patchCartActions() {
+    if (typeof $ === 'undefined') return;
+
+    $(document).ajaxSuccess(function(event, xhr, settings) {
+        var url = settings.url || '';
+        // Chỉ xử lý khi là API cart
+        if (url.indexOf('ApiTangSoLuong') === -1 &&
+            url.indexOf('ApiGiamSoLuong') === -1 &&
+            url.indexOf('ApiThemMonAn') === -1 &&
+            url.indexOf('ApiForceSwitchRestaurant') === -1) {
+            return;
+        }
+
+        var cartData = extractCartFromDOM();
+        if (cartData && (cartData.items.length > 0 || cartData.tongTien > 0)) {
+            saveCartToLocal(cartData);
+        } else {
+            clearCartLocal();
+        }
+    });
 }
 
 // ─── Initialize ───

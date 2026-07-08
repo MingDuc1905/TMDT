@@ -255,130 +255,320 @@ public class HomeController : BaseController
             };
             return View();
         }
-    }
-
-    /// <summary>
-    /// Đăng nhập bằng Google - chuyển hướng đến Google OAuth
-    /// </summary>
-    public IActionResult GoogleLogin()
-    {
-        // Kiểm tra Google OAuth có được cấu hình không
-        var googleClientId = HttpContext.RequestServices
-            .GetService<Microsoft.Extensions.Configuration.IConfiguration>()?
-            ["Authentication:Google:ClientId"];
-        if (string.IsNullOrEmpty(googleClientId))
+    }        /// <summary>
+        /// Đăng nhập bằng Google - chuyển hướng đến Google OAuth (1-click, mặc định Khách hàng)
+        /// </summary>
+        public IActionResult GoogleLogin()
         {
-            ViewBag.LoginFail = "Đăng nhập Google chưa được cấu hình trên hệ thống này.";
-            return View("Login");
+            // Kiểm tra Google OAuth có được cấu hình không
+            var googleClientId = HttpContext.RequestServices
+                .GetService<Microsoft.Extensions.Configuration.IConfiguration>()?
+                ["Authentication:Google:ClientId"];
+            if (string.IsNullOrEmpty(googleClientId))
+            {
+                ViewBag.LoginFail = "Đăng nhập Google chưa được cấu hình trên hệ thống này.";
+                return View("Login");
+            }
+
+            var redirectUrl = Url.Action("GoogleResponse", "Home");
+            var properties = new Microsoft.AspNetCore.Authentication.AuthenticationProperties { RedirectUri = redirectUrl };
+            return Challenge(properties, Microsoft.AspNetCore.Authentication.Google.GoogleDefaults.AuthenticationScheme);
         }
 
-        var redirectUrl = Url.Action("GoogleResponse", "Home");
-        var properties = new Microsoft.AspNetCore.Authentication.AuthenticationProperties { RedirectUri = redirectUrl };
-        return Challenge(properties, Microsoft.AspNetCore.Authentication.Google.GoogleDefaults.AuthenticationScheme);
-    }
+        /// <summary>
+        /// Đăng ký Google với vai trò Đối tác (Quán ăn/Shipper) — chọn vai trò sau khi xác thực
+        /// </summary>
+        public IActionResult GooglePartnerLogin()
+        {
+            var googleClientId = HttpContext.RequestServices
+                .GetService<Microsoft.Extensions.Configuration.IConfiguration>()?
+                ["Authentication:Google:ClientId"];
+            if (string.IsNullOrEmpty(googleClientId))
+            {
+                ViewBag.LoginFail = "Đăng nhập Google chưa được cấu hình trên hệ thống này.";
+                return View("Login");
+            }
+
+            // Đánh dấu partner mode → GoogleResponse sẽ chuyển sang SelectRoleGoogle thay vì auto-create
+            HttpContext.Session.SetString("google_partner_mode", "1");
+
+            var redirectUrl = Url.Action("GoogleResponse", "Home");
+            var properties = new Microsoft.AspNetCore.Authentication.AuthenticationProperties { RedirectUri = redirectUrl };
+            return Challenge(properties, Microsoft.AspNetCore.Authentication.Google.GoogleDefaults.AuthenticationScheme);
+        }
 
     /// <summary>
     /// Google OAuth callback - xử lý sau khi Google xác thực thành công
     /// </summary>
-    public async Task<ActionResult> GoogleResponse()
-    {
-        // Khai báo trước try để catch có thể dùng (C# scope rules)
-        string? email = null;
-        string? name = null;
-
-        try
+        public async Task<ActionResult> GoogleResponse()
         {
-        // Đọc từ cookie (Google middleware tự động lưu vào cookie nhờ AddCookie)
-        var authenticateResult = await HttpContext.AuthenticateAsync(Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme);
-        if (!authenticateResult.Succeeded)
-        {
-            ViewBag.LoginFail = "Đăng nhập Google thất bại. Vui lòng thử lại.";
-            return View("Login");
-        }
+            // Khai báo trước try để catch có thể dùng (C# scope rules)
+            string? email = null;
+            string? name = null;
 
-        // Lấy thông tin email từ Google
-        email = authenticateResult.Principal?.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
-        name = authenticateResult.Principal?.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value;
-
-        if (string.IsNullOrEmpty(email))
-        {
-            ViewBag.LoginFail = "Không thể lấy thông tin email từ Google";
-            return View("Login");
-        }
-
-        // Tìm user theo email
-        var users = db.tbUser.Where(u => u.email == email).ToList();
-        if (users.Count == 0)
-        {
-            // ─── TỰ ĐỘNG TẠO TÀI KHOẢN KHI ĐĂNG NHẬP GOOGLE LẦN ĐẦU ───
-            // Tạo password ngẫu nhiên — user không cần biết, chỉ dùng OAuth
-            var randomPwd = $"GG_{Guid.NewGuid():N}";
-
-            // Cắt username/email xuống tối đa 50 ký tự để tránh lỗi MaxLength DB
-            var truncatedEmail = email.Length > 50 ? email[..50] : email;
-            // Tạo username ngắn gọn, tránh trùng: gg_{first8}_{timestamp}
-            var shortUser = "gg_" + Guid.NewGuid().ToString("N")[..12];
-
-            var newUser = new tbUser
+            try
             {
-                username     = shortUser,                     // username ngắn, không lo trùng
-                pwd          = randomPwd,
-                email        = truncatedEmail,
-                sdt          = "0000000000",                  // Google không cung cấp SĐT, dùng placeholder
-                loaitaikhoan = "Khách hàng",
-                vitien       = 0,
-                trangthai    = 1                              // kích hoạt ngay, không cần duyệt
+            // Đọc từ cookie (Google middleware tự động lưu vào cookie nhờ AddCookie)
+            var authenticateResult = await HttpContext.AuthenticateAsync(Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme);
+            if (!authenticateResult.Succeeded)
+            {
+                ViewBag.LoginFail = "Đăng nhập Google thất bại. Vui lòng thử lại.";
+                return View("Login");
+            }
+
+            // Lấy thông tin email từ Google
+            email = authenticateResult.Principal?.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+            name = authenticateResult.Principal?.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value;
+
+            if (string.IsNullOrEmpty(email))
+            {
+                ViewBag.LoginFail = "Không thể lấy thông tin email từ Google";
+                return View("Login");
+            }
+
+            // Tìm user theo email
+            var users = db.tbUser.Where(u => u.email == email).ToList();
+            if (users.Count == 0)
+            {
+                // ─── GOOGLE LẦN ĐẦU: Kiểm tra partner_mode → redirect SelectRoleGoogle, nếu không → auto-create Khách hàng ───
+                var isPartnerMode = HttpContext.Session.GetString("google_partner_mode");
+                if (isPartnerMode == "1")
+                {
+                    // Xóa flag partner mode
+                    HttpContext.Session.Remove("google_partner_mode");
+                    // Lưu tạm vào Session → redirect sang chọn vai trò
+                    HttpContext.Session.SetString("google_email", email);
+                    HttpContext.Session.SetString("google_name", name ?? email);
+                    return RedirectToAction("SelectRoleGoogle");
+                }
+
+                // ─── 1-CLICK: Auto-create Khách hàng ───
+                try
+                {
+                    var randomPwd = $"GG_{Guid.NewGuid():N}";
+                    var truncatedEmail = email.Length > 50 ? email[..50] : email;
+                    var shortUser = "gg_" + Guid.NewGuid().ToString("N")[..12];
+                    var tenDayDu = (!string.IsNullOrEmpty(name) ? name : truncatedEmail);
+                    if (tenDayDu.Length > 50) tenDayDu = tenDayDu[..50];
+
+                    var newUser = new tbUser
+                    {
+                        username     = shortUser,
+                        pwd          = randomPwd,
+                        email        = truncatedEmail,
+                        sdt          = "",
+                        loaitaikhoan = "Khách hàng",
+                        vitien       = 0,
+                        trangthai    = 1
+                    };
+                    db.tbUser.Add(newUser);
+                    db.SaveChanges();
+
+                    db.tbKhachHang.Add(new tbKhachHang
+                    {
+                        userid = newUser.userid,
+                        tenkh  = tenDayDu
+                    });
+                    db.SaveChanges();
+
+                    var newCart = new Cart { userid = newUser.userid };
+                    SetCart(newCart);
+                    SetSessionUser(newUser);
+
+                    return RedirectToAction("Index", "Home");
+                }
+                catch (Exception ex)
+                {
+                    var logger = HttpContext.RequestServices.GetRequiredService<ILogger<HomeController>>();
+                    logger.LogError(ex, "Auto-create Khách hàng from Google failed for {Email}", email);
+                    ViewBag.LoginFail = "Không thể tạo tài khoản tự động. Vui lòng thử lại.";
+                    return View("Login");
+                }
+            }
+
+            var userFind = users[0];
+            if (userFind.trangthai == 2)
+            {
+                ViewBag.LoginFail = "Tài khoản đã bị khóa";
+                return View("Login");
+            }
+
+            var cart = new Cart { userid = userFind.userid };
+            SetCart(cart);
+            SetSessionUser(userFind);
+
+            return userFind.loaitaikhoan switch
+            {
+                "Khách hàng" => RedirectToAction("Index", "Home"),
+                "Shipper" => RedirectToAction("Index", "Shipper"),
+                "Quán ăn" => RedirectToAction("Index", "Restaurant"),
+                "Admin" => RedirectToAction("Index", "Admin"),
+                _ => RedirectToAction("Index"),
             };
-            db.tbUser.Add(newUser);
-            db.SaveChanges();                                  // ← newUser.userid được sinh tự động
-
-            // Đồng bộ tbKhachHang (khóa ngoại 1-1)
-            var tenKhachHang = !string.IsNullOrEmpty(name) ? name : truncatedEmail;
-            if (tenKhachHang.Length > 50) tenKhachHang = tenKhachHang[..50];
-            db.tbKhachHang.Add(new tbKhachHang
+            }
+            catch (Exception ex)
             {
-                userid = newUser.userid,
-                tenkh  = tenKhachHang
-            });
-            db.SaveChanges();
+                // Log lỗi chi tiết để debug trên Railway (KHÔNG hiển thị raw SQL cho user)
+                var logger = HttpContext.RequestServices.GetRequiredService<ILogger<HomeController>>();
+                logger.LogError(ex, "Google OAuth callback failed for email {Email}", email ?? "null");
 
-            // Gán Session + redirect thẳng vào trang chủ
-            var newCart = new Cart { userid = newUser.userid };
-            SetCart(newCart);
-            SetSessionUser(newUser);
-            return RedirectToAction("Index", "Home");
+                ViewBag.LoginFail = "Đăng nhập Google gặp sự cố. Vui lòng thử lại hoặc dùng tài khoản thường.";
+                return View("Login");
+            }
         }
 
-        var userFind = users[0];
-        if (userFind.trangthai == 2)
+        // ─── GOOGLE OAUTH: Trang chọn vai trò khi đăng nhập lần đầu ───
+        [HttpGet]
+        public ActionResult SelectRoleGoogle()
         {
-            ViewBag.LoginFail = "Tài khoản đã bị khóa";
-            return View("Login");
+            var email = HttpContext.Session.GetString("google_email");
+            var name = HttpContext.Session.GetString("google_name");
+
+            if (string.IsNullOrEmpty(email))
+            {
+                // Không có session → chưa qua Google OAuth → về login
+                return RedirectToAction("Login");
+            }
+
+            ViewBag.GoogleEmail = email;
+            ViewBag.GoogleName = name;
+            return View();
         }
 
-        var cart = new Cart { userid = userFind.userid };
-        SetCart(cart);
-        SetSessionUser(userFind);
-
-        return userFind.loaitaikhoan switch
+        // ─── GOOGLE OAUTH: Xử lý hoàn tất đăng ký với vai trò đã chọn ───
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult CompleteGoogleRegistration(string loaitaikhoan, string sdt, string diachi)
         {
-            "Khách hàng" => RedirectToAction("Index", "Home"),
-            "Shipper" => RedirectToAction("Index", "Shipper"),
-            "Quán ăn" => RedirectToAction("Index", "Restaurant"),
-            "Admin" => RedirectToAction("Index", "Admin"),
-            _ => RedirectToAction("Index"),
-        };
-        }
-        catch (Exception ex)
-        {
-            // Log lỗi chi tiết để debug trên Railway (KHÔNG hiển thị raw SQL cho user)
-            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<HomeController>>();
-            logger.LogError(ex, "Google OAuth callback failed for email {Email}", email ?? "null");
+            var email = HttpContext.Session.GetString("google_email");
+            var name = HttpContext.Session.GetString("google_name");
 
-            ViewBag.LoginFail = "Đăng nhập Google gặp sự cố. Vui lòng thử lại hoặc dùng tài khoản thường.";
-            return View("Login");
+            if (string.IsNullOrEmpty(email))
+            {
+                TempData["err"] = "Phiên đăng ký đã hết hạn. Vui lòng đăng nhập Google lại.";
+                return RedirectToAction("Login");
+            }
+
+            // ─── Validate dữ liệu ───
+            var validRoles = new[] { "Khách hàng", "Quán ăn", "Shipper" };
+            if (!validRoles.Contains(loaitaikhoan))
+            {
+                TempData["err"] = "Vui lòng chọn một vai trò hợp lệ.";
+                return RedirectToAction("SelectRoleGoogle");
+            }
+
+            if (string.IsNullOrWhiteSpace(sdt) || !System.Text.RegularExpressions.Regex.IsMatch(sdt, @"^0[1-9][0-9]{8,9}$"))
+            {
+                TempData["err"] = "Số điện thoại không hợp lệ — phải là 10-11 số, bắt đầu bằng 0 (VD: 0912345678)";
+                return RedirectToAction("SelectRoleGoogle");
+            }
+
+            if (loaitaikhoan != "Khách hàng" && (string.IsNullOrWhiteSpace(diachi) || diachi.Length < 5))
+            {
+                TempData["err"] = "Vui lòng nhập địa chỉ (tối thiểu 5 ký tự)";
+                return RedirectToAction("SelectRoleGoogle");
+            }
+
+            try
+            {
+                // ─── Kiểm tra SĐT đã tồn tại chưa ───
+                var existingPhone = db.tbUser.FirstOrDefault(u => u.sdt == sdt);
+                if (existingPhone != null)
+                {
+                    TempData["err"] = "Số điện thoại này đã được sử dụng bởi tài khoản khác.";
+                    return RedirectToAction("SelectRoleGoogle");
+                }
+
+                // ─── Kiểm tra email đã tồn tại chưa (phòng trường hợp race condition) ───
+                var existingEmail = db.tbUser.FirstOrDefault(u => u.email == email);
+                if (existingEmail != null)
+                {
+                    TempData["err"] = "Email này đã được đăng ký. Vui lòng đăng nhập.";
+                    return RedirectToAction("Login");
+                }
+
+                // ─── Tạo tài khoản ───
+                var randomPwd = $"GG_{Guid.NewGuid():N}";
+                var truncatedEmail = email.Length > 50 ? email[..50] : email;
+                var shortUser = "gg_" + Guid.NewGuid().ToString("N")[..12];
+                var tenDayDu = !string.IsNullOrEmpty(name) ? name : truncatedEmail;
+                if (tenDayDu.Length > 50) tenDayDu = tenDayDu[..50];
+
+                var newUser = new tbUser
+                {
+                    username     = shortUser,
+                    pwd          = randomPwd,
+                    email        = truncatedEmail,
+                    sdt          = sdt,
+                    loaitaikhoan = loaitaikhoan,
+                    vitien       = 0,
+                    trangthai    = 1
+                };
+                db.tbUser.Add(newUser);
+                db.SaveChanges();
+
+                // ─── Tạo bản ghi theo vai trò ───
+                switch (loaitaikhoan)
+                {
+                    case "Khách hàng":
+                        db.tbKhachHang.Add(new tbKhachHang
+                        {
+                            userid = newUser.userid,
+                            tenkh  = tenDayDu
+                        });
+                        break;
+
+                    case "Quán ăn":
+                        db.tbQuanAn.Add(new tbQuanAn
+                        {
+                            userid       = newUser.userid,
+                            tenquanan    = tenDayDu,
+                            diachi       = diachi ?? "",
+                            soluotdanhgia = 0,
+                            diemdanhgia  = 0,
+                            trangthai    = "Đóng cửa"
+                        });
+                        break;
+
+                    case "Shipper":
+                        db.tbShipper.Add(new tbShipper
+                        {
+                            userid        = newUser.userid,
+                            tenshipper    = tenDayDu,
+                            diachi        = diachi ?? "",
+                            soluotdanhgia = 0,
+                            diemdanhgia   = 0,
+                            trangthai     = "Không hoạt động"
+                        });
+                        break;
+                }
+                db.SaveChanges();
+
+                // ─── Dọn session tạm ───
+                HttpContext.Session.Remove("google_email");
+                HttpContext.Session.Remove("google_name");
+
+                // ─── Gán Session + điều hướng theo vai trò ───
+                var cart = new Cart { userid = newUser.userid };
+                SetCart(cart);
+                SetSessionUser(newUser);
+
+                return loaitaikhoan switch
+                {
+                    "Khách hàng" => RedirectToAction("Index", "Home"),
+                    "Quán ăn" => RedirectToAction("Index", "Restaurant"),
+                    "Shipper" => RedirectToAction("Index", "Shipper"),
+                    _ => RedirectToAction("Index", "Home")
+                };
+            }
+            catch (Exception ex)
+            {
+                var logger = HttpContext.RequestServices.GetRequiredService<ILogger<HomeController>>();
+                logger.LogError(ex, "CompleteGoogleRegistration failed for email {Email}, role {Role}", email, loaitaikhoan);
+                TempData["err"] = $"Lỗi hệ thống: {ex.Message}. Vui lòng thử lại.";
+                return RedirectToAction("SelectRoleGoogle");
+            }
         }
-    }
 
     public ActionResult Signup()
     {

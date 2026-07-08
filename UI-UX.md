@@ -1,6 +1,6 @@
 # Fastship (ShipFood) — UI/UX Documentation (Full)
 
-> **Phiên bản**: 5.1 — Bảo mật API, chuẩn hóa DB, MoMo Refund, Data Protection, Fix 5 critical bugs  
+> **Phiên bản**: 5.3 — Google OAuth Role Selection, VietQR Bank Transfer, QA Fixes (XHR->jQuery, Idempotency, Multi-device)  
 > **Cập nhật**: Tháng 7, 2026  
 > **Mô tả**: Tài liệu thiết kế giao diện & trải nghiệm người dùng toàn diện cho nền tảng đặt đồ ăn Fastship  
 > **Tài liệu liên quan**: Project.md — Tổng quan kiến trúc & phát triển
@@ -1181,6 +1181,109 @@ Cấu trúc mới: **Bao khung Viewport (Viewport Wrapper)** — body `height:10
 
 ---
 
+### 9.7 Logout UI (All Roles)
+
+#### 9.7.1 Customer Logout
+
+**Trigger**: All customer pages (Home, Cart, etc.) via:
+- User dropdown in navbar (avatar + username) → "Đăng xuất" link
+- Footer links (visible khi đã đăng nhập)
+- Route: `GET /Home/Logout`
+
+**Behavior**: `HomeController.Logout()` clears session (`HttpContext.Session.Clear()`), removes authentication cookie, redirects to `/Home`.
+
+**UX**:
+```
+[Avatar] ▼
+──────────────
+Xin chào, <username>
+──────────────
+📊 Lịch sử đơn hàng
+🏪 Quản lý quán (nếu là Quán ăn)
+❌ Đăng xuất          ← text-danger
+```
+
+**File**: `_LayoutPageHome.cshtml` (dropdown items), `HomeController.cs` (Logout action)
+
+#### 9.7.2 Admin Logout
+
+**Trigger**: Header user dropdown → "Đăng xuất" icon button
+- SVG logout icon (door with arrow)
+- Route: `@Url.Action("Logout","Home")` → `/Home/Logout`
+- Same server-side session clear + redirect
+
+**File**: `_LayoutPageAmin.cshtml`
+
+#### 9.7.3 Restaurant Logout
+
+**Trigger**: Header user dropdown → "Đăng xuất" icon button
+- Same SVG style as Admin
+- Route: `~/Home/Logout`
+- Session clear + redirect về trang chủ
+
+**File**: `_LayoutPageRestaurant.cshtml`
+
+#### 9.7.4 Shipper Logout
+
+**Trigger**: Header user dropdown → "Đăng xuất" icon button
+- Dropdown also contains "Hồ sơ" link (profile settings)
+- Route: `@Url.Action("Logout","Home")`
+- Session clear + redirect
+
+**File**: `_LayoutPageShipper.cshtml`
+
+---
+
+### 9.8 Google OAuth Role Selection (v5.3)
+
+#### 9.8.1 Overview
+
+When a user logs in with Google OAuth for the first time, instead of auto-creating an account with the default "Khách hàng" role, the system now redirects to a **role selection page** (`/Home/SelectRoleGoogle`) where the user chooses their account type.
+
+**Files**: `HomeController.cs`, `Views/Home/SelectRoleGoogle.cshtml`
+
+#### 9.8.2 Flow
+
+```
+Google OAuth Callback → Email not found in tbUser?
+    → Save email/name to Session
+    → Redirect /Home/SelectRoleGoogle
+    → User selects role + enters phone + address (if Quán ăn/Shipper)
+    → POST /Home/CompleteGoogleRegistration
+    → Backend: validate → create tbUser + role record → SetSessionUser → redirect to dashboard
+```
+
+#### 9.8.3 SelectRoleGoogle UI
+
+**3 Role Cards**: Khách hàng (👤), Đối tác Quán ăn (🏪), Tài xế Shipper (🏍️)
+- Styled with `--fs-green`, `--fs-radius`, `--fs-shadow` design tokens
+- **Conditional Address**: Chỉ hiện khi role = Quán ăn hoặc Shipper
+- **Phone validation**: Regex `^0[1-9][0-9]{8,9}$`
+- **Anti-forgery**: `[ValidateAntiForgeryToken]` trên POST
+
+#### 9.8.4 Backend Logic
+
+| Step | Mô tả |
+|------|-------|
+| Validate role | `loaitaikhoan` phải là `Khách hàng`, `Quán ăn`, hoặc `Shipper` |
+| Validate phone | Regex + kiểm tra trùng SĐT |
+| Validate address | Bắt buộc nếu role là Quán ăn hoặc Shipper |
+| Password | Sinh ngẫu nhiên `GG_{Guid}` (plain-text) |
+| Create tbUser | Insert với role đã chọn |
+| Create record | `tbKhachHang` / `tbQuanAn` / `tbShipper` tuỳ role |
+| Redirect | Role-based: `/Home`, `/Restaurant/Dashboard`, `/Shipper` |
+
+#### 9.8.5 Files changed
+
+| File | Thay đổi |
+|------|----------|
+| `HomeController.cs` | `GoogleResponse()`: save Session + redirect thay vì auto-create |
+| `HomeController.cs` | **New** `SelectRoleGoogle()` GET |
+| `HomeController.cs` | **New** `CompleteGoogleRegistration()` POST |
+| `Views/Home/SelectRoleGoogle.cshtml` | **New**: 3 role cards, phone input, conditional address |
+
+---
+
 ## 10. Dashboard Admin
 
 ### 10.1 Responsive Behavior (v3.1)
@@ -2088,10 +2191,10 @@ LOGIN ──→ DASHBOARD (with LIVE MAP)
 
 ---
 
-> **Document Version**: 5.2 (Full)  
+> **Document Version**: 5.3 (Full)  
 > **Cập nhật**: Tháng 7, 2026  
 > **Based on**: Project.md  
-> **Key changes v5.2**: Soft delete (isDeleted), Redis IDistributedCache connection tracking, Force re-read giá từ DB (chống sửa giá client), Payment error detail (inner exception), Idempotency Lock Checkout, Optimistic UI (ToggleConHang + Add to Cart), Mobile Leaflet fix, tbLichSuSuDungKhuyenMai (coupon usage tracking), AutoPreparingService tối ưu (AsNoTracking + Attach)
+> **Key changes v5.3**: Google OAuth Role Selection (SelectRoleGoogle), VietQR Bank Transfer (BankWebhook + OrderTracking QR Card), QA Fixes (XHR → jQuery ajaxSuccess, Idempotency Lock, Multi-device Cart Check)
 
 ---
 
@@ -2327,6 +2430,246 @@ connection.start();
 |------------------|---------------|-------|
 | `UpdateDonHang` (cập nhật trạng thái) | `orderStatusChanged` → `order_{id}` | Customer nghe |
 | Map location stream | `shipperLocationUpdate` → `order_{id}` | Customer map update |
+
+---
+
+## 28. VietQR Bank Transfer Payment (v5.3)
+## 29. Lịch sử & Chi tiết Đơn hàng (All Roles)
+
+### 29.1 Customer Order History (Cart/LichSuDatHang)
+
+**File**: `Views/Cart/LichSuDatHang.cshtml`
+
+**Layout**: `_LayoutPageHome.cshtml`
+
+Trang chi tiết tất cả đơn hàng của khách hàng, có phân trang, tìm kiếm:
+
+```
+┌───────────────────────────────────────────────────────┐
+│  📊 Lịch sử đơn hàng                                         │
+│  Theo dõi tình trạng đơn hàng của bạn                           │
+│                                                                              │
+│  | Mã ĐH | Ngày đặt | Quán ăn | Món | Tổng tiền | Trạng thái | Thao tác |  │
+│  |-------|--------|---------|-----|----------|-----------|--------|  │
+│  | #42   | 15/07  | Koneko  | Pizza x2 | 120,000đ | 📋 Đã đặt  | [Xem]  |  │
+│  | #41   | 14/07  | Cơm 1990| Cơm sườn| 45,000đ  | ✅ Hoàn thành | [Xem]  |  │
+└───────────────────────────────────────────────────────┘
+```
+
+**Features**:
+| Feature | Details |
+|---------|---------|
+| **DataTable** | jQuery DataTables với phân trang, tìm kiếm, sắp xếp |
+| **Responsive** | Stacked cards trên mobile (`data-label`), margin-top giảm 150px→100px/80px |
+| **Status badges** | 7 màu sắc khác nhau (xanh, cam, tím, teal, xanh lá, đỏ) |
+| **Empty state** | Icon box + text + CTA "Đặt món ngay" nếu chưa có đơn |
+| **Item preview** | Hiển thị 2 món đầu + số lượng (VD: "Pizza, Cơm... (3 món)") |
+| **Actions** | Nút "Chi tiết" (✎) + "Theo dõi" (📍) cho mỗi đơn |
+
+**Status color mapping**:
+| Trạng thái | CSS Class | Màu nền |
+|-----------|-----------|-----------|
+| Đã đặt | `da-dat` | Xanh dương nhạt (#e3f2fd) |
+| Đã xác nhận | `da-xac-nhan` | Xanh lá nhạt (#e8f5e9) |
+| Đang chuẩn bị | `dang-chuan-bi` | Cam nhạt (#fff3e0) |
+| Đã lấy | `da-lay` | Tím nhạt (#f3e5f5) |
+| Đang giao | `dang-giao` | Teal nhạt (#e0f7fa) |
+| Hoàn thành | `hoan-thanh` | Xanh lá đậm (#e8f5e9) |
+| Đã hủy | `da-huy` | Đỏ nhạt (#ffebee) |
+
+**Navigation**: Truy cập từ navbar (user dropdown → "Lịch sử đơn hàng"), footer (“Đơn hàng của tôi”), hoặc trang chủ (Re-order section).
+
+### 29.2 Customer Order Detail (Cart/ChiTietDonHang)
+
+**File**: `Views/Cart/ChiTietDonHang.cshtml`
+
+**Layout**: `_LayoutPageHome.cshtml`
+
+Trang chi tiết một đơn hàng cụ thể:
+
+```
+┌────────────┐ ┌──────────────────┐
+│ Thông tin        │ │ Đơn hàng           │
+│ Họ tên: ...     │ │ (Đã đặt)         │
+│ Địa chỉ: ...    │ │ Món A x2   70,000đ │
+│ SĐT: ...         │ │ Món B x1   35,000đ │
+│ Ghi chú: ...     │ │ Tạm tính  105,000đ │
+│ Shipper: ...      │ │ Phí ship   15,000đ │
+│ [Chat]            │ │ Tổng:    120,000đ │
+│ [Map] (nếu     │ │ Thanh toán: COD  │
+│  đang giao)      │ │ [Theo dõi]       │
+└────────────┘ └──────────────────┘
+```
+
+**Features**:
+- **Invoice-style display** (thay vì input read-only): flat layout với label + value
+- **Live Map**: Leaflet.js + SignalR shipper tracking (chỉ khi trạng thái = "Đang giao")
+- **Chat button**: "Chat ngay!" dẫn đến trang NhanTin
+- **Role-based actions**: Restaurant thấy nút Nhận đơn/Hủy đơn, Customer thấy nút Theo dõi
+- **SignalR connection**: Auto-join group `order_{madh}` nhận shipper location updates
+
+### 29.3 Customer Order Tracking (Cart/OrderTracking)
+
+**File**: `Views/Cart/OrderTracking.cshtml`
+
+**Layout**: `_LayoutPageHome.cshtml`
+
+[Chi tiết đã mô tả ở Section 26 — Order Tracking & Live Map]
+
+Bổ sung trong v5.3: QR code card cho đơn hàng chờ thanh toán (VietQR).
+
+### 29.4 Admin Order History (Admin/Order)
+
+**File**: `Views/Admin/Order.cshtml`
+
+**Layout**: `_LayoutPageAmin.cshtml`
+
+Dashboard quản lý đơn hàng toàn hệ thống:
+
+| Feature | Details |
+|---------|---------|
+| **DataTable** | Phân trang server-side, tìm kiếm theo mã đơn / tên khách / quán |
+| **Filters** | Lọc theo trạng thái, khoảng ngày |
+| **Real-time** | SignalR `newOrder` + `orderStatusChanged` tự động reload DataTable |
+| **Actions** | Xem chi tiết, cập nhật trạng thái, hủy đơn |
+
+**Navigation**: Sidebar → "Xem đơn hàng" (`/Admin/Order`)
+
+### 29.5 Restaurant Order List (Restaurant/OrderList)
+
+**File**: `Views/Restaurant/OrderList.cshtml`
+
+**Layout**: `_LayoutPageRestaurant.cshtml`
+
+Dashboard quản lý đơn hàng của quán ăn:
+
+| Feature | Details |
+|---------|---------|
+| **DataTable** | Danh sách đơn hàng của quán ăn hiện tại |
+| **Status actions** | Nhận đơn (Đã xác nhận), Chuẩn bị xong (Chờ shipper), Hủy đơn |
+| **SignalR** | `newOrder` event khi có đơn mới từ khách hàng |
+| **KPI Cards** | Số liệu thống kê: tổng đơn, đơn hôm nay, doanh thu |
+
+**Navigation**: Sidebar → Dashboard → "Danh sách đơn hàng" (`/Restaurant/OrderList`)
+
+### 29.6 Shipper Order History (Shipper/LichSu)
+
+**File**: `Views/Shipper/LichSu.cshtml`
+
+**Layout**: `_LayoutPageShipper.cshtml`
+
+Dashboard quản lý đơn hàng của shipper:
+
+| Feature | Details |
+|---------|---------|
+| **DataTable** | Danh sách đơn đã/ đang giao của shipper |
+| **Income tracking** | Hiển thị số tiền ship, thu hộ |
+| **Status flow** | Chờ lấy hàng → Đã lấy → Đang giao → Hoàn thành |
+| **Actions** | Xem chi tiết đơn, cập nhật trạng thái |
+
+**Navigation**: Sidebar → "Lịch sử đơn hàng" (`/Shipper/LichSu`)
+
+### 29.7 Shipper Index (FREE-PICK Dashboard)
+
+**File**: `Views/Shipper/Index.cshtml`
+
+**Layout**: `_LayoutPageShipper.cshtml`
+
+Giao diện chính của shipper với danh sách đơn chờ nhận:
+
+| Feature | Details |
+|---------|---------|
+| **FREE-PICK tab** | Raw SQL truy vấn đơn chưa có shipper |
+| **Live Map** | Leaflet.js hiển thị vị trí quán ăn + khách hàng |
+| **SignalR** | JoinShipperGroup + lắng nghe `newPickupOrder` + reload tự động |
+| **Sound alert** | Phát âm thanh khi có đơn mới |
+| **Accept action** | Nút "Chấp nhận đơn" race-condition safe |
+
+**Navigation**: Default route sau khi shipper đăng nhập (`/Shipper`)
+
+---
+
+## 29.8 Summary: Login/Register/Logout/Order History by Role
+
+| Role | Login Page | Register Page | Forgot? | Logout Trigger | Order History |
+|------|-----------|--------------|---------|---------------|--------------|
+| **Khách hàng** | `/Home/Login` (standalone) | `/Home/Signup` (standalone) | `/Home/Forgot` | User dropdown + Footer | `/Cart/LichSuDatHang` |
+| **Admin** | `/Home/Login` (shared) | Không (do Admin tạo) | Không | Header dropdown | `/Admin/Order` |
+| **Quán ăn** | `/Home/Login` (shared) | `/Home/Signup` (role=Quán ăn) | `/Home/Forgot` | Header dropdown | `/Restaurant/OrderList` |
+| **Shipper** | `/Home/Login` (shared) | `/Home/Signup` (role=Shipper) | `/Home/Forgot` | Header dropdown | `/Shipper/LichSu` |
+
+**Key insight**: Tất cả 4 role dùng chung 3 trang auth (Login, Signup, Forgot) và cùng 1 Logout action.
+Sự khác biệt chỉ ở giao diện dashboard sau khi đăng nhập (role-based redirect) và sidebar navigation.
+
+
+
+### 28.1 Architecture & Flow
+
+```
+CHECKOUT                         PAYMENT CONTROLLER               FRONTEND
+User Chon CK → POST ProcessPayment → Create order (trangthai='Cho thanh toan')
+                                         → Generate VietQR URL
+                                         → Return qrCodeUrl + bankInfo
+                                         → Frontend redirect /Cart/OrderTracking/{id}
+
+WEBHOOK (Casso/SePay/PayOS) → POST /Payment/BankWebhook
+    → Parse memo + amount
+    → Extract FASTSHIP{madh}
+    → Verify amount ±1000đ
+    → Update trangthai = "Da dat"
+    → SignalR: paymentConfirmed → order group
+    → SignalR: newOrder → restaurant group
+
+FALLBACK: User clicks "Toi da chuyen khoan"
+    → GET /Payment/VerifyBankTransaction?madh={id}
+    → If 15min passed: auto-confirm + SignalR broadcast
+```
+
+### 28.2 Payment Changes
+
+| Change | File | Details |
+|--------|------|---------|
+| `trangthai` for bank transfer | `PaymentController.cs` | Set `"Chờ thanh toán"` thay vì `"Đã đặt"` |
+| VietQR URL generation | `PaymentController.cs` | `img.vietqr.io/image/{BANK_ID}-{BANK_ACCOUNT_NO}-compact2.png?amount=...&addInfo=FASTSHIP{madh}` |
+| `IsBankTransferMethod` | `PaymentController.cs` | Helper kiểm tra tên phương thức từ DB |
+| Cart not cleared | `PaymentController.cs` | Bank transfer không xóa cart (user dễ đặt lại) |
+| QR code generation | `CartController.cs` | OrderTracking action tự sinh VietQR URL khi order ở trạng thái "Chờ thanh toán" |
+| IConfiguration injection | `CartController.cs` | Thêm `IConfiguration` để đọc BANK_ID, BANK_ACCOUNT_NO, BANK_ACCOUNT_NAME |
+
+### 28.3 BankWebhook Endpoint
+
+**Endpoint**: `POST /Payment/BankWebhook` (`[AllowAnonymous]`)
+
+| Feature | Details |
+|---------|---------|
+| **Auth** | Bearer token trong `Authorization` header |
+| **Body parse** | Hỗ trợ Casso (`data[0].description`), SePay (`transferDesc`), PayOS (`description`) |
+| **Memo parse** | Regex `FASTSHIP(\d+)` |
+| **Amount check** | ±1000đ tolerance |
+| **Status guard** | Chỉ xử lý nếu `trangthai == "Chờ thanh toán"` |
+| **SignalR** | `paymentConfirmed` → order group + `newOrder` → restaurant group |
+
+### 28.4 OrderTracking - QR Code Card UI
+
+**File**: `Views/Cart/OrderTracking.cshtml`
+
+When `trangthai == "Chờ thanh toán"` + payment method is bank transfer:
+
+- QR code image (220×220px) with **shimmer overlay** animation
+- Bank info table: Ngân hàng, Số TK, Chủ TK, Số tiền, Nội dung CK
+- Warning: "Giữ nguyên Số tiền + Nội dung chuyển khoản"
+- Loading spinner: "Hệ thống đang chờ xác nhận..."
+- Fallback button: "Tôi đã chuyển khoản thành công"
+- **SignalR**: `onPaymentConfirmed` callback tự động ẩn QR
+
+### 28.5 Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `BANK_ID` | `Vietcombank` | Mã ngân hàng nhận tiền |
+| `BANK_ACCOUNT_NO` | `1234567890` | Số tài khoản nhận |
+| `BANK_ACCOUNT_NAME` | `FASTSHIP CO., LTD` | Tên chủ tài khoản |
+| `BANK_WEBHOOK_TOKEN` | `""` | Bearer token cho webhook auth (optional) |
 
 ---
 

@@ -16,25 +16,8 @@
     --fs-topbar-h:34px;
 }
 
-/* ── Custom scrollbar Modern Minimalist — mỏng nhẹ, bo tròn, màu xám ─── */
-html {
-    scrollbar-width: thin;
-    scrollbar-color: rgba(0,0,0,.18) transparent;
-}
-html::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-}
-html::-webkit-scrollbar-track {
-    background: transparent;
-}
-html::-webkit-scrollbar-thumb {
-    background: rgba(0,0,0,.18);
-    border-radius: 8px;
-}
-html::-webkit-scrollbar-thumb:hover {
-    background: rgba(0,0,0,.32);
-}
+/* ── Custom scrollbar mặc định trình duyệt — hiển thị bình thường ─── */
+/* Đã loại bỏ scrollbar-width: none/thin để thanh cuộn luôn hiển thị khi nội dung tràn */
 
 /* ═══════════════════════════════════════════════════════════
    TOPBAR RIGHT — Icon MXH Font Awesome 5 Brands Protection
@@ -1053,6 +1036,15 @@ body.fs-body-padded {
     body { font-size: 16px; }
     .product-item .product-body .product-title { font-size: 14px; }
     .product-item .product-body .product-address { font-size: 13px; }
+}
+
+/* ── Momentum scrolling cho horizontal scroll containers ─── */
+.scrollbar-container,
+.table-responsive,
+.menu-restaurant-category .scrollbar-container,
+.fs-category-row {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
 }
 
 /* Row 28: Focus states — visible 3px ring (WCAG AA) */

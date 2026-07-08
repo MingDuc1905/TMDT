@@ -27,6 +27,7 @@
     .fs-tracking-line.active { background: #3CB815; }
 
     @@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(60,184,21,.4); } 70% { box-shadow: 0 0 0 10px rgba(60,184,21,0); } 100% { box-shadow: 0 0 0 0 rgba(60,184,21,0); } }
+    @@keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
 
     /* ── Order Info ── */
     .info-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
@@ -80,6 +81,62 @@
                     <h6 style="font-weight:700;margin-bottom:12px;">📍 Vị trí giao hàng</h6>
                     <div id="trackingMap"></div>
                 </div>
+
+                <!-- ═══ Bank Transfer QR Card ═══ -->
+                @if (donHang.trangthai == "Chờ thanh toán" && ViewBag.QrCodeUrl != null)
+                {
+                    <div class="tracking-card bank-qr-card">
+                        <div style="text-align:center;">
+                            <h6 style="font-weight:700;margin-bottom:16px;">🏦 Thanh toán chuyển khoản</h6>
+                            <div class="qr-wrapper" style="position:relative;display:inline-block;">
+                                <!-- Shimmer loading overlay -->
+                                <div class="qr-shimmer" style="position:absolute;inset:0;background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,.4) 50%,transparent 100%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:12px;z-index:1;pointer-events:none;"></div>
+                                <img src="@ViewBag.QrCodeUrl" alt="Mã QR chuyển khoản" style="width:220px;height:220px;border-radius:12px;border:2px solid #e5e7eb;background:#fff;" id="qrCodeImg" />
+                            </div>
+
+                            <div style="margin-top:16px;text-align:left;background:#f8f9fa;padding:14px;border-radius:10px;font-size:13px;line-height:1.8;">
+                                <div style="display:flex;justify-content:space-between;">
+                                    <span style="color:#666;">Ngân hàng:</span>
+                                    <span style="font-weight:600;">@ViewBag.BankInfo.bankId</span>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;">
+                                    <span style="color:#666;">Số tài khoản:</span>
+                                    <span style="font-weight:600;font-family:monospace;">@ViewBag.BankInfo.accountNo</span>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;">
+                                    <span style="color:#666;">Chủ tài khoản:</span>
+                                    <span style="font-weight:600;">@ViewBag.BankInfo.accountName</span>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;">
+                                    <span style="color:#666;">Số tiền:</span>
+                                    <span style="font-weight:700;color:#e74c3c;font-size:16px;">@ViewBag.BankInfo.amount.ToString("N0")đ</span>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;">
+                                    <span style="color:#666;">Nội dung CK:</span>
+                                    <span style="font-weight:600;font-family:monospace;color:#3CB815;" id="memoText">@ViewBag.BankInfo.memo</span>
+                                </div>
+                            </div>
+
+                            <div class="alert alert-warning" style="margin:14px 0 8px;padding:12px;border-radius:10px;font-size:12px;background:#fff3cd;border:1px solid #ffeeba;text-align:center;">
+                                <i class="fa fa-exclamation-triangle me-1"></i>
+                                Vui lòng quét mã và <strong>giữ nguyên Số tiền + Nội dung chuyển khoản</strong>.
+                                Hệ thống sẽ tự động duyệt đơn sau <strong>30 giây - 1 phút</strong> ngay khi nhận được tiền.
+                            </div>
+
+                            <!-- Loading indicator -->
+                            <div id="paymentWaitingIndicator" style="margin:12px 0;display:flex;align-items:center;justify-content:center;gap:8px;color:#888;font-size:13px;">
+                                <div class="spinner-border spinner-border-sm" role="status" style="width:16px;height:16px;"></div>
+                                <span>Hệ thống đang chờ xác nhận thanh toán...</span>
+                            </div>
+
+                            <!-- Fallback button -->
+                            <button id="btnVerifyPayment" class="btn btn-outline-success" style="border-radius:10px;padding:10px 24px;font-size:14px;" onclick="verifyBankPayment(@donHang.madh)">
+                                <i class="fa fa-check-circle me-1"></i> Tôi đã chuyển khoản thành công
+                            </button>
+                            <div id="verifyResult" style="margin-top:10px;font-size:13px;"></div>
+                        </div>
+                    </div>
+                }
 
                 <!-- Shipper Info -->
                 @if (donHang.tbShipper != null)
@@ -207,6 +264,9 @@ $(document).ready(function() {
         onPaymentConfirmed: function(madh, amount) {
             if (madh === @donHang.madh) {
                 showToast('success', '✅ Thanh toán đã được xác nhận!');
+                // ═══ Ẩn QR card, hiển thị thành công ═══
+                $('.bank-qr-card').fadeOut();
+                $('#paymentWaitingIndicator').html('<span style="color:#28a745;">✅ Thanh toán thành công! Số tiền: ' + Number(amount || 0).toLocaleString() + 'đ</span>');
             }
         },
         onConnected: function(conn) {
@@ -223,6 +283,35 @@ $(document).ready(function() {
         $('body').append(toast);
         setTimeout(function(){ toast.fadeOut(400, function(){ $(this).remove(); }); }, 4000);
     }
+
+    // ═══ Bank Transfer: Verify payment fallback ═══
+    window.verifyBankPayment = function(orderId) {
+        var btn = $('#btnVerifyPayment');
+        var resultDiv = $('#verifyResult');
+        var indicator = $('#paymentWaitingIndicator');
+
+        btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Đang kiểm tra...');
+        resultDiv.html('');
+
+        $.get('/Payment/VerifyBankTransaction', { madh: orderId })
+            .done(function(res) {
+                if (res.success) {
+                    resultDiv.html('<div class="alert alert-success" style="padding:10px;border-radius:8px;font-size:13px;">✅ ' + res.message + ' <a href="/Cart/OrderTracking/' + orderId + '" class="alert-link">Tải lại trang</a></div>');
+                    // Ẩn QR card sau khi xác nhận thành công
+                    $('.bank-qr-card').fadeOut();
+                    btn.hide();
+                    indicator.html('<span style="color:#28a745;">✅ Thanh toán đã được xác nhận!</span>');
+                } else {
+                    resultDiv.html('<div class="alert alert-info" style="padding:10px;border-radius:8px;font-size:13px;">🕐 ' + res.message + '</div>');
+                    btn.prop('disabled', false).html('<i class="fa fa-check-circle me-1"></i> Tôi đã chuyển khoản thành công');
+                }
+            })
+            .fail(function() {
+                resultDiv.html('<div class="alert alert-danger" style="padding:10px;border-radius:8px;font-size:13px;">❌ Lỗi kết nối. Vui lòng thử lại sau.</div>');
+                btn.prop('disabled', false).html('<i class="fa fa-check-circle me-1"></i> Tôi đã chuyển khoản thành công');
+            });
+    };
+
 });
 </script>
 }

@@ -1,219 +1,178 @@
 @{
-    ViewBag.Title = "Login";
+    ViewBag.Title = "Đăng nhập";
+    Layout = "~/Views/Shared/_LayoutAuth.cshtml";
 }
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8" />
-    <title>Fastship - Đăng nhập</title>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <meta content="" name="keywords" />
-    <meta content="" name="description" />
-    <link href="~/Source/Home/img/favicon.ico" rel="icon" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet" />
-    <!-- Chỉ dùng Font Awesome 5 + Emoji hệ thống -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet" />
-    <link href="~/Source/Home/lib/animate/animate.min.css" rel="stylesheet" />
-    <link href="~/Source/Home/lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet" />
-    <link href="~/Source/Home/css/bootstrap.min.css" rel="stylesheet" />
-    <link href="~/Source/Home/css/style.css" rel="stylesheet" />
-    <link href="~/Source/Home/css/login.css" rel="stylesheet" />
-    <link href="~/Source/Home/css/layout-sg.css" rel="stylesheet" />
-    <link href="~/Source/Shared/css/fastship-design-tokens.css" rel="stylesheet" />
-</head>
+@section authNavRight {
+    <a href="~/Home/Signup" class="fs-btn fs-btn-primary" style="padding:7px 18px;border-radius:20px;font-size:13px;font-weight:600;white-space:nowrap;">Đăng ký</a>
+}
 
-<body style="margin:0;min-height:100vh;height:auto;overflow-x:hidden;background:var(--fs-light);">
-    <div class="auth-page-wrapper" style="display:flex;flex-direction:column;min-height:100vh;height:auto;overflow:visible;">
-        <header class="auth-header" style="flex-shrink:0;background:var(--fs-white);box-shadow:var(--fs-shadow-sm);">
-            <div style="height:60px;display:flex;align-items:center;padding:0 16px;">
-        <a href="/Home" style="text-decoration:none;display:flex;align-items:center;gap:8px;">
-            <span style="font-family:'Inter',sans-serif;font-size:1.35rem;font-weight:800;letter-spacing:-0.5px;">
-                <span style="color:var(--fs-green);">F</span><span style="color:var(--fs-orange);">ast</span><span style="color:var(--fs-dark);">ship</span>
-            </span>
-        </a>
-        <div style="margin-left:auto;display:flex;align-items:center;gap:8px;">
-            <a href="~/Home" style="color:var(--fs-green);text-decoration:none;font-size:14px;font-weight:500;padding:8px 12px;">← Trang chủ</a>                            <a href="~/Home/Signup" class="fs-btn fs-btn-primary" style="padding:8px 16px;border-radius:20px;white-space:nowrap;">Đăng ký</a>
-        </div>
-    </header>
-    <main class="auth-main" style="flex:1;display:flex;align-items:center;justify-content:center;overflow-y:auto;padding:20px 0;">
-        <div class="login-container" style="margin:auto;">
-        <a href="~/Home" style="text-decoration:none;">
-            <h1 style="color:var(--fs-green);font-size:28px;margin-bottom:20px;font-weight:700;">F<span style="color:var(--fs-orange);">ast</span>ship</h1>
-        </a>
-        <h2 style="font-size:20px;margin-bottom:24px;color:var(--fs-dark);">Đăng nhập</h2>
-        
-        <form id="authForm" method="post" action="~/Home/Login">
-            @Html.AntiForgeryToken()
-            <div class="login-social">
-                <div class="google-btn-wrapper">
-                    @{
-                        var googleId = ViewContext.HttpContext.RequestServices
-                            .GetService<Microsoft.Extensions.Configuration.IConfiguration>()?
-                            ["Authentication:Google:ClientId"];
-                        bool googleEnabled = !string.IsNullOrEmpty(googleId);
-                    }
-                    @if (googleEnabled)
-                    {
-                        <a href="@Url.Action("GoogleLogin","Home")" class="google-btn">
-                            <svg width="20" height="20" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" fill="#EA4335"/>
-                                <path d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" fill="#4285F4"/>
-                                <path d="M10.54 28.59A14.5 14.5 0 0 1 9.5 24c0-1.59.28-3.14.76-4.59l-7.98-6.19A23.99 23.99 0 0 0 0 24c0 3.77.87 7.35 2.56 10.59l7.98-6z" fill="#FBBC05"/>
-                                <path d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6C6.51 42.62 14.62 48 24 48z" fill="#34A853"/>
-                            </svg>
-                            <span>Đăng nhập bằng Google</span>
+<div class="auth-card auth-container">
+    <a href="~/Home" style="text-decoration:none;">
+        <h1 style="color:var(--fs-green);font-size:28px;margin-bottom:20px;font-weight:700;">
+            F<span style="color:var(--fs-orange);">ast</span>ship
+        </h1>
+    </a>
+    <h2 style="font-size:20px;margin-bottom:24px;color:var(--fs-dark);font-weight:500;">Đăng nhập</h2>
+
+    <form id="authForm" method="post" action="~/Home/Login">
+        @Html.AntiForgeryToken()
+        <div class="login-social">
+            <div class="google-btn-wrapper">
+                @{
+                    var googleId = ViewContext.HttpContext.RequestServices
+                        .GetService<Microsoft.Extensions.Configuration.IConfiguration>()?
+                        ["Authentication:Google:ClientId"];
+                    bool googleEnabled = !string.IsNullOrEmpty(googleId);
+                }
+                @if (googleEnabled)
+                {
+                    <a href="@Url.Action("GoogleLogin","Home")" class="google-btn">
+                        <svg width="20" height="20" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" fill="#EA4335"/>
+                            <path d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" fill="#4285F4"/>
+                            <path d="M10.54 28.59A14.5 14.5 0 0 1 9.5 24c0-1.59.28-3.14.76-4.59l-7.98-6.19A23.99 23.99 0 0 0 0 24c0 3.77.87 7.35 2.56 10.59l7.98-6z" fill="#FBBC05"/>
+                            <path d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6C6.51 42.62 14.62 48 24 48z" fill="#34A853"/>
+                        </svg>
+                        <span>Đăng nhập bằng Google</span>
+                    </a>
+                    <div style="margin-top:8px;font-size:12px;color:var(--fs-muted);">
+                        <a href="@Url.Action("GooglePartnerLogin","Home")" style="color:var(--fs-muted);text-decoration:underline;text-underline-offset:2px;">
+                            <i class="fas fa-store me-1"></i>Đăng ký làm Đối tác Quán ăn / Shipper
                         </a>
-                    }
-                    else
-                    {
-                        <button type="button" class="google-btn" style="opacity:.5;cursor:not-allowed;" disabled title="Google OAuth chưa được cấu hình">
-                            <svg width="20" height="20" viewBox="0 0 48 48" fill="none"><path d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" fill="#EA4335"/><path d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" fill="#4285F4"/><path d="M10.54 28.59A14.5 14.5 0 0 1 9.5 24c0-1.59.28-3.14.76-4.59l-7.98-6.19A23.99 23.99 0 0 0 0 24c0 3.77.87 7.35 2.56 10.59l7.98-6z" fill="#FBBC05"/><path d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6C6.51 42.62 14.62 48 24 48z" fill="#34A853"/></svg>
-                            <span>Đăng nhập bằng Google (chưa cấu hình)</span>
-                        </button>
-                    }
-                </div>
+                    </div>
+                }
+                else
+                {
+                    <button type="button" class="google-btn" style="opacity:.5;cursor:not-allowed;" disabled title="Google OAuth chưa được cấu hình">
+                        <svg width="20" height="20" viewBox="0 0 48 48" fill="none"><path d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" fill="#EA4335"/><path d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" fill="#4285F4"/><path d="M10.54 28.59A14.5 14.5 0 0 1 9.5 24c0-1.59.28-3.14.76-4.59l-7.98-6.19A23.99 23.99 0 0 0 0 24c0 3.77.87 7.35 2.56 10.59l7.98-6z" fill="#FBBC05"/><path d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6C6.51 42.62 14.62 48 24 48z" fill="#34A853"/></svg>
+                        <span>Đăng nhập bằng Google (chưa cấu hình)</span>
+                    </button>
+                }
             </div>
-            
-            <div class="divider">hoặc bằng tài khoản</div>
-            
-            <label for="login-username" class="visually-hidden">Tên đăng nhập hoặc số điện thoại</label>
-            <input type="text" id="login-username" name="usernameOrPhone" placeholder="Tên đăng nhập hoặc số điện thoại" autocomplete="username" required />
-            <label for="login-pwd" class="visually-hidden">Mật khẩu</label>
+        </div>
+
+        <div class="divider">hoặc bằng tài khoản</div>
+
+        <label for="login-username" class="visually-hidden">Tên đăng nhập hoặc số điện thoại</label>
+        <input type="text" id="login-username" name="usernameOrPhone" placeholder="Tên đăng nhập hoặc số điện thoại" autocomplete="username" required />
+
+        <label for="login-pwd" class="visually-hidden">Mật khẩu</label>
+        <div class="fs-password-wrap">
             <input type="password" id="login-pwd" name="pwd" placeholder="Mật khẩu" autocomplete="current-password" required />
-            @if (ViewBag.LoginFail != null)
-            {
-                <div class="alert alert-danger" role="alert">
-                    @ViewBag.LoginFail
-                </div>
-            }
-            <div class="remember-forgot">
-                <label><input class="checkboxcss" type="checkbox" name="rememberMe" value="true" /> Lưu đăng nhập</label>
+            <button type="button" class="fs-password-toggle" tabindex="-1" aria-label="Hiện/ẩn mật khẩu">
+                <i class="fas fa-eye"></i>
+            </button>
+        </div>
+
+        @if (ViewBag.LoginFail != null)
+        {
+            <div class="alert alert-danger" role="alert" style="font-size:13px;padding:10px 12px;margin-bottom:12px;">
+                @ViewBag.LoginFail
             </div>
-            <button class="login-submit" type="submit">Đăng nhập</button>
-        </form>
-        
-        <div class="register">
-            <span>Chưa có tài khoản? <a href="~/Home/Signup">Đăng ký</a></span>
-        </div>
-        <div class="footer-text">
-            Chúng tôi không sử dụng thông tin của bạn với bất kỳ mục đích nào. Bằng cách đăng nhập hoặc đăng ký, bạn đồng ý
-            với <a href="#">Chính sách quy định của Fastship</a>
-        </div>
-    </div>
-        </main>
-    </div>
-
-    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/Source/Home/lib/wow/wow.min.js"></script>
-    <script src="~/Source/Home/lib/easing/easing.min.js"></script>
-    <script src="~/Source/Home/lib/waypoints/waypoints.min.js"></script>
-    <script src="~/Source/Home/lib/owlcarousel/owl.carousel.min.js"></script>
-    <script src="~/Source/Home/js/main.js"></script>
-
-    <!-- ─── Chuẩn hóa form auth: bắt sự kiện submit form thay vì click nút ─── -->
-    <script>
-    (function() {
-        var $form = $('#authForm');
-        if (!$form.length) return;
-
-        // Hiển thị lỗi tùy chỉnh thay vì alert danger mặc định
-        function showLoginError(msg) {
-            var $existing = $form.find('.fs-login-error');
-            if (!$existing.length) {
-                $existing = $('<div class="alert alert-danger fs-login-error" role="alert" style="font-size:13px;padding:10px 12px;margin-bottom:12px;"></div>');
-                $form.find('input[name="pwd"]').after($existing);
-            }
-            $existing.html('<i class="fas fa-exclamation-circle me-1"></i>' + msg).show();
         }
 
-        function clearLoginError() {
-            $form.find('.fs-login-error').remove();
+        <div class="remember-forgot">
+            <label><input class="checkboxcss" type="checkbox" name="rememberMe" value="true" /> Lưu đăng nhập</label>
+            <a href="~/Home/Forgot" style="margin-left:auto;color:#4285F4;text-decoration:none;font-size:13px;">Quên mật khẩu?</a>
+        </div>
+        <button class="login-submit" type="submit">Đăng nhập</button>
+    </form>
+
+    <div class="register">
+        <span>Chưa có tài khoản? <a href="~/Home/Signup">Đăng ký</a></span>
+    </div>
+    <div class="footer-text" style="margin-top:14px;">
+        Bằng cách đăng nhập hoặc đăng ký, bạn đồng ý
+        với <a href="#">Điều khoản dịch vụ</a> của Fastship
+    </div>
+</div>
+
+@section scripts {
+<script>
+(function() {
+    var $form = $('#authForm');
+    if (!$form.length) return;
+
+    function showLoginError(msg) {
+        var $existing = $form.find('.fs-login-error');
+        if (!$existing.length) {
+            $existing = $('<div class="alert alert-danger fs-login-error" role="alert" style="font-size:13px;padding:10px 12px;margin-bottom:12px;"></div>');
+            $form.find('input[name="pwd"]').closest('.fs-password-wrap').after($existing);
         }
+        $existing.html('<i class="fas fa-exclamation-circle me-1"></i>' + msg).show();
+    }
 
-        $form.on('submit', function(e) {
-            e.preventDefault(); // Giữ submit mặc định trước khi chặn để browser lưu mật khẩu
+    function clearLoginError() {
+        $form.find('.fs-login-error').remove();
+    }
 
-            clearLoginError();
-            var $btn = $form.find('button[type="submit"]');
-            $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i>Đang xử lý...');
+    $form.on('submit', function(e) {
+        e.preventDefault();
 
-            $.ajax({
-                url: $form.attr('action'),
-                type: 'POST',
-                data: $form.serialize(),
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                success: function(response, textStatus, xhr) {
-                    // Thử parse JSON response (server trả về { success, redirectUrl } cho AJAX)
-                    try {
-                        var json = typeof response === 'object' ? response : JSON.parse(response);
-                        if (json && json.success && json.redirectUrl) {
-                            window.location.href = json.redirectUrl;
-                            return;
-                        }
-                        if (json && json.success === false && json.message) {
-                            showLoginError(json.message);
-                            $btn.prop('disabled', false).html('Đăng nhập');
-                            return;
-                        }
-                    } catch(e) {}
-                    // Fallback: HTML response (login thất bại → server trả về View Login với lỗi)
-                    if (typeof response === 'string' &&
-                        (response.indexOf('alert-danger') > -1 || response.indexOf('LoginFail') > -1)) {
-                        var msg = $(response).find('.alert-danger').first().text().trim();
-                        showLoginError(msg || 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.');
+        clearLoginError();
+        var $btn = $form.find('button[type="submit"]');
+        $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i>Đang xử lý...');
+
+        $.ajax({
+            url: $form.attr('action'),
+            type: 'POST',
+            data: $form.serialize(),
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            success: function(response, textStatus, xhr) {
+                try {
+                    var json = typeof response === 'object' ? response : JSON.parse(response);
+                    if (json && json.success && json.redirectUrl) {
+                        window.location.href = json.redirectUrl;
+                        return;
+                    }
+                    if (json && json.success === false && json.message) {
+                        showLoginError(json.message);
                         $btn.prop('disabled', false).html('Đăng nhập');
                         return;
                     }
-                    // Fallback cuối: dùng responseURL (nếu server vẫn redirect)
-                    var targetUrl = (xhr && xhr.responseURL) || '/';
-                    window.location.href = targetUrl;
-                },
-                error: function(xhr) {
-                    // ═══ CỐ GẮNG LẤY THÔNG BÁO LỖI CHI TIẾT TỪ SERVER ═══
-                    var msg = 'Lỗi kết nối. Vui lòng thử lại sau.';
-
+                } catch(e) {}
+                if (typeof response === 'string' &&
+                    (response.indexOf('alert-danger') > -1 || response.indexOf('LoginFail') > -1)) {
+                    var msg = $(response).find('.alert-danger').first().text().trim();
+                    showLoginError(msg || 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.');
+                    $btn.prop('disabled', false).html('Đăng nhập');
+                    return;
+                }
+                var targetUrl = (xhr && xhr.responseURL) || '/';
+                window.location.href = targetUrl;
+            },
+            error: function(xhr) {
+                var msg = 'Lỗi kết nối. Vui lòng thử lại sau.';
+                try {
+                    var resp = JSON.parse(xhr.responseText);
+                    if (resp && (resp.message || resp.error)) {
+                        msg = resp.message || resp.error;
+                    }
+                } catch (e) {}
+                if (xhr.status === 429) {
                     try {
                         var resp = JSON.parse(xhr.responseText);
-                        if (resp && (resp.message || resp.error)) {
-                            msg = resp.message || resp.error;
-                        }
+                        var retryAfter = resp.retryAfter
+                            || xhr.getResponseHeader('Retry-After')
+                            || 30;
+                        msg = (msg || 'Quá nhiều yêu cầu. Vui lòng thử lại sau.')
+                            + ' <strong>Thử lại sau ' + retryAfter + ' giây.</strong>';
                     } catch (e) {
-                        // Không parse được JSON, dùng status code
+                        var retryHeader = xhr.getResponseHeader('Retry-After');
+                        msg = 'Quá nhiều yêu cầu đăng nhập. Vui lòng thử lại sau'
+                            + (retryHeader ? ' ' + retryHeader + ' giây.' : ' ít phút.');
                     }
-
-                    if (xhr.status === 429) {
-                        try {
-                            var resp = JSON.parse(xhr.responseText);
-                            var retryAfter = resp.retryAfter
-                                || xhr.getResponseHeader('Retry-After')
-                                || 30;
-                            msg = (msg || 'Quá nhiều yêu cầu. Vui lòng thử lại sau.')
-                                + ' <strong>Thử lại sau ' + retryAfter + ' giây.</strong>';
-                        } catch (e) {
-                            var retryHeader = xhr.getResponseHeader('Retry-After');
-                            msg = 'Quá nhiều yêu cầu đăng nhập. Vui lòng thử lại sau'
-                                + (retryHeader ? ' ' + retryHeader + ' giây.' : ' ít phút.');
-                        }
-                    } else if (xhr.status === 400) {
-                        msg = msg || 'Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.';
-                    } else if (xhr.status === 500) {
-                        msg = msg || 'Lỗi máy chủ. Vui lòng thử lại sau.';
-                    }
-
-                    showLoginError(msg);
-                    $btn.prop('disabled', false).html('Đăng nhập');
+                } else if (xhr.status === 400) {
+                    msg = msg || 'Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.';
+                } else if (xhr.status === 500) {
+                    msg = msg || 'Lỗi máy chủ. Vui lòng thử lại sau.';
                 }
-            });
+                showLoginError(msg);
+                $btn.prop('disabled', false).html('Đăng nhập');
+            }
         });
-    })();
-    </script>
-    <!-- ─── End Task 4 ─── -->
-
-</body>
-</html>
+    });
+})();
+</script>
+}

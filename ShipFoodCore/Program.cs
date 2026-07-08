@@ -4,6 +4,7 @@ using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.DataProtection;
 using ShipFood.Models;
 using Serilog;
+using Microsoft.AspNetCore.Authentication.OAuth;
 
 // ─── Task 3: Centralized Logging (Serilog + Seq) ───
 var logConfig = new LoggerConfiguration()
@@ -282,6 +283,17 @@ if (!string.IsNullOrEmpty(googleClientId) && !string.IsNullOrEmpty(googleClientS
     {
         googleOptions.ClientId = googleClientId;
         googleOptions.ClientSecret = googleClientSecret;
+
+        // Luôn hiển thị cửa sổ "Chọn tài khoản" của Google,
+        // kể cả khi chỉ có 1 tài khoản đang đăng nhập hoặc đã cấp quyền trước đó
+        googleOptions.Events = new OAuthEvents
+        {
+            OnRedirectToAuthorizationEndpoint = context =>
+            {
+                context.Response.Redirect(context.RedirectUri + "&prompt=select_account");
+                return Task.CompletedTask;
+            }
+        };
     });
 }
 

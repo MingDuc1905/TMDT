@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>@ViewBag.Title - Fastship</title>
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=5.0" name="viewport" />
+    <link href="~/Source/Home/img/favicon.ico" rel="icon" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Roboto:wght@400;500&display=swap" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet" />
+    <link href="~/Source/Home/lib/animate/animate.min.css" rel="stylesheet" />
+    <link href="~/Source/Home/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Source/Home/css/style.css" rel="stylesheet" />
+    <link href="~/Source/Home/css/login.css" rel="stylesheet" />
+    <link href="~/Source/Home/css/layout-sg.css" rel="stylesheet" />
+    <link href="~/Source/Shared/css/fastship-design-tokens.css" rel="stylesheet" />
+    @RenderSection("head", required: false)
+    <style>
+        /* ─── Auth layout — viewport không khóa cứng, cho phép scroll khi bàn phím ảo mở ─── */
+        html, body {
+            margin: 0;
+            padding: 0;
+            min-height: 100dvh;
+            height: auto;
+            overflow-x: hidden;
+            overflow-y: auto;
+            background: var(--fs-light);
+            font-family: var(--fs-font, 'Inter', sans-serif);
+        }
+
+        /* Auth page wrapper — co giãn tự nhiên, mobile keyboard friendly */
+        .auth-page-wrapper {
+            display: flex;
+            flex-direction: column;
+            min-height: 100dvh;
+            height: auto;
+            overflow: visible;
+        }
+
+        /* Auth header — glassmorphism navbar */
+        .auth-header {
+            flex-shrink: 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+            transition: box-shadow 0.2s ease;
+        }
+        .auth-header.scrolled {
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .auth-header-inner {
+            height: 60px;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .auth-logo {
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .auth-logo span {
+            font-family: 'Inter', sans-serif;
+            font-size: 1.35rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+        .auth-logo .logo-f    { color: var(--fs-green, #3CB815); }
+        .auth-logo .logo-ast  { color: var(--fs-orange, #F65005); }
+        .auth-logo .logo-ship { color: var(--fs-dark, #1a1a2e); }
+
+        .auth-nav-right {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .auth-back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--fs-muted);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            padding: 8px 14px;
+            border-radius: 20px;
+            transition: all 0.2s ease;
+        }
+        .auth-back-link:hover {
+            color: var(--fs-green);
+            background: var(--fs-green-bg);
+        }
+        .auth-back-link i {
+            font-size: 14px;
+        }
+
+        /* Auth main — flex center */
+        .auth-main {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow-y: auto;
+            padding: 24px 16px 40px;
+        }
+
+        /* Mobile: cải thiện keyboard behavior */
+        @@media (max-width: 576px) {
+            .auth-main {
+                padding: 16px 12px 32px;
+                align-items: flex-start; /* form không bị ép giữa, tránh keyboard che */
+                padding-top: 12px;
+            }
+            .auth-header-inner {
+                padding: 0 12px;
+                height: 56px;
+            }
+            body { font-size: 16px; }
+            form input, form select { font-size: 16px !important; }
+        }
+
+        /* Container căn giữa */
+        .auth-container {
+            width: 420px;
+            max-width: 92%;
+            margin: 0 auto;
+        }
+
+        /* ─── Show/Hide Password ─── */
+        .fs-password-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+        .fs-password-wrap input[type="password"],
+        .fs-password-wrap input[type="text"] {
+            padding-right: 44px !important;
+        }
+        .fs-password-toggle {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 36px;
+            height: 36px;
+            border: none;
+            background: transparent;
+            color: var(--fs-muted-soft);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            transition: all 0.15s ease;
+            padding: 0;
+            z-index: 2;
+        }
+        .fs-password-toggle:hover {
+            color: var(--fs-dark);
+            background: var(--fs-light);
+        }
+        .fs-password-toggle:focus-visible {
+            outline: 2px solid var(--fs-green);
+            outline-offset: 2px;
+        }
+        .fs-password-toggle i {
+            font-size: 16px;
+            pointer-events: none;
+        }
+
+        /* ─── Auth card (Login/Signup/Forgot) ─── */
+        .auth-card {
+            background: var(--fs-white);
+            padding: 36px 40px;
+            border-radius: var(--fs-radius-lg, 16px);
+            box-shadow: var(--fs-shadow, 0 4px 20px rgba(0,0,0,.07));
+            text-align: center;
+        }
+        @@media (max-width: 576px) {
+            .auth-card { padding: 24px 18px; }
+        }
+
+        /* ─── Toast error ─── */
+        .fs-toast-error {
+            position: fixed;
+            top: 80px;
+            right: 24px;
+            z-index: 99999;
+            background: #dc3545;
+            color: #fff;
+            padding: 14px 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,.2);
+            font-size: 14px;
+            max-width: 400px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: fsToastIn .3s ease;
+        }
+        @@keyframes fsToastIn {
+            0%   { opacity: 0; transform: translateX(40px); }
+            100% { opacity: 1; transform: translateX(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-page-wrapper">
+        <!-- Auth Header: glassmorphism sticky -->
+        <header class="auth-header" id="authHeader">
+            <div class="auth-header-inner">
+                <a href="/Home" class="auth-logo">
+                    <span><span class="logo-f">F</span><span class="logo-ast">ast</span><span class="logo-ship">ship</span></span>
+                </a>
+                <div class="auth-nav-right">
+                    <a href="~/Home" class="auth-back-link">
+                        <i class="fas fa-arrow-left"></i>
+                        Trang chủ
+                    </a>
+                    @RenderSection("authNavRight", required: false)
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="auth-main">
+            @RenderBody()
+        </main>
+    </div>
+
+    <!-- ─── Scripts ─── -->
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/Source/Home/lib/wow/wow.min.js"></script>
+    <script src="~/Source/Home/lib/easing/easing.min.js"></script>
+    <script src="~/Source/Home/lib/waypoints/waypoints.min.js"></script>
+    <script src="~/Source/Home/lib/owlcarousel/owl.carousel.min.js"></script>
+    <script src="~/Source/Home/js/main.js"></script>
+
+    <!-- ─── Show/Hide Password Toggle ─── -->
+    <script>
+    (function() {
+        // Áp dụng password toggle cho tất cả input[type="password"] trong auth pages
+        document.querySelectorAll('.fs-password-wrap input[type="password"]').forEach(function(input) {
+            var wrap = input.closest('.fs-password-wrap');
+            if (!wrap) return;
+            var toggle = wrap.querySelector('.fs-password-toggle');
+            if (!toggle) return;
+            toggle.addEventListener('click', function(e) {
+                e.preventDefault();
+                var isPassword = input.type === 'password';
+                input.type = isPassword ? 'text' : 'password';
+                var icon = toggle.querySelector('i');
+                if (icon) {
+                    icon.className = isPassword ? 'fas fa-eye-slash' : 'fas fa-eye';
+                }
+                // Focus lại input
+                input.focus();
+            });
+        });
+    })();
+    </script>
+
+    <!-- ─── Auth header shadow on scroll ─── -->
+    <script>
+    (function() {
+        var header = document.getElementById('authHeader');
+        if (!header) return;
+        window.addEventListener('scroll', function() {
+            if (window.scrollY > 10) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        }, { passive: true });
+    })();
+    </script>
+
+    @RenderSection("scripts", required: false)
+</body>
+</html>

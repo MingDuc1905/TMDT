@@ -1,0 +1,499 @@
+﻿@{
+    ViewBag.Title = "Chọn vai trò";
+    Layout = "~/Views/Shared/_LayoutAuth.cshtml";
+    var googleEmail = ViewBag.GoogleEmail as string ?? "";
+    var googleName = ViewBag.GoogleName as string ?? "";
+}
+
+<style>
+    /* ─── Layout ─── */
+    .fs-signup-google {
+        padding: 20px 0 40px;
+        width: 100%;
+        max-width: 640px;
+    }
+
+    /* ─── Card chính ─── */
+    .fs-signup-card {
+        max-width: 640px;
+        margin: 0 auto;
+        background: var(--fs-white);
+        border-radius: var(--fs-radius-xl, 24px);
+        box-shadow: var(--fs-shadow-lg, 0 12px 32px rgba(0,0,0,.1));
+        overflow: hidden;
+    }
+
+    /* ─── Header gradient ─── */
+    .fs-signup-header {
+        background: linear-gradient(135deg, #3CB815, #2ea310);
+        padding: 32px 36px 28px;
+        color: var(--fs-white);
+        text-align: center;
+    }
+    .fs-signup-header .avatar-badge {
+        width: 64px; height: 64px;
+        background: rgba(255,255,255,.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 12px;
+        font-size: 28px;
+    }
+    .fs-signup-header h2 {
+        font-weight: 700;
+        font-size: 22px;
+        margin: 0 0 4px;
+    }
+    .fs-signup-header p {
+        font-size: 13px;
+        opacity: .85;
+        margin: 0;
+    }
+
+    /* ─── Body ─── */
+    .fs-signup-body {
+        padding: 28px 36px 32px;
+    }
+    @@media (max-width: 576px) {
+        .fs-signup-body { padding: 20px 18px 24px; }
+    }
+
+    .fs-section-label {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--fs-dark);
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    /* ─── Role Cards ─── */
+    .fs-role-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        margin-bottom: 24px;
+    }
+    @@media (max-width: 576px) {
+        .fs-role-grid { grid-template-columns: 1fr; gap: 10px; }
+    }
+
+    .fs-role-card {
+        position: relative;
+        cursor: pointer;
+        border: 2px solid var(--fs-border);
+        border-radius: var(--fs-radius, 12px);
+        padding: 20px 14px;
+        text-align: center;
+        transition: all .2s ease;
+        background: var(--fs-white);
+    }
+    .fs-role-card:hover {
+        border-color: var(--fs-green);
+        background: var(--fs-green-bg);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(60,184,21,.15);
+    }
+    .fs-role-card.selected {
+        border-color: var(--fs-green);
+        background: var(--fs-green-bg);
+        box-shadow: 0 4px 12px rgba(60,184,21,.2);
+    }
+    .fs-role-card input[type="radio"] {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+    }
+    .fs-role-card .role-icon {
+        width: 48px; height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 10px;
+        font-size: 22px;
+        transition: all .2s;
+    }
+    .fs-role-card.selected .role-icon {
+        transform: scale(1.08);
+    }
+    .role-customer .role-icon   { background: #e8f5e9; color: #2e7d32; }
+    .role-restaurant .role-icon { background: #fff3e0; color: #e65100; }
+    .role-shipper .role-icon    { background: #e3f2fd; color: #1565c0; }
+
+    .fs-role-card .role-name {
+        font-weight: 700;
+        font-size: 14px;
+        color: var(--fs-dark);
+        margin-bottom: 2px;
+    }
+    .fs-role-card .role-desc {
+        font-size: 11px;
+        color: var(--fs-muted);
+        line-height: 1.4;
+    }
+    .fs-role-card .role-check {
+        width: 22px; height: 22px;
+        border-radius: 50%;
+        border: 2px solid var(--fs-border);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-top: 8px;
+        transition: all .2s;
+        font-size: 12px;
+        color: transparent;
+    }
+    .fs-role-card.selected .role-check {
+        border-color: var(--fs-green);
+        background: var(--fs-green);
+        color: #fff;
+    }
+
+    /* ─── Form fields ─── */
+    .fs-field-group {
+        margin-bottom: 18px;
+    }
+    .fs-field-group label {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--fs-dark);
+        margin-bottom: 5px;
+        display: block;
+    }
+    .fs-field-group label .required {
+        color: var(--fs-danger, #dc3545);
+    }
+    .fs-field-group .form-control {
+        height: 46px;
+        border-radius: var(--fs-radius, 12px);
+        border: 1.5px solid var(--fs-border);
+        padding: 10px 14px;
+        font-size: 14px;
+        font-family: var(--fs-font, 'Inter', sans-serif);
+        transition: all .2s;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    .fs-field-group .form-control:focus {
+        border-color: var(--fs-green);
+        box-shadow: 0 0 0 3px rgba(60,184,21,.12);
+        outline: none;
+    }
+    .fs-field-group .form-control::placeholder {
+        color: var(--fs-muted-soft);
+    }
+
+    /* ─── Address field (ẩn/hiện) ─── */
+    #fs-address-group {
+        display: none;
+        animation: fsFadeSlideIn .25s ease;
+    }
+    @@keyframes fsFadeSlideIn {
+        0%   { opacity: 0; transform: translateY(-6px); }
+        100% { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ─── Submit button ─── */
+    .fs-btn-complete {
+        width: 100%;
+        padding: 14px;
+        background: linear-gradient(135deg, var(--fs-green), var(--fs-green-dark));
+        color: var(--fs-white);
+        border: none;
+        border-radius: var(--fs-radius, 12px);
+        font-size: 15px;
+        font-weight: 700;
+        font-family: var(--fs-font, 'Inter', sans-serif);
+        cursor: pointer;
+        transition: all .2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 4px;
+    }
+    .fs-btn-complete:hover {
+        opacity: .9;
+        transform: translateY(-1px);
+        box-shadow: var(--fs-shadow-btn);
+    }
+    .fs-btn-complete:disabled {
+        opacity: .5;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+
+    /* ─── Error toast ─── */
+    .fs-toast-error {
+        position: fixed;
+        top: 24px;
+        right: 24px;
+        z-index: 99999;
+        background: var(--fs-danger, #dc3545);
+        color: #fff;
+        padding: 14px 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 20px rgba(0,0,0,.2);
+        font-size: 14px;
+        max-width: 400px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        animation: fsToastIn .3s ease;
+    }
+    @@keyframes fsToastIn {
+        0%   { opacity: 0; transform: translateX(40px); }
+        100% { opacity: 1; transform: translateX(0); }
+    }
+
+    /* ─── Info banner ─── */
+    .fs-info-banner {
+        background: var(--fs-green-bg);
+        border: 1px solid rgba(60,184,21,.2);
+        border-radius: var(--fs-radius, 12px);
+        padding: 12px 16px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 13px;
+        color: var(--fs-dark);
+    }
+    .fs-info-banner i {
+        color: var(--fs-green);
+        font-size: 18px;
+        flex-shrink: 0;
+    }
+</style>
+
+<div class="fs-signup-google">
+    <div class="container">
+        <div class="fs-signup-card">
+            <!-- Header -->
+            <div class="fs-signup-header">
+                <div class="avatar-badge">
+                    <i class="fas fa-user-plus"></i>
+                </div>
+                <h2>Chào bạn, @(!string.IsNullOrEmpty(googleName) ? googleName.Split(' ').Last() : "bạn mới")!</h2>
+                <p>Hãy chọn vai trò của bạn trên Fastship để hoàn tất đăng ký</p>
+                <div style="margin-top:10px;font-size:12px;opacity:.75;">
+                    <i class="fas fa-envelope me-1"></i>@googleEmail
+                </div>
+            </div>
+
+            <!-- Body -->
+            <div class="fs-signup-body">
+                <form id="roleForm" method="post" action="@Url.Action("CompleteGoogleRegistration", "Home")">
+                    @Html.AntiForgeryToken()
+
+                    @if (TempData["err"] != null)
+                    {
+                        <div class="fs-info-banner" style="background:#fff0f0;border-color:rgba(220,53,69,.2);">
+                            <i class="fas fa-exclamation-circle" style="color:#dc3545;"></i>
+                            <span>@TempData["err"]</span>
+                        </div>
+                    }
+
+                    <!-- Step 1: Chọn vai trò -->
+                    <div class="fs-section-label">
+                        <i class="fas fa-id-badge" style="color:var(--fs-green);"></i>
+                        1. Chọn vai trò của bạn
+                    </div>
+                    <div class="fs-role-grid" id="roleGrid">
+                        <!-- Khách hàng -->
+                        <label class="fs-role-card role-customer" onclick="selectRole(this, 'Khách hàng')">
+                            <input type="radio" name="loaitaikhoan" value="Khách hàng" required>
+                            <div class="role-icon"><i class="fas fa-user"></i></div>
+                            <div class="role-name">Khách hàng</div>
+                            <div class="role-desc">Đặt món ăn, theo dõi đơn hàng, đánh giá</div>
+                            <div class="role-check"><i class="fas fa-check"></i></div>
+                        </label>
+                        <!-- Quán ăn -->
+                        <label class="fs-role-card role-restaurant" onclick="selectRole(this, 'Quán ăn')">
+                            <input type="radio" name="loaitaikhoan" value="Quán ăn">
+                            <div class="role-icon"><i class="fas fa-store"></i></div>
+                            <div class="role-name">Đối tác Quán ăn</div>
+                            <div class="role-desc">Quản lý thực đơn, đơn hàng, doanh thu</div>
+                            <div class="role-check"><i class="fas fa-check"></i></div>
+                        </label>
+                        <!-- Shipper -->
+                        <label class="fs-role-card role-shipper" onclick="selectRole(this, 'Shipper')">
+                            <input type="radio" name="loaitaikhoan" value="Shipper">
+                            <div class="role-icon"><i class="fas fa-motorcycle"></i></div>
+                            <div class="role-name">Tài xế Shipper</div>
+                            <div class="role-desc">Nhận đơn giao hàng, kiếm thu nhập</div>
+                            <div class="role-check"><i class="fas fa-check"></i></div>
+                        </label>
+                    </div>
+
+                    <!-- Step 2: Thông tin liên hệ -->
+                    <div class="fs-section-label" style="margin-top:20px;">
+                        <i class="fas fa-address-card" style="color:var(--fs-green);"></i>
+                        2. Thông tin liên hệ
+                    </div>
+
+                    <div class="fs-field-group">
+                        <label>Số điện thoại <span class="required">*</span></label>
+                        <input type="tel" class="form-control" name="sdt" id="inputSdt"
+                               placeholder="VD: 0912345678" required maxlength="11"
+                               pattern="^0[1-9][0-9]{8,9}$"
+                               title="Số điện thoại 10-11 số, bắt đầu bằng 0">
+                        <div style="font-size:11px;color:var(--fs-muted-soft);margin-top:4px;">
+                            <i class="fas fa-info-circle me-1"></i>Số điện thoại được dùng để đăng nhập và liên hệ giao hàng
+                        </div>
+                    </div>
+
+                    <!-- Địa chỉ (chỉ hiện khi chọn Quán ăn hoặc Shipper) -->
+                    <div class="fs-field-group" id="fs-address-group">
+                        <label>Địa chỉ <span class="required">*</span></label>
+
+                        <!-- Thành phố -->
+                        <select class="form-control" id="inputCity" style="margin-bottom:10px;">
+                            <option value="TP. Hồ Chí Minh">TP. Hồ Chí Minh</option>
+                        </select>
+
+                        <!-- Quận/Huyện -->
+                        <select class="form-control" id="inputDiachi" required>
+                            <option value="">Chọn Quận/Huyện</option>
+                            <option value="Quận 1">Quận 1</option>
+                            <option value="Quận 3">Quận 3</option>
+                            <option value="Quận 5">Quận 5</option>
+                            <option value="Quận 7">Quận 7</option>
+                            <option value="Quận 10">Quận 10</option>
+                            <option value="Bình Thạnh">Bình Thạnh</option>
+                            <option value="Tân Bình">Tân Bình</option>
+                            <option value="Gò Vấp">Gò Vấp</option>
+                            <option value="Phú Nhuận">Phú Nhuận</option>
+                            <option value="Thủ Đức">Thủ Đức</option>
+                            <option value="Bình Dương">Bình Dương</option>
+                            <option value="Hóc Môn">Hóc Môn</option>
+                            <option value="Củ Chi">Củ Chi</option>
+                        </select>
+
+                        <!-- Địa chỉ cụ thể -->
+                        <input type="text" class="form-control" name="diachi_chiitet" id="inputDiachiChiitet"
+                               placeholder="Số nhà, tên đường" maxlength="200" style="margin-top:8px;">
+
+                        <div style="font-size:11px;color:var(--fs-muted-soft);margin-top:4px;">
+                            <i class="fas fa-info-circle me-1"></i>Địa chỉ đầy đủ = Số nhà, Quận/Huyện, TP. Hồ Chí Minh
+                        </div>
+                        <input type="hidden" name="diachi" id="diachiFull" value="" />
+                    </div>
+
+                    <!-- Submit -->
+                    <button type="submit" class="fs-btn-complete" id="btnComplete">
+                        <i class="fas fa-check-circle"></i>
+                        Hoàn tất đăng ký
+                    </button>
+
+                    <div style="text-align:center;margin-top:14px;font-size:12px;color:var(--fs-muted);">
+                        <i class="fas fa-shield-alt me-1" style="color:var(--fs-green);"></i>
+                        Bằng cách đăng ký, bạn đồng ý với
+                        <a href="#" style="color:var(--fs-green);text-decoration:underline;">Điều khoản dịch vụ</a>
+                        của Fastship
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+<script>
+    // ─── Chọn vai trò ───
+    function selectRole(card, roleName) {
+        // Bỏ selected các card khác
+        document.querySelectorAll('.fs-role-card').forEach(function(c) {
+            c.classList.remove('selected');
+        });
+        // Chọn card hiện tại
+        card.classList.add('selected');
+        card.querySelector('input[type="radio"]').checked = true;
+
+        // Hiện/ẩn địa chỉ
+        var addrGroup = document.getElementById('fs-address-group');
+        var addrInput = document.getElementById('inputDiachi');
+        if (roleName === 'Quán ăn' || roleName === 'Shipper') {
+            addrGroup.style.display = 'block';
+            addrInput.required = true;
+        } else {
+            addrGroup.style.display = 'none';
+            addrInput.required = false;
+        }
+    }
+
+    // ─── Validate form ───
+    document.getElementById('roleForm').addEventListener('submit', function(e) {
+        var role = document.querySelector('input[name="loaitaikhoan"]:checked');
+        if (!role) {
+            e.preventDefault();
+            showError('Vui lòng chọn một vai trò để tiếp tục.');
+            return;
+        }
+
+        var sdt = document.getElementById('inputSdt').value.trim();
+        if (!sdt || !/^0[1-9][0-9]{8,9}$/.test(sdt)) {
+            e.preventDefault();
+            showError('Vui lòng nhập số điện thoại hợp lệ (10-11 số, bắt đầu bằng 0).');
+            return;
+        }
+
+        var roleVal = role.value;
+        if ((roleVal === 'Quán ăn' || roleVal === 'Shipper')) {
+            var district = document.getElementById('inputDiachi').value;
+            var detail = document.getElementById('inputDiachiChiitet').value.trim();
+            if (!district || district === '') {
+                e.preventDefault();
+                showError('Vui lòng chọn Quận/Huyện.');
+                return;
+            }
+            if (!detail || detail.length < 3) {
+                e.preventDefault();
+                showError('Vui lòng nhập số nhà, tên đường (tối thiểu 3 ký tự).');
+                return;
+            }
+            // Ghép địa chỉ đầy đủ
+            var fullAddr = detail + ', ' + district + ', TP. Hồ Chí Minh';
+            document.getElementById('diachiFull').value = fullAddr;
+        }
+
+        // Idempotency: disable nút
+        var btn = document.getElementById('btnComplete');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang xử lý...';
+    });
+
+    // ─── Hiển thị lỗi ───
+    function showError(msg) {
+        var existing = document.querySelector('.fs-toast-error');
+        if (existing) existing.remove();
+        var toast = document.createElement('div');
+        toast.className = 'fs-toast-error';
+        toast.innerHTML = '<i class="fas fa-exclamation-circle"></i>' + msg;
+        document.body.appendChild(toast);
+        setTimeout(function() {
+            toast.style.opacity = '0';
+            toast.style.transition = 'opacity .3s';
+            setTimeout(function() { toast.remove(); }, 350);
+        }, 4000);
+    }
+
+    // ─── Auto-select nếu có lỗi từ TempData ───
+    document.addEventListener('DOMContentLoaded', function() {
+        var savedRole = '@(ViewBag.SavedRole ?? "")';
+        if (savedRole) {
+            var cards = document.querySelectorAll('.fs-role-card');
+            cards.forEach(function(c) {
+                var radio = c.querySelector('input[type="radio"]');
+                if (radio && radio.value === savedRole) {
+                    selectRole(c, savedRole);
+                }
+            });
+        }
+    });
+</script>
+}

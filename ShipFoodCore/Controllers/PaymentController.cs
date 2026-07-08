@@ -13,14 +13,22 @@ public class PaymentController : BaseController
     private readonly ILogger<PaymentController> _logger;
     private readonly IHubContext<Chats> _hubContext;
     private readonly MoMoService _moMoService;
+    private readonly IConfiguration _configuration;
 
-    public PaymentController(dbFoodyEntities context, ILogger<PaymentController> logger, IHubContext<Chats> hubContext, MoMoService moMoService)
+    public PaymentController(dbFoodyEntities context, ILogger<PaymentController> logger, IHubContext<Chats> hubContext, MoMoService moMoService, IConfiguration configuration)
     {
         db = context;
         _logger = logger;
         _hubContext = hubContext;
         _moMoService = moMoService;
+        _configuration = configuration;
     }
+
+    // ─── Bank transfer config (đọc từ env vars) ───
+    private string BankId => _configuration["BANK_ID"] ?? "Vietcombank";
+    private string BankAccountNo => _configuration["BANK_ACCOUNT_NO"] ?? "1234567890";
+    private string BankAccountName => _configuration["BANK_ACCOUNT_NAME"] ?? "FASTSHIP CO., LTD";
+    private string BankWebhookToken => _configuration["BANK_WEBHOOK_TOKEN"] ?? "";
 
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -66,6 +74,48 @@ public class PaymentController : BaseController
         try
         {
             var user = GetCurrentUser();
+
+            // ═══ IDEMPOTENCY LOCK: Chống tạo đơn trùng trong 30 giây ═══
+            // Nếu user vừa tạo đơn thành công (qua bất kỳ thiết bị nào), chặn tạo thêm
+            var recentOrderCount = db.tbDonHang
+                .Where(dh => dh.tbThongTinDatHang != null
+                    && dh.tbThongTinDatHang.userid == user!.userid
+                    && dh.ngaydathang >= DateTime.Now.AddSeconds(-30))
+                .Count();
+            if (recentOrderCount > 0)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = "Bạn vừa đặt hàng thành công trong 30 giây qua. Vui lòng kiểm tra lịch sử đơn hàng hoặc thử lại sau.",
+                    keepCart = false
+                });
+            }
+
+            // ═══ MULTI-DEVICE CHECK: Phát hiện giỏ hàng đã được xử lý trên thiết bị khác ═══
+            // Nếu session cart tồn tại nhưng DB đã có đơn hàng mới của user này trong 5 phút,
+            // chứng tỏ thiết bị khác đã đặt hàng — không cho phép tạo thêm đơn từ session cart cũ
+            var recentMultiDeviceOrder = db.tbDonHang
+                .Where(dh => dh.tbThongTinDatHang != null
+                    && dh.tbThongTinDatHang.userid == user!.userid
+                    && dh.ngaydathang >= DateTime.Now.AddMinutes(-5))
+                .OrderByDescending(dh => dh.ngaydathang)
+                .FirstOrDefault();
+            if (recentMultiDeviceOrder != null && recentMultiDeviceOrder.madh > 0)
+            {
+                // Kiểm tra nếu session cart vẫn tồn tại (thiết bị cũ chưa reload)
+                var staleCart = GetCart();
+                if (staleCart != null && staleCart.items.Any())
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = "Giỏ hàng của bạn đã được xử lý trên thiết bị khác. Vui lòng tải lại trang để làm mới giỏ hàng.",
+                        keepCart = false
+                    });
+                }
+            }
+
             tbThongTinDatHang ttdh;
 
             if (mattdh != null)
@@ -123,12 +173,16 @@ public class PaymentController : BaseController
 
             decimal tongCong = Math.Max(tongTienMon + phiShip - discountAmount, 0);
 
+            // ═══ Bank Transfer: đặt trạng thái 'Chờ thanh toán' thay vì 'Đã đặt' ═══
+            bool isBankTransfer = IsBankTransferMethod(pttt);
+            var trangThaiBanDau = isBankTransfer ? "Chờ thanh toán" : "Đã đặt";
+
             var dh = new tbDonHang
             {
                 maquan    = cart.maquanan,
                 mattdh    = ttdh.mattdh,
                 ngaydathang = DateTime.Now,
-                trangthai = "Đã đặt",
+                trangthai = trangThaiBanDau,
                 tongtien  = tongCong,
                 hinhthucthanhtoan = pttt,
                 ghichu    = note,
@@ -208,6 +262,36 @@ public class PaymentController : BaseController
                     _logger.LogWarning(couponEx, "Failed to record coupon usage for order #{OrderId}, coupon #{CouponId}", dh.madh, appliedCouponId);
                     // Không throw — payment vẫn thành công
                 }
+            }
+
+            // ─── Bank Transfer: KHÔNG xóa cart, trả về QR URL ───
+            if (isBankTransfer)
+            {
+                // Tạo VietQR URL động
+                var memo = $"FASTSHIP{dh.madh}";
+                var qrUrl = $"https://img.vietqr.io/image/{BankId}-{BankAccountNo}-compact2.png?amount={(long)tongCong}&addInfo={Uri.EscapeDataString(memo)}&accountName={Uri.EscapeDataString(BankAccountName)}";
+
+                _logger.LogInformation("Bank transfer QR URL generated for order #{OrderId}: {QrUrl}", dh.madh, qrUrl);
+
+                // Không clear cart — user cần quay lại nếu muốn đặt thêm
+                // ponytail: giữ cart để user dễ đặt lại nếu không muốn chờ QR
+
+                return Json(new
+                {
+                    success = true,
+                    message = $"Đơn hàng #{dh.madh} đang chờ thanh toán. Vui lòng quét mã QR để chuyển khoản.",
+                    orderId = dh.madh,
+                    trangthai = "Chờ thanh toán",
+                    qrCodeUrl = qrUrl,
+                    bankInfo = new
+                    {
+                        bankId = BankId,
+                        accountNo = BankAccountNo,
+                        accountName = BankAccountName,
+                        amount = (long)tongCong,
+                        memo = memo
+                    }
+                });
             }
 
             // ─── Chỉ xóa cart sau khi MoMo API đã được gọi (dù thành công hay thất bại) ───
@@ -343,6 +427,221 @@ public class PaymentController : BaseController
         {
             _logger.LogError(ex, "MoMo IPN callback error");
             return Json(new { error = -1, message = ex.Message });
+        }
+    }
+
+    // ─── Helper: kiểm tra có phải bank transfer không ───
+    private bool IsBankTransferMethod(int pttt)
+    {
+        // ponytail: Check trực tiếp tên phương thức từ DB — linh hoạt với mọi seed data
+        try
+        {
+            var method = db.tbLoaiHinhThanhToan.Find(pttt);
+            if (method == null) return false;
+            var name = (method.tenhinhthuc ?? "").ToLowerInvariant();
+            return name.Contains("chuyển khoản") || name.Contains("ngân hàng") || name.Contains("bank");
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    // ─── BANK WEBHOOK: Casso/SePay/PayOS tự động gọi khi có biến động số dư ───
+    [HttpPost]
+    [AllowAnonymous]
+    public async Task<JsonResult> BankWebhook()
+    {
+        try
+        {
+            // ═══ Xác thực Secure Token từ Header ═══
+            var authHeader = HttpContext.Request.Headers["Authorization"].FirstOrDefault() ?? "";
+            var token = authHeader.Replace("Bearer ", "");
+
+            if (!string.IsNullOrEmpty(BankWebhookToken) && token != BankWebhookToken)
+            {
+                _logger.LogWarning("BankWebhook: Invalid token received");
+                return Json(new { error = "Unauthorized" });
+            }
+
+            // Đọc body
+            using var reader = new System.IO.StreamReader(Request.Body);
+            var body = await reader.ReadToEndAsync();
+
+            // Parse JSON (linh hoạt với nhiều định dạng webhook)
+            var json = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(body);
+
+            // Tìm nội dung chuyển khoản (memo/description) — hỗ trợ nhiều định dạng
+            string? memo = null;
+            long? amount = null;
+
+            // Casso format: data[0].description, data[0].amount
+            if (json.TryGetProperty("data", out var data) && data.ValueKind == System.Text.Json.JsonValueKind.Array && data.GetArrayLength() > 0)
+            {
+                var first = data[0];
+                if (first.TryGetProperty("description", out var desc)) memo = desc.GetString();
+                if (first.TryGetProperty("amount", out var amt)) amount = (long)amt.GetDecimal();
+            }
+
+            // SePay format: transferDesc, transferAmount
+            if (memo == null && json.TryGetProperty("transferDesc", out var td)) memo = td.GetString();
+            if (amount == null && json.TryGetProperty("transferAmount", out var ta)) amount = (long)ta.GetDecimal();
+
+            // PayOS format: description, amount
+            if (memo == null && json.TryGetProperty("description", out var pd)) memo = pd.GetString();
+            if (amount == null && json.TryGetProperty("amount", out var pa)) amount = (long)pa.GetDecimal();
+
+            if (string.IsNullOrEmpty(memo))
+            {
+                _logger.LogWarning("BankWebhook: No memo found in webhook data");
+                return Json(new { error = "No memo" });
+            }
+
+            // ═══ Parse mã đơn hàng từ memo ═══
+            // Format: FASTSHIP{madh}  (VD: FASTSHIP42)
+            var match = System.Text.RegularExpressions.Regex.Match(memo, @"FASTSHIP(\d+)", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            if (!match.Success || !int.TryParse(match.Groups[1].Value, out var madh))
+            {
+                _logger.LogWarning("BankWebhook: Cannot parse order ID from memo: {Memo}", memo);
+                return Json(new { error = "Invalid memo format" });
+            }
+
+            // ═══ Đối soát đơn hàng ═══
+            var donHang = await db.tbDonHangs.FindAsync(madh);
+            if (donHang == null)
+            {
+                _logger.LogWarning("BankWebhook: Order #{OrderId} not found", madh);
+                return Json(new { error = "Order not found" });
+            }
+
+            if (donHang.trangthai != "Chờ thanh toán")
+            {
+                _logger.LogInformation("BankWebhook: Order #{OrderId} already processed (status: {Status})", madh, donHang.trangthai);
+                return Json(new { error = 0, message = "Already processed" });
+            }
+
+            // Kiểm tra số tiền (cho phép sai số ±1000đ do phí ngân hàng)
+            if (amount == null || Math.Abs((decimal)(amount.Value - (long)(donHang.tongtien ?? 0))) > 1000)
+            {
+                _logger.LogWarning("BankWebhook: Amount mismatch for order #{OrderId}. Expected: {Expected}, Received: {Received}",
+                    madh, donHang.tongtien, amount);
+                return Json(new { error = "Amount mismatch" });
+            }
+
+            // ═══ Cập nhật trạng thái đơn hàng ═══
+            donHang.trangthai = "Đã đặt";
+            donHang.ngaythanhtoan = DateTime.Now;
+            await db.SaveChangesAsync();
+
+            _logger.LogInformation("BankWebhook: Order #{OrderId} auto-approved via bank transfer", madh);
+
+            // ═══ SignalR broadcast đến khách hàng ═══
+            try
+            {
+                await _hubContext.Clients.Group($"order_{madh}").SendAsync("paymentConfirmed", madh, donHang.tongtien);
+                await _hubContext.Clients.Group($"order_{madh}").SendAsync("orderStatusChanged", madh, "Đã đặt", DateTime.Now.ToString("HH:mm"));
+            }
+            catch { }
+
+            // ═══ SignalR broadcast đến quán ăn ═══
+            if (donHang.maquan != null)
+            {
+                try
+                {
+                    await _hubContext.Clients.Group($"restaurant_{donHang.maquan}").SendAsync("newOrder", new
+                    {
+                        orderId = donHang.madh,
+                        status = "Đã đặt",
+                        time = DateTime.Now.ToString("HH:mm")
+                    });
+                }
+                catch { }
+            }
+
+            return Json(new { error = 0, message = "Order approved" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "BankWebhook processing error");
+            return Json(new { error = -1, message = ex.Message });
+        }
+    }
+
+    // ─── VERIFY BANK TRANSACTION: Fallback khi webhook không đến ───
+    [HttpGet]
+    public async Task<JsonResult> VerifyBankTransaction(int madh)
+    {
+        if (!CheckLogin())
+            return Json(new { success = false, message = "Vui lòng đăng nhập" });
+
+        try
+        {
+            var donHang = await db.tbDonHangs.FindAsync(madh);
+            if (donHang == null)
+                return Json(new { success = false, message = "Đơn hàng không tồn tại" });
+
+            var user = GetCurrentUser();
+            // Load thông tin địa chỉ để kiểm tra quyền sở hữu
+            var ttdh = await db.tbThongTinDatHangs.FindAsync(donHang.mattdh);
+            if (ttdh?.userid != user?.userid)
+                return Json(new { success = false, message = "Không có quyền kiểm tra đơn hàng này" });
+
+            if (donHang.trangthai != "Chờ thanh toán")
+            {
+                return Json(new
+                {
+                    success = true,
+                    alreadyConfirmed = true,
+                    message = $"Đơn hàng đã được xác nhận (trạng thái: {donHang.trangthai})",
+                    trangthai = donHang.trangthai
+                });
+            }
+
+            // ponytail: Không có API tra cứu ngân hàng thật → kiểm tra thời gian chờ
+            // Nếu đã qua 15 phút kể từ khi tạo đơn, cho phép user tự xác nhận
+            if (donHang.ngaydathang != null && DateTime.Now - donHang.ngaydathang > TimeSpan.FromMinutes(15))
+            {
+                donHang.trangthai = "Đã đặt";
+                donHang.ngaythanhtoan = DateTime.Now;
+                await db.SaveChangesAsync();
+
+                _logger.LogInformation("VerifyBankTransaction: Order #{OrderId} manually confirmed (15min fallback)", madh);
+
+                try
+                {
+                    await _hubContext.Clients.Group($"order_{madh}").SendAsync("paymentConfirmed", madh, donHang.tongtien);
+                    await _hubContext.Clients.Group($"order_{madh}").SendAsync("orderStatusChanged", madh, "Đã đặt", DateTime.Now.ToString("HH:mm"));
+                }
+                catch { }
+
+                if (donHang.maquan != null)
+                {
+                    try
+                    {
+                        await _hubContext.Clients.Group($"restaurant_{donHang.maquan}").SendAsync("newOrder", new
+                        {
+                            orderId = donHang.madh,
+                            status = "Đã đặt",
+                            time = DateTime.Now.ToString("HH:mm")
+                        });
+                    }
+                    catch { }
+                }
+
+                return Json(new { success = true, message = "✅ Đơn hàng đã được xác nhận!" });
+            }
+
+            var remainingSeconds = (int)(15 * 60 - (DateTime.Now - donHang.ngaydathang!.Value).TotalSeconds);
+            return Json(new
+            {
+                success = false,
+                message = $"Hệ thống đang chờ xác nhận từ ngân hàng. Vui lòng thử lại sau {Math.Max(remainingSeconds, 0)} giây nữa, hoặc đợi tự động duyệt trong vòng 15 phút."
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "VerifyBankTransaction failed for order #{OrderId}", madh);
+            return Json(new { success = false, message = $"Lỗi: {ex.Message}" });
         }
     }
 

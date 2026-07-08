@@ -8,12 +8,19 @@ namespace ShipFood.Controllers;
 public class CartController : BaseController
 {
     private readonly RecommendationService _recommendationService;
+    private readonly IConfiguration _configuration;
 
-    public CartController(dbFoodyEntities context, RecommendationService recommendationService)
+    public CartController(dbFoodyEntities context, RecommendationService recommendationService, IConfiguration configuration)
     {
         db = context;
         _recommendationService = recommendationService;
+        _configuration = configuration;
     }
+
+    // ─── Bank transfer config (shared với PaymentController) ───
+    private string BankId => _configuration["BANK_ID"] ?? "Vietcombank";
+    private string BankAccountNo => _configuration["BANK_ACCOUNT_NO"] ?? "1234567890";
+    private string BankAccountName => _configuration["BANK_ACCOUNT_NAME"] ?? "FASTSHIP CO., LTD";
 
     [HttpGet]
     public async Task<ActionResult> Index()
@@ -505,6 +512,28 @@ public class CartController : BaseController
             return RedirectToAction("LichSuDatHang");
 
         ViewBag.DonHang = donHang;
+
+        // ═══ Bank Transfer QR: generate VietQR URL nếu đơn hàng đang chờ thanh toán ───
+        if (donHang.trangthai == "Chờ thanh toán" && donHang.tbLoaiHinhThanhToan != null)
+        {
+            var methodName = (donHang.tbLoaiHinhThanhToan.tenhinhthuc ?? "").ToLowerInvariant();
+            if (methodName.Contains("chuyển khoản") || methodName.Contains("ngân hàng") || methodName.Contains("bank"))
+            {
+                var memo = $"FASTSHIP{donHang.madh}";
+                var qrUrl = $"https://img.vietqr.io/image/{BankId}-{BankAccountNo}-compact2.png?amount={(long)(donHang.tongtien ?? 0)}&addInfo={Uri.EscapeDataString(memo)}&accountName={Uri.EscapeDataString(BankAccountName)}";
+
+                ViewBag.QrCodeUrl = qrUrl;
+                ViewBag.BankInfo = new
+                {
+                    bankId = BankId,
+                    accountNo = BankAccountNo,
+                    accountName = BankAccountName,
+                    amount = (long)(donHang.tongtien ?? 0),
+                    memo = memo
+                };
+            }
+        }
+
         return View();
     }
 

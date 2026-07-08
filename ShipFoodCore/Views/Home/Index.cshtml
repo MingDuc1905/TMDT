@@ -317,7 +317,7 @@
                                     <div class="product-address">
                                         <i class="fa fa-map-marker-alt me-1 text-green"></i>@item.tbQuanAn?.tenquanan
                                     </div>
-                                    <div class="fs-price">@item.giatien?.ToString("N0")đ</div>
+                                    <div class="fs-price">Giá từ: @item.tbBienTheMonAns?.Min(b => b.giatien)?.ToString("N0")đ</div>
                                 </div>
                             </div>
                         </a>

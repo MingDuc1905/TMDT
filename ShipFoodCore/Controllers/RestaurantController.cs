@@ -470,6 +470,28 @@ public class RestaurantController : BaseController
         return RedirectToAction("ProductList");
     }
 
+    // ─── Phản hồi đánh giá ───
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public JsonResult ReplyReview(int madg, string phanHoi)
+    {
+        if (!checkLogin()) return Json(new { success = false, message = "Vui lòng đăng nhập" });
+
+        if (string.IsNullOrWhiteSpace(phanHoi) || phanHoi.Length < 2)
+            return Json(new { success = false, message = "Phản hồi phải có ít nhất 2 ký tự" });
+        if (phanHoi.Length > 500)
+            return Json(new { success = false, message = "Phản hồi không được quá 500 ký tự" });
+
+        var danhGia = db.tbDanhGia.Find(madg);
+        if (danhGia == null)
+            return Json(new { success = false, message = "Đánh giá không tồn tại" });
+
+        danhGia.phanHoiCuaQuan = phanHoi.Trim();
+        db.SaveChanges();
+
+        return Json(new { success = true, message = "Đã gửi phản hồi thành công" });
+    }
+
     // ─── Task 2c: AJAX Toggle 1-Click Hết hàng nhanh ───
     [HttpPost]
     public async Task<JsonResult> ToggleConHang(int mamon)

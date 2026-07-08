@@ -78,43 +78,71 @@
 function toggleConHang(btn) {
     var mamon = $(btn).data('mamon');
     var $btn = $(btn);
-    
-    // Lưu trạng thái cũ để rollback nếu thất bại
     var wasConHang = $btn.hasClass('btn-success');
+    var newStatus = wasConHang ? 'Hết hàng' : 'Còn hàng';
     
-    // Optimistic update: chuyển UI ngay lập tức
-    $btn.prop('disabled', true);
-    if (wasConHang) {
-        $btn.text('⚪ Hết hàng').removeClass('btn-success').addClass('btn-secondary');
-    } else {
-        $btn.text('🔴 Còn hàng').removeClass('btn-secondary').addClass('btn-success');
-    }
-
-    $.ajax({
-        url: '@Url.Action("ToggleConHang", "Restaurant")',
-        type: 'POST',
-        data: { mamon: mamon },
-        success: function(res) {
-            if (res.success) {
-                $btn.text(res.conhang ? '🔴 Còn hàng' : '⚪ Hết hàng')
-                    .toggleClass('btn-success btn-secondary')
-                    .attr('aria-label', (res.conhang ? '🔴 Còn hàng' : '⚪ Hết hàng') + ' - Bấm để đổi trạng thái');
-                showToast(res.message);
-            } else {
-                // Rollback nếu server trả về lỗi
-                rollbackToggle($btn, wasConHang);
-                showToast('❌ ' + (res.message || 'Lỗi'));
-            }
-        },
-        error: function() {
-            // Rollback nếu mạng lỗi
-            rollbackToggle($btn, wasConHang);
-            showToast('❌ Lỗi kết nối, vui lòng thử lại');
-        },
-        complete: function() {
-            $btn.prop('disabled', false);
+    // ─── Popover xác nhận trước khi gửi AJAX ───
+    // Tạo tooltip xác nhận gắn liền với nút
+    var $confirm = $('<div class="toggle-confirm" style="position:absolute;top:-52px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:8px 16px;border-radius:8px;font-size:13px;white-space:nowrap;z-index:999;box-shadow:0 4px 12px rgba(0,0,0,.2);display:flex;align-items:center;gap:8px;">' +
+        '<span>Chuyển sang <strong>' + newStatus + '</strong>?</span>' +
+        '<button class="btn btn-sm btn-success" style="padding:3px 10px;border:none;border-radius:4px;font-size:12px;font-weight:600;cursor:pointer;">✓</button>' +
+        '<button class="btn btn-sm btn-secondary" style="padding:3px 10px;border:none;border-radius:4px;font-size:12px;cursor:pointer;">✕</button>' +
+        '</div>');
+    
+    // Định vị popover
+    $btn.css('position', 'relative').append($confirm);
+    
+    // Xử lý xác nhận
+    $confirm.find('.btn-success').on('click', function(e) {
+        e.stopPropagation();
+        $confirm.remove();
+        
+        // Optimistic update
+        $btn.prop('disabled', true);
+        if (wasConHang) {
+            $btn.text('⚪ Hết hàng').removeClass('btn-success').addClass('btn-secondary');
+        } else {
+            $btn.text('🔴 Còn hàng').removeClass('btn-secondary').addClass('btn-success');
         }
+        
+        $.ajax({
+            url: '@Url.Action("ToggleConHang", "Restaurant")',
+            type: 'POST',
+            data: { mamon: mamon },
+            success: function(res) {
+                if (res.success) {
+                    $btn.text(res.conhang ? '🔴 Còn hàng' : '⚪ Hết hàng')
+                        .toggleClass('btn-success btn-secondary');
+                    showToast(res.message);
+                } else {
+                    rollbackToggle($btn, wasConHang);
+                    showToast('❌ ' + (res.message || 'Lỗi'));
+                }
+            },
+            error: function() {
+                rollbackToggle($btn, wasConHang);
+                showToast('❌ Lỗi kết nối');
+            },
+            complete: function() {
+                $btn.prop('disabled', false);
+            }
+        });
     });
+    
+    // Hủy bỏ
+    $confirm.find('.btn-secondary').on('click', function(e) {
+        e.stopPropagation();
+        $confirm.remove();
+    });
+    
+    // Click outside = hủy
+    setTimeout(function() {
+        $(document).one('click', function(e) {
+            if (!$confirm.is(e.target) && !$confirm.has(e.target).length) {
+                $confirm.remove();
+            }
+        });
+    }, 10);
 }
 
 // Rollback về trạng thái cũ khi API thất bại

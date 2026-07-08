@@ -19,6 +19,12 @@ public partial class tbDanhGia
     [MaxLength(100)]
     public string? hinhanh { get; set; }
 
+    /// <summary>
+    /// Phản hồi của quán ăn dành cho đánh giá của khách hàng
+    /// </summary>
+    [MaxLength(500)]
+    public string? phanHoiCuaQuan { get; set; }
+
     // Navigation
     [ForeignKey("mactdh")]
     public virtual tbChiTietDonHang? tbChiTietDonHang { get; set; }

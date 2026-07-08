@@ -905,37 +905,51 @@ public class HomeController : BaseController
                 .Include(m => m.tbDanhMuc)
                 .Where(m => m.tbQuanAn != null && m.tbQuanAn.trangthai == "Đang mở cửa");
 
-            // Tìm kiếm theo tên món (có hỗ trợ dấu tiếng Việt)
-            if (!string.IsNullOrEmpty(q) && q.Length >= 2)
-            {
-                var normalizedQ = RemoveDiacritics(q.ToLower());
-                // Lọc client-side để hỗ trợ tìm không dấu (vì MySQL không hỗ trợ RemoveDiacritics)
-                // Dùng AsEnumerable trước khi ToList để chuyển sang client-side
-            }
-
-            // Lọc theo danh mục
+            // Lọc theo danh mục (AND)
             if (categoryId.HasValue && categoryId.Value > 0)
             {
                 query = query.Where(m => m.madanhmuc == categoryId.Value);
             }
 
-            // Lọc theo chế độ ăn (dành cho sau)
-            if (!string.IsNullOrEmpty(maxDiet) && maxDiet == "vegetarian")
+            // Lọc khuyến mãi (AND)
+            if (isPromo == true)
             {
-                // Có thể thêm logic lọc món chay sau
+                var monAnCoKMIds = db.tbMonAnKhuyenMai
+                    .Where(km => km.trangthai == "Còn hạn")
+                    .Join(db.tbBienTheMonAn, km => km.mamon, b => b.id, (km, b) => b.mamon)
+                    .Distinct()
+                    .ToList();
+                query = query.Where(m => monAnCoKMIds.Contains(m.mamon));
             }
 
-            // Client-side: lọc + sort bằng LINQ to Objects (hỗ trợ tiếng Việt)
+            // Lọc đánh giá tốt (AND) — trực tiếp trên DB thay vì client
+            if (isBestSeller == true || sortBy == "rating")
+            {
+                query = query.Where(m => m.tbQuanAn != null && m.tbQuanAn.diemdanhgia >= 4.4m);
+            }
+
+            // Lọc chế độ ăn (AND)
+            if (!string.IsNullOrEmpty(maxDiet) && maxDiet == "vegetarian")
+            {
+                query = query.Where(m => m.tbDanhMuc != null && m.tbDanhMuc.tendanhmuc != null
+                    && (m.tbDanhMuc.tendanhmuc.Contains("chay") || m.tbDanhMuc.tendanhmuc.Contains("rau")));
+            }
+
+            // Client-side: tìm kiếm không dấu + lọc giá + sort
             var results = query.AsEnumerable().ToList();
 
-            // Lọc tìm kiếm không dấu (client-side)
+            // Tìm kiếm không dấu — chuẩn hóa cả 2 đầu (client-side)
             if (!string.IsNullOrEmpty(q) && q.Length >= 2)
             {
                 var normalizedQ = RemoveDiacritics(q.ToLower());
-                results = results.Where(m => RemoveDiacritics(m.tenmon.ToLower()).Contains(normalizedQ)).ToList();
+                results = results.Where(m =>
+                    RemoveDiacritics(m.tenmon.ToLower()).Contains(normalizedQ)
+                    || (m.tbQuanAn != null && RemoveDiacritics(m.tbQuanAn.tenquanan.ToLower()).Contains(normalizedQ))
+                    || (m.tbDanhMuc != null && RemoveDiacritics(m.tbDanhMuc.tendanhmuc.ToLower()).Contains(normalizedQ))
+                ).ToList();
             }
 
-            // Lọc giá theo mức $ (phía client vì cần tính toán variant)
+            // Lọc giá theo mức $ (AND) — client-side vì cần tính toán variant
             if (!string.IsNullOrEmpty(maxPriceLevel))
             {
                 var (minPrice, maxPrice) = maxPriceLevel switch
@@ -948,28 +962,6 @@ public class HomeController : BaseController
                 };
                 results = results.Where(m => m.tbBienTheMonAns != null &&
                     m.tbBienTheMonAns.Any(b => b.giatien >= minPrice && b.giatien <= maxPrice)).ToList();
-            }
-
-            // Lọc khuyến mãi
-            if (isPromo == true)
-            {
-                var monAnCoKhuyenMai = db.tbMonAnKhuyenMai
-                    .Where(km => km.trangthai == "Còn hạn")
-                    .Select(km => km.mamon)
-                    .Distinct()
-                    .ToList();
-                var monAnIds = db.tbBienTheMonAn
-                    .Where(b => monAnCoKhuyenMai.Contains(b.id))
-                    .Select(b => b.mamon)
-                    .Distinct()
-                    .ToList();
-                results = results.Where(m => monAnIds.Contains(m.mamon)).ToList();
-            }
-
-            // Lọc đánh giá tốt (quán có điểm >= 4.4)
-            if (isBestSeller == true || sortBy == "rating")
-            {
-                results = results.Where(m => m.tbQuanAn != null && m.tbQuanAn.diemdanhgia >= 4.4m).ToList();
             }
 
             // Sắp xếp
@@ -1006,10 +998,11 @@ public class HomeController : BaseController
                 giaMin = m.tbBienTheMonAns?.Min(b => b.giatien),
                 giaMax = m.tbBienTheMonAns?.Max(b => b.giatien),
                 sizes = m.tbBienTheMonAns?.Select(b => new { b.id, b.size, b.giatien }).ToList(),
-                isPromo = false,
+                isPromo = isPromo == true,
                 conhang = m.conhang
             }).Take(50).ToList();
 
+            // Trả về empty state rõ ràng nếu không tìm thấy
             return Json(new { success = true, items, total = items.Count });
         }
         catch (Exception ex)

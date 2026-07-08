@@ -24,3 +24,10 @@
 libman.json
 LICENSE
 README.md
+
+# === Giảm build context cho Railway (từ 338MB → ~200MB) ===
+**/*.md
+**/tests/
+**/.agents/
+**/.codegraph/
+nul

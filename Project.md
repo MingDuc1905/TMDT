@@ -229,13 +229,13 @@ TMDT-master/
 | `tbUser` | Người dùng (4 roles) | 1:1 → tbKhachHang, tbQuanAn, tbShipper, tbAdmin |
 | `tbKhachHang` | Khách hàng | 1:N → tbThongTinDatHang, tbTinNhan |
 | `tbQuanAn` | Quán ăn | 1:N → tbMonAn, tbDonHang |
-| `tbMonAn` | Món ăn | N:1 → tbDanhMuc; 1:N → tbBienTheMonAn |
+| `tbMonAn` | Món ăn (soft delete: isDeleted) | N:1 → tbDanhMuc; 1:N → tbBienTheMonAn; FK→tbQuanAn: RESTRICT |
 | `tbBienTheMonAn` | **NEW** Biến thể món (size: M/L/XL) | N:1 → tbMonAn; 1:N → tbChiTietDonHang, tbMonAnKhuyenMai |
 | `tbDanhMuc` | Danh mục món | 1:N → tbMonAn (RESTRICT) |
 | `tbDonHang` | Đơn hàng | N:1 → tbQuanAn, tbKhuyenMai, tbLoaiHinhThanhToan, tbShipper |
 | `tbChiTietDonHang` | Chi tiết đơn | N:1 → tbBienTheMonAn (mamon = FK→tbBienTheMonAn.id), 1:N → tbDanhGia |
 | `tbDanhGia` | Đánh giá | N:1 → tbChiTietDonHang |
-| `tbKhuyenMai` | Khuyến mãi | 1:N → tbMonAnKhuyenMai, tbDonHang |
+| `tbKhuyenMai` | Khuyến mãi | 1:N → tbMonAnKhuyenMai, tbDonHang, tbLichSuSuDungKhuyenMai |
 | `tbMonAnKhuyenMai` | KM của món | N:1 → tbBienTheMonAn (mamon), tbKhuyenMai |
 | `tbLoaiHinhThanhToan` | Hình thức TT | 1:N → tbDonHang |
 | `tbThongTinDatHang` | Địa chỉ giao | 1:N → tbDonHang |
@@ -243,6 +243,7 @@ TMDT-master/
 | `tbAdmin` | Quản trị viên | 1:1 → tbUser |
 | `tbTinNhan` | Tin nhắn chat | N:1 → tbDonHang, tbKhachHang, tbShipper |
 | `City/District` | Địa danh | — |
+| `tbLichSuSuDungKhuyenMai` | **NEW** Lịch sử dùng mã giảm giá | N:1 → tbUser, tbKhuyenMai; ghi nhận userid, makm, ngaydung |
 
 **Key columns**:
 | Bảng | Cột | Mô tả |
@@ -250,6 +251,10 @@ TMDT-master/
 | `tbDonHang` | `momo_trans_id` | **NEW** Lưu mã giao dịch MoMo để dùng cho Refund |
 | `tbMonAn` | `conhang` | **NEW** BIT DEFAULT 1 — toggle còn hàng/hết (toggle 1-click AJAX) |
 | `tbMonAn` | `giatien` | Giá gốc (đã thay thế bằng quản lý qua tbBienTheMonAn) |
+| `tbMonAn` | `isDeleted` | **NEW** BIT DEFAULT 0 — xóa mềm (soft delete), bảo toàn lịch sử hóa đơn |
+| `tbLichSuSuDungKhuyenMai` | `userid` | FK → tbUser, ghi nhận user dùng mã |
+| `tbLichSuSuDungKhuyenMai` | `makm` | FK → tbKhuyenMai, mã giảm giá đã dùng |
+| `tbLichSuSuDungKhuyenMai` | `ngaydung` | DATETIME, thời điểm áp dụng mã |
 
 **Seed data**: `mysql_utf8.sql` — categories, users, restaurants, menu items (tự động seed khi DB được tạo lần đầu).
 
@@ -291,7 +296,7 @@ TMDT-master/
 | `GET` | `/Home/GetReviewableItems?quanId=` | Home | Get user's purchased items |
 | `GET` | `/Cart/GetAvailableCoupons` | Cart | Danh sách mã giảm giá khả dụng (còn hạn, sắp xếp giảm dần) |
 | `POST` | `/Cart/CheckCoupon` | Cart | Validate coupon code |
-| `POST` | `/Payment/ProcessPayment` | Payment | Mock payment processing |
+| `POST` | `/Payment/ProcessPayment` | Payment | **Payment processing**: force re-read giá từ DB, ghi nhận coupon usage, trả về error message chi tiết (inner exception) |
 | `POST` | `/Chatbot/SendMessage` | Chatbot | AI chatbot message |
 | `POST` | `/Shipper/UpdateDonHang` | Shipper | Update delivery status |
 | `GET` | `/Admin/GetDashboardStats` | Admin | Dashboard stats (date filter) |
@@ -331,11 +336,12 @@ TMDT-master/
   - `OnConnectedAsync` — Track connection + broadcast `userOnline` (đọc userId từ query string)
   - `OnDisconnectedAsync` — Remove tracking + broadcast `userOffline` + `shipperOffline`
 
-**Static helpers**:
-  - `IsUserOnline(userId)` → `bool`
-  - `GetUserConnectionId(userId)` → `string?`
+**Helpers (instance methods, DI)**:
+  - `IsUserOnline(userId)` → `async Task<bool>`
+  - `GetUserConnectionId(userId)` → `async Task<string?>`
+  - Có try-catch + logger fallback khi Redis lỗi
 
-**Connection tracking**: `ConcurrentDictionary<string, int>` (connId → userId) + `ConcurrentDictionary<int, string>` (userId → connId)
+**Connection tracking**: `IDistributedCache` (Redis) — Key `UserConnection:{userId}` → connectionId. Fallback sang RAM nếu Redis không khả dụng. Đảm bảo không mất kết nối khi container restart hoặc scale multi-instance.
 
 **SignalR client events (listen)**:
   - `orderStatusChanged(orderId, status, time)` — Broadcast từ Restaurant/Shipper
@@ -503,6 +509,15 @@ APP_DOMAIN=https://shipfood.up.railway.app
 - [x] ✅ **FixPasswords endpoint**: Ghi đè BCrypt hash trong DB Railway → plain-text
 - [x] ✅ **Fix 5 critical bugs**: NotMapped Include (Shipper/Admin), Find() trong LINQ, FK khuyenMai
 - [x] ✅ **Unit tests**: ShipFoodCore.Tests (HomeControllerTest, RestaurantControllerTests, RecommendationServiceTests)
+- [x] ✅ **Soft delete tbMonAn**: isDeleted + FK RESTRICT, bảo toàn lịch sử hóa đơn
+- [x] ✅ **tbLichSuSuDungKhuyenMai**: Lưu vết tần suất dùng mã giảm giá, chống abuse
+- [x] ✅ **Redis IDistributedCache thay ConcurrentDictionary**: Connection state persistence cho SignalR, chịu được restart container
+- [x] ✅ **Force re-read giá từ DB**: PaymentController không tin frontend, chống sửa giá client
+- [x] ✅ **Idempotency Lock Checkout**: Disable nút + spinner, chống double-submit
+- [x] ✅ **Optimistic UI**: ToggleConHang + Add to Cart update ngay, rollback nếu API fail
+- [x] ✅ **Mobile Leaflet fix**: dragging:false, scrollWheelZoom:'center' trên mobile, giải phóng scroll dọc
+- [x] ✅ **Payment error detail**: Hiển thị inner exception message thay vì generic error, trace ID trong log
+- [x] ✅ **AutoPreparingService tối ưu**: AsNoTracking + Attach pattern + batch query restaurant names
 - [ ] Real payment (Stripe/PayPal/ZaloPay)
 
 ---
@@ -600,7 +615,7 @@ Dự án mã nguồn mở — phát triển bởi đội ngũ ShipFood.
 
 ---
 
-> **Phiên bản**: 5.1 — Bảo mật API, chuẩn hóa DB, MoMo Refund, Data Protection, Fix 5 critical bugs  
+> **Phiên bản**: 5.2 — Soft delete, Redis connection tracking, price security, Optimistic UI, payment error detail  
 > **Ngôn ngữ**: C# 12, HTML5, CSS3, JavaScript ES6  
 > **Kiến trúc**: ASP.NET Core MVC n-tier  
 > **Database**: MySQL 8+ (MySqlServerVersion 8.0.20)  

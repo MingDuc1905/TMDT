@@ -2016,6 +2016,15 @@ LOGIN ──→ DASHBOARD (with LIVE MAP)
 - [x] ✅ **AJAX Toggle 1-Click Hết hàng** (v3.4)
 - [x] ✅ **aria-label icon-only buttons** (v3.4)
 - [x] ✅ **SignalR payment broadcast** (v3.4)
+- [x] ✅ **Soft delete tbMonAn**: isDeleted + FK RESTRICT, bảo toàn lịch sử hóa đơn
+- [x] ✅ **tbLichSuSuDungKhuyenMai**: Lưu vết tần suất dùng mã giảm giá
+- [x] ✅ **Redis IDistributedCache thay ConcurrentDictionary**: Connection state persistence, chịu restart container
+- [x] ✅ **Force re-read giá từ DB**: PaymentController không tin frontend, chống sửa giá client
+- [x] ✅ **Idempotency Lock Checkout**: Disable nút + spinner, chống double-submit
+- [x] ✅ **Optimistic UI**: ToggleConHang + Add to Cart update ngay, rollback nếu fail
+- [x] ✅ **Mobile Leaflet fix**: dragging:false, scrollWheelZoom:"center", giải phóng scroll dọc
+- [x] ✅ **Payment error detail**: Inner exception + trace ID, không generic error
+- [x] ✅ **AutoPreparingService tối ưu**: AsNoTracking + Attach + batch query
 - [ ] **Real payment**: Replace mock Vietcombank with Stripe/PayPal/ZaloPay
 - [ ] **Unit tests**: Add frontend component tests (Jest/Cypress)
 - [ ] **Image optimization**: WebP format with `<picture>` fallback
@@ -2079,10 +2088,10 @@ LOGIN ──→ DASHBOARD (with LIVE MAP)
 
 ---
 
-> **Document Version**: 5.1 (Full)  
+> **Document Version**: 5.2 (Full)  
 > **Cập nhật**: Tháng 7, 2026  
 > **Based on**: Project.md  
-> **Key changes v5.1**: Bảo mật API (CheckRoleJson 403), Chuẩn hóa DB (DECIMAL(2,1), ON DELETE RESTRICT), MoMo Refund + momo_trans_id, Data Protection keys bền vững, Fix 5 critical bugs (NotMapped Include, Find trong LINQ, FK khuyenMai)
+> **Key changes v5.2**: Soft delete (isDeleted), Redis IDistributedCache connection tracking, Force re-read giá từ DB (chống sửa giá client), Payment error detail (inner exception), Idempotency Lock Checkout, Optimistic UI (ToggleConHang + Add to Cart), Mobile Leaflet fix, tbLichSuSuDungKhuyenMai (coupon usage tracking), AutoPreparingService tối ưu (AsNoTracking + Attach)
 
 ---
 

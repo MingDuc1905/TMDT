@@ -234,37 +234,67 @@
                     <!-- Phương thức thanh toán -->
                     <div class="checkout-card">
                         <div class="section-title"><i class="fas fa-wallet"></i> Phương thức thanh toán</div>
+                        @{
+                            // ─── Payment brand config: icons/logos cho từng phương thức ───
+                            // PayPal → Font Awesome brand icon
+                            // ZaloPay → inline styled brand (không có FA icon)
+                            // MoMo → inline styled brand (không có FA icon)
+                            var paymentBrands = new Dictionary<string, Func<object>>(StringComparer.OrdinalIgnoreCase)
+                            {
+                                ["Tiền mặt"] = () => Html.Raw(
+                                    "<div style=\"width:44px;height:44px;background:linear-gradient(135deg,#28a745,#20c997);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px;\">" +
+                                    "<i class='fas fa-money-bill-wave text-white'></i></div>"),
+                                ["COD"] = () => Html.Raw(
+                                    "<div style=\"width:44px;height:44px;background:linear-gradient(135deg,#28a745,#20c997);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px;\">" +
+                                    "<i class='fas fa-money-bill-wave text-white'></i></div>"),
+                                ["Chuyển khoản"] = () => Html.Raw(
+                                    "<div style=\"width:44px;height:44px;background:linear-gradient(135deg,#007bff,#17a2b8);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px;\">" +
+                                    "<i class='fas fa-university text-white'></i></div>"),
+                                ["Paypal"] = () => Html.Raw(
+                                    "<div style=\"width:44px;height:44px;background:linear-gradient(135deg,#003087,#009cde);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:22px;\">" +
+                                    "<i class='fab fa-cc-paypal text-white'></i></div>"),
+                                ["ZaloPay"] = () => Html.Raw(
+                                    "<div style=\"width:44px;height:44px;background:linear-gradient(135deg,#0068ff,#00a3ff);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:800;font-size:10px;line-height:1.1;color:#fff;text-align:center;\">" +
+                                    "ZALO<br>PAY</div>"),
+                                ["Momo"] = () => Html.Raw(
+                                    "<div style=\"width:44px;height:44px;background:linear-gradient(135deg,#d82c7e,#a01e5f);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:800;font-size:13px;color:#fff;letter-spacing:-0.5px;\">" +
+                                    "M<small style='font-size:9px'>o</small>Mo</div>"),
+                                ["Tài khoản ngân hàng"] = () => Html.Raw(
+                                    "<div style=\"width:44px;height:44px;background:linear-gradient(135deg,#007bff,#17a2b8);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px;\">" +
+                                    "<i class='fas fa-university text-white'></i></div>")
+                            };
+                        }
                         @foreach (var pt in lhtt)
                         {
+                            var brandKey = paymentBrands.Keys.FirstOrDefault(k => (pt.tenhinhthuc ?? "").Contains(k, StringComparison.OrdinalIgnoreCase));
+                            var brandIcon = brandKey != null ? paymentBrands[brandKey]() : Html.Raw(
+                                "<div style=\"width:44px;height:44px;background:linear-gradient(135deg,#6f42c1,#e83e8c);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px;\">" +
+                                "<i class='fas fa-credit-card text-white'></i></div>");
+
                             <div class="payment-option" id="payment-opt-@pt.mahttt" onclick="selectPayment(@pt.mahttt, '@Html.Raw(pt.tenhinhthuc?.Replace("'","\\'")??"")' )">
                                 <input type="radio" name="pttt" value="@pt.mahttt" class="payment-method" data-name="@pt.tenhinhthuc">
-                                @if ((pt.tenhinhthuc ?? "").Contains("Tiền mặt") || (pt.tenhinhthuc ?? "").Contains("COD"))
-                                {
-                                    <div style="width:40px;height:40px;background:linear-gradient(135deg,#28a745,#20c997);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                                        <i class="fas fa-money-bill-wave text-white"></i>
-                                    </div>
-                                }
-                                else if ((pt.tenhinhthuc ?? "").Contains("Chuyển khoản"))
-                                {
-                                    <div style="width:40px;height:40px;background:linear-gradient(135deg,#007bff,#17a2b8);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                                        <i class="fas fa-university text-white"></i>
-                                    </div>
-                                }
-                                else
-                                {
-                                    <div style="width:40px;height:40px;background:linear-gradient(135deg,#6f42c1,#e83e8c);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                                        <i class="fas fa-credit-card text-white"></i>
-                                    </div>
-                                }
+                                @brandIcon
                                 <div>
                                     <div style="font-weight:600;font-size:15px;">@pt.tenhinhthuc</div>
                                     @if ((pt.tenhinhthuc ?? "").Contains("Tiền mặt") || (pt.tenhinhthuc ?? "").Contains("COD"))
                                     {
                                         <div style="font-size:12px;color:#888;">Thanh toán khi nhận hàng</div>
                                     }
-                                    else if ((pt.tenhinhthuc ?? "").Contains("Chuyển khoản"))
+                                    else if ((pt.tenhinhthuc ?? "").Contains("Chuyển khoản") || (pt.tenhinhthuc ?? "").Contains("ngân hàng"))
                                     {
                                         <div style="font-size:12px;color:#888;">Chuyển khoản qua ngân hàng / QR</div>
+                                    }
+                                    else if ((pt.tenhinhthuc ?? "").Contains("Paypal"))
+                                    {
+                                        <div style="font-size:12px;color:#888;">Thanh toán quốc tế qua PayPal</div>
+                                    }
+                                    else if ((pt.tenhinhthuc ?? "").Contains("ZaloPay"))
+                                    {
+                                        <div style="font-size:12px;color:#888;">Ví điện tử ZaloPay</div>
+                                    }
+                                    else if ((pt.tenhinhthuc ?? "").Contains("Momo"))
+                                    {
+                                        <div style="font-size:12px;color:#888;">Ví MoMo - Quét mã QR</div>
                                     }
                                 </div>
                             </div>

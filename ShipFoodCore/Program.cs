@@ -400,28 +400,46 @@ try
         }
 
         // 1b: Thêm bảng tbLichSuSuDungKhuyenMai nếu chưa có
+        // Chạy TRƯỚC khi app nhận request để tránh lỗi DbUpdateException khi thanh toán
         try
         {
-            db.Database.ExecuteSqlRaw(@"
-                CREATE TABLE IF NOT EXISTS tbLichSuSuDungKhuyenMai (
-                    id INT AUTO_INCREMENT NOT NULL,
-                    userid INT NOT NULL,
-                    makm INT NOT NULL,
-                    ngaydung DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                    madh INT NULL,
-                    PRIMARY KEY (id),
-                    INDEX idx_lskm_user (userid),
-                    INDEX idx_lskm_makm (makm),
-                    INDEX idx_lskm_ngay (ngaydung),
-                    CONSTRAINT fk_lskm_user FOREIGN KEY (userid) REFERENCES tbUser(userid) ON DELETE CASCADE,
-                    CONSTRAINT fk_lskm_khuyenmai FOREIGN KEY (makm) REFERENCES tbKhuyenMai(makm) ON DELETE CASCADE,
-                    CONSTRAINT fk_lskm_donhang FOREIGN KEY (madh) REFERENCES tbDonHang(madh) ON DELETE SET NULL
-                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
-            logger.LogInformation("Table tbLichSuSuDungKhuyenMai ensured");
+            // Kiểm tra bảng đã tồn tại chưa
+            var tableExists = false;
+            try
+            {
+                db.Database.ExecuteSqlRaw("SELECT 1 FROM tbLichSuSuDungKhuyenMai LIMIT 1");
+                tableExists = true;
+            }
+            catch { /* Table doesn't exist */ }
+
+            if (!tableExists)
+            {
+                db.Database.ExecuteSqlRaw(@"
+                    CREATE TABLE tbLichSuSuDungKhuyenMai (
+                        id INT AUTO_INCREMENT NOT NULL,
+                        userid INT NOT NULL,
+                        makm INT NOT NULL,
+                        ngaydung DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                        madh INT NULL,
+                        PRIMARY KEY (id),
+                        INDEX idx_lskm_user (userid),
+                        INDEX idx_lskm_makm (makm),
+                        INDEX idx_lskm_ngay (ngaydung),
+                        CONSTRAINT fk_lskm_user FOREIGN KEY (userid) REFERENCES tbUser(userid) ON DELETE CASCADE,
+                        CONSTRAINT fk_lskm_khuyenmai FOREIGN KEY (makm) REFERENCES tbKhuyenMai(makm) ON DELETE CASCADE,
+                        CONSTRAINT fk_lskm_donhang FOREIGN KEY (madh) REFERENCES tbDonHang(madh) ON DELETE SET NULL
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+                logger.LogInformation("Table tbLichSuSuDungKhuyenMai created");
+            }
+            else
+            {
+                logger.LogInformation("Table tbLichSuSuDungKhuyenMai already exists");
+            }
         }
         catch (Exception ex)
         {
-            logger.LogWarning("Could not create tbLichSuSuDungKhuyenMai: {Error}", ex.Message);
+            // Nếu không tạo được bảng, payment sẽ skip coupon logging (non-blocking)
+            logger.LogError(ex, "CRITICAL: Could not create tbLichSuSuDungKhuyenMai — coupon logging disabled");
         }
     }
 }

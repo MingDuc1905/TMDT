@@ -189,16 +189,25 @@ public class PaymentController : BaseController
             _logger.LogInformation("Order #{OrderId} placed by user {UserId}", dh.madh, user.userid);
 
             // ─── 1h: Ghi nhận lịch sử sử dụng mã giảm giá ───
+            // ⚠️ Non-blocking: nếu bảng chưa tồn tại hoặc lỗi ghi, payment vẫn thành công
             if (appliedCouponId != null)
             {
-                db.tbLichSuSuDungKhuyenMai.Add(new tbLichSuSuDungKhuyenMai
+                try
                 {
-                    userid = user!.userid,
-                    makm = appliedCouponId.Value,
-                    ngaydung = DateTime.Now,
-                    madh = dh.madh
-                });
-                db.SaveChanges();
+                    db.tbLichSuSuDungKhuyenMai.Add(new tbLichSuSuDungKhuyenMai
+                    {
+                        userid = user!.userid,
+                        makm = appliedCouponId.Value,
+                        ngaydung = DateTime.Now,
+                        madh = dh.madh
+                    });
+                    db.SaveChanges();
+                }
+                catch (Exception couponEx)
+                {
+                    _logger.LogWarning(couponEx, "Failed to record coupon usage for order #{OrderId}, coupon #{CouponId}", dh.madh, appliedCouponId);
+                    // Không throw — payment vẫn thành công
+                }
             }
 
             // ─── Chỉ xóa cart sau khi MoMo API đã được gọi (dù thành công hay thất bại) ───
@@ -231,20 +240,27 @@ public class PaymentController : BaseController
         {
             _logger.LogError(ex, "ProcessPayment failed for user {User}", GetCurrentUser()?.userid);
 
-            // Phân loại lỗi chi tiết
+            // Phân loại lỗi chi tiết — LUÔN log đầy đủ inner exception để debug
+            _logger.LogError(ex, "Payment failed. Inner: {InnerMessage}",
+                (ex is DbUpdateException due && due.InnerException != null) ? due.InnerException.Message : ex.Message);
+
             var errorMessage = ex switch
             {
-                DbUpdateException due when due.InnerException?.Message?.Contains("FK_") == true
+                DbUpdateException de when de.InnerException?.Message?.Contains("FK_") == true
                     => "Dữ liệu không hợp lệ: ràng buộc khóa ngoại bị vi phạm.",
-                DbUpdateException due when due.InnerException?.Message?.Contains("UNIQUE") == true
+                DbUpdateException de when de.InnerException?.Message?.Contains("UNIQUE") == true
                     => "Dữ liệu bị trùng lặp: đơn hàng này đã tồn tại.",
-                DbUpdateException due when due.InnerException?.Message?.Contains("timeout") == true
+                DbUpdateException de when de.InnerException?.Message?.Contains("timeout") == true
                     => "Kết nối cơ sở dữ liệu bị timeout. Vui lòng thử lại.",
+                DbUpdateException de when (de.InnerException?.Message?.Contains("doesn't exist") == true
+                    || de.InnerException?.Message?.Contains("not exist") == true
+                    || de.InnerException?.Message?.Contains("Unknown table") == true)
+                    => "Lỗi cấu trúc cơ sở dữ liệu: bảng chưa được tạo. Vui lòng liên hệ quản trị viên.",
                 OperationCanceledException _
                     => "Yêu cầu đã bị hủy do quá thời gian chờ. Vui lòng thử lại.",
                 InvalidOperationException ioe when ioe.Message.Contains("session")
                     => "Phiên đặt hàng đã hết hạn. Vui lòng đăng nhập lại.",
-                _ => $"Lỗi hệ thống: {ex.Message}. Vui lòng thử lại."
+                _ => $"Lỗi hệ thống: {(ex is DbUpdateException dbEx && dbEx.InnerException != null ? dbEx.InnerException.Message : ex.Message)}. Vui lòng thử lại hoặc liên hệ hỗ trợ."
             };
 
             return Json(new { success = false, message = errorMessage, keepCart = true });

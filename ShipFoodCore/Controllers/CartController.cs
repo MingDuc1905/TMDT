@@ -127,21 +127,27 @@ public class CartController : BaseController
             return Json(new { success = false, message = "Mã khuyến mãi không hợp lệ hoặc đã hết hạn" });
 
         if (coupon.ngaybatdau != null && coupon.ngaybatdau > DateTime.Now)
-            return Json(new { success = false, message = "Mã khuyến mãi chưa đến ngày áp dụng" });
-
-        // ─── 1b: Kiểm tra tần suất sử dụng mã của User ───
-        var user = GetCurrentUser();
-        if (user != null)
-        {
-            var usageCount = db.tbLichSuSuDungKhuyenMai
-                .Count(ls => ls.userid == user.userid && ls.makm == coupon.makm);
-
-            // Mỗi mã chỉ được dùng tối đa 1 lần (có thể điều chỉnh sau)
-            if (usageCount > 0)
+            return Json(new { success = false, message = "Mã khuyến mãi chưa đến ngày áp dụng" });            // ─── 1b: Kiểm tra tần suất sử dụng mã của User ───
+            var user = GetCurrentUser();
+            if (user != null)
             {
-                return Json(new { success = false, message = "Bạn đã sử dụng mã này rồi. Mỗi mã chỉ được dùng 1 lần." });
+                // Non-blocking: nếu bảng chưa tồn tại, bỏ qua kiểm tra usage
+                try
+                {
+                    var usageCount = db.tbLichSuSuDungKhuyenMai
+                        .Count(ls => ls.userid == user.userid && ls.makm == coupon.makm);
+
+                    if (usageCount > 0)
+                    {
+                        return Json(new { success = false, message = "Bạn đã sử dụng mã này rồi. Mỗi mã chỉ được dùng 1 lần." });
+                    }
+                }
+                catch (Exception ex)
+                {
+                    var logger = HttpContext.RequestServices.GetRequiredService<ILogger<CartController>>();
+                    logger.LogWarning(ex, "Coupon usage check failed — skipping");
+                }
             }
-        }
 
         int phanTramGiam = coupon.phantramgiam ?? 0;
         decimal discountAmount = tongTien * phanTramGiam / 100;

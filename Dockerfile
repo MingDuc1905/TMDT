@@ -27,6 +27,7 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
 COPY --from=build /app/publish .
 COPY mysql_utf8.sql ./mysql_utf8.sql
+COPY seed.sql ./seed.sql
 
 EXPOSE 8080
 ENV ASPNETCORE_URLS=http://+:8080

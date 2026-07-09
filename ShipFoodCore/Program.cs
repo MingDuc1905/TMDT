@@ -55,7 +55,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Use Serilog as the logging provider
 builder.Host.UseSerilog();
 
-// In production (Railway), use PORT env var dynamically
+// In production (Render), use PORT env var dynamically (Render also uses PORT)
 if (!builder.Environment.IsDevelopment())
 {
     var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
@@ -150,46 +150,42 @@ builder.Services.AddRateLimiter(options =>
     };
 });
 
-// Get connection string from Railway env vars or appsettings.json
+// Get connection string from appsettings.json or Render PostgreSQL env vars
 var connectionString = builder.Configuration.GetConnectionString("dbFoodyEntities");
 
-// If no connection string in appsettings, build from Railway MySQL environment variables
+// If no connection string in appsettings, build from Render PostgreSQL environment variables
 if (string.IsNullOrEmpty(connectionString))
 {
-    // Try MYSQL_URL first (full connection URL provided by Railway)
-    var mysqlUrl = Environment.GetEnvironmentVariable("MYSQL_URL");
-    if (!string.IsNullOrEmpty(mysqlUrl))
+    // Try Render's DATABASE_URL first (full connection URL provided by Render)
+    // Format: postgres://user:password@host:port/database
+    var pgUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
+    if (!string.IsNullOrEmpty(pgUrl))
     {
-        connectionString = mysqlUrl;
+        connectionString = pgUrl;
     }
     else
     {
-        // Fallback: build from individual Railway MySQL environment variables
-        var mysqlHost     = Environment.GetEnvironmentVariable("MYSQLHOST")     ?? "localhost";
-        var mysqlPort     = Environment.GetEnvironmentVariable("MYSQLPORT")     ?? "3306";
-        var mysqlUser     = Environment.GetEnvironmentVariable("MYSQLUSER")     ?? "root";
-        var mysqlPassword = Environment.GetEnvironmentVariable("MYSQLPASSWORD") ?? "";
-        var mysqlDatabase = Environment.GetEnvironmentVariable("MYSQLDATABASE") ?? "dbFoody";
+        // Fallback: build from individual PostgreSQL environment variables
+        var pgHost     = Environment.GetEnvironmentVariable("PGHOST")     ?? "localhost";
+        var pgPort     = Environment.GetEnvironmentVariable("PGPORT")     ?? "5432";
+        var pgUser     = Environment.GetEnvironmentVariable("PGUSER")     ?? "postgres";
+        var pgPassword = Environment.GetEnvironmentVariable("PGPASSWORD") ?? "";
+        var pgDatabase = Environment.GetEnvironmentVariable("PGDATABASE") ?? "dbFoody";
 
-        connectionString = $"Server={mysqlHost};Port={mysqlPort};Database={mysqlDatabase};User={mysqlUser};Password={mysqlPassword};SslMode=Preferred;";
+        connectionString = $"Host={pgHost};Port={pgPort};Database={pgDatabase};Username={pgUser};Password={pgPassword};";
     }
 }
 
-// Add Entity Framework Core (MySQL)
+// Add Entity Framework Core (PostgreSQL)
 builder.Services.AddDbContext<dbFoodyEntities>(options =>
-    options.UseMySql(
-        connectionString,
-        // Dùng MySqlServerVersion 8.0.20 để tắt RETURNING (MySQL < 8.0.21 không hỗ trợ)
-        // Nếu cần auto-detect: ServerVersion.AutoDetect(connectionString)
-        new MySqlServerVersion(new Version(8, 0, 20))
-    ));
+    options.UseNpgsql(connectionString));
 
 // Add HttpContextAccessor for session access
 builder.Services.AddHttpContextAccessor();
 
 // ─── Mục 5: Data Protection — lưu khóa mã hóa Cookie bền vững ───
 // Tránh mất khóa khi container restart → user bị đăng xuất hàng loạt
-// Trên Railway: set DATA_PROTECTION_KEY_DIR trỏ đến thư mục persistent (VD: /data/dpk/)
+// Trên Render: set DATA_PROTECTION_KEY_DIR trỏ đến thư mục persistent (VD: /data/dpk/)
 try
 {
     var keyRingPath = Environment.GetEnvironmentVariable("DATA_PROTECTION_KEY_DIR")
@@ -241,7 +237,7 @@ builder.Services.AddAntiforgery(options =>
 // ─── Task 4: CORS Policy — restrict to official domain ───
 var allowedOrigins = (Environment.GetEnvironmentVariable("ALLOWED_ORIGINS")
     ?? builder.Configuration["Cors:AllowedOrigins"]
-    ?? "https://shipfood.up.railway.app")
+    ?? "https://fastship-web.onrender.com")
     .Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
 if (builder.Environment.IsDevelopment())
@@ -305,8 +301,8 @@ if (!string.IsNullOrEmpty(googleClientId) && !string.IsNullOrEmpty(googleClientS
 var app = builder.Build();
 
 // ─── Task 1b: EF Core Migrations (replacing EnsureCreated) ───
-// Auto-create database tables on first run (MySQL)
-// Wrapped in try-catch so the app starts even if MySQL is not yet available
+// Auto-create database tables on first run (PostgreSQL)
+// Wrapped in try-catch so the app starts even if PostgreSQL is not yet available
 try
 {
     using (var scope = app.Services.CreateScope())
@@ -342,12 +338,12 @@ try
                 logger.LogInformation("Database already exists (EnsureCreated)");
             }
 
-            // Step 3: Seed data if DB is empty
+            // Step 3: Seed data if DB is empty (PostgreSQL)
             if (!db.tbUsers.Any())
             {
-                string sqlPath = Path.Combine(app.Environment.ContentRootPath, "mysql_utf8.sql");
+                var sqlPath = Path.Combine(app.Environment.ContentRootPath, "seed.sql");
                 if (!File.Exists(sqlPath))
-                    sqlPath = Path.Combine(app.Environment.ContentRootPath, "..", "mysql_utf8.sql");
+                    sqlPath = Path.Combine(app.Environment.ContentRootPath, "..", "seed.sql");
 
                 if (File.Exists(sqlPath))
                 {
@@ -357,125 +353,15 @@ try
                     foreach (var stmt in statements)
                     {
                         var trimmed = stmt.Trim();
-                        if (trimmed.Length > 0 && !trimmed.StartsWith("--") && !trimmed.StartsWith("DROP") && !trimmed.StartsWith("CREATE"))
+                        if (trimmed.Length > 0 && !trimmed.StartsWith("--") && !trimmed.StartsWith("DROP") && !trimmed.StartsWith("CREATE") && !trimmed.StartsWith("SET"))
                         {
-                            try { db.Database.ExecuteSqlRaw(trimmed); } catch { }
+                            try { db.Database.ExecuteSqlRaw(trimmed); }
+                            catch (Exception seedEx) { logger.LogWarning("Seed statement skipped: {Error}", seedEx.Message); }
                         }
                     }
                     logger.LogInformation("Database seeding completed");
                 }
             }
-        }
-
-        // Plain-text: đảm bảo cột pwd có độ dài phù hợp (VARCHAR(100))
-        try
-        {
-            db.Database.ExecuteSqlRaw("ALTER TABLE tbUser MODIFY COLUMN pwd VARCHAR(100) NOT NULL;");
-            logger.LogInformation("Column tbUser.pwd set to VARCHAR(100) for plain-text storage");
-        }
-        catch (Exception ex)
-        {
-            logger.LogWarning("Could not alter tbUser.pwd column: {Error}", ex.Message);
-        }
-
-        // Task 2c: Thêm cột conhang cho tbMonAn (nếu chưa có)
-        try
-        {
-            db.Database.ExecuteSqlRaw(@"
-                SET @exist := (SELECT COUNT(*) FROM information_schema.COLUMNS 
-                    WHERE TABLE_NAME = 'tbMonAn' AND COLUMN_NAME = 'conhang' AND TABLE_SCHEMA = DATABASE());
-                SET @sql := IF(@exist = 0,
-                    'ALTER TABLE tbMonAn ADD COLUMN conhang BIT DEFAULT 1 AFTER madanhmuc',
-                    'SELECT 1');
-                PREPARE stmt FROM @sql;
-                EXECUTE stmt;
-                DEALLOCATE PREPARE stmt;");
-            logger.LogInformation("Column tbMonAn.conhang ensured (BIT DEFAULT 1)");
-        }
-        catch (Exception ex)
-        {
-            logger.LogWarning("Could not add tbMonAn.conhang column: {Error}", ex.Message);
-        }
-
-        // 1a: Thêm cột isDeleted cho tbMonAn (soft delete)
-        try
-        {
-            db.Database.ExecuteSqlRaw(@"
-                SET @exist := (SELECT COUNT(*) FROM information_schema.COLUMNS 
-                    WHERE TABLE_NAME = 'tbMonAn' AND COLUMN_NAME = 'isDeleted' AND TABLE_SCHEMA = DATABASE());
-                SET @sql := IF(@exist = 0,
-                    'ALTER TABLE tbMonAn ADD COLUMN isDeleted BIT DEFAULT 0 AFTER conhang',
-                    'SELECT 1');
-                PREPARE stmt FROM @sql;
-                EXECUTE stmt;
-                DEALLOCATE PREPARE stmt;");
-            logger.LogInformation("Column tbMonAn.isDeleted ensured (BIT DEFAULT 0)");
-        }
-        catch (Exception ex)
-        {
-            logger.LogWarning("Could not add tbMonAn.isDeleted column: {Error}", ex.Message);
-        }
-
-        // 1a-bis: Thêm cột momo_trans_id cho tbDonHang (dùng cho MoMo Refund)
-        try
-        {
-            db.Database.ExecuteSqlRaw(@"
-                SET @exist := (SELECT COUNT(*) FROM information_schema.COLUMNS 
-                    WHERE TABLE_NAME = 'tbDonHang' AND COLUMN_NAME = 'momo_trans_id' AND TABLE_SCHEMA = DATABASE());
-                SET @sql := IF(@exist = 0,
-                    'ALTER TABLE tbDonHang ADD COLUMN momo_trans_id VARCHAR(100) NULL AFTER ngaythanhtoan',
-                    'SELECT 1');
-                PREPARE stmt FROM @sql;
-                EXECUTE stmt;
-                DEALLOCATE PREPARE stmt;");
-            logger.LogInformation("Column tbDonHang.momo_trans_id ensured (VARCHAR(100) NULL)");
-        }
-        catch (Exception ex)
-        {
-            logger.LogWarning("Could not add tbDonHang.momo_trans_id column: {Error}", ex.Message);
-        }
-
-        // 1b: Thêm bảng tbLichSuSuDungKhuyenMai nếu chưa có
-        // Chạy TRƯỚC khi app nhận request để tránh lỗi DbUpdateException khi thanh toán
-        try
-        {
-            // Kiểm tra bảng đã tồn tại chưa
-            var tableExists = false;
-            try
-            {
-                db.Database.ExecuteSqlRaw("SELECT 1 FROM tbLichSuSuDungKhuyenMai LIMIT 1");
-                tableExists = true;
-            }
-            catch { /* Table doesn't exist */ }
-
-            if (!tableExists)
-            {
-                db.Database.ExecuteSqlRaw(@"
-                    CREATE TABLE tbLichSuSuDungKhuyenMai (
-                        id INT AUTO_INCREMENT NOT NULL,
-                        userid INT NOT NULL,
-                        makm INT NOT NULL,
-                        ngaydung DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                        madh INT NULL,
-                        PRIMARY KEY (id),
-                        INDEX idx_lskm_user (userid),
-                        INDEX idx_lskm_makm (makm),
-                        INDEX idx_lskm_ngay (ngaydung),
-                        CONSTRAINT fk_lskm_user FOREIGN KEY (userid) REFERENCES tbUser(userid) ON DELETE CASCADE,
-                        CONSTRAINT fk_lskm_khuyenmai FOREIGN KEY (makm) REFERENCES tbKhuyenMai(makm) ON DELETE CASCADE,
-                        CONSTRAINT fk_lskm_donhang FOREIGN KEY (madh) REFERENCES tbDonHang(madh) ON DELETE SET NULL
-                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
-                logger.LogInformation("Table tbLichSuSuDungKhuyenMai created");
-            }
-            else
-            {
-                logger.LogInformation("Table tbLichSuSuDungKhuyenMai already exists");
-            }
-        }
-        catch (Exception ex)
-        {
-            // Nếu không tạo được bảng, payment sẽ skip coupon logging (non-blocking)
-            logger.LogError(ex, "CRITICAL: Could not create tbLichSuSuDungKhuyenMai — coupon logging disabled");
         }
     }
 }

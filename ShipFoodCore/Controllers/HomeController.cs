@@ -827,6 +827,30 @@ public class HomeController : BaseController
             m.madanhmuc
         }).ToList();
 
+        // Thử INSERT 1 user test để kiểm tra seed có hoạt động không
+        if (!db.tbUser.Any())
+        {
+            try
+            {
+                var testSql = @"INSERT INTO ""tbUser"" (""username"", ""pwd"", ""loaitaikhoan"", ""sdt"", ""vitien"", ""email"", ""trangthai"")
+VALUES ('test_debug', 'test123', 'Khách hàng', '0999999999', 0, 'test@debug.com', 1)";
+                db.Database.ExecuteSqlRaw(testSql);
+                debugInfo["testInsert"] = "OK — inserted test_debug user";
+                // Clean up test user
+                db.Database.ExecuteSqlRaw(@"DELETE FROM ""tbUser"" WHERE ""username"" = 'test_debug'");
+                debugInfo["testCleanup"] = "OK — cleaned up";
+            }
+            catch (Exception testEx)
+            {
+                debugInfo["testInsertError"] = testEx.Message;
+                debugInfo["testInsertInner"] = testEx.InnerException?.Message ?? "(none)";
+            }
+        }
+        else
+        {
+            debugInfo["testInsertSkipped"] = "DB already has data, skip test";
+        }
+
         return Json(new { success = true, database = debugInfo });
     }
 

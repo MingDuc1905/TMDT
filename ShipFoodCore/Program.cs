@@ -6,6 +6,9 @@ using ShipFood.Models;
 using Serilog;
 using Microsoft.AspNetCore.Authentication.OAuth;
 
+// ponytail: Cho phép DateTime Local với PostgreSQL timestamptz
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
 // ─── Task 3: Centralized Logging (Serilog + Seq) ───
 var logConfig = new LoggerConfiguration()
     .MinimumLevel.Information()

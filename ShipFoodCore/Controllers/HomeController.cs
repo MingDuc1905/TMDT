@@ -770,6 +770,67 @@ public class HomeController : BaseController
     }
 
     /// <summary>
+    /// Debug: kiểm tra database — đếm số dòng từng bảng
+    /// URL: GET /Home/DbDebug
+    /// </summary>
+    [HttpGet]
+    public JsonResult DbDebug()
+    {
+        var debugInfo = new Dictionary<string, object>
+        {
+            ["tbUser"] = db.tbUser.Count(),
+            ["tbQuanAn"] = db.tbQuanAn.Count(),
+            ["tbMonAn"] = db.tbMonAn.Count(),
+            ["tbDanhMuc"] = db.tbDanhMuc.Count(),
+            ["tbBienTheMonAn"] = db.tbBienTheMonAn.Count(),
+            ["tbDonHang"] = db.tbDonHang.Count(),
+            ["tbChiTietDonHang"] = db.tbChiTietDonHang.Count(),
+            ["tbThongTinDatHang"] = db.tbThongTinDatHang.Count(),
+            ["tbKhachHang"] = db.tbKhachHang.Count(),
+            ["tbShipper"] = db.tbShipper.Count(),
+            ["tbDanhGia"] = db.tbDanhGia.Count(),
+            ["tbKhuyenMai"] = db.tbKhuyenMai.Count(),
+            ["tbMonAnKhuyenMai"] = db.tbMonAnKhuyenMai.Count(),
+            ["tbLichSuSuDungKhuyenMai"] = db.tbLichSuSuDungKhuyenMai.Count(),
+            ["tbLoaiHinhThanhToan"] = db.tbLoaiHinhThanhToan.Count(),
+            ["tbTinNhan"] = db.tbTinNhans.Count(),
+            ["tbAdmin"] = db.tbAdmin.Count(),
+            ["connectionString"] = "(hidden)",
+        };
+
+        // Lấy 5 user đầu tiên để kiểm tra
+        debugInfo["sampleUsers"] = db.tbUser.Take(5).Select(u => new
+        {
+            u.userid,
+            u.username,
+            u.email,
+            u.loaitaikhoan,
+            u.trangthai,
+            u.sdt
+        }).ToList();
+
+        // Lấy 3 quán ăn đầu tiên
+        debugInfo["sampleRestaurants"] = db.tbQuanAn.Take(3).Select(q => new
+        {
+            q.userid,
+            q.tenquanan,
+            q.trangthai,
+            q.diachi
+        }).ToList();
+
+        // Lấy 3 món ăn đầu tiên
+        debugInfo["sampleMonAns"] = db.tbMonAn.Take(3).Select(m => new
+        {
+            m.mamon,
+            m.tenmon,
+            m.maquanan,
+            m.madanhmuc
+        }).ToList();
+
+        return Json(new { success = true, database = debugInfo });
+    }
+
+    /// <summary>
     /// Ghi đè BCrypt hash trong database Railway bằng plain-text password
     /// Chạy 1 lần sau deploy để fix lỗi login do database cũ còn BCrypt hash
     /// URL: GET /Home/FixPasswords

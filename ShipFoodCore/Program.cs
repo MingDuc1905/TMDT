@@ -150,15 +150,48 @@ builder.Services.AddRateLimiter(options =>
     };
 });
 
+// ─── Helper: Convert postgres:// URI to Npgsql key-value format ───
+static string? ParsePgConnectionString(string? connStr)
+{
+    if (string.IsNullOrWhiteSpace(connStr)) return null;
+
+    connStr = connStr.Trim();
+
+    // postgres://user:password@host:port/database?options...
+    if (connStr.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase) ||
+        connStr.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase))
+    {
+        try
+        {
+            var uri = new Uri(connStr);
+            var host = uri.Host;
+            var port = uri.IsDefaultPort ? "5432" : uri.Port.ToString();
+            var db = uri.AbsolutePath.TrimStart('/').Split('?')[0];
+            var userInfo = uri.UserInfo.Split(':');
+            var user = userInfo[0];
+            var pass = userInfo.Length > 1 ? userInfo[1] : "";
+
+            var query = uri.Query.TrimStart('?');
+            var extra = string.IsNullOrEmpty(query) ? "" : $";{query.Replace("&", ";")}";
+
+            return $"Host={host};Port={port};Database={db};Username={user};Password={pass};SSL Mode=Require;Trust Server Certificate=true{extra}";
+        }
+        catch { return null; } // URI parse failed — can't connect
+    }
+
+    return connStr; // already key-value format
+}
+
 // Get connection string from appsettings.json or Render PostgreSQL env vars
 var connectionString = builder.Configuration.GetConnectionString("dbFoodyEntities");
+connectionString = ParsePgConnectionString(connectionString);
 
 // If no connection string in appsettings, build from Render PostgreSQL environment variables
 if (string.IsNullOrEmpty(connectionString))
 {
     // Try Render's DATABASE_URL first (full connection URL provided by Render)
-    // Format: postgres://user:password@host:port/database
     var pgUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
+    pgUrl = ParsePgConnectionString(pgUrl);
     if (!string.IsNullOrEmpty(pgUrl))
     {
         connectionString = pgUrl;
@@ -172,9 +205,12 @@ if (string.IsNullOrEmpty(connectionString))
         var pgPassword = Environment.GetEnvironmentVariable("PGPASSWORD") ?? "";
         var pgDatabase = Environment.GetEnvironmentVariable("PGDATABASE") ?? "dbFoody";
 
-        connectionString = $"Host={pgHost};Port={pgPort};Database={pgDatabase};Username={pgUser};Password={pgPassword};";
+        connectionString = $"Host={pgHost};Port={pgPort};Database={pgDatabase};Username={pgUser};Password={pgPassword};SSL Mode=Require;Trust Server Certificate=true";
     }
 }
+
+// ponytail: log host only, never the full connection string (password leak risk)
+Log.Information("PostgreSQL connection configured");
 
 // Add Entity Framework Core (PostgreSQL)
 builder.Services.AddDbContext<dbFoodyEntities>(options =>

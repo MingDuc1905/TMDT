@@ -105,5 +105,29 @@
         return false;
     });
 
+    // ── Chat + Leaflet Map Overlap Fix ──
+    // Auto-ẩn chat widget khi người dùng tương tác với Leaflet map
+    $(document).on('click', '.leaflet-map, .leaflet-container, #shipper-map, #map', function() {
+        var chatBox = document.getElementById('chatBox');
+        var chatToggle = document.querySelector('.chat-toggle');
+        if (chatBox && chatBox.classList.contains('active')) {
+            chatBox.classList.remove('active');
+            if (chatToggle) chatToggle.style.display = 'flex';
+        }
+    });
+
+    // Auto-ẩn chat khi drag trên Leaflet map (touch devices)
+    $(document).on('touchstart', '.leaflet-container', function() {
+        var chatBox = document.getElementById('chatBox');
+        var chatToggle = document.querySelector('.chat-toggle');
+        if (chatBox && chatBox.classList.contains('active')) {
+            // Delay nhẹ để không ảnh hưởng đến touch start của map
+            setTimeout(function() {
+                chatBox.classList.remove('active');
+                if (chatToggle) chatToggle.style.display = 'flex';
+            }, 100);
+        }
+    });
+
 })(jQuery);
 

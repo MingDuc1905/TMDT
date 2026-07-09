@@ -392,7 +392,8 @@ MYSQL_URL=Server=...;Database=...;User=...;Password=...;
 Authentication__Google__ClientId=xxx
 Authentication__Google__ClientSecret=xxx
 
-# Gemini AI (optional)
+# Gemini AI (optional) — Ưu tiên đọc từ Environment Variable trước, fallback xuống appsettings.json
+# Trên Railway: set Gemini__ApiKey=xxx (dùng __ thay : vì env var không hỗ trợ dấu hai chấm)
 Gemini__ApiKey=xxx
 
 # Serilog Seq (optional)
@@ -444,6 +445,8 @@ APP_DOMAIN=https://shipfood.up.railway.app
 - Contextual quick replies (dựa trên từ khóa trong message)
 - Conversation history (20 messages trong session, lưu dạng JSON)
 - Fallback: hướng dẫn dùng lệnh khi Gemini không khả dụng hoặc chưa cấu hình API key
+- **API Key**: Đọc từ `Environment.GetEnvironmentVariable("Gemini__ApiKey")` (Railway env var) trước, fallback `configuration["Gemini:ApiKey"]` (appsettings.json). KHÔNG lưu vào Session tạm.
+- **HTTP 429 Handling**: Khi Gemini trả về Too Many Requests, trả về thông báo thân thiện: "⚠️ Hệ thống AI đang quá tải do lượt truy cập cao vào giờ cao điểm, vui lòng thử lại sau 1 phút." — không crash UI, không ẩn khung chat
 
 ---
 

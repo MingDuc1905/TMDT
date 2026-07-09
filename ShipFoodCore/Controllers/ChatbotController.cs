@@ -41,8 +41,33 @@ public class ChatbotController : BaseController
         // 2. Dùng Gemini AI trả lời TỰ DO - không bị giới hạn bởi kịch bản lập trình sẵn
         if (_gemini.IsConfigured)
         {
+            // ── Đồng bộ thời gian thực: query DB trước khi gửi lên Gemini ──
+            // Tránh lệch pha giữa trạng thái đơn hàng trong DB vs Progress Bar UI
+            // Lấy trạng thái mới nhất của đơn hàng nếu có đề cập trong message
+            var orderMatch = Regex.Match(message, @"(?:#|mã\s+|đơn\s+|order\s+|tra\s+)(\d{2,8})");
+            string? realtimeOrderStatus = null;
+            if (orderMatch.Success)
+            {
+                int orderId = int.Parse(orderMatch.Groups[1].Value);
+                var liveOrder = db.tbDonHang
+                    .AsNoTracking()
+                    .Where(d => d.madh == orderId)
+                    .Select(d => new { d.trangthai, d.tongtien })
+                    .FirstOrDefault();
+                if (liveOrder != null)
+                {
+                    realtimeOrderStatus = $"[Trạng thái thực tế từ hệ thống] Đơn #{orderId}: {liveOrder.trangthai}, tổng tiền: {liveOrder.tongtien:N0}đ";
+                }
+            }
+
             var history = GetConversationHistory();
-            var geminiReply = await _gemini.SendMessageAsync(message, history);
+            // Inject realtime context vào message trước khi gửi lên Gemini
+            var augmentedMessage = message;
+            if (realtimeOrderStatus != null)
+            {
+                augmentedMessage = message + $"\n\n(Dữ liệu hệ thống: {realtimeOrderStatus})";
+            }
+            var geminiReply = await _gemini.SendMessageAsync(augmentedMessage, history);
             if (!string.IsNullOrEmpty(geminiReply))
             {
                 SaveToHistory(message, geminiReply);

@@ -67,8 +67,10 @@ public class RecommendationService
     /// THUẬT TOÁN APRIORI NÂNG CAO — Support & Confidence
     /// ════════════════════════════════════════════════════════════════
     /// 
-    /// Công thức:
-    ///   Support(A,B→C) = count(orders chứa A,B,C) / totalOrders
+    /// Công thức (chuẩn F&B):
+    ///   Support(A→B) = count(orders chứa A∩B) / count(orders chứa A)
+    ///     → Chia cho tổng đơn có chứa món A, không phải tổng toàn hệ thống
+    ///     → Giữ chỉ số ổn định, không tiệm cận 0% khi số hóa đơn tăng
     ///   Confidence(A,B→C) = count(orders chứa A,B,C) / count(orders chứa A,B)
     /// 
     /// Ngưỡng:
@@ -146,7 +148,9 @@ public class RecommendationService
             {
                 BientheId = c.BientheId,
                 OrderCount = c.OrderCount,
-                Support = (decimal)c.OrderCount / totalOrders,
+                Support = countOrdersWithInput > 0
+                    ? (decimal)c.OrderCount / countOrdersWithInput
+                    : 0m,
                 Confidence = countOrdersWithInput > 0
                     ? (decimal)c.OrderCount / countOrdersWithInput
                     : 0m
@@ -165,7 +169,9 @@ public class RecommendationService
                 {
                     BientheId = c.BientheId,
                     OrderCount = c.OrderCount,
-                    Support = (decimal)c.OrderCount / totalOrders,
+                    Support = countOrdersWithInput > 0
+                        ? (decimal)c.OrderCount / countOrdersWithInput
+                        : 0m,
                     Confidence = countOrdersWithInput > 0
                         ? (decimal)c.OrderCount / countOrdersWithInput
                         : 0m
@@ -185,7 +191,9 @@ public class RecommendationService
                 {
                     BientheId = c.BientheId,
                     OrderCount = c.OrderCount,
-                    Support = (decimal)c.OrderCount / totalOrders,
+                    Support = countOrdersWithInput > 0
+                        ? (decimal)c.OrderCount / countOrdersWithInput
+                        : 0m,
                     Confidence = countOrdersWithInput > 0
                         ? (decimal)c.OrderCount / countOrdersWithInput
                         : 0m

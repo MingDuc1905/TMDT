@@ -1,3 +1,4 @@
+using System.Net;
 using System.Text;
 using System.Text.Json;
 
@@ -34,9 +35,10 @@ QUY TẮC:
     }
 
     /// <summary>
-    /// G?i tin nh?n ??n Gemini AI v� nh?n ph?n h?i.
-    /// Tr? v? null n?u c� l?i (chatbot s? hi?n th? th�ng b�o c?u h�nh).
-    /// L?u �: history l� list c�c tin nh?n user + bot xen k? ? duy tr� h?i tho?i.
+    /// Gửi tin nhắn đến Gemini AI và nhận phản hồi.
+    /// Trả về null nếu có lỗi (chatbot sẽ hiển thị thông báo cấu hình).
+    /// Trả về string thông báo lỗi thân thiện nếu HTTP 429 (Too Many Requests).
+    /// Lưu ý: history là list các tin nhắn user + bot xen kẽ để duy trì hội thoại.
     /// </summary>
     public async Task<string?> SendMessageAsync(string message, List<string>? history = null)
     {
@@ -93,9 +95,17 @@ QUY TẮC:
                 ? "Xin lỗi, tôi chưa thể trả lời câu hỏi này ngay. Bạn có thể thử hỏi lại nhé!"
                 : text;
         }
+        catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
+        {
+            Console.Error.WriteLine($"Gemini API 429 Too Many Requests: {ex.Message}");
+            // Trả về thông báo thân thiện thay vì null (không crash UI, không ẩn khung chat)
+            return "⚠️ Hệ thống AI đang quá tải do lượt truy cập cao vào giờ cao điểm, vui lòng thử lại sau 1 phút.";
+        }
         catch (Exception ex)
         {
             Console.Error.WriteLine($"Gemini API error: {ex.Message}");
+            if (ex.InnerException != null)
+                Console.Error.WriteLine($"Inner exception: {ex.InnerException.Message}");
             return null; // Fallback to rule-based
         }
     }

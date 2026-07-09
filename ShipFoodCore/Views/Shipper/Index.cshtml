@@ -158,6 +158,30 @@
                 setTimeout(function() { location.reload(); }, 1000);
             });
 
+            // ── Race Condition Fix: Lắng nghe sự kiện đơn đã được shipper khác nhận ──
+            // Khi có shipper khác nhận đơn, xóa thẻ đơn hàng khỏi FREE-PICK real-time
+            conn.on('orderAccepted', function (orderId, acceptedShipperId) {
+                // Tìm và xóa dòng đơn hàng trong bảng ĐƠN HÀNG (tab danhsach)
+                var row = document.querySelector('#danhsach a[href*="/Shipper/OrderDetail/' + orderId + '"]');
+                if (row) {
+                    var tr = row.closest('tr');
+                    if (tr) {
+                        tr.style.transition = 'opacity 0.3s, transform 0.3s';
+                        tr.style.opacity = '0';
+                        tr.style.transform = 'translateX(40px)';
+                        setTimeout(function() {
+                            if (tr.parentNode) tr.parentNode.removeChild(tr);
+                        }, 350);
+                    }
+                }
+
+                // Nếu đang ở tab FREE-PICK, reload nhẹ để đồng bộ
+                var freepickTab = document.getElementById('freepick');
+                if (freepickTab && freepickTab.classList.contains('active')) {
+                    setTimeout(function() { location.reload(); }, 500);
+                }
+            });
+
             conn.onreconnected(function() {
                 conn.invoke('JoinShipperGroup').catch(function(){});
             });

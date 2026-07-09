@@ -898,6 +898,15 @@ public class HomeController : BaseController
     {
         try
         {
+            // ── Đếm số lượng bộ lọc đang hoạt động ──
+            int activeFilterCount = 0;
+            if (categoryId.HasValue && categoryId.Value > 0) activeFilterCount++;
+            if (!string.IsNullOrEmpty(q) && q.Length >= 2) activeFilterCount++;
+            if (isPromo == true) activeFilterCount++;
+            if (isBestSeller == true) activeFilterCount++;
+            if (!string.IsNullOrEmpty(maxPriceLevel)) activeFilterCount++;
+            if (!string.IsNullOrEmpty(maxDiet)) activeFilterCount++;
+
             // Query chính: tìm kiếm trực tiếp trong tbMonAn
             var query = db.tbMonAn
                 .Include(m => m.tbQuanAn)
@@ -905,7 +914,9 @@ public class HomeController : BaseController
                 .Include(m => m.tbDanhMuc)
                 .Where(m => m.tbQuanAn != null && m.tbQuanAn.trangthai == "Đang mở cửa");
 
-            // Lọc theo danh mục (AND)
+            // ── PHASE 1: Lọc AND cho tất cả tiêu chí ──
+
+            // Lọc theo danh mục (AND — tiêu chí cốt lõi)
             if (categoryId.HasValue && categoryId.Value > 0)
             {
                 query = query.Where(m => m.madanhmuc == categoryId.Value);
@@ -922,7 +933,7 @@ public class HomeController : BaseController
                 query = query.Where(m => monAnCoKMIds.Contains(m.mamon));
             }
 
-            // Lọc đánh giá tốt (AND) — trực tiếp trên DB thay vì client
+            // Lọc đánh giá tốt (AND)
             if (isBestSeller == true || sortBy == "rating")
             {
                 query = query.Where(m => m.tbQuanAn != null && m.tbQuanAn.diemdanhgia >= 4.4m);
@@ -935,10 +946,10 @@ public class HomeController : BaseController
                     && (m.tbDanhMuc.tendanhmuc.Contains("chay") || m.tbDanhMuc.tendanhmuc.Contains("rau")));
             }
 
-            // Client-side: tìm kiếm không dấu + lọc giá + sort
+            // Client-side: tìm kiếm không dấu
             var results = query.AsEnumerable().ToList();
 
-            // Tìm kiếm không dấu — chuẩn hóa cả 2 đầu (client-side)
+            // Tìm kiếm không dấu
             if (!string.IsNullOrEmpty(q) && q.Length >= 2)
             {
                 var normalizedQ = RemoveDiacritics(q.ToLower());
@@ -949,7 +960,7 @@ public class HomeController : BaseController
                 ).ToList();
             }
 
-            // Lọc giá theo mức $ (AND) — client-side vì cần tính toán variant
+            // Lọc giá theo mức $ — client-side
             if (!string.IsNullOrEmpty(maxPriceLevel))
             {
                 var (minPrice, maxPrice) = maxPriceLevel switch
@@ -962,6 +973,106 @@ public class HomeController : BaseController
                 };
                 results = results.Where(m => m.tbBienTheMonAns != null &&
                     m.tbBienTheMonAns.Any(b => b.giatien >= minPrice && b.giatien <= maxPrice)).ToList();
+            }
+
+            bool isLooseFilter = false;
+
+            // ── PHASE 2: Nếu kết quả rỗng, thử fallback với OR cho tiêu chí phụ ──
+            if (results.Count == 0 && activeFilterCount >= 3)
+            {
+                isLooseFilter = true;
+
+                // Query lại từ đầu, chỉ áp dụng AND cho tiêu chí cốt lõi (category + search)
+                var fallbackQuery = db.tbMonAn
+                    .Include(m => m.tbQuanAn)
+                    .Include(m => m.tbBienTheMonAns)
+                    .Include(m => m.tbDanhMuc)
+                    .Where(m => m.tbQuanAn != null && m.tbQuanAn.trangthai == "Đang mở cửa");
+
+                // Luôn giữ AND cho danh mục (tiêu chí cốt lõi)
+                if (categoryId.HasValue && categoryId.Value > 0)
+                {
+                    fallbackQuery = fallbackQuery.Where(m => m.madanhmuc == categoryId.Value);
+                }
+
+                var fallbackResults = fallbackQuery.AsEnumerable().ToList();
+
+                // OR cho từ khóa tìm kiếm
+                if (!string.IsNullOrEmpty(q) && q.Length >= 2)
+                {
+                    var normalizedQ = RemoveDiacritics(q.ToLower());
+                    fallbackResults = fallbackResults.Where(m =>
+                        RemoveDiacritics(m.tenmon.ToLower()).Contains(normalizedQ)
+                        || (m.tbQuanAn != null && RemoveDiacritics(m.tbQuanAn.tenquanan.ToLower()).Contains(normalizedQ))
+                        || (m.tbDanhMuc != null && RemoveDiacritics(m.tbDanhMuc.tendanhmuc.ToLower()).Contains(normalizedQ))
+                    ).ToList();
+                }
+
+                // Pre-compute promo IDs set (tránh query DB trong vòng lặp)
+                HashSet<int>? monAnCoKMIdsSet = null;
+                if (isPromo == true)
+                {
+                    monAnCoKMIdsSet = db.tbMonAnKhuyenMai
+                        .Where(km => km.trangthai == "Còn hạn")
+                        .Join(db.tbBienTheMonAn, km => km.mamon, b => b.id, (km, b) => b.mamon)
+                        .Distinct()
+                        .ToHashSet();
+                }
+
+                // OR cho các tiêu chí phụ: ưu tiên món khớp nhiều tiêu chí nhất (scoring)
+                var secondaryResults = new List<(tbMonAn Mon, int Score)>();
+                foreach (var m in fallbackResults)
+                {
+                    int score = 0;
+
+                    if (isPromo == true && monAnCoKMIdsSet != null && monAnCoKMIdsSet.Contains(m.mamon))
+                    {
+                        score += 25;
+                    }
+
+                    if (isBestSeller == true && m.tbQuanAn?.diemdanhgia >= 4.0m)
+                    {
+                        score += 25;
+                    }
+
+                    if (!string.IsNullOrEmpty(maxPriceLevel))
+                    {
+                        var (minP, maxP) = maxPriceLevel switch
+                        {
+                            "1" => (0m, 20000m),
+                            "2" => (20000m, 50000m),
+                            "3" => (50000m, 100000m),
+                            "4" => (100000m, decimal.MaxValue),
+                            _ => (0m, decimal.MaxValue)
+                        };
+                        if (m.tbBienTheMonAns != null && m.tbBienTheMonAns.Any(b => b.giatien >= minP && b.giatien <= maxP))
+                            score += 25;
+                    }
+
+                    if (!string.IsNullOrEmpty(maxDiet) && maxDiet == "vegetarian")
+                    {
+                        if (m.tbDanhMuc != null && m.tbDanhMuc.tendanhmuc != null &&
+                            (m.tbDanhMuc.tendanhmuc.Contains("chay") || m.tbDanhMuc.tendanhmuc.Contains("rau")))
+                            score += 25;
+                    }
+
+                    if (score > 0)
+                        secondaryResults.Add((m, score));
+                }
+
+                // Nếu OR không tìm thấy gì, lấy top items được nhiều tiêu chí nhất
+                if (secondaryResults.Count == 0)
+                {
+                    secondaryResults = fallbackResults
+                        .Select(m => (m, score: 0))
+                        .Take(10)
+                        .ToList();
+                }
+
+                results = secondaryResults
+                    .OrderByDescending(x => x.Score)
+                    .Select(x => x.Mon)
+                    .ToList();
             }
 
             // Sắp xếp
@@ -1002,8 +1113,13 @@ public class HomeController : BaseController
                 conhang = m.conhang
             }).Take(50).ToList();
 
-            // Trả về empty state rõ ràng nếu không tìm thấy
-            return Json(new { success = true, items, total = items.Count });
+            return Json(new {
+                success = true,
+                items,
+                total = items.Count,
+                isLooseFilter,
+                message = isLooseFilter ? "Gợi ý các món tương tự gần khớp với bộ lọc của bạn" : null
+            });
         }
         catch (Exception ex)
         {

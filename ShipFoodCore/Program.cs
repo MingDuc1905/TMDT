@@ -217,7 +217,12 @@ builder.Services.AddHostedService<ShipFood.Services.AutoPreparingService>(); // 
 builder.Services.AddScoped<ShipFood.Services.GeminiService>(sp =>
 {
     var configuration = sp.GetRequiredService<IConfiguration>();
-    var apiKey = configuration["Gemini:ApiKey"];
+    // Ưu tiên đọc từ Environment Variable (Railway) trước, fallback xuống appsettings.json
+    // Không lưu API Key vào Session tạm — khi container restart, Session bị mất
+    var apiKey = Environment.GetEnvironmentVariable("Gemini__ApiKey") ?? configuration["Gemini:ApiKey"];
+    if (!string.IsNullOrEmpty(apiKey))
+        Log.Information("GeminiService initialized (key source: {Source})",
+            Environment.GetEnvironmentVariable("Gemini__ApiKey") != null ? "env var" : "appsettings");
     return new ShipFood.Services.GeminiService(apiKey);
 });
 

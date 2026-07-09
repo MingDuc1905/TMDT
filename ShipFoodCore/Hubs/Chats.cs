@@ -164,6 +164,15 @@ public class Chats : Hub
     }
 
     /// <summary>
+    /// Thông báo cho tất cả shipper rằng đơn hàng đã được shipper khác nhận
+    /// → Các shipper còn lại xóa đơn khỏi FREE-PICK list real-time
+    /// </summary>
+    public async Task NotifyOrderAccepted(int orderId, int acceptedShipperId)
+    {
+        await Clients.Group("shippers").SendAsync("orderAccepted", orderId, acceptedShipperId);
+    }
+
+    /// <summary>
     /// Kiểm tra xem user có đang online không (qua Redis connection tracking)
     /// Graceful degradation: nếu Redis down, báo offline
     /// </summary>

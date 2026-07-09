@@ -1194,26 +1194,8 @@ img {
     .fs-skel-card { height: 180px; }
 }
 
-/* Row 10: Skeleton loading for cards */
-.fs-skeleton {
-    background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
-    background-size: 200% 100%;
-    animation: fs-shimmer 1.5s infinite;
-    border-radius: 8px;
-}
-@keyframes fs-shimmer {
-    0%   { background-position: -200% 0; }
-    100% { background-position:  200% 0; }
-}
+/* Row 10: Skeleton loading for cards — dùng fs-shimmer-adv từ section trên */
 .product-item.fs-loading .product-img-wrap { height: 190px; }
-.product-item.fs-loading .product-img-wrap,
-.product-item.fs-loading .product-title,
-.product-item.fs-loading .product-address {
-    background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
-    background-size: 200% 100%;
-    animation: fs-shimmer 1.5s infinite;
-    border-radius: 6px;
-}
 .product-item.fs-loading .product-title { height: 20px; margin-bottom: 8px; }
 .product-item.fs-loading .product-address { height: 14px; width: 70%; }
 
@@ -1469,8 +1451,89 @@ img[style*="height:300px"] {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   UI/UX OPTIMIZATION v5.0 — Section headers, badges, grid
+   GLASSMORPHISM — Hiệu ứng kính mờ cho card, modal, sheet
    ═══════════════════════════════════════════════════════════ */
+.fs-glass {
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+}
+.fs-glass-dark {
+    background: rgba(26, 26, 46, 0.6);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Áp dụng glass cho bottom sheet */
+.fs-bottom-sheet {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+}
+
+/* Áp dụng glass cho popup */
+.popup-box {
+    background: rgba(255, 255, 255, 0.85) !important;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   3D CARD HOVER — Perspective nghiêng khi hover
+   ═══════════════════════════════════════════════════════════ */
+.product-item {
+    transform-style: preserve-3d;
+    perspective: 800px;
+}
+.product-item .product-img-wrap {
+    transform-style: preserve-3d;
+}
+.product-item .product-body,
+.product-item .product-footer {
+    transform: translateZ(20px);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SHIMMER NÂNG CẤP — Gradient nhiều màu, chạy mượt hơn
+   ═══════════════════════════════════════════════════════════ */
+.fs-skeleton {
+    background: linear-gradient(
+        110deg,
+        #f0f0f0 25%,
+        #e0f0e0 35%,
+        #f0f0f0 45%,
+        #e8f4f8 55%,
+        #f0f0f0 65%
+    );
+    background-size: 300% 100%;
+    animation: fs-shimmer-adv 1.8s ease-in-out infinite;
+    border-radius: 8px;
+}
+@keyframes fs-shimmer-adv {
+    0%   { background-position: -300% 0; }
+    100% { background-position: 300% 0; }
+}
+
+.product-item.fs-loading .product-img-wrap,
+.product-item.fs-loading .product-title,
+.product-item.fs-loading .product-address {
+    background: linear-gradient(
+        110deg,
+        #f0f0f0 25%,
+        #e0f0e0 35%,
+        #f0f0f0 45%
+    );
+    background-size: 300% 100%;
+    animation: fs-shimmer-adv 1.8s ease-in-out infinite;
+    border-radius: 6px;
+}
+
+/* ============================================================
+   UI/UX OPTIMIZATION v5.0 — Section headers, badges, grid
+   ============================================================ */
 
 /* Section headings — refactor từ inline styles thành class */
 .fs-section-title {

@@ -22,7 +22,7 @@
                         <td class="cell">@item.mota</td>
                         <td style="text-align: center;">
                             <a style="color: red" href="@Url.Action("EditCategory","Admin", new {id=item.madanhmuc })">Sửa</a> |
-                            <a style="color: red" href="@Url.Action("Category","Admin", new {id=item.madanhmuc })">Xóa</a>
+                            <a style="color: red" href="@Url.Action("Category","Admin", new {id=item.madanhmuc })" onclick="return confirm('Bạn có chắc muốn xóa danh mục này? Nếu còn món ăn thuộc danh mục, hệ thống sẽ từ chối xóa.');">Xóa</a>
                         </td>
                     </tr>
 

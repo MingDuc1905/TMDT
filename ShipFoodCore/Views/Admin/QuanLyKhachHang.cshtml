@@ -30,6 +30,14 @@
                 <div class="page-utilities">
                     <div class="row g-2 justify-content-start justify-content-md-end align-items-center">
                         <div class="col-auto">
+                            <select id="status-filter" class="form-control search-docs" onchange="filterKhachHang()" style="width:auto;min-width:150px;">
+                                <option value="all">Tất cả trạng thái</option>
+                                <option value="active">Đang hoạt động</option>
+                                <option value="locked">Đã khóa</option>
+                                <option value="pending">Chờ duyệt</option>
+                            </select>
+                        </div>
+                        <div class="col-auto">
                             <input type="text" id="search-kh" class="form-control search-docs" placeholder="Tìm kiếm khách hàng..." onkeyup="filterKhachHang()" />
                         </div>
                     </div>
@@ -52,7 +60,7 @@
                     <tbody>
                         @foreach (var i in datas)
                         {
-                            <tr>
+                            <tr data-status="@i.tbUser.trangthai">
                                 <td style="text-align: center;" class="cell">#@i.userid</td>
                                 <td class="cell"><span class="truncate">@i.tenkh</span></td>
                                 <td class="cell">@i.tbUser.username</td>
@@ -84,6 +92,7 @@
     function filterKhachHang() {
         var input = document.getElementById('search-kh');
         var filter = input.value.toUpperCase();
+        var statusFilter = document.getElementById('status-filter').value;
         var table = document.getElementById('kh-table');
         var tr = table.getElementsByTagName('tr');
         for (var i = 0; i < tr.length; i++) {
@@ -94,6 +103,13 @@
                     found = true;
                     break;
                 }
+            }
+            // Dùng data-status attribute thay vì so sánh text
+            if (found && statusFilter !== 'all') {
+                var status = tr[i].getAttribute('data-status');
+                if (statusFilter === 'active' && status !== '1') found = false;
+                else if (statusFilter === 'locked' && status !== '2') found = false;
+                else if (statusFilter === 'pending' && status !== '0') found = false;
             }
             tr[i].style.display = found ? '' : 'none';
         }

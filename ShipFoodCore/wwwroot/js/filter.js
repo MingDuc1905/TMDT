@@ -278,13 +278,6 @@ function renderSearchResults(data) {
 
     container.innerHTML = html;
 
-    // ═══ Auto-scroll 200px sau filter — user thấy kết quả ngay ═══
-    var bar = document.getElementById('filterBar');
-    if (bar && window.scrollY < 200) {
-        var targetY = bar.getBoundingClientRect().top + window.scrollY + 200;
-        window.scrollTo({ top: targetY, behavior: 'smooth' });
-    }
-
     // Update count
     var countEl = document.getElementById('searchResultCount');
     if (countEl) countEl.textContent = data.total || data.items.length;

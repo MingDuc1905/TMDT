@@ -28,7 +28,7 @@
             <div class="col-lg-6">
                 <div class="section-header text-start mb-5 wow fadeInUp" data-wow-delay="0.1s" style="max-width: 500px;">
                     <h1 class="display-5 mb-3">@danhmuc.tendanhmuc</h1>
-                    <p>Tempor ut dolore lorem kasd vero ipsum sit eirmod sit. Ipsum diam justo sed rebum vero dolor duo.</p>
+                    <p>Khám phá các món ăn hấp dẫn từ danh mục @danhmuc.tendanhmuc — đặt ngay, giao tận nơi trong 30 phút!</p>
                 </div>
             </div>
         </div>
@@ -44,16 +44,15 @@
                                     <div class="bg-secondary rounded text-white position-absolute start-0 top-0 m-4 py-1 px-3">New</div>
                                 </div>
                         <div class="text-center p-4">
-                            <a class="d-block h5 mb-2" href="">@item.tenmon</a>
-                            <span class="text-primary me-1">@item.giatien đ</span>
-                            <span class="text-body text-decoration-line-through">250.000đ</span>
+                            <a class="d-block h5 mb-2" href="@Url.Action("ChiTietSanPham","Home", new { id = item.mamon })">@item.tenmon</a>
+                            <span class="text-primary me-1">@item.giatien?.ToString("N0") đ</span>
                         </div>
                         <div class="d-flex border-top">
                             <small class="w-50 text-center border-end py-2">
-                                <a class="text-body" href=""><i class="fa fa-eye text-primary me-2"></i>View detail</a>
+                                <a class="text-body" href="@Url.Action("ChiTietSanPham","Home", new { id = item.mamon })"><i class="fa fa-eye text-primary me-2"></i>Xem chi tiết</a>
                             </small>
                             <small class="w-50 text-center py-2">
-                                <a class="text-body" href=""><i class="fa fa-shopping-bag text-primary me-2"></i>Add to cart</a>
+                                <a class="text-body" href="@Url.Action("DetailRestaurant","Home", new { id = item.maquanan })"><i class="fa fa-shopping-bag text-primary me-2"></i>Đặt món</a>
                             </small>
                         </div>
                             </div>

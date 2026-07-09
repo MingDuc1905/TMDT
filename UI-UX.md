@@ -1,6 +1,6 @@
 # Fastship (ShipFood) — UI/UX Documentation (Full)
 
-> **Phiên bản**: 5.3 — Google OAuth Role Selection, VietQR Bank Transfer, QA Fixes (XHR->jQuery, Idempotency, Multi-device)  
+> **Phiên bản**: 5.4 — SanPham data fix, QR Code bank transfer, Gemini prompt fix  
 > **Cập nhật**: Tháng 7, 2026  
 > **Mô tả**: Tài liệu thiết kế giao diện & trải nghiệm người dùng toàn diện cho nền tảng đặt đồ ăn Fastship  
 > **Tài liệu liên quan**: Project.md — Tổng quan kiến trúc & phát triển

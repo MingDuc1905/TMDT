@@ -521,6 +521,11 @@ APP_DOMAIN=https://shipfood.up.railway.app
 - [x] ✅ **Mobile Leaflet fix**: dragging:false, scrollWheelZoom:'center' trên mobile, giải phóng scroll dọc
 - [x] ✅ **Payment error detail**: Hiển thị inner exception message thay vì generic error, trace ID trong log
 - [x] ✅ **AutoPreparingService tối ưu**: AsNoTracking + Attach pattern + batch query restaurant names
+- [x] ✅ **QR Code bank transfer (Checkout)**: Hiển thị VietQR + bank details + escHtml protection, không auto-redirect
+- [x] ✅ **Gemini prompt fix**: System prompt "không nịnh", context-limited to FastShip
+- [x] ✅ **SanPham data ảo fix**: Lorem ipsum → mô tả thật, giá hardcode → giá DB, link rỗng → link đúng
+- [x] ✅ **Delete category confirm**: JS confirm trước khi xóa danh mục
+- [x] ✅ **Khách hàng status filter**: Dropdown lọc trạng thái + data-status numeric
 - [ ] Real payment (Stripe/PayPal/ZaloPay)
 
 ---
@@ -618,7 +623,7 @@ Dự án mã nguồn mở — phát triển bởi đội ngũ ShipFood.
 
 ---
 
-> **Phiên bản**: 5.2 — Soft delete, Redis connection tracking, price security, Optimistic UI, payment error detail  
+> **Phiên bản**: 5.4 — QR Code bank transfer, Gemini prompt fix, SanPham data fix, UI/UX revert  
 > **Ngôn ngữ**: C# 12, HTML5, CSS3, JavaScript ES6  
 > **Kiến trúc**: ASP.NET Core MVC n-tier  
 > **Database**: MySQL 8+ (MySqlServerVersion 8.0.20)  

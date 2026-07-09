@@ -23,7 +23,7 @@
                     <div class="col-xl-12 col-lg-6">
                         <div class="card h-auto">
                             <div class="card-body text-center">
-                                <img src="~/Source/Restaurant/images/profile/@Model.tbQuanAn.hinhanh" width="150" class="rounded-circle mb-4" alt="" />
+                                <img src="@TinhToan.HinhAnhUrl(Model.tbQuanAn.hinhanh)" width="150" class="rounded-circle mb-4" alt="" />
                                 <h4 class="mb-3 text-black font-w600">@Model.tbQuanAn.tenquanan</h4>
                                 <a href="#" class="btn btn-primary light btn-xs">@Model.tbQuanAn.diachi</a>
                             </div>
@@ -69,7 +69,7 @@
                                             <div class="media">
                                                 <img class="mr-3 img-fluid rounded"
                                                      width="85"
-                                                     src="~/Source/images/MonAn/@item.tbMonAn.hinhanh"
+                                                     src="@TinhToan.HinhAnhUrl(item.tbMonAn.hinhanh)"
                                                      alt="DexignZone" />
                                                 <div class="media-body">
                                                     <small class="mt-0 mb-1 text-primary font-w500">@item.tbMonAn.tbDanhMuc.tendanhmuc</small>

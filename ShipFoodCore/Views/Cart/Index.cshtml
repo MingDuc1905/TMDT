@@ -191,7 +191,7 @@
                         @foreach (var i in cart.monAns)
                         {
                             <div class="cart-item" id="item-row-@i.mamon">
-                                <img src="~/Source/images/MonAn/@i.hinhanh" alt="@i.tenmon"
+                                <img src="@TinhToan.HinhAnhUrl(i.hinhanh)" alt="@i.tenmon"
                                      onerror="this.src='/Source/Home/img/food-placeholder.png'">
                                 <div class="item-info">
                                     <div class="item-name">@i.tenmon</div>
@@ -232,7 +232,7 @@
                             @foreach (var item in aprioriCart)
                             {
                                 <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--fs-border-soft);">
-                                    <img src="~/Source/images/MonAn/@item.hinhanh" alt="@item.tenmon"
+                                    <img src="@TinhToan.HinhAnhUrl(item.hinhanh)" alt="@item.tenmon"
                                          style="width:48px;height:48px;border-radius:8px;object-fit:cover;border:1px solid var(--fs-border);"
                                          onerror="this.src='/Source/Home/img/food-placeholder.png'" />
                                     <div style="flex:1;min-width:0;">

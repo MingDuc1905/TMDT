@@ -236,7 +236,7 @@
                         <a href="@Url.Action("DetailRestaurant","Home", new { id = item.userid })" class="text-decoration-none" aria-label="Xem chi tiết @item.tenquanan">
                             <div class="product-item">
                                 <div class="product-img-wrap">
-                                    <img src="~/Source/images/MonAn/@item.hinhanh" alt="@item.tenquanan" loading="lazy" />
+                                    <img src="@TinhToan.HinhAnhUrl(item.hinhanh)" alt="@item.tenquanan" loading="lazy" />
                                     <!-- Social proof: "Đang thịnh hành" badge -->
                                     <div class="fs-order-count-badge">
                                         <span class="fs-trending-dot"></span>
@@ -307,7 +307,7 @@
                         <a href="@Url.Action("DetailRestaurant","Home", new { id = item.maquanan })" class="text-decoration-none">
                             <div class="product-item">
                                 <div class="product-img-wrap">
-                                    <img src="~/Source/images/MonAn/@item.hinhanh" alt="@item.tenmon" loading="lazy" />
+                                    <img src="@TinhToan.HinhAnhUrl(item.hinhanh)" alt="@item.tenmon" loading="lazy" />
                                     <div class="fs-ai-badge">
                                         <i class="fa fa-robot"></i> AI
                                     </div>

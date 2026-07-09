@@ -30,6 +30,20 @@ public class TinhToan
     /// Nếu chuỗi rỗng, NULL hoặc sai định dạng → trả về tọa độ mặc định (trung tâm TP.HCM)
     /// Không crash dù dữ liệu đầu vào có vấn đề
     /// </summary>
+    /// <summary>
+    /// Trả về URL hình ảnh hoàn chỉnh.
+    /// Nếu hinhanh là full URL (http:// hoặc https://) → dùng trực tiếp.
+    /// Nếu không → prepend đường dẫn local ~/Source/images/MonAn/
+    /// </summary>
+    public static string? HinhAnhUrl(string? hinhanh)
+    {
+        if (string.IsNullOrWhiteSpace(hinhanh))
+            return null;
+        if (hinhanh.StartsWith("http://") || hinhanh.StartsWith("https://"))
+            return hinhanh;
+        return "/Source/images/MonAn/" + hinhanh;
+    }
+
     public static (double Lat, double Lng) TryParseToado(string? toado)
     {
         if (string.IsNullOrWhiteSpace(toado))

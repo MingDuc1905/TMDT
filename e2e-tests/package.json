@@ -1,0 +1,26 @@
+{
+  "name": "fastship-e2e-tests",
+  "version": "1.0.0",
+  "description": "Fastship E2E Playwright Test Suite",
+  "scripts": {
+    "test": "npx playwright test",
+    "test:headed": "npx playwright test --headed",
+    "test:desktop": "npx playwright test --project='Desktop Chromium'",
+    "test:mobile": "npx playwright test --project='Mobile Chrome'",
+    "test:visual": "npx playwright test tests/01-visual-asset-validation.spec.ts",
+    "test:customer": "npx playwright test tests/02-customer-flow.spec.ts",
+    "test:restaurant": "npx playwright test tests/03-restaurant-flow.spec.ts",
+    "test:shipper": "npx playwright test tests/04-shipper-flow.spec.ts",
+    "test:admin": "npx playwright test tests/05-admin-flow.spec.ts",
+    "tsc": "npx tsc --noEmit"
+  },
+  "keywords": ["fastship", "e2e", "playwright"],
+  "author": "Fastship QA Team",
+  "license": "MIT",
+  "type": "commonjs",
+  "dependencies": {
+    "@playwright/test": "^1.61.1",
+    "playwright": "^1.61.1",
+    "typescript": "^7.0.2"
+  }
+}

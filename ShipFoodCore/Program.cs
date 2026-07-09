@@ -392,7 +392,7 @@ try
                     foreach (var stmt in statements)
                     {
                         var trimmed = stmt.Trim();
-                        if (trimmed.Length > 0 && !trimmed.StartsWith("--") && !trimmed.StartsWith("DROP") && !trimmed.StartsWith("CREATE") && !trimmed.StartsWith("SET"))
+                        if (trimmed.Length > 0 && !trimmed.StartsWith("DROP") && !trimmed.StartsWith("CREATE") && !trimmed.StartsWith("SET"))
                         {
                             try { db.Database.ExecuteSqlRaw(trimmed); }
                             catch (Exception seedEx) { logger.LogWarning("Seed statement skipped: {Error}", seedEx.Message); }

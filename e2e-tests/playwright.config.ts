@@ -28,7 +28,7 @@ export default defineConfig({
   ],
 
   use: {
-    baseURL: 'https://fastship-web.onrender.com',
+    baseURL: process.env.BASE_URL || 'https://fastship-web.onrender.com',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',

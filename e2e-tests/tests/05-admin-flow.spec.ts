@@ -25,13 +25,8 @@ const ADMIN = USERS.admin1;
 // Solution: login set session thành công, dùng goto('/') để verify session
 async function loginAsAdmin(page: any) {
   const login = new LoginPage(page);
-  await login.gotoLogin();
-  await login.usernameInput.fill(ADMIN.username);
-  await login.passwordInput.fill(ADMIN.password);
-  await login.loginButton.click();
-  // ponytail: không waitForTimeout, check URL ngay
-  await page.waitForLoadState('networkidle', { timeout: 20_000 }).catch(() => {});
-  const url = page.url();
+  // ponytail: dùng login() có 429 retry + gotoLogin() reload form
+  const url = await login.login(ADMIN.username, ADMIN.password);
   console.log(`📍 URL sau login: ${url}`);
   // Nếu redirect crash (500), session vẫn được set — goto '/' để verify
   if (url.includes('/Home/Error') || url.includes('/Home/Login')) {

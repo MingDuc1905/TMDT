@@ -25,13 +25,8 @@ const RESTAURANT = USERS.restaurant1;
 // Solution: login set session thành công, dùng goto('/') để verify session
 async function loginAsRestaurant(page: any) {
   const login = new LoginPage(page);
-  await login.gotoLogin();
-  await login.usernameInput.fill(RESTAURANT.username);
-  await login.passwordInput.fill(RESTAURANT.password);
-  await login.loginButton.click();
-  // ponytail: không waitForTimeout, check URL ngay sau khi network idle
-  await page.waitForLoadState('networkidle', { timeout: 20_000 }).catch(() => {});
-  const url = page.url();
+  // ponytail: dùng login() có 429 retry + gotoLogin() reload form
+  const url = await login.login(RESTAURANT.username, RESTAURANT.password);
   console.log(`📍 URL sau login: ${url}`);
   // Nếu redirect crash (500), session vẫn được set — goto '/' để verify
   if (url.includes('/Home/Error') || url.includes('/Home/Login')) {

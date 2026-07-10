@@ -48,20 +48,33 @@ export class LoginPage extends BasePage {
   }
 
   /** Đăng nhập với username/password — chờ redirect hoàn tất */
-  async login(username: string, password: string): Promise<string> {
-    await this.usernameInput.fill(username);
-    await this.passwordInput.fill(password);
-    await this.loginButton.click();
+  async login(username: string, password: string, maxRetries: number = 2): Promise<string> {
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      if (attempt > 0) {
+        console.log(`⏳ Login retry #${attempt} (chờ 60s tránh rate limit)...`);
+        await this.page.waitForTimeout(60_000);
+        await this.gotoLogin();  // ponytail: 429 thay page bằng JSON, cần load lại form
+        await this.usernameInput.fill(username);
+        await this.passwordInput.fill(password);
+        await this.loginButton.click();
+      }
 
-    // Chờ phản hồi từ server (form POST hoặc AJAX)
-    try {
-      await this.page.waitForLoadState('networkidle', { timeout: 20_000 });
-    } catch {
-      // Timeout là bình thường nếu form POST redirect
+      try {
+        await this.page.waitForLoadState('networkidle', { timeout: 20_000 });
+      } catch {
+        // Timeout là bình thường nếu form POST redirect
+      }
+
+      const url = this.page.url();
+      // Kiểm tra rate limit 429
+      const bodyText = await this.page.locator('body').textContent().catch(() => '');
+      if (bodyText && bodyText.includes('429') && bodyText.includes('quá nhiều')) {
+        console.log(`⚠️ Rate limited (429), sẽ retry...`);
+        continue;
+      }
+
+      return url;
     }
-    await this.page.waitForTimeout(2000);
-
-    // Trả về URL hiện tại (sau redirect)
     return this.page.url();
   }
 

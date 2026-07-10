@@ -12,6 +12,8 @@
     "test:restaurant": "npx playwright test tests/03-restaurant-flow.spec.ts",
     "test:shipper": "npx playwright test tests/04-shipper-flow.spec.ts",
     "test:admin": "npx playwright test tests/05-admin-flow.spec.ts",
+    "test:fast": "npx playwright test --project='Desktop Chromium' --retries=0 --workers=1 --timeout=30000",
+    "test:local": "set BASE_URL=http://localhost:5000 && npx playwright test --project='Desktop Chromium' --retries=0 --workers=1 --timeout=15000",
     "tsc": "npx tsc --noEmit"
   },
   "keywords": ["fastship", "e2e", "playwright"],

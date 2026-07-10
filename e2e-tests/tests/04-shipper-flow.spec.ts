@@ -25,13 +25,8 @@ const SHIPPER = USERS.shipper2; // shipperz - Đang hoạt động
 // Solution: login set session thành công, dùng goto('/') để verify session
 async function loginAsShipper(page: any) {
   const login = new LoginPage(page);
-  await login.gotoLogin();
-  await login.usernameInput.fill(SHIPPER.username);
-  await login.passwordInput.fill(SHIPPER.password);
-  await login.loginButton.click();
-  // ponytail: không waitForTimeout, check URL ngay
-  await page.waitForLoadState('networkidle', { timeout: 20_000 }).catch(() => {});
-  const url = page.url();
+  // ponytail: dùng login() có 429 retry + gotoLogin() reload form
+  const url = await login.login(SHIPPER.username, SHIPPER.password);
   console.log(`📍 URL sau login: ${url}`);
   // Nếu redirect crash (500), session vẫn được set — goto '/' để verify
   if (url.includes('/Home/Error') || url.includes('/Home/Login')) {
@@ -44,14 +39,7 @@ async function loginAsShipper(page: any) {
 test.describe('🚚 Dashboard Shipper - Tabs & Navigation', () => {
 
   test('[TC-4.1] Đăng nhập shipper - redirect đến /Shipper', async ({ page }) => {
-    const login = new LoginPage(page);
-    await login.gotoLogin();
-    await login.usernameInput.fill(SHIPPER.username);
-    await login.passwordInput.fill(SHIPPER.password);
-    await login.loginButton.click();
-    await page.waitForURL('**/Shipper', { timeout: 30_000 });
-    await page.waitForLoadState('networkidle');
-
+    await loginAsShipper(page);
     const url = page.url();
     console.log(`✅ URL: ${url}`);
     expect(url).toContain('/Shipper');

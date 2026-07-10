@@ -47,17 +47,18 @@ export class LoginPage extends BasePage {
     await this.page.waitForSelector('.auth-card', { timeout: 15_000 });
   }
 
-  /** Đăng nhập với username/password — chờ redirect hoàn tất */
+  /** Đăng nhập với username/password — tự động gotoLogin + fill + click + retry 429 */
   async login(username: string, password: string, maxRetries: number = 2): Promise<string> {
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       if (attempt > 0) {
-        console.log(`⏳ Login retry #${attempt} (chờ 60s tránh rate limit)...`);
-        await this.page.waitForTimeout(60_000);
-        await this.gotoLogin();  // ponytail: 429 thay page bằng JSON, cần load lại form
-        await this.usernameInput.fill(username);
-        await this.passwordInput.fill(password);
-        await this.loginButton.click();
+        console.log(`⏳ Login retry #${attempt} (chờ 30s tránh rate limit)...`);
+        await this.page.waitForTimeout(30_000);
       }
+      // ponytail: fill credentials + click login trên MỌI attempt (kể cả attempt=0)
+      await this.gotoLogin();
+      await this.usernameInput.fill(username);
+      await this.passwordInput.fill(password);
+      await this.loginButton.click();
 
       try {
         await this.page.waitForLoadState('networkidle', { timeout: 20_000 });

@@ -7,7 +7,7 @@
 # Test info
 
 - Name: 03-restaurant-flow.spec.ts >> 📋 Quản lý đơn hàng (Order List) >> [TC-3.7] Kiểm tra trạng thái đơn - cột trạng thái không trống
-- Location: tests\03-restaurant-flow.spec.ts:133:7
+- Location: tests\03-restaurant-flow.spec.ts:134:7
 
 # Error details
 
@@ -79,206 +79,206 @@ Call log:
 # Test source
 
 ```ts
-  38  | // ─── TEST SUITE 1: Dashboard ───
-  39  | test.describe('🏪 Dashboard Quán ăn - KPI & Thống kê', () => {
-  40  | 
-  41  |   test('[TC-3.1] Đăng nhập quán ăn - redirect đến /Restaurant', async ({ page }) => {
-  42  |     await loginAsRestaurant(page);
-  43  |     const url = page.url();
-  44  |     console.log(`✅ URL: ${url}`);
-  45  |     expect(url).toContain('/Restaurant');
-  46  |   });
-  47  | 
-  48  |   test('[TC-3.2] Dashboard hiển thị thẻ KPI (tổng đơn, doanh thu, đánh giá)', async ({ page }) => {
-  49  |     await loginAsRestaurant(page);
-  50  | 
-  51  |     // Chờ KPI cards load
-  52  |     await page.waitForSelector('.card-header', { timeout: 20_000 });
-  53  |     const kpiCount = await page.locator('.card-header').count();
-  54  |     console.log(`📊 KPI cards: ${kpiCount}`);
-  55  |     expect(kpiCount).toBeGreaterThan(0);
-  56  | 
-  57  |     // Lấy text từng KPI
-  58  |     for (let i = 0; i < kpiCount; i++) {
-  59  |       const kpiText = await page.locator('.card-header').nth(i).textContent();
-  60  |       console.log(`  KPI ${i}: ${kpiText?.trim()}`);
-  61  |     }
-  62  |   });
-  63  | 
-  64  |   test('[TC-3.3] Sidebar hiển thị đầy đủ menu: Dashboard, Order List, ...', async ({ page }) => {
-  65  |     await loginAsRestaurant(page);
-  66  | 
-  67  |     const sidebarLinks = await page.locator('.deznav a[href]').count();
-  68  |     console.log(`🔗 Sidebar links: ${sidebarLinks}`);
-  69  |     expect(sidebarLinks).toBeGreaterThan(0);
-  70  | 
-  71  |     // Kiểm tra link "Danh sách đơn hàng" hiển thị
-  72  |     await expect(page.locator('a[href*="/Restaurant/OrderList"]').first()).toBeVisible({ timeout: 5_000 });
-  73  |   });
-  74  | 
-  75  |   test('[TC-3.4] Biểu đồ doanh thu (Chart.js) render', async ({ page }) => {
-  76  |     await loginAsRestaurant(page);
-  77  | 
-  78  |     const canvasCount = await page.locator('canvas').count();
-  79  |     console.log(`📈 Canvas charts: ${canvasCount}`);
-  80  |     if (canvasCount > 0) {
-  81  |       // Kiểm tra canvas có kích thước > 0
-  82  |       const canvasBox = await page.locator('canvas').first().boundingBox();
-  83  |       if (canvasBox) {
-  84  |         expect(canvasBox.width).toBeGreaterThan(0);
-  85  |         expect(canvasBox.height).toBeGreaterThan(0);
-  86  |         console.log(`📐 Chart: ${canvasBox.width}x${canvasBox.height}`);
-  87  |       }
-  88  |     }
-  89  |   });
-  90  | });
-  91  | 
-  92  | // ─── TEST SUITE 2: Quản lý đơn hàng ───
-  93  | test.describe('📋 Quản lý đơn hàng (Order List)', () => {
-  94  | 
-  95  |   test('[TC-3.5] Danh sách đơn hàng load - bảng hiển thị', async ({ page }) => {
-  96  |     await loginAsRestaurant(page);
-  97  | 
-  98  |     const restaurant = new RestaurantPage(page);
-  99  |     await restaurant.gotoOrderList();
-  100 | 
-  101 |     // Chờ bảng load
-  102 |     await page.waitForSelector('#example5', { timeout: 20_000 });
-  103 |     const orderCount = await restaurant.getOrderCount();
-  104 |     console.log(`📋 Số đơn hàng: ${orderCount}`);
-  105 |     expect(orderCount).toBeGreaterThanOrEqual(0);
-  106 |   });
-  107 | 
-  108 |   test('[TC-3.6] Chi tiết đơn hàng - click xem thông tin', async ({ page }) => {
-  109 |     await loginAsRestaurant(page);
-  110 | 
-  111 |     const restaurant = new RestaurantPage(page);
-  112 |     await restaurant.gotoOrderList();
-  113 |     await page.waitForSelector('#example5', { timeout: 20_000 });
-  114 | 
-  115 |     const orderCount = await restaurant.getOrderCount();
-  116 |     if (orderCount > 0) {
-  117 |       // Click vào link chi tiết đầu tiên
-  118 |       const detailLinks = page.locator('a[href*="ChiTietDonHang"]');
-  119 |       const linkCount = await detailLinks.count();
-  120 |       console.log(`🔗 Chi tiết links: ${linkCount}`);
-  121 | 
-  122 |       if (linkCount > 0) {
-  123 |         await detailLinks.first().click();
-  124 |         await page.waitForLoadState('networkidle');
-  125 |         expect(page.url()).toContain('ChiTietDonHang');
-  126 |         console.log(`✅ Chi tiết đơn hàng URL: ${page.url()}`);
-  127 |       }
-  128 |     } else {
-  129 |       console.log('ℹ️ Không có đơn hàng nào để xem chi tiết');
-  130 |     }
-  131 |   });
-  132 | 
-  133 |   test('[TC-3.7] Kiểm tra trạng thái đơn - cột trạng thái không trống', async ({ page }) => {
-  134 |     await loginAsRestaurant(page);
-  135 | 
-  136 |     const restaurant = new RestaurantPage(page);
-  137 |     await restaurant.gotoOrderList();
-> 138 |     await page.waitForSelector('#example5', { timeout: 20_000 });
+  39  | // ─── TEST SUITE 1: Dashboard ───
+  40  | test.describe('🏪 Dashboard Quán ăn - KPI & Thống kê', () => {
+  41  | 
+  42  |   test('[TC-3.1] Đăng nhập quán ăn - redirect đến /Restaurant', async ({ page }) => {
+  43  |     await loginAsRestaurant(page);
+  44  |     const url = page.url();
+  45  |     console.log(`✅ URL: ${url}`);
+  46  |     expect(url).toContain('/Restaurant');
+  47  |   });
+  48  | 
+  49  |   test('[TC-3.2] Dashboard hiển thị thẻ KPI (tổng đơn, doanh thu, đánh giá)', async ({ page }) => {
+  50  |     await loginAsRestaurant(page);
+  51  | 
+  52  |     // Chờ KPI cards load
+  53  |     await page.waitForSelector('.card-header', { timeout: 20_000 });
+  54  |     const kpiCount = await page.locator('.card-header').count();
+  55  |     console.log(`📊 KPI cards: ${kpiCount}`);
+  56  |     expect(kpiCount).toBeGreaterThan(0);
+  57  | 
+  58  |     // Lấy text từng KPI
+  59  |     for (let i = 0; i < kpiCount; i++) {
+  60  |       const kpiText = await page.locator('.card-header').nth(i).textContent();
+  61  |       console.log(`  KPI ${i}: ${kpiText?.trim()}`);
+  62  |     }
+  63  |   });
+  64  | 
+  65  |   test('[TC-3.3] Sidebar hiển thị đầy đủ menu: Dashboard, Order List, ...', async ({ page }) => {
+  66  |     await loginAsRestaurant(page);
+  67  | 
+  68  |     const sidebarLinks = await page.locator('.deznav a[href]').count();
+  69  |     console.log(`🔗 Sidebar links: ${sidebarLinks}`);
+  70  |     expect(sidebarLinks).toBeGreaterThan(0);
+  71  | 
+  72  |     // Kiểm tra link "Danh sách đơn hàng" hiển thị
+  73  |     await expect(page.locator('a[href*="/Restaurant/OrderList"]').first()).toBeVisible({ timeout: 5_000 });
+  74  |   });
+  75  | 
+  76  |   test('[TC-3.4] Biểu đồ doanh thu (Chart.js) render', async ({ page }) => {
+  77  |     await loginAsRestaurant(page);
+  78  | 
+  79  |     const canvasCount = await page.locator('canvas').count();
+  80  |     console.log(`📈 Canvas charts: ${canvasCount}`);
+  81  |     if (canvasCount > 0) {
+  82  |       // Kiểm tra canvas có kích thước > 0
+  83  |       const canvasBox = await page.locator('canvas').first().boundingBox();
+  84  |       if (canvasBox) {
+  85  |         expect(canvasBox.width).toBeGreaterThan(0);
+  86  |         expect(canvasBox.height).toBeGreaterThan(0);
+  87  |         console.log(`📐 Chart: ${canvasBox.width}x${canvasBox.height}`);
+  88  |       }
+  89  |     }
+  90  |   });
+  91  | });
+  92  | 
+  93  | // ─── TEST SUITE 2: Quản lý đơn hàng ───
+  94  | test.describe('📋 Quản lý đơn hàng (Order List)', () => {
+  95  | 
+  96  |   test('[TC-3.5] Danh sách đơn hàng load - bảng hiển thị', async ({ page }) => {
+  97  |     await loginAsRestaurant(page);
+  98  | 
+  99  |     const restaurant = new RestaurantPage(page);
+  100 |     await restaurant.gotoOrderList();
+  101 | 
+  102 |     // Chờ bảng load
+  103 |     await page.waitForSelector('#example5', { timeout: 20_000 });
+  104 |     const orderCount = await restaurant.getOrderCount();
+  105 |     console.log(`📋 Số đơn hàng: ${orderCount}`);
+  106 |     expect(orderCount).toBeGreaterThanOrEqual(0);
+  107 |   });
+  108 | 
+  109 |   test('[TC-3.6] Chi tiết đơn hàng - click xem thông tin', async ({ page }) => {
+  110 |     await loginAsRestaurant(page);
+  111 | 
+  112 |     const restaurant = new RestaurantPage(page);
+  113 |     await restaurant.gotoOrderList();
+  114 |     await page.waitForSelector('#example5', { timeout: 20_000 });
+  115 | 
+  116 |     const orderCount = await restaurant.getOrderCount();
+  117 |     if (orderCount > 0) {
+  118 |       // Click vào link chi tiết đầu tiên
+  119 |       const detailLinks = page.locator('a[href*="ChiTietDonHang"]');
+  120 |       const linkCount = await detailLinks.count();
+  121 |       console.log(`🔗 Chi tiết links: ${linkCount}`);
+  122 | 
+  123 |       if (linkCount > 0) {
+  124 |         await detailLinks.first().click();
+  125 |         await page.waitForLoadState('networkidle');
+  126 |         expect(page.url()).toContain('ChiTietDonHang');
+  127 |         console.log(`✅ Chi tiết đơn hàng URL: ${page.url()}`);
+  128 |       }
+  129 |     } else {
+  130 |       console.log('ℹ️ Không có đơn hàng nào để xem chi tiết');
+  131 |     }
+  132 |   });
+  133 | 
+  134 |   test('[TC-3.7] Kiểm tra trạng thái đơn - cột trạng thái không trống', async ({ page }) => {
+  135 |     await loginAsRestaurant(page);
+  136 | 
+  137 |     const restaurant = new RestaurantPage(page);
+  138 |     await restaurant.gotoOrderList();
+> 139 |     await page.waitForSelector('#example5', { timeout: 20_000 });
       |                ^ TimeoutError: page.waitForSelector: Timeout 20000ms exceeded.
-  139 | 
-  140 |     const orderCount = await restaurant.getOrderCount();
-  141 |     if (orderCount > 0) {
-  142 |       const status = await restaurant.getFirstOrderStatus();
-  143 |       console.log(`📌 Trạng thái đơn đầu: ${status}`);
-  144 |       expect(status).toBeTruthy();
-  145 |     }
-  146 |   });
-  147 | 
-  148 |   test('[TC-3.8] Nút "Nhận đơn" hiển thị cho đơn trạng thái "Đã đặt"', async ({ page }) => {
-  149 |     await loginAsRestaurant(page);
-  150 | 
-  151 |     const restaurant = new RestaurantPage(page);
-  152 |     await restaurant.gotoOrderList();
-  153 |     await page.waitForSelector('#example5', { timeout: 20_000 });
-  154 | 
-  155 |     // Kiểm tra nút nhận đơn
-  156 |     const acceptBtns = await page.locator('a[href*="/Restaurant/nhandon/"]').count();
-  157 |     console.log(`🟢 Nhận đơn buttons: ${acceptBtns}`);
-  158 |   });
-  159 | });
-  160 | 
-  161 | // ─── TEST SUITE 3: Xử lý đơn hàng (Accept -> Prepare -> Complete) ───
-  162 | test.describe('🔄 Xử lý đơn hàng - Accept & Status Transitions', () => {
-  163 | 
-  164 |   test('[TC-3.9] Tạo đơn mới từ customer -> kiểm tra quán ăn thấy đơn', async ({ page, context }) => {
-  165 |     // Mở tab mới cho customer để tạo đơn
-  166 |     const customerPage = await context.newPage();
-  167 |     const loginC = new LoginPage(customerPage);
-  168 |     await loginC.gotoLogin();
-  169 |     await loginC.usernameInput.fill(USERS.customer1.username);
-  170 |     await loginC.passwordInput.fill(USERS.customer1.password);
-  171 |     await loginC.loginButton.click();
-  172 |     await customerPage.waitForLoadState('networkidle');
-  173 | 
-  174 |     // Thêm món vào giỏ ở Koneko Pizza
-  175 |     await customerPage.goto(`/Home/DetailRestaurant?id=${SEED.restaurantIds.konekoPizza}`, { waitUntil: 'networkidle' });
-  176 |     await customerPage.waitForSelector('.item-restaurant-row', { timeout: 20_000 });
-  177 | 
-  178 |     // Thêm món đầu tiên
-  179 |     const addBtn = customerPage.locator('.add-to-cart-btn').first();
-  180 |     const qtyInput = customerPage.locator('.adding-food-cart input[name="soLuong"]').first();
-  181 |     await qtyInput.fill('1');
-  182 |     await addBtn.click();
-  183 |     await customerPage.waitForResponse(resp => resp.url().includes('ApiThemMonAn') && resp.status() === 200);
-  184 |     await customerPage.waitForLoadState('networkidle');
-  185 |     console.log('✅ Customer: thêm món vào giỏ');
-  186 | 
-  187 |     // Vào checkout
-  188 |     await customerPage.goto('/Cart/Checkout', { waitUntil: 'networkidle' });
-  189 | 
-  190 |     // Điền thông tin + đặt hàng
-  191 |     const nameInput = customerPage.locator('#input-hoten');
-  192 |     const phoneInput = customerPage.locator('#input-sdt');
-  193 |     const addressInput = customerPage.locator('#input-diachi');
-  194 |     if (await nameInput.isVisible()) {
-  195 |       await nameInput.fill(USERS.customer1.name);
-  196 |       await phoneInput.fill('0987654321');
-  197 |       await addressInput.fill('02 Thanh Sơn, Thanh Bình, Hải Châu');
-  198 |       await customerPage.waitForTimeout(500);
-  199 |     }
-  200 | 
-  201 |     // Submit order
-  202 |     const submitBtn = customerPage.locator('#btn-submit-cod');
-  203 |     if (await submitBtn.isVisible()) {
-  204 |       try {
-  205 |         const confirmCb = customerPage.locator('#diff-acc');
-  206 |         if (await confirmCb.isVisible()) await confirmCb.check();
-  207 |       } catch {}
-  208 |       await submitBtn.click();
-  209 |       await customerPage.waitForTimeout(3000);
-  210 |       await customerPage.waitForLoadState('networkidle');
-  211 |       console.log(`✅ Customer: submitted order, URL: ${customerPage.url()}`);
-  212 |     }
-  213 |     await customerPage.close();
-  214 | 
-  215 |     // Quay lại tab quán ăn -> kiểm tra danh sách đơn
-  216 |     const restaurant = new RestaurantPage(page);
-  217 |     await loginAsRestaurant(page);
-  218 |     await restaurant.gotoOrderList();
-  219 |     await page.waitForSelector('#example5', { timeout: 20_000 });
-  220 | 
-  221 |     const orderCount = await restaurant.getOrderCount();
-  222 |     console.log(`📋 Số đơn sau khi tạo: ${orderCount}`);
-  223 |   });
-  224 | 
-  225 |   test('[TC-3.10] Nhận đơn -> chuyển trạng thái "Đã xác nhận"', async ({ page }) => {
-  226 |     await loginAsRestaurant(page);
-  227 | 
-  228 |     const restaurant = new RestaurantPage(page);
-  229 |     await restaurant.gotoOrderList();
-  230 |     await page.waitForSelector('#example5', { timeout: 20_000 });
-  231 | 
-  232 |     // Kiểm tra có đơn và nút nhận đơn
-  233 |     const acceptBtns = page.locator('a[href*="/Restaurant/nhandon/"]');
-  234 |     const btnCount = await acceptBtns.count();
-  235 | 
-  236 |     if (btnCount > 0) {
-  237 |       // Get order info before accepting
-  238 |       const firstRow = page.locator('#example5 tbody tr').first();
+  140 | 
+  141 |     const orderCount = await restaurant.getOrderCount();
+  142 |     if (orderCount > 0) {
+  143 |       const status = await restaurant.getFirstOrderStatus();
+  144 |       console.log(`📌 Trạng thái đơn đầu: ${status}`);
+  145 |       expect(status).toBeTruthy();
+  146 |     }
+  147 |   });
+  148 | 
+  149 |   test('[TC-3.8] Nút "Nhận đơn" hiển thị cho đơn trạng thái "Đã đặt"', async ({ page }) => {
+  150 |     await loginAsRestaurant(page);
+  151 | 
+  152 |     const restaurant = new RestaurantPage(page);
+  153 |     await restaurant.gotoOrderList();
+  154 |     await page.waitForSelector('#example5', { timeout: 20_000 });
+  155 | 
+  156 |     // Kiểm tra nút nhận đơn
+  157 |     const acceptBtns = await page.locator('a[href*="/Restaurant/nhandon/"]').count();
+  158 |     console.log(`🟢 Nhận đơn buttons: ${acceptBtns}`);
+  159 |   });
+  160 | });
+  161 | 
+  162 | // ─── TEST SUITE 3: Xử lý đơn hàng (Accept -> Prepare -> Complete) ───
+  163 | test.describe('🔄 Xử lý đơn hàng - Accept & Status Transitions', () => {
+  164 | 
+  165 |   test('[TC-3.9] Tạo đơn mới từ customer -> kiểm tra quán ăn thấy đơn', async ({ page, context }) => {
+  166 |     // Mở tab mới cho customer để tạo đơn
+  167 |     const customerPage = await context.newPage();
+  168 |     const loginC = new LoginPage(customerPage);
+  169 |     await loginC.gotoLogin();
+  170 |     await loginC.usernameInput.fill(USERS.customer1.username);
+  171 |     await loginC.passwordInput.fill(USERS.customer1.password);
+  172 |     await loginC.loginButton.click();
+  173 |     await customerPage.waitForLoadState('networkidle');
+  174 | 
+  175 |     // Thêm món vào giỏ ở Koneko Pizza
+  176 |     await customerPage.goto(`/Home/DetailRestaurant?id=${SEED.restaurantIds.konekoPizza}`, { waitUntil: 'networkidle' });
+  177 |     await customerPage.waitForSelector('.item-restaurant-row', { timeout: 20_000 });
+  178 | 
+  179 |     // Thêm món đầu tiên
+  180 |     const addBtn = customerPage.locator('.add-to-cart-btn').first();
+  181 |     const qtyInput = customerPage.locator('.adding-food-cart input[name="soLuong"]').first();
+  182 |     await qtyInput.fill('1');
+  183 |     await addBtn.click();
+  184 |     await customerPage.waitForResponse(resp => resp.url().includes('ApiThemMonAn') && resp.status() === 200);
+  185 |     await customerPage.waitForLoadState('networkidle');
+  186 |     console.log('✅ Customer: thêm món vào giỏ');
+  187 | 
+  188 |     // Vào checkout
+  189 |     await customerPage.goto('/Cart/Checkout', { waitUntil: 'networkidle' });
+  190 | 
+  191 |     // Điền thông tin + đặt hàng
+  192 |     const nameInput = customerPage.locator('#input-hoten');
+  193 |     const phoneInput = customerPage.locator('#input-sdt');
+  194 |     const addressInput = customerPage.locator('#input-diachi');
+  195 |     if (await nameInput.isVisible()) {
+  196 |       await nameInput.fill(USERS.customer1.name);
+  197 |       await phoneInput.fill('0987654321');
+  198 |       await addressInput.fill('02 Thanh Sơn, Thanh Bình, Hải Châu');
+  199 |       await customerPage.waitForTimeout(500);
+  200 |     }
+  201 | 
+  202 |     // Submit order
+  203 |     const submitBtn = customerPage.locator('#btn-submit-cod');
+  204 |     if (await submitBtn.isVisible()) {
+  205 |       try {
+  206 |         const confirmCb = customerPage.locator('#diff-acc');
+  207 |         if (await confirmCb.isVisible()) await confirmCb.check();
+  208 |       } catch {}
+  209 |       await submitBtn.click();
+  210 |       await customerPage.waitForTimeout(3000);
+  211 |       await customerPage.waitForLoadState('networkidle');
+  212 |       console.log(`✅ Customer: submitted order, URL: ${customerPage.url()}`);
+  213 |     }
+  214 |     await customerPage.close();
+  215 | 
+  216 |     // Quay lại tab quán ăn -> kiểm tra danh sách đơn
+  217 |     const restaurant = new RestaurantPage(page);
+  218 |     await loginAsRestaurant(page);
+  219 |     await restaurant.gotoOrderList();
+  220 |     await page.waitForSelector('#example5', { timeout: 20_000 });
+  221 | 
+  222 |     const orderCount = await restaurant.getOrderCount();
+  223 |     console.log(`📋 Số đơn sau khi tạo: ${orderCount}`);
+  224 |   });
+  225 | 
+  226 |   test('[TC-3.10] Nhận đơn -> chuyển trạng thái "Đã xác nhận"', async ({ page }) => {
+  227 |     await loginAsRestaurant(page);
+  228 | 
+  229 |     const restaurant = new RestaurantPage(page);
+  230 |     await restaurant.gotoOrderList();
+  231 |     await page.waitForSelector('#example5', { timeout: 20_000 });
+  232 | 
+  233 |     // Kiểm tra có đơn và nút nhận đơn
+  234 |     const acceptBtns = page.locator('a[href*="/Restaurant/nhandon/"]');
+  235 |     const btnCount = await acceptBtns.count();
+  236 | 
+  237 |     if (btnCount > 0) {
+  238 |       // Get order info before accepting
+  239 |       const firstRow = page.locator('#example5 tbody tr').first();
 ```

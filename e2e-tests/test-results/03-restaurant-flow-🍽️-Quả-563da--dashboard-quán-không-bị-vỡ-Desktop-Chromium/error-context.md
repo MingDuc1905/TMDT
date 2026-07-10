@@ -6,114 +6,120 @@
 
 # Test info
 
-- Name: 03-restaurant-flow.spec.ts >> 🔄 Xử lý đơn hàng - Accept & Status Transitions >> [TC-3.12] Nút "Đã chuẩn bị xong" cho đơn đã xác nhận
-- Location: tests\03-restaurant-flow.spec.ts:278:7
+- Name: 03-restaurant-flow.spec.ts >> 🍽️ Quản lý Món ăn >> [TC-3.14] Kiểm tra tất cả ảnh trên dashboard quán không bị vỡ
+- Location: tests\03-restaurant-flow.spec.ts:315:7
 
 # Error details
 
 ```
-TimeoutError: page.waitForSelector: Timeout 20000ms exceeded.
-Call log:
-  - waiting for locator('#example5') to be visible
-
+Error: page.evaluate: Execution context was destroyed, most likely because of a navigation
 ```
 
 # Page snapshot
 
 ```yaml
-- generic [ref=e2]:
-  - banner [ref=e3]:
-    - generic [ref=e4]:
-      - link "Fastship" [ref=e5] [cursor=pointer]:
-        - /url: /Home
-        - generic [ref=e6]: Fastship
-      - generic [ref=e7]:
-        - link " Trang chủ" [ref=e8] [cursor=pointer]:
-          - /url: /Home
-          - generic [ref=e9]: 
-          - text: Trang chủ
-        - link "Đăng ký" [ref=e10] [cursor=pointer]:
-          - /url: /Home/Signup
-  - main [ref=e11]:
-    - generic [ref=e12]:
-      - link "Fastship" [ref=e13] [cursor=pointer]:
-        - /url: /Home
-        - heading "Fastship" [level=1] [ref=e14]
-      - heading "Đăng nhập" [level=2] [ref=e15]
-      - generic [ref=e16]:
-        - generic [ref=e18]:
-          - link "Đăng nhập bằng Google" [ref=e19] [cursor=pointer]:
-            - /url: /Home/GoogleLogin
-            - img [ref=e20]
-            - generic [ref=e25]: Đăng nhập bằng Google
-          - link " Đăng ký làm Đối tác Quán ăn / Shipper" [ref=e27] [cursor=pointer]:
-            - /url: /Home/GooglePartnerLogin
-            - generic [ref=e28]: 
-            - text: Đăng ký làm Đối tác Quán ăn / Shipper
-        - generic [ref=e29]: hoặc bằng tài khoản
-        - generic [ref=e30]: Tên đăng nhập hoặc số điện thoại
-        - textbox "Tên đăng nhập hoặc số điện thoại" [ref=e31]
-        - generic [ref=e32]: Mật khẩu
-        - generic [ref=e33]:
-          - textbox "Mật khẩu" [ref=e34]
-          - button "Hiện/ẩn mật khẩu" [ref=e35] [cursor=pointer]:
-            - generic: 
-        - generic [ref=e36]:
-          - generic [ref=e37] [cursor=pointer]:
-            - checkbox "Lưu đăng nhập" [ref=e38]
-            - text: Lưu đăng nhập
-          - link "Quên mật khẩu?" [ref=e39] [cursor=pointer]:
-            - /url: /Home/Forgot
-        - button "Đăng nhập" [ref=e40] [cursor=pointer]
-      - generic [ref=e42]:
-        - text: Chưa có tài khoản?
-        - link "Đăng ký" [ref=e43] [cursor=pointer]:
-          - /url: /Home/Signup
-      - generic [ref=e44]:
-        - text: Bằng cách đăng nhập hoặc đăng ký, bạn đồng ý với
-        - link "Điều khoản dịch vụ" [ref=e45] [cursor=pointer]:
-          - /url: "#"
-        - text: của Fastship
+- generic [ref=e7]:
+  - link [ref=e9] [cursor=pointer]:
+    - /url: index.html
+  - navigation [ref=e17]:
+    - generic [ref=e18]:
+      - img [ref=e22] [cursor=pointer]
+      - list [ref=e24]:
+        - listitem [ref=e25]:
+          - link [ref=e26] [cursor=pointer]:
+            - /url: "#"
+            - img [ref=e27]
+        - listitem [ref=e32]:
+          - button [ref=e33] [cursor=pointer]:
+            - img [ref=e34]
+        - listitem [ref=e37]:
+          - generic [ref=e39] [cursor=pointer]:
+            - link "Đóng":
+              - /url: /Restaurant/updateStatus
+              - generic [ref=e40]: Đóng
+        - listitem [ref=e41]:
+          - button "Xin chào, konekopizza" [ref=e42] [cursor=pointer]:
+            - generic [ref=e44]:
+              - text: Xin chào,
+              - strong [ref=e45]: konekopizza
+  - generic [ref=e47]:
+    - list [ref=e48]:
+      - listitem [ref=e49]:
+        - link " Dashboard" [ref=e50] [cursor=pointer]:
+          - /url: javascript:void()
+          - generic [ref=e51]: 
+          - text: Dashboard
+        - list [ref=e52]:
+          - listitem [ref=e53]:
+            - link "Dashboard" [ref=e54] [cursor=pointer]:
+              - /url: /Restaurant
+          - listitem [ref=e55]:
+            - link "Phân tích" [ref=e56] [cursor=pointer]:
+              - /url: /Restaurant/Analytics
+          - listitem [ref=e57]:
+            - link "Đánh giá" [ref=e58] [cursor=pointer]:
+              - /url: /Restaurant/Review
+          - listitem [ref=e59]:
+            - link "Danh sách đơn hàng" [ref=e60] [cursor=pointer]:
+              - /url: /Restaurant/OrderList
+      - listitem [ref=e61]:
+        - link " Apps" [ref=e62] [cursor=pointer]:
+          - /url: javascript:void()
+          - generic [ref=e63]: 
+          - text: Apps
+        - list [ref=e64]:
+          - listitem [ref=e65]:
+            - link "Hồ sơ" [ref=e66] [cursor=pointer]:
+              - /url: /Restaurant/Profile
+          - listitem [ref=e67]:
+            - link "Cửa hàng" [ref=e68] [cursor=pointer]:
+              - /url: javascript:void()
+            - list [ref=e69]:
+              - listitem [ref=e70]:
+                - link "Danh sách thực đơn" [ref=e71] [cursor=pointer]:
+                  - /url: /Restaurant/ProductList
+              - listitem [ref=e72]:
+                - link "Chi tiết món" [ref=e73] [cursor=pointer]:
+                  - /url: /Restaurant/ProductDetail
+    - generic [ref=e74]:
+      - paragraph [ref=e75]: Sắp xếp các menu của bạn thông qua nút bên dưới
+      - link "+ Thêm thực đơn" [ref=e76] [cursor=pointer]:
+        - /url: /Restaurant/ProductDetail
+  - generic [ref=e78]:
+    - generic [ref=e80]:
+      - heading "Thống kê" [level=2] [ref=e81]
+      - paragraph [ref=e82]: Xin chào quản lí Koneko Pizza
+    - generic [ref=e85]:
+      - generic [ref=e87]:
+        - generic [ref=e88]: 🤖
+        - generic [ref=e89]:
+          - heading "Chiến lược bán chéo từ dữ liệu" [level=4] [ref=e90]
+          - paragraph [ref=e91]: Phân tích Apriori trên 27 đơn hàng hoàn thành
+        - generic [ref=e92]: AI
+      - generic [ref=e93]:
+        - paragraph [ref=e94]:
+          - generic [ref=e95]: 
+          - text: Những cặp món sau thường được khách đặt cùng nhau. Hãy tạo
+          - strong [ref=e96]: Combo khuyến mãi
+          - text: cho các cặp này để tăng doanh thu!
+        - generic [ref=e98]:
+          - generic [ref=e99]:
+            - generic [ref=e100]: Trà tắc
+            - generic [ref=e101]: +
+            - generic [ref=e102]: Pizza thập cẩm
+          - generic [ref=e104]:
+            - strong [ref=e105]: 100%
+            - text: khách mua Trà tắc cũng mua Pizza thập cẩm
+          - generic [ref=e106]:
+            - generic [ref=e107]:
+              - text: Support
+              - strong [ref=e108]: 3.7%
+            - generic [ref=e109]: 1 đơn
 ```
 
 # Test source
 
 ```ts
-  183 |     await addBtn.click();
-  184 |     await customerPage.waitForResponse(resp => resp.url().includes('ApiThemMonAn') && resp.status() === 200);
-  185 |     await customerPage.waitForLoadState('networkidle');
-  186 |     console.log('✅ Customer: thêm món vào giỏ');
-  187 | 
-  188 |     // Vào checkout
-  189 |     await customerPage.goto('/Cart/Checkout', { waitUntil: 'networkidle' });
-  190 | 
-  191 |     // Điền thông tin + đặt hàng
-  192 |     const nameInput = customerPage.locator('#input-hoten');
-  193 |     const phoneInput = customerPage.locator('#input-sdt');
-  194 |     const addressInput = customerPage.locator('#input-diachi');
-  195 |     if (await nameInput.isVisible()) {
-  196 |       await nameInput.fill(USERS.customer1.name);
-  197 |       await phoneInput.fill('0987654321');
-  198 |       await addressInput.fill('02 Thanh Sơn, Thanh Bình, Hải Châu');
-  199 |       await customerPage.waitForTimeout(500);
-  200 |     }
-  201 | 
-  202 |     // Submit order
-  203 |     const submitBtn = customerPage.locator('#btn-submit-cod');
-  204 |     if (await submitBtn.isVisible()) {
-  205 |       try {
-  206 |         const confirmCb = customerPage.locator('#diff-acc');
-  207 |         if (await confirmCb.isVisible()) await confirmCb.check();
-  208 |       } catch {}
-  209 |       await submitBtn.click();
-  210 |       await customerPage.waitForTimeout(3000);
-  211 |       await customerPage.waitForLoadState('networkidle');
-  212 |       console.log(`✅ Customer: submitted order, URL: ${customerPage.url()}`);
-  213 |     }
-  214 |     await customerPage.close();
-  215 | 
-  216 |     // Quay lại tab quán ăn -> kiểm tra danh sách đơn
-  217 |     const restaurant = new RestaurantPage(page);
   218 |     await loginAsRestaurant(page);
   219 |     await restaurant.gotoOrderList();
   220 |     await page.waitForSelector('#example5', { timeout: 20_000 });
@@ -179,8 +185,7 @@ Call log:
   280 | 
   281 |     const restaurant = new RestaurantPage(page);
   282 |     await restaurant.gotoOrderList();
-> 283 |     await page.waitForSelector('#example5', { timeout: 20_000 });
-      |                ^ TimeoutError: page.waitForSelector: Timeout 20000ms exceeded.
+  283 |     await page.waitForSelector('#example5', { timeout: 20_000 });
   284 | 
   285 |     const readyBtns = page.locator('a[href*="/Restaurant/hoantatdon/"]');
   286 |     const btnCount = await readyBtns.count();
@@ -215,7 +220,8 @@ Call log:
   315 |   test('[TC-3.14] Kiểm tra tất cả ảnh trên dashboard quán không bị vỡ', async ({ page }) => {
   316 |     await loginAsRestaurant(page);
   317 | 
-  318 |     const imgResult = await page.evaluate(() => {
+> 318 |     const imgResult = await page.evaluate(() => {
+      |                                  ^ Error: page.evaluate: Execution context was destroyed, most likely because of a navigation
   319 |       const imgs = Array.from(document.querySelectorAll('img'));
   320 |       let broken = 0;
   321 |       imgs.forEach((img) => {

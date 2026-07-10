@@ -7,7 +7,7 @@
 # Test info
 
 - Name: 04-shipper-flow.spec.ts >> 💰 Ví tiền & Thu nhập Shipper >> [TC-4.12] So sánh số dư ví trước và sau khi giao hàng (nếu có)
-- Location: tests\04-shipper-flow.spec.ts:234:7
+- Location: tests\04-shipper-flow.spec.ts:235:7
 
 # Error details
 
@@ -15,7 +15,27 @@
 TimeoutError: locator.click: Timeout 30000ms exceeded.
 Call log:
   - waiting for locator('a[href*="/Shipper/ViTien"]')
+    - waiting for" https://fastship-web.onrender.com/Shipper" navigation to finish...
+    - navigated to "https://fastship-web.onrender.com/Home/Error?traceId=00-53abdca74697da06c189d09941b0ddfe-67b91b47d5b26cf0-00"
 
+```
+
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - generic [ref=e3]: Fastship
+  - generic [ref=e4]: ⚠️
+  - heading "Đã xảy ra lỗi" [level=1] [ref=e5]
+  - paragraph [ref=e6]:
+    - text: Máy chủ đang gặp sự cố tạm thời. Đội ngũ Fastship đã được thông báo và sẽ khắc phục sớm nhất.
+    - text: Vui lòng thử lại sau.
+  - generic [ref=e7]:
+    - strong [ref=e8]: "Mã lỗi:"
+    - text: 00-53abdca74697da06c189d09941b0ddfe-67b91b47d5b26cf0-00
+  - link "← Quay về trang chủ" [ref=e9] [cursor=pointer]:
+    - /url: /Home
+  - generic [ref=e10]: Fastship © 2026 — Nếu lỗi vẫn tiếp diễn, vui lòng liên hệ fastship@contact.com
 ```
 
 # Test source

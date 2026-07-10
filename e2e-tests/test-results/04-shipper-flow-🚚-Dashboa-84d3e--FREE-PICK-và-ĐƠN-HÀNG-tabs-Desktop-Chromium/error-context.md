@@ -7,7 +7,7 @@
 # Test info
 
 - Name: 04-shipper-flow.spec.ts >> 🚚 Dashboard Shipper - Tabs & Navigation >> [TC-4.2] Dashboard hiển thị FREE-PICK và ĐƠN HÀNG tabs
-- Location: tests\04-shipper-flow.spec.ts:48:7
+- Location: tests\04-shipper-flow.spec.ts:49:7
 
 # Error details
 
@@ -22,7 +22,20 @@ Error: element(s) not found
 Call log:
   - Expect "toBeVisible" with timeout 10000ms
   - waiting for locator('#orders-all-tab')
+    - waiting for" https://fastship-web.onrender.com/Shipper" navigation to finish...
+    - navigated to "https://fastship-web.onrender.com/Home/Error?traceId=00-ab916892dcbdd3f28a0ae66d56a2c1f8-cd39d8cf556b7d18-00"
 
+```
+
+```yaml
+- text: Fastship ⚠️
+- heading "Đã xảy ra lỗi" [level=1]
+- paragraph: Máy chủ đang gặp sự cố tạm thời. Đội ngũ Fastship đã được thông báo và sẽ khắc phục sớm nhất. Vui lòng thử lại sau.
+- strong: "Mã lỗi:"
+- text: 00-ab916892dcbdd3f28a0ae66d56a2c1f8-cd39d8cf556b7d18-00
+- link "← Quay về trang chủ":
+  - /url: /Home
+- text: Fastship © 2026 — Nếu lỗi vẫn tiếp diễn, vui lòng liên hệ fastship@contact.com
 ```
 
 # Test source
@@ -58,127 +71,128 @@ Call log:
   28  |   // ponytail: dùng login() có 429 retry + gotoLogin() reload form
   29  |   const url = await login.login(SHIPPER.username, SHIPPER.password);
   30  |   console.log(`📍 URL sau login: ${url}`);
-  31  |   // Nếu redirect crash (500), session vẫn được set — goto '/' để verify
-  32  |   if (url.includes('/Home/Error') || url.includes('/Home/Login')) {
-  33  |     console.log('⏳ Dashboard redirect crash (500), goto /...');
-  34  |     await page.goto('/', { waitUntil: 'networkidle', timeout: 20_000 });
-  35  |   }
-  36  | }
-  37  | 
-  38  | // ─── TEST SUITE 1: Dashboard & Tabs ───
-  39  | test.describe('🚚 Dashboard Shipper - Tabs & Navigation', () => {
-  40  | 
-  41  |   test('[TC-4.1] Đăng nhập shipper - redirect đến /Shipper', async ({ page }) => {
-  42  |     await loginAsShipper(page);
-  43  |     const url = page.url();
-  44  |     console.log(`✅ URL: ${url}`);
-  45  |     expect(url).toContain('/Shipper');
-  46  |   });
-  47  | 
-  48  |   test('[TC-4.2] Dashboard hiển thị FREE-PICK và ĐƠN HÀNG tabs', async ({ page }) => {
-  49  |     await loginAsShipper(page);
-  50  |     const shipper = new ShipperPage(page);
-  51  | 
-> 52  |     await expect(shipper.freepickTab).toBeVisible({ timeout: 10_000 });
+  31  |   // ponytail: redirect về /Home/Login → cold start làm mất session cookie
+  32  |   // Solution: goto trực tiếp /Shipper
+  33  |   if (url.includes('/Home/Error') || url.includes('/Home/Login')) {
+  34  |     console.log('⏳ Cold start / redirect crash, goto /Shipper directly...');
+  35  |     await page.goto('/Shipper', { waitUntil: 'domcontentloaded', timeout: 30_000 }).catch(() => console.log('⚠️ Fallback goto Shipper failed'));
+  36  |   }
+  37  | }
+  38  | 
+  39  | // ─── TEST SUITE 1: Dashboard & Tabs ───
+  40  | test.describe('🚚 Dashboard Shipper - Tabs & Navigation', () => {
+  41  | 
+  42  |   test('[TC-4.1] Đăng nhập shipper - redirect đến /Shipper', async ({ page }) => {
+  43  |     await loginAsShipper(page);
+  44  |     const url = page.url();
+  45  |     console.log(`✅ URL: ${url}`);
+  46  |     expect(url).toContain('/Shipper');
+  47  |   });
+  48  | 
+  49  |   test('[TC-4.2] Dashboard hiển thị FREE-PICK và ĐƠN HÀNG tabs', async ({ page }) => {
+  50  |     await loginAsShipper(page);
+  51  |     const shipper = new ShipperPage(page);
+  52  | 
+> 53  |     await expect(shipper.freepickTab).toBeVisible({ timeout: 10_000 });
       |                                       ^ Error: expect(locator).toBeVisible() failed
-  53  |     await expect(shipper.orderTab).toBeVisible({ timeout: 10_000 });
-  54  |     console.log('✅ FREE-PICK và ĐƠN HÀNG tabs hiển thị');
-  55  |   });
-  56  | 
-  57  |   test('[TC-4.3] Tab FREE-PICK - danh sách đơn chờ nhận load', async ({ page }) => {
-  58  |     await loginAsShipper(page);
-  59  |     const shipper = new ShipperPage(page);
-  60  | 
-  61  |     await shipper.openFreepickTab();
-  62  |     await page.waitForTimeout(2000);
-  63  | 
-  64  |     // Kiểm tra có đơn trong FREE-PICK
-  65  |     const orderCount = await shipper.getOrderCount();
-  66  |     console.log(`📋 FREE-PICK orders: ${orderCount}`);
-  67  |   });
-  68  | 
-  69  |   test('[TC-4.4] Tab ĐƠN HÀNG - danh sách đơn đã nhận', async ({ page }) => {
-  70  |     await loginAsShipper(page);
-  71  |     const shipper = new ShipperPage(page);
-  72  | 
-  73  |     await shipper.openOrderTab();
-  74  |     await page.waitForSelector('.table-responsive', { timeout: 15_000 });
-  75  | 
-  76  |     const orderCount = await shipper.getOrderCount();
-  77  |     console.log(`📋 Đơn đã nhận: ${orderCount}`);
-  78  |   });
-  79  | 
-  80  |   test('[TC-4.5] Bản đồ FREE-PICK hiển thị', async ({ page }) => {
-  81  |     await loginAsShipper(page);
-  82  |     const shipper = new ShipperPage(page);
-  83  | 
-  84  |     await shipper.openFreepickTab();
-  85  |     await page.waitForTimeout(3000);
-  86  | 
-  87  |     const mapVisible = await shipper.isMapVisible().catch(() => false);
-  88  |     const mapDiv = await page.locator('#shipper-map, #map, [class*="map"]').count();
-  89  |     console.log(`🗺️ Map container: ${mapDiv}, Visible: ${mapVisible}`);
-  90  |   });
-  91  | });
-  92  | 
-  93  | // ─── TEST SUITE 2: Nhận đơn & Giao hàng ───
-  94  | test.describe('📦 Nhận đơn & Quy trình giao hàng', () => {
-  95  | 
-  96  |   test('[TC-4.6] Click "Chi tiết" / "Nhận đơn" đầu tiên', async ({ page }) => {
-  97  |     await loginAsShipper(page);
-  98  |     const shipper = new ShipperPage(page);
-  99  | 
-  100 |     // Mở FREE-PICK
-  101 |     await shipper.openFreepickTab();
-  102 |     await page.waitForTimeout(2000);
-  103 | 
-  104 |     // Kiểm tra link chi tiết
-  105 |     const detailLinks = page.locator('a[href*="/Shipper/OrderDetail/"]');
-  106 |     const linkCount = await detailLinks.count();
-  107 |     console.log(`🔗 Order detail links: ${linkCount}`);
-  108 | 
-  109 |     if (linkCount > 0) {
-  110 |       await detailLinks.first().click();
-  111 |       await page.waitForLoadState('networkidle');
-  112 |       await page.waitForTimeout(2000);
-  113 | 
-  114 |       const url = page.url();
-  115 |       console.log(`📍 URL sau click: ${url}`);
-  116 |       expect(url).toContain('OrderDetail');
-  117 |     } else {
-  118 |       console.log('ℹ️ Không có đơn trong FREE-PICK');
-  119 |     }
-  120 |   });
-  121 | 
-  122 |   test('[TC-4.7] Cập nhật trạng thái giao hàng (nếu có nút)', async ({ page }) => {
-  123 |     await loginAsShipper(page);
-  124 | 
-  125 |     // Vào tab ĐƠN HÀNG để xem đơn đã nhận
-  126 |     const shipper = new ShipperPage(page);
-  127 |     await shipper.openOrderTab();
-  128 |     await page.waitForTimeout(2000);
-  129 | 
-  130 |     // Kiểm tra các nút cập nhật trạng thái
-  131 |     const statusUpdateBtns = [
-  132 |       { label: 'Đã lấy hàng', selector: 'a[href*="danggiaohang"], a[href*="layhang"]' },
-  133 |       { label: 'Đang giao', selector: 'a[href*="danggiao"]' },
-  134 |       { label: 'Giao thành công', selector: 'a[href*="dagiao"], a[href*="hoantat"]' },
-  135 |     ];
-  136 | 
-  137 |     for (const btn of statusUpdateBtns) {
-  138 |       const btnCount = await page.locator(btn.selector).count();
-  139 |       if (btnCount > 0) {
-  140 |         console.log(`🟢 Nút "${btn.label}": ${btnCount}`);
-  141 |       } else {
-  142 |         console.log(`⚪ Nút "${btn.label}": không có`);
-  143 |       }
-  144 |     }
-  145 |   });
-  146 | 
-  147 |   test('[TC-4.8] Chi tiết đơn hàng đã nhận - thông tin hiển thị đầy đủ', async ({ page }) => {
-  148 |     await loginAsShipper(page);
-  149 | 
-  150 |     // Vào ĐƠN HÀNG
-  151 |     const shipper = new ShipperPage(page);
-  152 |     await shipper.openOrderTab();
+  54  |     await expect(shipper.orderTab).toBeVisible({ timeout: 10_000 });
+  55  |     console.log('✅ FREE-PICK và ĐƠN HÀNG tabs hiển thị');
+  56  |   });
+  57  | 
+  58  |   test('[TC-4.3] Tab FREE-PICK - danh sách đơn chờ nhận load', async ({ page }) => {
+  59  |     await loginAsShipper(page);
+  60  |     const shipper = new ShipperPage(page);
+  61  | 
+  62  |     await shipper.openFreepickTab();
+  63  |     await page.waitForTimeout(2000);
+  64  | 
+  65  |     // Kiểm tra có đơn trong FREE-PICK
+  66  |     const orderCount = await shipper.getOrderCount();
+  67  |     console.log(`📋 FREE-PICK orders: ${orderCount}`);
+  68  |   });
+  69  | 
+  70  |   test('[TC-4.4] Tab ĐƠN HÀNG - danh sách đơn đã nhận', async ({ page }) => {
+  71  |     await loginAsShipper(page);
+  72  |     const shipper = new ShipperPage(page);
+  73  | 
+  74  |     await shipper.openOrderTab();
+  75  |     await page.waitForSelector('.table-responsive', { timeout: 15_000 });
+  76  | 
+  77  |     const orderCount = await shipper.getOrderCount();
+  78  |     console.log(`📋 Đơn đã nhận: ${orderCount}`);
+  79  |   });
+  80  | 
+  81  |   test('[TC-4.5] Bản đồ FREE-PICK hiển thị', async ({ page }) => {
+  82  |     await loginAsShipper(page);
+  83  |     const shipper = new ShipperPage(page);
+  84  | 
+  85  |     await shipper.openFreepickTab();
+  86  |     await page.waitForTimeout(3000);
+  87  | 
+  88  |     const mapVisible = await shipper.isMapVisible().catch(() => false);
+  89  |     const mapDiv = await page.locator('#shipper-map, #map, [class*="map"]').count();
+  90  |     console.log(`🗺️ Map container: ${mapDiv}, Visible: ${mapVisible}`);
+  91  |   });
+  92  | });
+  93  | 
+  94  | // ─── TEST SUITE 2: Nhận đơn & Giao hàng ───
+  95  | test.describe('📦 Nhận đơn & Quy trình giao hàng', () => {
+  96  | 
+  97  |   test('[TC-4.6] Click "Chi tiết" / "Nhận đơn" đầu tiên', async ({ page }) => {
+  98  |     await loginAsShipper(page);
+  99  |     const shipper = new ShipperPage(page);
+  100 | 
+  101 |     // Mở FREE-PICK
+  102 |     await shipper.openFreepickTab();
+  103 |     await page.waitForTimeout(2000);
+  104 | 
+  105 |     // Kiểm tra link chi tiết
+  106 |     const detailLinks = page.locator('a[href*="/Shipper/OrderDetail/"]');
+  107 |     const linkCount = await detailLinks.count();
+  108 |     console.log(`🔗 Order detail links: ${linkCount}`);
+  109 | 
+  110 |     if (linkCount > 0) {
+  111 |       await detailLinks.first().click();
+  112 |       await page.waitForLoadState('networkidle');
+  113 |       await page.waitForTimeout(2000);
+  114 | 
+  115 |       const url = page.url();
+  116 |       console.log(`📍 URL sau click: ${url}`);
+  117 |       expect(url).toContain('OrderDetail');
+  118 |     } else {
+  119 |       console.log('ℹ️ Không có đơn trong FREE-PICK');
+  120 |     }
+  121 |   });
+  122 | 
+  123 |   test('[TC-4.7] Cập nhật trạng thái giao hàng (nếu có nút)', async ({ page }) => {
+  124 |     await loginAsShipper(page);
+  125 | 
+  126 |     // Vào tab ĐƠN HÀNG để xem đơn đã nhận
+  127 |     const shipper = new ShipperPage(page);
+  128 |     await shipper.openOrderTab();
+  129 |     await page.waitForTimeout(2000);
+  130 | 
+  131 |     // Kiểm tra các nút cập nhật trạng thái
+  132 |     const statusUpdateBtns = [
+  133 |       { label: 'Đã lấy hàng', selector: 'a[href*="danggiaohang"], a[href*="layhang"]' },
+  134 |       { label: 'Đang giao', selector: 'a[href*="danggiao"]' },
+  135 |       { label: 'Giao thành công', selector: 'a[href*="dagiao"], a[href*="hoantat"]' },
+  136 |     ];
+  137 | 
+  138 |     for (const btn of statusUpdateBtns) {
+  139 |       const btnCount = await page.locator(btn.selector).count();
+  140 |       if (btnCount > 0) {
+  141 |         console.log(`🟢 Nút "${btn.label}": ${btnCount}`);
+  142 |       } else {
+  143 |         console.log(`⚪ Nút "${btn.label}": không có`);
+  144 |       }
+  145 |     }
+  146 |   });
+  147 | 
+  148 |   test('[TC-4.8] Chi tiết đơn hàng đã nhận - thông tin hiển thị đầy đủ', async ({ page }) => {
+  149 |     await loginAsShipper(page);
+  150 | 
+  151 |     // Vào ĐƠN HÀNG
+  152 |     const shipper = new ShipperPage(page);
+  153 |     await shipper.openOrderTab();
 ```

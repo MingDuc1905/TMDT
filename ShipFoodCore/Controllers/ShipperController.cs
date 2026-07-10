@@ -27,15 +27,26 @@ public class ShipperController : BaseController
         var sh = GetCurrentUser();
         if (sh == null || !checkShipper()) return RedirectToAction("Login", "Home");
 
-        var listdh = db.DonHangDangLam.FromSqlRaw(
-            @"select dh.madh, dh.ngaydathang, tt.diachi, tt.tennguoinhan, dh.trangthai, dh.phiship, dh.tongtien, tt.userid, tt.sdt, 
-              qa.tenquanan as tenquanan, qa.diachi as DiaChiQuan 
-              from tbDonHang dh 
-              Join tbThongTinDatHang tt On dh.mattdh = tt.mattdh 
-              Join tbQuanAn qa On dh.maquan = qa.userid 
-              Where dh.trangthai = 'Chờ shipper lấy hàng' and dh.mashipper is NULL 
-              Order by dh.madh DESC"
-        ).ToList();
+        // ponytail: try-catch để FromSqlRaw không crash dashboard nếu PostgreSQL column mapping lỗi
+        List<DonHangDangLam> listdh;
+        try
+        {
+            listdh = db.DonHangDangLam.FromSqlRaw(
+                @"select dh.madh, dh.ngaydathang, tt.diachi, tt.tennguoinhan, dh.trangthai, dh.phiship, dh.tongtien, tt.userid, tt.sdt, 
+                  qa.tenquanan as tenquanan, qa.diachi as DiaChiQuan 
+                  from tbDonHang dh 
+                  Join tbThongTinDatHang tt On dh.mattdh = tt.mattdh 
+                  Join tbQuanAn qa On dh.maquan = qa.userid 
+                  Where dh.trangthai = 'Chờ shipper lấy hàng' and dh.mashipper is NULL 
+                  Order by dh.madh DESC"
+            ).ToList();
+        }
+        catch (Exception ex)
+        {
+            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<ShipperController>>();
+            logger.LogError(ex, "Shipper dashboard Index failed: {Error}", ex.Message);
+            listdh = new List<DonHangDangLam>();
+        }
         return View(listdh);
     }
 

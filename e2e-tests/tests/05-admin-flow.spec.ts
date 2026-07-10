@@ -28,10 +28,11 @@ async function loginAsAdmin(page: any) {
   // ponytail: dùng login() có 429 retry + gotoLogin() reload form
   const url = await login.login(ADMIN.username, ADMIN.password);
   console.log(`📍 URL sau login: ${url}`);
-  // Nếu redirect crash (500), session vẫn được set — goto '/' để verify
+  // ponytail: redirect về /Home/Login → cold start làm mất session cookie
+  // Solution: goto trực tiếp /Admin (không networkidle để tránh timeout)
   if (url.includes('/Home/Error') || url.includes('/Home/Login')) {
-    console.log('⏳ Dashboard redirect crash (500), goto /...');
-    await page.goto('/', { waitUntil: 'networkidle', timeout: 20_000 });
+    console.log('⏳ Cold start / redirect crash, goto /Admin directly...');
+    await page.goto('/Admin', { waitUntil: 'domcontentloaded', timeout: 30_000 }).catch(() => console.log('⚠️ Fallback goto Admin failed'));
   }
 }
 

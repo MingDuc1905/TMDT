@@ -6,16 +6,16 @@
 
 # Test info
 
-- Name: 04-shipper-flow.spec.ts >> 💰 Ví tiền & Thu nhập Shipper >> [TC-4.10] Trang thu nhập - thống kê hiển thị
-- Location: tests\04-shipper-flow.spec.ts:198:7
+- Name: 04-shipper-flow.spec.ts >> 🖼️ Shipper Visual Checks >> [TC-4.14] Console không có lỗi trên dashboard shipper
+- Location: tests\04-shipper-flow.spec.ts:265:7
 
 # Error details
 
 ```
-Error: expect(received).toBeGreaterThan(expected)
+Error: expect(received).toBe(expected) // Object.is equality
 
-Expected: > 0
-Received:   0
+Expected: 0
+Received: 1
 ```
 
 # Page snapshot
@@ -79,74 +79,6 @@ Received:   0
 # Test source
 
 ```ts
-  109 | 
-  110 |     if (linkCount > 0) {
-  111 |       await detailLinks.first().click();
-  112 |       await page.waitForLoadState('networkidle');
-  113 |       await page.waitForTimeout(2000);
-  114 | 
-  115 |       const url = page.url();
-  116 |       console.log(`📍 URL sau click: ${url}`);
-  117 |       expect(url).toContain('OrderDetail');
-  118 |     } else {
-  119 |       console.log('ℹ️ Không có đơn trong FREE-PICK');
-  120 |     }
-  121 |   });
-  122 | 
-  123 |   test('[TC-4.7] Cập nhật trạng thái giao hàng (nếu có nút)', async ({ page }) => {
-  124 |     await loginAsShipper(page);
-  125 | 
-  126 |     // Vào tab ĐƠN HÀNG để xem đơn đã nhận
-  127 |     const shipper = new ShipperPage(page);
-  128 |     await shipper.openOrderTab();
-  129 |     await page.waitForTimeout(2000);
-  130 | 
-  131 |     // Kiểm tra các nút cập nhật trạng thái
-  132 |     const statusUpdateBtns = [
-  133 |       { label: 'Đã lấy hàng', selector: 'a[href*="danggiaohang"], a[href*="layhang"]' },
-  134 |       { label: 'Đang giao', selector: 'a[href*="danggiao"]' },
-  135 |       { label: 'Giao thành công', selector: 'a[href*="dagiao"], a[href*="hoantat"]' },
-  136 |     ];
-  137 | 
-  138 |     for (const btn of statusUpdateBtns) {
-  139 |       const btnCount = await page.locator(btn.selector).count();
-  140 |       if (btnCount > 0) {
-  141 |         console.log(`🟢 Nút "${btn.label}": ${btnCount}`);
-  142 |       } else {
-  143 |         console.log(`⚪ Nút "${btn.label}": không có`);
-  144 |       }
-  145 |     }
-  146 |   });
-  147 | 
-  148 |   test('[TC-4.8] Chi tiết đơn hàng đã nhận - thông tin hiển thị đầy đủ', async ({ page }) => {
-  149 |     await loginAsShipper(page);
-  150 | 
-  151 |     // Vào ĐƠN HÀNG
-  152 |     const shipper = new ShipperPage(page);
-  153 |     await shipper.openOrderTab();
-  154 |     await page.waitForTimeout(2000);
-  155 | 
-  156 |     const orderRows = page.locator('.table-responsive tbody tr');
-  157 |     const rowCount = await orderRows.count();
-  158 | 
-  159 |     if (rowCount > 0) {
-  160 |       // Click vào chi tiết đơn đầu
-  161 |       const firstRow = orderRows.first();
-  162 |       const firstCellText = await firstRow.locator('td').first().textContent();
-  163 |       console.log(`📋 Đơn hàng đầu: ${firstCellText?.trim()}`);
-  164 | 
-  165 |       // Click vào link chi tiết (nếu có)
-  166 |       const detailLink = firstRow.locator('a[href*="OrderDetail"]');
-  167 |       if (await detailLink.count() > 0) {
-  168 |         await detailLink.first().click();
-  169 |         await page.waitForLoadState('networkidle');
-  170 |         console.log(`📍 URL: ${page.url()}`);
-  171 |       }
-  172 |     } else {
-  173 |       console.log('ℹ️ Không có đơn nào');
-  174 |     }
-  175 |   });
-  176 | });
   177 | 
   178 | // ─── TEST SUITE 3: Ví tiền & Thu nhập ───
   179 | test.describe('💰 Ví tiền & Thu nhập Shipper', () => {
@@ -179,8 +111,7 @@ Received:   0
   206 |     const incomeStats = page.locator('.card-header, [class*="stat"], [class*="income"]');
   207 |     const statCount = await incomeStats.count();
   208 |     console.log(`📊 Thu nhập stats: ${statCount}`);
-> 209 |     expect(statCount).toBeGreaterThan(0);
-      |                       ^ Error: expect(received).toBeGreaterThan(expected)
+  209 |     expect(statCount).toBeGreaterThan(0);
   210 | 
   211 |     // Lấy text thống kê
   212 |     for (let i = 0; i < Math.min(statCount, 4); i++) {
@@ -248,7 +179,8 @@ Received:   0
   274 |     if (errors.length > 0) {
   275 |       console.log(`❌ Console errors: ${errors.join(' | ')}`);
   276 |     }
-  277 |     expect(errors.length).toBe(0);
+> 277 |     expect(errors.length).toBe(0);
+      |                           ^ Error: expect(received).toBe(expected) // Object.is equality
   278 |   });
   279 | 
   280 |   test('[TC-4.15] Desktop layout - không bị overflow', async ({ page }) => {

@@ -932,6 +932,7 @@ VALUES ('test_debug', 'test123', 'Khách hàng', '0999999999', 0, 'test@debug.co
         {
             var logger = HttpContext.RequestServices.GetRequiredService<ILogger<HomeController>>();
             var env = HttpContext.RequestServices.GetRequiredService<IWebHostEnvironment>();
+            var sb = new System.Text.StringBuilder();
 
             // ── Bước 1: ALTER các cột hinhanh bị giới hạn độ dài ──
             var alterStatements = new[]
@@ -948,6 +949,7 @@ VALUES ('test_debug', 'test123', 'Khách hàng', '0999999999', 0, 'test@debug.co
                 try { db.Database.ExecuteSqlRaw(alter); alterOk++; }
                 catch (Exception ex) { logger.LogWarning("ALTER skipped: {Error}", ex.Message); alterFail++; }
             }
+            sb.AppendLine($"✅ ALTER: {alterOk}/{alterOk + alterFail} cột OK.");
 
             // ── Bước 2: Seed data từ seed.sql ──
             string sqlPath = System.IO.Path.Combine(env.ContentRootPath, "seed.sql");
@@ -958,31 +960,40 @@ VALUES ('test_debug', 'test123', 'Khách hàng', '0999999999', 0, 'test@debug.co
 
             var sql = System.IO.File.ReadAllText(sqlPath).Replace("\r\n", "\n");
             var statements = sql.Split(new[] { "\nGO\n", ";\n" }, StringSplitOptions.RemoveEmptyEntries);
+            sb.AppendLine($"📄 Tổng số statements: {statements.Length}");
 
             int success = 0, fail = 0;
+            int idx = 0;
             foreach (var stmt in statements)
             {
+                idx++;
                 var trimmed = stmt.Trim();
                 if (trimmed.Length == 0 || trimmed.StartsWith("DROP") || trimmed.StartsWith("CREATE") || trimmed.StartsWith("SET"))
                     continue;
 
+                // Lấy 80 ký tự đầu của câu SQL để hiển thị
+                var preview = trimmed.Length > 80 ? trimmed.Substring(0, 80) + "..." : trimmed;
                 try
                 {
                     db.Database.ExecuteSqlRaw(trimmed);
                     success++;
+                    sb.AppendLine($"  ✅ #{idx}: {preview}");
                 }
                 catch (Exception ex)
                 {
-                    logger.LogWarning("Seed SQL failed: {Error}", ex.Message);
                     fail++;
+                    var errMsg = ex.InnerException?.Message ?? ex.Message;
+                    sb.AppendLine($"  ❌ #{idx}: {preview}");
+                    sb.AppendLine($"     Lỗi: {errMsg}");
                 }
             }
 
-            return Content($"✅ ALTER: {alterOk}/{alterOk + alterFail} cột OK. ✅ Seed: {success} thành công, {fail} lỗi.");
+            sb.AppendLine($"✅ Kết quả: {success} thành công, {fail} lỗi.");
+            return Content(sb.ToString());
         }
         catch (Exception ex)
         {
-            return Content($"❌ Lỗi: {ex.Message}");
+            return Content($"❌ Lỗi: {ex.Message}\n{ex.StackTrace}");
         }
     }
 

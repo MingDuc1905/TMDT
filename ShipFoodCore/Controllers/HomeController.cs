@@ -952,6 +952,22 @@ VALUES ('test_debug', 'test123', 'Khách hàng', '0999999999', 0, 'test@debug.co
             }
             sb.AppendLine($"✅ ALTER: {alterOk}/{alterOk + alterFail} cột OK.");
 
+            // ── Bước 1b: Xoá dữ liệu cũ + reset sequence để seed lại từ đầu ──
+            try
+            {
+                db.Database.ExecuteSqlRaw(@"DELETE FROM ""tbDanhGia"";");
+                db.Database.ExecuteSqlRaw(@"DELETE FROM ""tbChiTietDonHang"";");
+                db.Database.ExecuteSqlRaw(@"DELETE FROM ""tbMonAnKhuyenMai"";");
+                db.Database.ExecuteSqlRaw(@"DELETE FROM ""tbBienTheMonAn"";");
+                db.Database.ExecuteSqlRaw(@"DELETE FROM ""tbMonAn"";");
+                db.Database.ExecuteSqlRaw(@"ALTER SEQUENCE ""tbBienTheMonAn_id_seq"" RESTART WITH 1;");
+                sb.AppendLine("✅ Đã xoá dữ liệu cũ + reset sequence.");
+            }
+            catch (Exception ex)
+            {
+                sb.AppendLine($"⚠️ Xoá dữ liệu cũ: {ex.Message}");
+            }
+
             // ── Bước 2: Seed data từ seed.sql ──
             string sqlPath = System.IO.Path.Combine(env.ContentRootPath, "seed.sql");
             if (!System.IO.File.Exists(sqlPath))

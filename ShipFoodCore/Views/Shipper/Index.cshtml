@@ -1,200 +1,429 @@
-﻿@model List<ShipFood.Models.DonHangDangLam>
+@model List<ShipFood.Models.DonHangDangLam>
 @{
-    ViewBag.Title = "Index";
+    ViewBag.Title = "Dashboard";
     Layout = "~/Views/Shared/_LayoutPageShipper.cshtml";
+    var shipper = ViewBag.ShipperInfo as ShipFood.Models.tbShipper;
+    var todayIncome = ViewBag.TodayIncome ?? 0;
+    var todayOrders = ViewBag.TodayOrders ?? 0;
+    var myOrders = ViewBag.MyOrders as List<ShipFood.Models.tbDonHang> ?? new();
 }
 
-<div class="content-body">
-    <div class="container-xl">
+<style>
+    /* ── Split-screen layout ── */
+    .shipper-split {
+        display: grid;
+        grid-template-columns: 380px 1fr;
+        gap: 24px;
+        padding: 24px;
+        max-width: 1440px;
+        margin: 0 auto;
+        min-height: calc(100vh - 100px);
+    }
+    @@media (max-width: 1024px) {
+        .shipper-split { grid-template-columns: 1fr; }
+    }
 
-        <div class="custom-tab-1">
-            <nav id="orders-table-tab" class="orders-table-tab app-nav-tabs nav shadow-sm flex-column flex-sm-row">
-                <a class="flex-sm-fill text-sm-center nav-link active" id="orders-all-tab" data-toggle="tab" href="#freepick" role="tab" aria-selected="true">FREE-PICK</a>
-                <a class="flex-sm-fill text-sm-center nav-link" id="orders-paid-tab" data-toggle="tab" href="#danhsach" role="tab" aria-selected="false">ĐƠN HÀNG</a>
+    /* ── Left Panel ── */
+    .left-panel { display: flex; flex-direction: column; gap: 20px; }
+    .profile-card {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        border-radius: 16px;
+        padding: 24px;
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+    .profile-card::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(60,184,21,.08) 0%, transparent 60%);
+        pointer-events: none;
+    }
+    .profile-avatar {
+        width: 64px; height: 64px;
+        border-radius: 50%;
+        border: 3px solid rgba(255,255,255,.2);
+        object-fit: cover;
+        margin-bottom: 12px;
+    }
+    .profile-name { font-size: 20px; font-weight: 700; margin: 0; }
+    .profile-role {
+        font-size: 13px;
+        color: rgba(255,255,255,.6);
+        display: flex; align-items: center; gap: 8px;
+        margin-top: 4px;
+    }
+    .status-dot {
+        width: 8px; height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+    .status-dot.online { background: #3CB815; box-shadow: 0 0 8px rgba(60,184,21,.5); }
+    .status-dot.offline { background: #ef4444; }
 
-            </nav>
-            <div class="tab-content" id="orders-table-tab-content">
-                <div id="freepick" class="tab-pane fade active show">
-                    <div class="my-post-content pt-3">
-                        <div class="full-map-area mb-4" id="shipper-map" style="height:380px; background:#f0f0f0; border-radius:12px;">
-                            <!-- Leaflet.js live map: shipper location tracking -->
-                        </div>
+    /* ── Quick Stats ── */
+    .quick-stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+    .stat-item {
+        background: white;
+        border-radius: 12px;
+        padding: 16px;
+        border: 1px solid #f0f0f0;
+        transition: all .2s;
+    }
+    .stat-item:hover { box-shadow: 0 4px 16px rgba(0,0,0,.06); transform: translateY(-1px); }
+    .stat-item .label { font-size: 12px; color: #6b7280; margin: 0 0 4px; }
+    .stat-item .value { font-size: 24px; font-weight: 700; color: #1a1a2e; margin: 0; }
+    .stat-item .value.positive { color: #3CB815; }
+    .stat-item .value.warning { color: #f59e0b; }
 
-                        <div class="text-center mb-2">
-                            <a href="javascript:void()" class="btn btn-primary">Làm mới</a>
-                        </div>
-                    </div>
-                </div>
-                <div id="danhsach" class="tab-pane fade">
-                    <div class="container-fluid">
-                        <div class="row">
-                            <div class="col-12">
-                                <div class="table-responsive">
-                                    <table class="table table-striped table-bordered first">
-                                        <thead style="text-align:center">
-                                            <tr>
-                                                <th>ID</th>
-                                                <th>Ngày</th>
-                                                <th>VT quán</th>
-                                                <th>VT khách hàng</th>
-                                                <th style="width:110px">Thu khách</th>
-                                                <th style="width:110px">Ship</th>
-                                                <th style="width:120px">Trạng thái</th>
-                                                <th></th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @foreach (var item in Model)
-                                            {
-                                                <tr>
-                                                    <td data-label="Đơn hàng"><a class="" href="@Url.Action("OrderDetail","Shipper",  new {id = item.madh})">#@item.madh</a></td>
+    /* ── Map ── */
+    .map-card {
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        border: 1px solid #f0f0f0;
+    }
+    .map-card .map-header {
+        padding: 12px 16px;
+        font-weight: 600;
+        font-size: 14px;
+        border-bottom: 1px solid #f0f0f0;
+        display: flex; align-items: center; gap: 8px;
+    }
 
-                                                    <td data-label="Ngày">@item.ngaydathang.Value.ToString("dd/MM/yyyy")</td>
-                                                    <td data-label="VT quán">@item.diachi</td>
-                                                    <td data-label="VT khách hàng">@item.DiaChiQuan</td>
-                                                    <td data-label="Thu khách">@item.tongtien?.ToString("N0")</td>
-                                                    <td data-label="Ship">@item.phiship?.ToString("N0")</td>
-                                                    <td data-label="Trạng thái"><span class="btn btn-sm light btn-warning fs-16">@item.trangthai</span></td>
+    /* ── Right Panel ── */
+    .right-panel { display: flex; flex-direction: column; gap: 20px; }
+    .panel-header {
+        display: flex; justify-content: space-between; align-items: center;
+        flex-wrap: wrap; gap: 12px;
+    }
+    .panel-header h2 { font-size: 22px; font-weight: 700; margin: 0; color: #1a1a2e; }
+    .tab-group {
+        display: flex; gap: 4px;
+        background: #f3f4f6;
+        border-radius: 10px;
+        padding: 4px;
+    }
+    .tab-btn {
+        padding: 8px 20px;
+        border: none;
+        background: transparent;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #6b7280;
+        cursor: pointer;
+        transition: all .2s;
+    }
+    .tab-btn.active {
+        background: white;
+        color: #1a1a2e;
+        box-shadow: 0 1px 4px rgba(0,0,0,.08);
+    }
+    .tab-btn:hover:not(.active) { color: #3CB815; }
 
-                                                    <td data-label="">
-                                                        <div class="dropdown ml-auto text-right">
-                                                            <div class="btn-link" data-toggle="dropdown">
-                                                                <svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
-                                                                    <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-                                                                        <rect x="0" y="0" width="24" height="24"></rect>
-                                                                        <circle fill="#000000" cx="5" cy="12" r="2"></circle>
-                                                                        <circle fill="#000000" cx="12" cy="12" r="2"></circle>
-                                                                        <circle fill="#000000" cx="19" cy="12" r="2"></circle>
-                                                                    </g>
-                                                                </svg>
-                                                            </div>
-                                                            <div class="dropdown-menu dropdown-menu-right">
-                                                                <a class="dropdown-item" href="@Url.Action("OrderDetail","Shipper",  new {id = item.madh})">
-                                                                    <i class="fas fa-check-square scale5 text-primary mr-2"></i> Chấp nhận đơn
-                                                                    hàng
-                                                                </a>
-                                                                <a class="dropdown-item" href="#"><i class="fas fa-times-circle scale5 text-danger mr-2"></i> Từ chối đơn hàng</a>
-                                                            </div>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            }
-                                        </tbody>
+    /* ── Order Cards Grid ── */
+    .order-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 16px;
+    }
+    .order-card {
+        background: white;
+        border-radius: 14px;
+        padding: 20px;
+        border: 1px solid #f0f0f0;
+        transition: all .25s ease;
+        cursor: default;
+        position: relative;
+    }
+    .order-card:hover {
+        box-shadow: 0 8px 24px rgba(0,0,0,.08);
+        transform: translateY(-2px);
+        border-color: #e0e7ff;
+    }
+    .order-card .order-id {
+        font-size: 16px; font-weight: 700; color: #1a1a2e;
+        display: flex; justify-content: space-between; align-items: center;
+        margin-bottom: 12px;
+    }
+    .order-card .order-id .badge {
+        font-size: 11px; font-weight: 600;
+        padding: 4px 12px; border-radius: 20px;
+    }
+    .order-card .order-info { display: flex; flex-direction: column; gap: 6px; }
+    .order-card .info-row {
+        display: flex; align-items: center; gap: 8px;
+        font-size: 13px; color: #4b5563;
+    }
+    .order-card .info-row .icon { color: #9ca3af; width: 16px; text-align: center; }
+    .order-card .info-row strong { color: #1a1a2e; }
+    .order-card .order-actions {
+        display: flex; gap: 8px; margin-top: 16px; padding-top: 14px;
+        border-top: 1px solid #f3f4f6;
+    }
+    .order-card .order-actions .btn {
+        flex: 1; padding: 10px; border-radius: 10px;
+        font-size: 13px; font-weight: 600; text-align: center;
+        transition: all .2s;
+    }
+    .btn-accept { background: #3CB815; color: white; border: none; }
+    .btn-accept:hover { background: #34a013; }
+    .btn-detail { background: #f3f4f6; color: #4b5563; border: 1px solid #e5e7eb; }
+    .btn-detail:hover { background: #e5e7eb; }
 
-                                    </table>
+    /* ── Empty State ── */
+    .empty-state {
+        text-align: center; padding: 60px 20px; color: #9ca3af;
+    }
+    .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+
+    /* ── Mobile ── */
+    @@media (max-width: 768px) {
+        .shipper-split { padding: 12px; gap: 16px; }
+        .order-grid { grid-template-columns: 1fr; }
+        .panel-header h2 { font-size: 18px; }
+        .tab-group { width: 100%; }
+        .tab-btn { flex: 1; text-align: center; }
+    }
+</style>
+
+<div class="shipper-split">
+    <!-- ═══ LEFT PANEL ═══ -->
+    <div class="left-panel">
+        <!-- Profile Card -->
+        <div class="profile-card">
+            <img src="~/Source/Shipper/images/profile/jolibe.jpg" alt="Avatar" class="profile-avatar" />
+            <h2 class="profile-name">@(shipper?.tenshipper ?? "Shipper")</h2>
+            <div class="profile-role">
+                <span class="status-dot @(shipper?.trangthai == "Đang hoạt động" ? "online" : "offline")"></span>
+                @(shipper?.trangthai ?? "Không hoạt động")
+                <a href="~/Shipper/updateStatus" class="btn btn-sm" style="background:rgba(255,255,255,.15);color:white;border-radius:8px;padding:4px 12px;font-size:11px;margin-left:auto;">
+                    @(shipper?.trangthai == "Đang hoạt động" ? "Tắt" : "Bật")
+                </a>
+            </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="quick-stats">
+            <div class="stat-item">
+                <p class="label">Hôm nay</p>
+                <h3 class="value positive">@todayOrders <span style="font-size:14px;font-weight:400;color:#6b7280;">đơn</span></h3>
+            </div>
+            <div class="stat-item">
+                <p class="label">Thu nhập</p>
+                <h3 class="value positive">@String.Format("{0:N0}", todayIncome)đ</h3>
+            </div>
+            <div class="stat-item">
+                <p class="label">Đang giao</p>
+                <h3 class="value warning">@myOrders.Count(m => m.trangthai == "Đang giao")</h3>
+            </div>
+            <div class="stat-item">
+                <p class="label">FREE-PICK</p>
+                <h3 class="value">@Model.Count(m => m.trangthai == "Chờ shipper lấy hàng")</h3>
+            </div>
+        </div>
+
+        <!-- Map -->
+        <div class="map-card">
+            <div class="map-header">
+                <i class="fas fa-map-marker-alt" style="color:#3CB815;"></i> Vị trí của bạn
+            </div>
+            <div id="shipper-map" style="height:260px; background:#f0f0f0;"></div>
+        </div>
+    </div>
+
+    <!-- ═══ RIGHT PANEL ═══ -->
+    <div class="right-panel">
+        <div class="panel-header">
+            <h2>📋 Đơn hàng</h2>
+            <div class="tab-group">
+                <button class="tab-btn active" onclick="switchTab('freepick')">FREE-PICK</button>
+                <button class="tab-btn" onclick="switchTab('orders')">ĐƠN HÀNG</button>
+            </div>
+        </div>
+
+        <!-- FREE-PICK Orders -->
+        <div id="tab-freepick" class="tab-content">
+            @{
+                var freepickOrders = Model.Where(m => m.trangthai == "Chờ shipper lấy hàng").ToList();
+            }
+            @if (freepickOrders.Any())
+            {
+                <div class="order-grid">
+                    @foreach (var item in freepickOrders)
+                    {
+                        <div class="order-card">
+                            <div class="order-id">
+                                <span>#@item.madh</span>
+                                <span class="badge" style="background:#fef3c7;color:#92400e;">FREE-PICK</span>
+                            </div>
+                            <div class="order-info">
+                                <div class="info-row">
+                                    <i class="fas fa-store icon"></i>
+                                    <span><strong>@item.tenquanan</strong></span>
+                                </div>
+                                <div class="info-row">
+                                    <i class="fas fa-map-pin icon"></i>
+                                    <span>@item.diachi → @item.DiaChiQuan</span>
+                                </div>
+                                <div class="info-row">
+                                    <i class="fas fa-money-bill-wave icon"></i>
+                                    <span>Thu: <strong>@item.tongtien?.ToString("N0")đ</strong> | Ship: <strong>@item.phiship?.ToString("N0")đ</strong></span>
+                                </div>
+                                <div class="info-row">
+                                    <i class="fas fa-calendar icon"></i>
+                                    <span>@item.ngaydathang?.ToString("dd/MM HH:mm")</span>
                                 </div>
                             </div>
+                            <div class="order-actions">
+                                <a href="@Url.Action("OrderDetail","Shipper", new { id = item.madh })" class="btn btn-accept">
+                                    <i class="fas fa-check"></i> Nhận đơn
+                                </a>
+                                <a href="@Url.Action("OrderDetail","Shipper", new { id = item.madh })" class="btn btn-detail">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </div>
                         </div>
-                    </div>
-                    <div class="text-center mb-2">
-                        <a href="javascript:void()" class="btn btn-primary">Làm mới</a>
-                    </div>
+                    }
                 </div>
-            </div>
+            }
+            else
+            {
+                <div class="empty-state">
+                    <div class="icon">📭</div>
+                    <p>Không có đơn FREE-PICK nào đang chờ</p>
+                    <small style="color:#bbb;">Khi có đơn mới, bạn sẽ nghe thấy âm báo</small>
+                </div>
+            }
+        </div>
+
+        <!-- My Orders -->
+        <div id="tab-orders" class="tab-content" style="display:none;">
+            @if (myOrders.Any())
+            {
+                <div class="order-grid">
+                    @foreach (var item in myOrders)
+                    {
+                        <div class="order-card">
+                            <div class="order-id">
+                                <span>#@item.madh</span>
+                                <span class="badge" style="background:#dbeafe;color:#1e40af;">@item.trangthai</span>
+                            </div>
+                            <div class="order-info">
+                                <div class="info-row">
+                                    <i class="fas fa-store icon"></i>
+                                    <span><strong>@(item.tbQuanAn?.tenquanan ?? $"Quán #{item.maquan}")</strong></span>
+                                </div>
+                                <div class="info-row">
+                                    <i class="fas fa-money-bill-wave icon"></i>
+                                    <span>Ship: <strong>@item.phiship?.ToString("N0")đ</strong></span>
+                                </div>
+                                <div class="info-row">
+                                    <i class="fas fa-calendar icon"></i>
+                                    <span>@item.ngaydathang?.ToString("dd/MM HH:mm")</span>
+                                </div>
+                            </div>
+                            <div class="order-actions">
+                                <a href="@Url.Action("OrderDetail","Shipper", new { id = item.madh })" class="btn btn-detail" style="width:100%;">
+                                    <i class="fas fa-info-circle"></i> Chi tiết
+                                </a>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="empty-state">
+                    <div class="icon">📦</div>
+                    <p>Chưa có đơn hàng nào</p>
+                </div>
+            }
+        </div>
+
+        <!-- Refresh Button -->
+        <div style="text-align:center;margin-top:4px;">
+            <a href="javascript:location.reload()" class="btn" style="background:#f3f4f6;color:#4b5563;border:1px solid #e5e7eb;border-radius:10px;padding:8px 24px;font-size:13px;">
+                <i class="fas fa-sync-alt"></i> Làm mới
+            </a>
         </div>
     </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
 <script>
-    // Leaflet.js map initialization for Shipper location tracking
+    // Tab switching
+    function switchTab(tab) {
+        document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+        document.getElementById('tab-' + tab).style.display = '';
+        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+        event.target.classList.add('active');
+    }
+
+    // Leaflet map
     $(document).ready(function () {
         if (typeof L !== 'undefined' && document.getElementById('shipper-map')) {
-            // Default: HCM City center
             var map = L.map('shipper-map').setView([10.8231, 106.6297], 13);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
             }).addTo(map);
 
-            // Get shipper current location via Geolocation API
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(function(pos) {
-                    var lat = pos.coords.latitude;
-                    var lng = pos.coords.longitude;
-                    map.setView([lat, lng], 15);
-                    L.marker([lat, lng]).addTo(map)
-                        .bindPopup('Vị trí của bạn')
-                        .openPopup();
-
-                    // Thông báo toạ độ qua SignalR (nếu đang giao hàng)
+                    map.setView([pos.coords.latitude, pos.coords.longitude], 15);
+                    L.marker([pos.coords.latitude, pos.coords.longitude]).addTo(map)
+                        .bindPopup('Vị trí của bạn').openPopup();
                     if (window.shipperConn && window.currentOrderId) {
-                        window.shipperConn.invoke('UpdateLocation', window.currentOrderId, lat, lng)
-                            .catch(function(err) { console.error('UpdateLocation error:', err); });
+                        window.shipperConn.invoke('UpdateLocation', window.currentOrderId, pos.coords.latitude, pos.coords.longitude).catch(function(){});
                     }
                 }, function() {
-                    // Fallback: show HCM center
-                    L.marker([10.8231, 106.6297]).addTo(map)
-                        .bindPopup('Fastship - TP. Hồ Chí Minh')
-                        .openPopup();
+                    L.marker([10.8231, 106.6297]).addTo(map).bindPopup('Fastship - TP. Hồ Chí Minh').openPopup();
                 });
             }
         }
 
-        // ── SignalR: Receive new pickup orders real-time ──
+        // SignalR real-time
         (function initShipperRealtime() {
             var conn = new signalR.HubConnectionBuilder()
-                .withUrl('/nhantin')
-                .withAutomaticReconnect()
-                .build();
+                .withUrl('/nhantin').withAutomaticReconnect().build();
 
-            conn.on('newPickupOrder', function (data) {
-                // Phát âm thanh thông báo
+            conn.on('newPickupOrder', function () {
                 try {
                     var ctx = new (window.AudioContext || window.webkitAudioContext)();
                     var osc = ctx.createOscillator();
                     var gain = ctx.createGain();
-                    osc.connect(gain);
-                    gain.connect(ctx.destination);
-                    osc.frequency.value = 660; // Note E5
-                    osc.type = 'triangle';
+                    osc.connect(gain); gain.connect(ctx.destination);
+                    osc.frequency.value = 660; osc.type = 'triangle';
                     gain.gain.setValueAtTime(0.3, ctx.currentTime);
                     gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
-                    osc.start(ctx.currentTime);
-                    osc.stop(ctx.currentTime + 0.5);
-                } catch (e) { /* Audio not supported */ }
-
-                // Reload trang để cập nhật FREE-PICK table (lấy số liệu thật từ SQL)
-                // Nếu đang ở tab FREE-PICK, reload nhẹ
+                    osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.5);
+                } catch (e) {}
                 setTimeout(function() { location.reload(); }, 1000);
             });
 
-            // ── Race Condition Fix: Lắng nghe sự kiện đơn đã được shipper khác nhận ──
-            // Khi có shipper khác nhận đơn, xóa thẻ đơn hàng khỏi FREE-PICK real-time
-            conn.on('orderAccepted', function (orderId, acceptedShipperId) {
-                // Tìm và xóa dòng đơn hàng trong bảng ĐƠN HÀNG (tab danhsach)
-                var row = document.querySelector('#danhsach a[href*="/Shipper/OrderDetail/' + orderId + '"]');
-                if (row) {
-                    var tr = row.closest('tr');
-                    if (tr) {
-                        tr.style.transition = 'opacity 0.3s, transform 0.3s';
-                        tr.style.opacity = '0';
-                        tr.style.transform = 'translateX(40px)';
-                        setTimeout(function() {
-                            if (tr.parentNode) tr.parentNode.removeChild(tr);
-                        }, 350);
-                    }
-                }
-
-                // Nếu đang ở tab FREE-PICK, reload nhẹ để đồng bộ
-                var freepickTab = document.getElementById('freepick');
-                if (freepickTab && freepickTab.classList.contains('active')) {
-                    setTimeout(function() { location.reload(); }, 500);
+            conn.on('orderAccepted', function (orderId) {
+                var card = document.querySelector(`.order-card:has(a[href*="/Shipper/OrderDetail/${orderId}"])`);
+                if (card) {
+                    card.style.transition = 'opacity 0.3s, transform 0.3s';
+                    card.style.opacity = '0'; card.style.transform = 'translateX(40px)';
+                    setTimeout(() => { if (card.parentNode) card.parentNode.removeChild(card); }, 350);
                 }
             });
 
-            conn.onreconnected(function() {
-                conn.invoke('JoinShipperGroup').catch(function(){});
+            conn.onreconnected(function() { conn.invoke('JoinShipperGroup').catch(function(){}); });
+            conn.start().then(function() { conn.invoke('JoinShipperGroup').catch(function(){}); }).catch(function(err) {
+                console.error('SignalR:', err);
             });
-
-            conn.start().then(function() {
-                conn.invoke('JoinShipperGroup').catch(function(){});
-            }).catch(function(err) {
-                console.error('SignalR Shipper connection failed:', err);
-            });
-
-            // Expose connection for other scripts (OrderDetail geolocation)
             window.shipperConn = conn;
         })();
     });
 </script>
-

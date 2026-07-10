@@ -50,6 +50,28 @@ public class ShipperController : BaseController
             logger.LogError(ex, "Shipper dashboard Index failed: {Error}", ex.Message);
             listdh = new List<DonHangDangLam>();
         }
+
+        // Data for redesigned view
+        var shipperInfo = db.tbShipper.Find(sh.userid);
+        ViewBag.ShipperInfo = shipperInfo;
+
+        // ─── Load thêm các orders của shipper này (không chỉ FREE-PICK) ───
+        var todayStart = DateTime.Now.Date;
+        var myOrders = db.tbDonHang
+            .Include(d => d.tbQuanAn)
+            .Where(dh => dh.mashipper == sh.userid)
+            .OrderByDescending(dh => dh.ngaydathang)
+            .Take(20)
+            .ToList();
+        ViewBag.MyOrders = myOrders;
+
+        var todayOrders = db.tbDonHang.Count(dh => dh.mashipper == sh.userid && dh.ngaydathang >= todayStart);
+        var todayIncome = db.tbDonHang
+            .Where(dh => dh.mashipper == sh.userid && dh.ngaythanhtoan >= todayStart && dh.trangthai == "Hoàn thành")
+            .Sum(dh => (decimal?)dh.phiship) ?? 0;
+        ViewBag.TodayOrders = todayOrders;
+        ViewBag.TodayIncome = todayIncome;
+
         return View(listdh);
     }
 
@@ -89,6 +111,12 @@ public class ShipperController : BaseController
     {
         var sh = GetCurrentUser();
         if (sh == null || !checkShipper()) return RedirectToAction("Login", "Home");
+        var orders = db.tbDonHang
+            .Where(dh => dh.mashipper == sh.userid)
+            .OrderByDescending(dh => dh.ngaydathang)
+            .Take(20)
+            .ToList();
+        ViewBag.Notifications = orders;
         return View();
     }
 

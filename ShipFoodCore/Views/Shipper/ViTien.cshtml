@@ -1,32 +1,195 @@
-﻿@model ShipFood.Models.tbUser
+@model ShipFood.Models.tbUser
 @{
-    ViewBag.Title = "ViTien";
+    ViewBag.Title = "Ví tiền";
     Layout = "~/Views/Shared/_LayoutPageShipper.cshtml";
+    var listdh = ViewBag.listdh as List<ShipFood.Models.tbDonHang> ?? new();
+    var soDu = Model?.vitien ?? 0;
+    var tongNhan = listdh.Where(d => d.trangthai == "Hoàn thành").Sum(d => d.phiship ?? 0);
+    var dangCho = listdh.Where(d => d.trangthai != "Hoàn thành" && d.trangthai != "Đã hủy").Sum(d => d.phiship ?? 0);
 }
-@{ List<ShipFood.Models.tbDonHang> listdh = ViewBag.listdh;}
-<div class="content-body">
-    <div class="app-content pt-3 p-md-3 p-lg-4">
-        <div class="container-fluid">
-            <div class="form-head d-flex mb-3">
-               
-           
-            </div>
+
+<style>
+    .wallet-page {
+        max-width: 1000px; margin: 0 auto; padding: 24px;
+    }
+    @@media (max-width:768px) { .wallet-page { padding: 12px; } }
+
+    /* ── Wallet Balance Card ── */
+    .wallet-card {
+        background: linear-gradient(135deg, #0f3460, #1a1a2e);
+        border-radius: 20px;
+        padding: 28px 32px;
+        color: white;
+        position: relative;
+        overflow: hidden;
+        margin-bottom: 24px;
+    }
+    .wallet-card::before {
+        content: ''; position: absolute;
+        top: -80px; right: -80px;
+        width: 250px; height: 250px;
+        background: radial-gradient(circle, rgba(60,184,21,.1), transparent 60%);
+        border-radius: 50%;
+    }
+    .wallet-card .wallet-icon {
+        font-size: 32px; margin-bottom: 12px;
+        position: relative; z-index: 1;
+    }
+    .wallet-card .wallet-label {
+        font-size: 13px; color: rgba(255,255,255,.5);
+        text-transform: uppercase; letter-spacing: 2px;
+        position: relative; z-index: 1;
+    }
+    .wallet-card .wallet-balance {
+        font-size: 40px; font-weight: 800;
+        position: relative; z-index: 1;
+        margin: 4px 0;
+    }
+
+    /* ── Mini Stats ── */
+    .wallet-mini-stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-bottom: 24px;
+    }
+    .wallet-mini-stat {
+        background: white;
+        border-radius: 14px;
+        padding: 16px 20px;
+        border: 1px solid #f0f0f0;
+    }
+    .wallet-mini-stat .label { font-size: 12px; color: #6b7280; margin: 0 0 4px; }
+    .wallet-mini-stat .value { font-size: 22px; font-weight: 700; margin: 0; }
+    .wallet-mini-stat .value.green { color: #3CB815; }
+    .wallet-mini-stat .value.orange { color: #f59e0b; }
+
+    /* ── Transaction List ── */
+    .tx-list-header {
+        display: flex; justify-content: space-between; align-items: center;
+        margin-bottom: 16px;
+    }
+    .tx-list-header h3 {
+        margin: 0; font-size: 18px; font-weight: 700; color: #1a1a2e;
+    }
+    .tx-list { display: flex; flex-direction: column; gap: 8px; }
+
+    .tx-item {
+        background: white;
+        border-radius: 12px;
+        padding: 16px 20px;
+        border: 1px solid #f0f0f0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: all .2s;
+    }
+    .tx-item:hover {
+        box-shadow: 0 2px 12px rgba(0,0,0,.05);
+        border-color: #e0e7ff;
+    }
+    .tx-item .tx-left { display: flex; align-items: center; gap: 14px; }
+    .tx-item .tx-icon {
+        width: 40px; height: 40px;
+        border-radius: 10px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 16px;
+    }
+    .tx-item .tx-icon.income { background: #f0fdf4; color: #3CB815; }
+    .tx-item .tx-icon.pending { background: #fefce8; color: #f59e0b; }
+    .tx-item .tx-icon.cancelled { background: #fef2f2; color: #ef4444; }
+    .tx-item .tx-info .tx-title {
+        font-size: 14px; font-weight: 600; color: #1a1a2e; margin: 0;
+    }
+    .tx-item .tx-info .tx-sub {
+        font-size: 12px; color: #9ca3af; margin: 2px 0 0;
+    }
+    .tx-item .tx-amount {
+        font-size: 16px; font-weight: 700;
+    }
+    .tx-item .tx-amount.income { color: #3CB815; }
+    .tx-item .tx-amount.pending { color: #f59e0b; }
+    .tx-item .tx-amount.cancelled { color: #ef4444; }
+
+    /* ── Status Badge ── */
+    .tx-status {
+        font-size: 11px; font-weight: 600;
+        padding: 3px 10px; border-radius: 20px;
+        display: inline-block;
+    }
+    .tx-status.hoanthanh { background: #f0fdf4; color: #16a34a; }
+    .tx-status.dangcho { background: #fefce8; color: #d97706; }
+    .tx-status.dahuy { background: #fef2f2; color: #dc2626; }
+
+    .empty-wallet {
+        text-align: center; padding: 60px 20px; color: #9ca3af;
+    }
+    .empty-wallet .icon { font-size: 48px; margin-bottom: 12px; }
+</style>
+
+<div class="wallet-page">
+    <!-- ═══ Wallet Card ═══ -->
+    <div class="wallet-card">
+        <div class="wallet-icon">👛</div>
+        <div class="wallet-label">Số dư khả dụng</div>
+        <div class="wallet-balance">@soDu.ToString("N0")<span style="font-size:20px;font-weight:400;">đ</span></div>
+    </div>
+
+    <!-- ═══ Mini Stats ═══ -->
+    <div class="wallet-mini-stats">
+        <div class="wallet-mini-stat">
+            <p class="label">💰 Tổng đã nhận</p>
+            <h3 class="value green">@tongNhan.ToString("N0")đ</h3>
         </div>
-        <div class="row-donhang">
-            @foreach (var item in listdh)
+        <div class="wallet-mini-stat">
+            <p class="label">⏳ Đang chờ</p>
+            <h3 class="value orange">@dangCho.ToString("N0")đ</h3>
+        </div>
+    </div>
+
+    <!-- ═══ Transaction List ═══ -->
+    <div class="tx-list-header">
+        <h3>📋 Lịch sử giao hàng</h3>
+        <span style="font-size:13px;color:#6b7280;">@listdh.Count đơn</span>
+    </div>
+
+    @if (listdh.Any())
+    {
+        <div class="tx-list">
+            @foreach (var item in listdh.Take(20))
             {
-                <div class="item border-bottom py-3">
-                    <div class="row justify-content-between align-items-center">
-                        <div class="col-auto">
-                            <div class="item-label"><strong>Đơn hàng: #000 @item.madh</strong></div>
-                            <p class="mb-0">Số dư: @(item.phiship?.ToString("N0") ?? "0") VND</p>
-                        </div><!--//col-->
-                    </div><!--//row-->
-                </div><!--//item-->
+                var isIncome = item.trangthai == "Hoàn thành";
+                var isCancelled = item.trangthai == "Đã hủy";
+                var iconClass = isIncome ? "income" : (isCancelled ? "cancelled" : "pending");
+                var amountClass = isIncome ? "income" : (isCancelled ? "cancelled" : "pending");
+                var statusClass = isIncome ? "hoanthanh" : (isCancelled ? "dahuy" : "dangcho");
+
+                <div class="tx-item">
+                    <div class="tx-left">
+                        <div class="tx-icon @iconClass">
+                            <i class="fas @(isIncome ? "fa-check-circle" : (isCancelled ? "fa-times-circle" : "fa-clock"))"></i>
+                        </div>
+                        <div class="tx-info">
+                            <p class="tx-title">Đơn hàng #@item.madh</p>
+                            <p class="tx-sub">@item.ngaydathang?.ToString("dd/MM/yyyy HH:mm")</p>
+                        </div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div class="tx-amount @amountClass">@(item.phiship?.ToString("N0") ?? "0")đ</div>
+                        <span class="tx-status @statusClass">
+                            @(isIncome ? "Hoàn thành" : (isCancelled ? "Đã hủy" : item.trangthai))
+                        </span>
+                    </div>
+                </div>
             }
-
         </div>
-
-    </div><!--//app-content-->
+    }
+    else
+    {
+        <div class="empty-wallet">
+            <div class="icon">📭</div>
+            <p>Chưa có giao dịch nào</p>
+            <small style="color:#bbb;">Nhận đơn hàng để bắt đầu kiếm thu nhập</small>
+        </div>
+    }
 </div>
-

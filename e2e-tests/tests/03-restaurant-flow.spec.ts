@@ -30,21 +30,18 @@ async function loginAsRestaurant(page: any) {
   console.log(`📍 URL sau login: ${url}`);
   // ponytail: redirect về /Home/Login → cold start làm mất session cookie
   // Solution: goto trực tiếp /Restaurant, retry nhanh với domcontentloaded
+  // ponytail: cold start → goto /Restaurant với timeout vừa đủ, 2 retries
   if (url.includes('/Home/Error') || url.includes('/Home/Login')) {
     await page.waitForTimeout(2000); // chờ session cookie settle
-    for (let retry = 0; retry < 3; retry++) {
+    for (let retry = 0; retry < 2; retry++) {
       try {
-        await page.goto('/Restaurant', { waitUntil: 'domcontentloaded', timeout: 15_000 });
+        await page.goto('/Restaurant', { waitUntil: 'domcontentloaded', timeout: 20_000 });
         if (page.url().includes('/Restaurant')) break;
       } catch {
         console.log(`⚠️ Fallback goto Restaurant #${retry+1} failed`);
         await page.waitForTimeout(1000);
       }
     }
-  }
-  // ponytail: safety net nếu retry không kịp
-  if (!page.url().includes('/Restaurant')) {
-    await page.goto('/Restaurant', { waitUntil: 'domcontentloaded', timeout: 15_000 }).catch(() => {});
   }
 }
 

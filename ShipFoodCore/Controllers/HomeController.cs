@@ -64,7 +64,10 @@ public class HomeController : BaseController
 
     public async Task<ActionResult> Index(string? txtSearch, int? idDM)
     {
-        var quanAns = db.tbQuanAn.Include(q => q.tbUser).Include(q => q.tbMonAns).ThenInclude(m => m.tbBienTheMonAns).ToList();
+        // ponytail: chỉ hiển thị quán có tbUser.trangthai == 1 (đang hoạt động)
+        // Không hiển thị quán đã bị admin khoá (trangthai == 2)
+        var quanAns = db.tbQuanAn.Include(q => q.tbUser).Include(q => q.tbMonAns).ThenInclude(m => m.tbBienTheMonAns)
+            .Where(q => q.tbUser != null && q.tbUser.trangthai == 1).ToList();
         if (!string.IsNullOrEmpty(txtSearch))
         {
             string searchKeyNormalized = RemoveDiacritics(txtSearch.ToLower());
@@ -100,10 +103,11 @@ public class HomeController : BaseController
 
     public async Task<ActionResult> DetailRestaurant(int id, int? idDM, string? searchKey)
     {
-        var quanAn = db.tbQuanAn.Include(q => q.tbMonAns).ThenInclude(m => m.tbDanhMuc)
+        // ponytail: không cho xem chi tiết quán đã bị khoá (tbUser.trangthai == 2)
+        var quanAn = db.tbQuanAn.Include(q => q.tbUser).Include(q => q.tbMonAns).ThenInclude(m => m.tbDanhMuc)
             .Include(q => q.tbMonAns).ThenInclude(m => m.tbBienTheMonAns)
             .FirstOrDefault(t => t.userid == id);
-        if (quanAn == null)
+        if (quanAn == null || quanAn.tbUser == null || quanAn.tbUser.trangthai != 1)
             return NotFound();
 
         var danhSachMonAn = db.tbMonAn.Where(m => m.maquanan == id).Include(m => m.tbDanhMuc).Include(m => m.tbBienTheMonAns).ToList();
@@ -715,6 +719,12 @@ public class HomeController : BaseController
                 trangthai = "Đóng cửa"
             });
             db.SaveChanges();
+
+            // ponytail: đăng ký quán xong → set session + redirect dashboard để thêm món
+            var cart = new Cart { userid = user.userid };
+            SetCart(cart);
+            SetSessionUser(user);
+            return RedirectToAction("Index", "Restaurant");
         }
         else if (user.loaitaikhoan.Equals("Shipper"))
         {
@@ -1042,12 +1052,13 @@ VALUES ('test_debug', 'test123', 'Khách hàng', '0999999999', 0, 'test@debug.co
             if (!string.IsNullOrEmpty(maxPriceLevel)) activeFilterCount++;
             if (!string.IsNullOrEmpty(maxDiet)) activeFilterCount++;
 
-            // Query chính: tìm kiếm trực tiếp trong tbMonAn
+            // ponytail: chỉ hiển thị món từ quán có tbUser.trangthai == 1 (không bị admin khoá)
             var query = db.tbMonAn
-                .Include(m => m.tbQuanAn)
+                .Include(m => m.tbQuanAn!).ThenInclude(q => q.tbUser)
                 .Include(m => m.tbBienTheMonAns)
                 .Include(m => m.tbDanhMuc)
-                .Where(m => m.tbQuanAn != null && m.tbQuanAn.trangthai == "Đang mở cửa");
+                .Where(m => m.tbQuanAn != null && m.tbQuanAn.trangthai == "Đang mở cửa"
+                    && m.tbQuanAn.tbUser != null && m.tbQuanAn.tbUser.trangthai == 1);
 
             // ── PHASE 1: Lọc AND cho tất cả tiêu chí ──
 
@@ -1117,12 +1128,13 @@ VALUES ('test_debug', 'test123', 'Khách hàng', '0999999999', 0, 'test@debug.co
             {
                 isLooseFilter = true;
 
-                // Query lại từ đầu, chỉ áp dụng AND cho tiêu chí cốt lõi (category + search)
+                // ponytail: fallback cũng filter tbUser.trangthai == 1
                 var fallbackQuery = db.tbMonAn
-                    .Include(m => m.tbQuanAn)
+                    .Include(m => m.tbQuanAn!).ThenInclude(q => q.tbUser)
                     .Include(m => m.tbBienTheMonAns)
                     .Include(m => m.tbDanhMuc)
-                    .Where(m => m.tbQuanAn != null && m.tbQuanAn.trangthai == "Đang mở cửa");
+                    .Where(m => m.tbQuanAn != null && m.tbQuanAn.trangthai == "Đang mở cửa"
+                        && m.tbQuanAn.tbUser != null && m.tbQuanAn.tbUser.trangthai == 1);
 
                 // Luôn giữ AND cho danh mục (tiêu chí cốt lõi)
                 if (categoryId.HasValue && categoryId.Value > 0)
@@ -1273,9 +1285,10 @@ VALUES ('test_debug', 'test123', 'Khách hàng', '0999999999', 0, 'test@debug.co
 
         var normalized = RemoveDiacritics(q.ToLower());
 
+        // ponytail: chỉ hiển thị quán có tbUser.trangthai == 1 (không bị khoá)
         var results = db.tbQuanAn
             .Include(qa => qa.tbUser)
-            .Where(qa => qa.trangthai == "Đang mở cửa")
+            .Where(qa => qa.trangthai == "Đang mở cửa" && qa.tbUser != null && qa.tbUser.trangthai == 1)
             // Push initial filter to DB first, then client-side for diacritics
             .Where(qa => qa.tenquanan.Contains(q) || qa.tbUser.username.Contains(q))
             .AsEnumerable()

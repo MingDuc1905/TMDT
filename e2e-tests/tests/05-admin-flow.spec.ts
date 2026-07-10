@@ -30,21 +30,18 @@ async function loginAsAdmin(page: any) {
   console.log(`📍 URL sau login: ${url}`);
   // ponytail: redirect về /Home/Login → cold start làm mất session cookie
   // Solution: goto trực tiếp /Admin, retry nhanh với domcontentloaded
+  // ponytail: cold start → goto /Admin với timeout vừa đủ, 2 retries
   if (url.includes('/Home/Error') || url.includes('/Home/Login')) {
     await page.waitForTimeout(2000); // chờ session cookie settle
-    for (let retry = 0; retry < 3; retry++) {
+    for (let retry = 0; retry < 2; retry++) {
       try {
-        await page.goto('/Admin', { waitUntil: 'domcontentloaded', timeout: 15_000 });
+        await page.goto('/Admin', { waitUntil: 'domcontentloaded', timeout: 20_000 });
         if (page.url().includes('/Admin')) break;
       } catch {
         console.log(`⚠️ Fallback goto Admin #${retry+1} failed`);
         await page.waitForTimeout(1000);
       }
     }
-  }
-  // ponytail: safety net nếu retry không kịp
-  if (!page.url().includes('/Admin')) {
-    await page.goto('/Admin', { waitUntil: 'domcontentloaded', timeout: 15_000 }).catch(() => {});
   }
 }
 
@@ -347,16 +344,15 @@ test.describe('🖼️ Admin Visual Checks', () => {
   test('[TC-5.16] Desktop layout - responsive', async ({ page }) => {
     await loginAsAdmin(page);
 
-    // ponytail: evaluate có thể fail nếu page chưa render xong → catch + skip
+    // ponytail: evaluate có thể fail nếu page chưa render xong → catch null, chỉ expect khi có kết quả
     const hasOverflow = await page.evaluate(() => {
       return document.documentElement.scrollWidth > document.documentElement.clientWidth;
-    }).catch(() => {
+    }).catch(() => null);
+    if (hasOverflow !== null) {
+      expect(hasOverflow).toBe(false);
+      console.log(`📐 Horizontal overflow: ${hasOverflow}`);
+    } else {
       console.log('ℹ️ Không thể evaluate overflow (page chưa render)');
-      return false;
-    });
-    console.log(`📐 Horizontal overflow: ${hasOverflow}`);
-    if (hasOverflow) {
-      console.log('⚠️ Có horizontal overflow — có thể do page chưa load hết');
     }
   });
 

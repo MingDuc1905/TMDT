@@ -271,7 +271,8 @@ public class AdminController : BaseController
 
         if (fileAnh != null)
         {
-            var uploadsDir = Path.Combine(_env.WebRootPath, "Source/images/Avatar");
+            // ponytail: lưu vào Source/images/MonAn để khớp với HinhAnhUrl helper
+            var uploadsDir = Path.Combine(_env.WebRootPath, "Source/images/MonAn");
             Directory.CreateDirectory(uploadsDir);
             var path = Path.Combine(uploadsDir, fileAnh.FileName);
             using var stream = new FileStream(path, FileMode.Create);

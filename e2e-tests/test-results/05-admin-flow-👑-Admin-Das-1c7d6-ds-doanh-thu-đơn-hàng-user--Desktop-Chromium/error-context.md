@@ -7,7 +7,7 @@
 # Test info
 
 - Name: 05-admin-flow.spec.ts >> 👑 Admin Dashboard - KPI & Charts >> [TC-5.2] Dashboard hiển thị KPI cards (doanh thu, đơn hàng, user, ...)
-- Location: tests\05-admin-flow.spec.ts:49:7
+- Location: tests\05-admin-flow.spec.ts:56:7
 
 # Error details
 
@@ -110,134 +110,141 @@ Received:   0
   29  |   const url = await login.login(ADMIN.username, ADMIN.password);
   30  |   console.log(`📍 URL sau login: ${url}`);
   31  |   // ponytail: redirect về /Home/Login → cold start làm mất session cookie
-  32  |   // Solution: goto trực tiếp /Admin (không networkidle để tránh timeout)
+  32  |   // Solution: goto trực tiếp /Admin, retry 1 lần nếu fail
   33  |   if (url.includes('/Home/Error') || url.includes('/Home/Login')) {
-  34  |     console.log('⏳ Cold start / redirect crash, goto /Admin directly...');
-  35  |     await page.goto('/Admin', { waitUntil: 'domcontentloaded', timeout: 30_000 }).catch(() => console.log('⚠️ Fallback goto Admin failed'));
-  36  |   }
-  37  | }
-  38  | 
-  39  | // ─── TEST SUITE 1: Dashboard ───
-  40  | test.describe('👑 Admin Dashboard - KPI & Charts', () => {
-  41  | 
-  42  |   test('[TC-5.1] Đăng nhập admin - redirect đến /Admin', async ({ page }) => {
-  43  |     await loginAsAdmin(page);
-  44  |     const url = page.url();
-  45  |     console.log(`✅ URL: ${url}`);
-  46  |     expect(url).toContain('/Admin');
-  47  |   });
+  34  |     for (let retry = 0; retry < 2; retry++) {
+  35  |       try {
+  36  |         await page.goto('/Admin', { waitUntil: 'load', timeout: 30_000 });
+  37  |         break;
+  38  |       } catch {
+  39  |         console.log(`⚠️ Fallback goto Admin #${retry+1} failed`);
+  40  |         await page.waitForTimeout(3000);
+  41  |       }
+  42  |     }
+  43  |   }
+  44  | }
+  45  | 
+  46  | // ─── TEST SUITE 1: Dashboard ───
+  47  | test.describe('👑 Admin Dashboard - KPI & Charts', () => {
   48  | 
-  49  |   test('[TC-5.2] Dashboard hiển thị KPI cards (doanh thu, đơn hàng, user, ...)', async ({ page }) => {
+  49  |   test('[TC-5.1] Đăng nhập admin - redirect đến /Admin', async ({ page }) => {
   50  |     await loginAsAdmin(page);
-  51  | 
-  52  |     // ponytail: admin dashboard có thể dùng các class khác nhau — chờ page load trước
-  53  |     await page.waitForLoadState('networkidle', { timeout: 30_000 });
-  54  |     await page.waitForTimeout(3000);
+  51  |     const url = page.url();
+  52  |     console.log(`✅ URL: ${url}`);
+  53  |     expect(url).toContain('/Admin');
+  54  |   });
   55  | 
-  56  |     // Đếm tất cả cards/boxes trên dashboard
-  57  |     const allCards = page.locator('.card, [class*="kpi"], .card-header, .card-body');
-  58  |     const cardCount = await allCards.count();
-  59  |     console.log(`📊 Cards/boxes: ${cardCount}`);
-> 60  |     expect(cardCount).toBeGreaterThan(0);
+  56  |   test('[TC-5.2] Dashboard hiển thị KPI cards (doanh thu, đơn hàng, user, ...)', async ({ page }) => {
+  57  |     await loginAsAdmin(page);
+  58  | 
+  59  |     // ponytail: admin dashboard có thể dùng các class khác nhau — chờ page load trước
+  60  |     await page.waitForLoadState('networkidle', { timeout: 30_000 });
+  61  |     await page.waitForTimeout(3000);
+  62  | 
+  63  |     // Đếm tất cả cards/boxes trên dashboard
+  64  |     const allCards = page.locator('.card, [class*="kpi"], .card-header, .card-body');
+  65  |     const cardCount = await allCards.count();
+  66  |     console.log(`📊 Cards/boxes: ${cardCount}`);
+> 67  |     expect(cardCount).toBeGreaterThan(0);
       |                       ^ Error: expect(received).toBeGreaterThan(expected)
-  61  | 
-  62  |     // In text từng card
-  63  |     for (let i = 0; i < Math.min(cardCount, 6); i++) {
-  64  |       const text = await allCards.nth(i).textContent();
-  65  |       console.log(`  Card ${i}: ${text?.trim().substring(0, 80)}`);
-  66  |     }
-  67  |   });
   68  | 
-  69  |   test('[TC-5.3] Biểu đồ doanh thu Chart.js render', async ({ page }) => {
-  70  |     await loginAsAdmin(page);
-  71  | 
-  72  |     await page.waitForLoadState('networkidle', { timeout: 30_000 });
-  73  |     const canvasCount = await page.locator('canvas').count();
-  74  |     console.log(`📈 Canvas elements: ${canvasCount}`);
-  75  |     // ponytail: không fail nếu không có canvas (admin có thể chưa cấu hình chart)
-  76  |     if (canvasCount > 0) {
-  77  |       const canvasBox = await page.locator('canvas').first().boundingBox();
-  78  |       if (canvasBox) {
-  79  |         expect(canvasBox.width).toBeGreaterThan(0);
-  80  |         expect(canvasBox.height).toBeGreaterThan(0);
-  81  |         console.log(`📐 Chart: ${canvasBox.width}x${canvasBox.height}`);
-  82  |       }
-  83  |     } else {
-  84  |       console.log('ℹ️ Không có Chart.js canvas — admin page có thể không có biểu đồ');
-  85  |     }
-  86  |   });
-  87  | 
-  88  |   test('[TC-5.4] Kiểm tra tất cả navigation links trên admin page', async ({ page }) => {
-  89  |     await loginAsAdmin(page);
-  90  | 
-  91  |     // ponytail: admin có thể có sidebar (.deznav) hoặc menu top — đếm tất cả links
-  92  |     await page.waitForLoadState('networkidle', { timeout: 30_000 });
-  93  | 
-  94  |     const allNavLinks = page.locator('nav a[href], .deznav a[href], .sidebar a[href], [class*="menu"] a[href]');
-  95  |     const linkCount = await allNavLinks.count();
-  96  |     console.log(`🔗 Tổng navigation links: ${linkCount}`);
-  97  |     expect(linkCount).toBeGreaterThan(0);
-  98  | 
-  99  |     // Kiểm tra các link chính tồn tại
-  100 |     const expectedLinks = [
-  101 |       { name: 'Dashboard', href: '/Admin/Dashboard' },
-  102 |       { name: 'Quản lý', href: '/Admin/QuanLyKhachHang' },
-  103 |       { name: 'Đơn hàng', href: '/Admin/Order' },
-  104 |       { name: 'Danh mục', href: '/Admin/Category' },
-  105 |     ];
-  106 |     for (const link of expectedLinks) {
-  107 |       const linkEl = page.locator(`a[href*="${link.href}"]`).first();
-  108 |       const exists = await linkEl.count();
-  109 |       console.log(`  ${exists > 0 ? '✅' : '❌'} ${link.name}: ${link.href}`);
-  110 |     }
-  111 |   });
-  112 | 
-  113 |   test('[TC-5.5] Kiểm tra sidebar routing - click từng link', async ({ page }) => {
-  114 |     await loginAsAdmin(page);
-  115 | 
-  116 |     const pages = [
-  117 |       { name: 'Dashboard', href: '/Admin/Dashboard' },
-  118 |       { name: 'Quản lý người dùng', href: '/Admin/QuanLyKhachHang' },
-  119 |       { name: 'Đơn hàng', href: '/Admin/Order' },
-  120 |       { name: 'Danh mục', href: '/Admin/Category' },
-  121 |     ];
+  69  |     // In text từng card
+  70  |     for (let i = 0; i < Math.min(cardCount, 6); i++) {
+  71  |       const text = await allCards.nth(i).textContent();
+  72  |       console.log(`  Card ${i}: ${text?.trim().substring(0, 80)}`);
+  73  |     }
+  74  |   });
+  75  | 
+  76  |   test('[TC-5.3] Biểu đồ doanh thu Chart.js render', async ({ page }) => {
+  77  |     await loginAsAdmin(page);
+  78  | 
+  79  |     await page.waitForLoadState('networkidle', { timeout: 30_000 });
+  80  |     const canvasCount = await page.locator('canvas').count();
+  81  |     console.log(`📈 Canvas elements: ${canvasCount}`);
+  82  |     // ponytail: không fail nếu không có canvas (admin có thể chưa cấu hình chart)
+  83  |     if (canvasCount > 0) {
+  84  |       const canvasBox = await page.locator('canvas').first().boundingBox();
+  85  |       if (canvasBox) {
+  86  |         expect(canvasBox.width).toBeGreaterThan(0);
+  87  |         expect(canvasBox.height).toBeGreaterThan(0);
+  88  |         console.log(`📐 Chart: ${canvasBox.width}x${canvasBox.height}`);
+  89  |       }
+  90  |     } else {
+  91  |       console.log('ℹ️ Không có Chart.js canvas — admin page có thể không có biểu đồ');
+  92  |     }
+  93  |   });
+  94  | 
+  95  |   test('[TC-5.4] Kiểm tra tất cả navigation links trên admin page', async ({ page }) => {
+  96  |     await loginAsAdmin(page);
+  97  | 
+  98  |     // ponytail: admin có thể có sidebar (.deznav) hoặc menu top — đếm tất cả links
+  99  |     await page.waitForLoadState('networkidle', { timeout: 30_000 });
+  100 | 
+  101 |     const allNavLinks = page.locator('nav a[href], .deznav a[href], .sidebar a[href], [class*="menu"] a[href]');
+  102 |     const linkCount = await allNavLinks.count();
+  103 |     console.log(`🔗 Tổng navigation links: ${linkCount}`);
+  104 |     expect(linkCount).toBeGreaterThan(0);
+  105 | 
+  106 |     // Kiểm tra các link chính tồn tại
+  107 |     const expectedLinks = [
+  108 |       { name: 'Dashboard', href: '/Admin/Dashboard' },
+  109 |       { name: 'Quản lý', href: '/Admin/QuanLyKhachHang' },
+  110 |       { name: 'Đơn hàng', href: '/Admin/Order' },
+  111 |       { name: 'Danh mục', href: '/Admin/Category' },
+  112 |     ];
+  113 |     for (const link of expectedLinks) {
+  114 |       const linkEl = page.locator(`a[href*="${link.href}"]`).first();
+  115 |       const exists = await linkEl.count();
+  116 |       console.log(`  ${exists > 0 ? '✅' : '❌'} ${link.name}: ${link.href}`);
+  117 |     }
+  118 |   });
+  119 | 
+  120 |   test('[TC-5.5] Kiểm tra sidebar routing - click từng link', async ({ page }) => {
+  121 |     await loginAsAdmin(page);
   122 | 
-  123 |     for (const p of pages) {
-  124 |       const link = page.locator(`a[href*="${p.href}"]`).first();
-  125 |       if (await link.isVisible().catch(() => false)) {
-  126 |         await link.click();
-  127 |         await page.waitForLoadState('networkidle');
-  128 |         await page.waitForTimeout(1000);
-  129 |         const url = page.url();
-  130 |         console.log(`✅ ${p.name}: ${url}`);
-  131 |         expect(url).toContain(p.href);
-  132 |       } else {
-  133 |         console.log(`❌ ${p.name}: link không hiển thị`);
-  134 |       }
-  135 |     }
-  136 |   });
-  137 | 
-  138 |   test('[TC-5.6] Console không có JS errors (bỏ qua network 429)', async ({ page }) => {
-  139 |     const jsErrors: string[] = [];
-  140 |     page.on('pageerror', (err) => { jsErrors.push(err.message); });
-  141 | 
-  142 |     await loginAsAdmin(page);
-  143 |     await page.waitForTimeout(3000);
+  123 |     const pages = [
+  124 |       { name: 'Dashboard', href: '/Admin/Dashboard' },
+  125 |       { name: 'Quản lý người dùng', href: '/Admin/QuanLyKhachHang' },
+  126 |       { name: 'Đơn hàng', href: '/Admin/Order' },
+  127 |       { name: 'Danh mục', href: '/Admin/Category' },
+  128 |     ];
+  129 | 
+  130 |     for (const p of pages) {
+  131 |       const link = page.locator(`a[href*="${p.href}"]`).first();
+  132 |       if (await link.isVisible().catch(() => false)) {
+  133 |         await link.click();
+  134 |         await page.waitForLoadState('networkidle');
+  135 |         await page.waitForTimeout(1000);
+  136 |         const url = page.url();
+  137 |         console.log(`✅ ${p.name}: ${url}`);
+  138 |         expect(url).toContain(p.href);
+  139 |       } else {
+  140 |         console.log(`❌ ${p.name}: link không hiển thị`);
+  141 |       }
+  142 |     }
+  143 |   });
   144 | 
-  145 |     if (jsErrors.length > 0) {
-  146 |       console.log(`❌ JS errors: ${jsErrors.join(' | ')}`);
-  147 |     }
-  148 |     // ponytail: chỉ fail nếu có JS error thật (không tính network 429/503 từ Render)
-  149 |     expect(jsErrors.length).toBe(0);
-  150 |   });
-  151 | });
-  152 | 
-  153 | // ─── TEST SUITE 2: Quản lý người dùng ───
-  154 | test.describe('👥 Quản lý Người dùng (User Management)', () => {
-  155 | 
-  156 |   test('[TC-5.7] Trang quản lý người dùng load - bảng hiển thị', async ({ page }) => {
-  157 |     await loginAsAdmin(page);
-  158 | 
-  159 |     const admin = new AdminPage(page);
-  160 |     await admin.gotoUserManagement();
+  145 |   test('[TC-5.6] Console không có JS errors (bỏ qua network 429)', async ({ page }) => {
+  146 |     const jsErrors: string[] = [];
+  147 |     page.on('pageerror', (err) => { jsErrors.push(err.message); });
+  148 | 
+  149 |     await loginAsAdmin(page);
+  150 |     await page.waitForTimeout(3000);
+  151 | 
+  152 |     if (jsErrors.length > 0) {
+  153 |       console.log(`❌ JS errors: ${jsErrors.join(' | ')}`);
+  154 |     }
+  155 |     // ponytail: chỉ fail nếu có JS error thật (không tính network 429/503 từ Render)
+  156 |     expect(jsErrors.length).toBe(0);
+  157 |   });
+  158 | });
+  159 | 
+  160 | // ─── TEST SUITE 2: Quản lý người dùng ───
+  161 | test.describe('👥 Quản lý Người dùng (User Management)', () => {
+  162 | 
+  163 |   test('[TC-5.7] Trang quản lý người dùng load - bảng hiển thị', async ({ page }) => {
+  164 |     await loginAsAdmin(page);
+  165 | 
+  166 |     const admin = new AdminPage(page);
+  167 |     await admin.gotoUserManagement();
 ```

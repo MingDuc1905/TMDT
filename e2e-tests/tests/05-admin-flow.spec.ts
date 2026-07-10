@@ -30,6 +30,7 @@ async function loginAsAdmin(page: any) {
   console.log(`📍 URL sau login: ${url}`);
   // ponytail: redirect về /Home/Login → cold start làm mất session cookie
   // Solution: goto trực tiếp /Admin, retry 1 lần nếu fail
+  // ponytail: đảm bảo URL cuối cùng là /Admin trước khi return
   if (url.includes('/Home/Error') || url.includes('/Home/Login')) {
     for (let retry = 0; retry < 2; retry++) {
       try {
@@ -40,6 +41,10 @@ async function loginAsAdmin(page: any) {
         await page.waitForTimeout(3000);
       }
     }
+  }
+  // ponytail: nếu sau retry URL vẫn không phải /Admin, goto lần cuối
+  if (!page.url().includes('/Admin')) {
+    await page.goto('/Admin', { waitUntil: 'load', timeout: 30_000 }).catch(() => {});
   }
 }
 
@@ -97,7 +102,6 @@ test.describe('👑 Admin Dashboard - KPI & Charts', () => {
 
     // ponytail: admin có thể có sidebar (.deznav) hoặc menu top — đếm tất cả links
     await page.waitForLoadState('networkidle', { timeout: 30_000 });
-
     const allNavLinks = page.locator('nav a[href], .deznav a[href], .sidebar a[href], [class*="menu"] a[href]');
     const linkCount = await allNavLinks.count();
     console.log(`🔗 Tổng navigation links: ${linkCount}`);

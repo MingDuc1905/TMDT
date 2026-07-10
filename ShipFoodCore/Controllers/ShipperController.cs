@@ -33,7 +33,7 @@ public class ShipperController : BaseController
               from tbDonHang dh 
               Join tbThongTinDatHang tt On dh.mattdh = tt.mattdh 
               Join tbQuanAn qa On dh.maquan = qa.userid 
-              Where dh.trangthai = N'Chờ shipper lấy hàng' and dh.mashipper is NULL 
+              Where dh.trangthai = 'Chờ shipper lấy hàng' and dh.mashipper is NULL 
               Order by dh.madh DESC"
         ).ToList();
         return View(listdh);
@@ -137,9 +137,9 @@ public class ShipperController : BaseController
         // ─── RACE CONDITION FIX: Atomic SQL UPDATE để tránh 2 shipper nhận cùng 1 đơn ───
         // Dùng ExecuteSqlRaw với WHERE mashipper IS NULL để đảm bảo chỉ 1 shipper claim thành công
         var updatedRows = db.Database.ExecuteSqlRaw(
-            @"UPDATE tbDonHang SET mashipper = {0}, trangthai = N'Chờ shipper lấy hàng'
+            @"UPDATE tbDonHang SET mashipper = {0}, trangthai = 'Chờ shipper lấy hàng'
               WHERE madh = {1} AND mashipper IS NULL
-              AND (trangthai = N'Đã xác nhận' OR trangthai = N'Chờ shipper lấy hàng')",
+              AND (trangthai = 'Đã xác nhận' OR trangthai = 'Chờ shipper lấy hàng')",
             sh.userid, id);
 
         if (updatedRows == 0)

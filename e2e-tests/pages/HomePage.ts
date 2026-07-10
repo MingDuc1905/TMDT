@@ -41,10 +41,13 @@ export class HomePage extends BasePage {
   constructor(page: Page) {
     super(page);
 
-    this.logo = page.locator('.fs-logo');
-    this.searchInput = page.locator('input[name="txtSearch"]');
+    // ponytail: .first() — có thể có 2 elements do responsive layout
+    this.logo = page.locator('.fs-logo').first();
+    // ponytail: .first() — navbar có 2 search inputs (desktop + mobile)
+    this.searchInput = page.locator('input[name="txtSearch"]').first();
     this.searchButton = page.getByRole('button', { name: /tìm/i });
-    this.cartButton = page.locator('.fs-cart-btn');
+    // ponytail: .first() — responsive layout có 2 cart buttons (desktop + mobile)
+    this.cartButton = page.locator('.fs-cart-btn').first();
     this.loginNavBtn = page.locator('a[href*="/Home/Login"]').first();
     this.registerNavBtn = page.locator('a[href*="/Home/Signup"]').first();
     this.userDropdown = page.locator('.dropdown-toggle .fs-avatar-xs');

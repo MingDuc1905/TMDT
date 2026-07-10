@@ -465,7 +465,17 @@ public class AdminController : BaseController
             return RedirectToAction("Login", "Home");
 
         // ─── Apriori: Phân tích liên kết danh mục ───
-        ViewBag.CategoryAprioriInsights = await _recommendationService.GetCategoryAprioriInsights(6);
+        // ponytail: try-catch để RecommendationService crash không làm hỏng dashboard
+        try
+        {
+            ViewBag.CategoryAprioriInsights = await _recommendationService.GetCategoryAprioriInsights(6);
+        }
+        catch (Exception ex)
+        {
+            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<AdminController>>();
+            logger.LogWarning(ex, "Category Apriori insights failed");
+            ViewBag.CategoryAprioriInsights = new List<object>();
+        }
 
         return View();
     }

@@ -33,7 +33,8 @@ export class LoginPage extends BasePage {
     this.loginButton = page.getByRole('button', { name: /đăng nhập/i });
     this.rememberMeCheckbox = page.locator('input[name="rememberMe"]');
     this.forgotPasswordLink = page.getByRole('link', { name: /quên mật khẩu/i });
-    this.registerLink = page.getByRole('link', { name: /đăng ký/i });
+    // ponytail: .first() — navbar + footer đều có link Đăng ký
+    this.registerLink = page.getByRole('link', { name: /đăng ký/i }).first();
     this.googleLoginButton = page.getByRole('link', { name: /đăng nhập bằng google/i });
     this.googlePartnerLink = page.locator('a[href*="GooglePartnerLogin"]');
     this.errorAlert = page.locator('.alert-danger');
@@ -52,7 +53,12 @@ export class LoginPage extends BasePage {
     await this.passwordInput.fill(password);
     await this.loginButton.click();
 
-    // Chờ phản hồi từ server (AJAX login)
+    // Chờ phản hồi từ server (form POST hoặc AJAX)
+    try {
+      await this.page.waitForLoadState('networkidle', { timeout: 20_000 });
+    } catch {
+      // Timeout là bình thường nếu form POST redirect
+    }
     await this.page.waitForTimeout(2000);
 
     // Trả về URL hiện tại (sau redirect)

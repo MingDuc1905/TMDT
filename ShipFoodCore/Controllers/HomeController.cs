@@ -83,7 +83,17 @@ public class HomeController : BaseController
         ViewBag.quanAns = quanAns;
 
         // ─── Apriori: Gợi ý Combo AI cho trang chủ ───
-        ViewBag.AprioriCombo = await _recommendationService.GetPopularPairs(6);
+        // ponytail: try-catch để crash không ảnh hưởng đến trang chủ
+        try
+        {
+            ViewBag.AprioriCombo = await _recommendationService.GetPopularPairs(6);
+        }
+        catch (Exception ex)
+        {
+            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<HomeController>>();
+            logger.LogWarning(ex, "PopularPairs failed — skipping Apriori on homepage");
+            ViewBag.AprioriCombo = new List<tbMonAn>();
+        }
 
         return View();
     }

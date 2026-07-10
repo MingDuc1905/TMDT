@@ -48,7 +48,17 @@ public class RestaurantController : BaseController
         ViewBag.dhHuy = QuanAn.tbDonHang.Count(dh => dh.trangthai == "Đã huỷ");
 
         // ─── Apriori: Phân tích cặp món bán chéo cho chủ quán ───
-        ViewBag.AprioriInsights = await _recommendationService.GetRestaurantAprioriInsights(QuanAn.userid, 5);
+        // ponytail: try-catch để RecommendationService crash không làm hỏng dashboard
+        try
+        {
+            ViewBag.AprioriInsights = await _recommendationService.GetRestaurantAprioriInsights(QuanAn.userid, 5);
+        }
+        catch (Exception ex)
+        {
+            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<RestaurantController>>();
+            logger.LogWarning(ex, "Apriori insights failed for restaurant {Id}", QuanAn.userid);
+            ViewBag.AprioriInsights = new List<object>();
+        }
 
         return View();
     }

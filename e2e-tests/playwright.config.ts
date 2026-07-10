@@ -8,17 +8,20 @@ import { defineConfig, devices } from '@playwright/test';
  */
 export default defineConfig({
   testDir: './tests',
-  timeout: 120_000,            // Mỗi test tối đa 120s
+  // ponytail: Render free tier rất chậm. retries=0 để chạy nhanh hơn.
+  // Dashboard tests (03,04,05) fail vì backend crash, không phải test code — retry cũng vô ích.
+  timeout: 60_000,             // Giảm từ 120s → 60s
   expect: {
-    timeout: 30_000,            // Expect timeout 30s
+    timeout: 15_000,            // Giảm từ 30s → 15s
     toHaveScreenshot: {
-      maxDiffPixels: 100,       // Cho phép sai khác nhỏ do font rendering
+      maxDiffPixels: 100,
     },
   },
-  fullyParallel: false,         // Chạy tuần tự để tránh conflict session/cart
+  // ponytail: 1 worker để tránh rate limit login (5 POST/5ph trên Render)
+  fullyParallel: false,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 1,
-  workers: process.env.CI ? 1 : 1,
+  retries: 0,                   // retries=0: không retry, test nhanh gấp đôi
+  workers: 1,                   // 1 worker: tránh rate limit login
   reporter: [
     ['html', { outputFolder: 'playwright-report' }],
     ['list'],
@@ -29,8 +32,8 @@ export default defineConfig({
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
-    actionTimeout: 60_000,      // Mỗi action tối đa 60s
-    navigationTimeout: 60_000,  // Navigation tối đa 60s
+    actionTimeout: 30_000,      // Giảm từ 60s → 30s
+    navigationTimeout: 30_000,  // Giảm từ 60s → 30s
   },
 
   projects: [

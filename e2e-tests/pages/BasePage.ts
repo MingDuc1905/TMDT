@@ -69,16 +69,20 @@ export class BasePage {
   }
 
   /** Kiểm tra toàn bộ ảnh <img> trên trang — tự nhiên có width > 0? */
-  async validateAllImages(): Promise<{ broken: number; total: number }> {
+  async validateAllImages(): Promise<{ broken: number; total: number; brokenUrls: string[] }> {
     const result = await this.page.evaluate(() => {
       const imgs = Array.from(document.querySelectorAll('img'));
       let broken = 0;
+      const brokenUrls: string[] = [];
       imgs.forEach((img) => {
         // Bỏ qua ảnh placeholder
         if (img.src.includes('placeholder')) return;
-        if (!img.complete || img.naturalWidth === 0) broken++;
+        if (!img.complete || img.naturalWidth === 0) {
+          broken++;
+          brokenUrls.push(img.src || '(no src)');
+        }
       });
-      return { total: imgs.length, broken };
+      return { total: imgs.length, broken, brokenUrls };
     });
     return result;
   }

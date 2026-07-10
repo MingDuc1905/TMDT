@@ -922,26 +922,27 @@ VALUES ('test_debug', 'test123', 'Khách hàng', '0999999999', 0, 'test@debug.co
     }
 
     /// <summary>
-    /// Seed database — chèn seed data từ mysql_utf8.sql nếu chưa có user nào.
-    /// Gọi GET /Home/SeedDb từ browser sau deploy (chỉ chạy 1 lần).
+    /// Seed database — chèn seed data từ mysql_utf8.sql.
+    /// KHÔNG skip nếu đã có user — INSERT thất bại sẽ được bỏ qua (try-catch),
+    /// chỉ các bảng trống mới được thêm dữ liệu.
+    /// Gọi GET /Home/SeedDb từ browser để fix dữ liệu thiếu.
     /// </summary>
     public IActionResult SeedDb()
     {
         try
         {
-            // Kiểm tra nếu đã có dữ liệu thì skip
-            if (db.tbUser.Any())
-            {
-                return Content("✅ Database đã có dữ liệu, không cần seed.");
-            }
-
             var logger = HttpContext.RequestServices.GetRequiredService<ILogger<HomeController>>();
             var env = HttpContext.RequestServices.GetRequiredService<IWebHostEnvironment>();
 
-            string sqlPath = System.IO.Path.Combine(env.ContentRootPath, "mysql_utf8.sql");
+            // Ưu tiên seed.sql (PostgreSQL), fallback mysql_utf8.sql
+            string sqlPath = System.IO.Path.Combine(env.ContentRootPath, "seed.sql");
             if (!System.IO.File.Exists(sqlPath))
             {
-                return Content("❌ Không tìm thấy mysql_utf8.sql tại: " + sqlPath);
+                sqlPath = System.IO.Path.Combine(env.ContentRootPath, "mysql_utf8.sql");
+            }
+            if (!System.IO.File.Exists(sqlPath))
+            {
+                return Content("❌ Không tìm thấy seed.sql hoặc mysql_utf8.sql tại: " + env.ContentRootPath);
             }
 
             var sql = System.IO.File.ReadAllText(sqlPath);
@@ -952,7 +953,7 @@ VALUES ('test_debug', 'test123', 'Khách hàng', '0999999999', 0, 'test@debug.co
             foreach (var stmt in statements)
             {
                 var trimmed = stmt.Trim();
-                if (trimmed.Length == 0 || trimmed.StartsWith("--") || trimmed.StartsWith("DROP") || trimmed.StartsWith("CREATE"))
+                if (trimmed.Length == 0 || trimmed.StartsWith("--") || trimmed.StartsWith("DROP") || trimmed.StartsWith("CREATE") || trimmed.StartsWith("SET"))
                     continue;
 
                 try
@@ -967,7 +968,7 @@ VALUES ('test_debug', 'test123', 'Khách hàng', '0999999999', 0, 'test@debug.co
                 }
             }
 
-            return Content($"✅ Seed hoàn tất! {success} câu lệnh thành công, {fail} lỗi (có thể bỏ qua).");
+            return Content($"✅ Seed hoàn tất! {success} câu lệnh thành công, {fail} lỗi (do data đã tồn tại hoặc lỗi khác).");
         }
         catch (Exception ex)
         {

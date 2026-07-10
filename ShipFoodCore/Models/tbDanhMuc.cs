@@ -17,7 +17,7 @@ public partial class tbDanhMuc
     [MaxLength(250)]
     public string? mota { get; set; }
 
-    [MaxLength(100)]
+    [MaxLength(500)]
     public string? hinhanh { get; set; }
 
     // Navigation

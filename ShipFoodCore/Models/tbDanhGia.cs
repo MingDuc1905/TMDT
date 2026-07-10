@@ -16,7 +16,7 @@ public partial class tbDanhGia
     [MaxLength(500)]
     public string? nhanxet { get; set; }
 
-    [MaxLength(100)]
+    [MaxLength(500)]
     public string? hinhanh { get; set; }
 
     /// <summary>

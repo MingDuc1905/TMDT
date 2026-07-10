@@ -29,7 +29,7 @@ public partial class tbShipper
     [MaxLength(50)]
     public string? trangthai { get; set; }
 
-    [MaxLength(100)]
+    [MaxLength(500)]
     public string? hinhanh { get; set; }
 
     // Navigation

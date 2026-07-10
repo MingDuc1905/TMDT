@@ -17,7 +17,7 @@ public partial class tbMonAn
     [MaxLength(500)]
     public string? mota { get; set; }
 
-    [MaxLength(50)]
+    [MaxLength(500)]
     public string? hinhanh { get; set; }
 
     public int? maquanan { get; set; }

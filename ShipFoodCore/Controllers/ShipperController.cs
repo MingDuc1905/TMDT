@@ -3,17 +3,20 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using ShipFood.Hubs;
 using ShipFood.Models;
+using ShipFood.Services;
 
 namespace ShipFood.Controllers;
 
 public class ShipperController : BaseController
 {
     private readonly IHubContext<Chats> _hubContext;
+    private readonly EDeliveryService _eDelivery;
 
-    public ShipperController(dbFoodyEntities context, IHubContext<Chats> hubContext)
+    public ShipperController(dbFoodyEntities context, IHubContext<Chats> hubContext, EDeliveryService eDelivery)
     {
         db = context;
         _hubContext = hubContext;
+        _eDelivery = eDelivery;
     }
 
     private bool checkShipper()
@@ -218,6 +221,9 @@ public class ShipperController : BaseController
                             shipperUser.vitien += donhang.phiship;
                         }
                     }
+                    // ─── E-Delivery: Auto-sinh E-Waybill khi giao hàng thành công ───
+                    // ponytail: EDeliveryService log internal, silent catch here
+                    try { await _eDelivery.GenerateEWaybill(id); } catch { }
                 }
                 db.SaveChanges();
 

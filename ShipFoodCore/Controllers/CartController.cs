@@ -491,6 +491,49 @@ public class CartController : BaseController
         return View();
     }
 
+    // ─── E-Delivery: Xem hóa đơn / vận đơn điện tử ───
+    [HttpGet]
+    public ActionResult EInvoice(int id)
+    {
+        if (!CheckLogin())
+            return RedirectToAction("Login", "Home");
+
+        var invoice = db.tbEInvoices
+            .Include(e => e.tbDonHang)
+                .ThenInclude(d => d.tbQuanAn)
+            .Include(e => e.tbDonHang)
+                .ThenInclude(d => d.tbThongTinDatHang)
+            .FirstOrDefault(e => e.einvoice_id == id);
+
+        if (invoice == null)
+        {
+            TempData["CartError"] = "Không tìm thấy chứng từ điện tử.";
+            return RedirectToAction("LichSuDatHang");
+        }
+
+        // Kiểm tra quyền xem: chỉ chủ đơn hàng/quán/shipper/admin mới được xem
+        var user = GetCurrentUser();
+        if (user == null)
+            return RedirectToAction("Login", "Home");
+
+        if (user.loaitaikhoan != "Admin" && user.loaitaikhoan != "Quán ăn")
+        {
+            var ttdh = invoice.tbDonHang?.tbThongTinDatHang;
+            if (ttdh?.userid != user.userid)
+            {
+                // Cho phép shipper xem nếu là shipper của đơn hàng
+                if (user.loaitaikhoan == "Shipper" && invoice.tbDonHang?.mashipper != user.userid)
+                {
+                    TempData["CartError"] = "Bạn không có quyền xem chứng từ này.";
+                    return RedirectToAction("Index", "Home");
+                }
+            }
+        }
+
+        ViewBag.donHang = invoice.tbDonHang;
+        return View(invoice);
+    }
+
     // ─── Phase 4: Order Tracking with Live Map ───
     [HttpGet]
     public ActionResult OrderTracking(int? id)

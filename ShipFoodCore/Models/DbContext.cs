@@ -27,6 +27,7 @@ public partial class dbFoodyEntities : DbContext
     public virtual DbSet<tbTinNhan> tbTinNhans { get; set; }
     public virtual DbSet<tbLichSuSuDungKhuyenMai> tbLichSuSuDungKhuyenMais { get; set; }
     public virtual DbSet<tbUser> tbUsers { get; set; }
+    public virtual DbSet<tbEInvoice> tbEInvoices { get; set; }
 
     // Singular aliases for backward compatibility (DbSet to support Add/Remove/Find)
     public DbSet<tbMonAn> tbMonAn => tbMonAns;
@@ -45,6 +46,7 @@ public partial class dbFoodyEntities : DbContext
     public DbSet<tbMonAnKhuyenMai> tbMonAnKhuyenMai => tbMonAnKhuyenMais;
     public DbSet<tbDanhGia> tbDanhGia => tbDanhGias;
     public DbSet<tbLichSuSuDungKhuyenMai> tbLichSuSuDungKhuyenMai => tbLichSuSuDungKhuyenMais;
+    public DbSet<tbEInvoice> tbEInvoice => tbEInvoices;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

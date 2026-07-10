@@ -12,12 +12,14 @@ namespace ShipFood.Controllers;
 public class ChatbotController : BaseController
 {
     private readonly GeminiService _gemini;
+    private readonly EDeliveryService _eDelivery;
     private const int MaxHistoryLength = 20; // Giữ tối đa 20 tin nhắn gần nhất cho hội thoại tự nhiên hơn
 
-    public ChatbotController(dbFoodyEntities context, GeminiService gemini)
+    public ChatbotController(dbFoodyEntities context, GeminiService gemini, EDeliveryService eDelivery)
     {
         db = context;
         _gemini = gemini;
+        _eDelivery = eDelivery;
     }
 
     [HttpPost]
@@ -127,6 +129,10 @@ public class ChatbotController : BaseController
         var orderResult = HandleOrderLookup(msg);
         if (orderResult != null) return orderResult;
 
+        // Tra cứu hóa đơn / vận đơn điện tử
+        var invoiceResult = HandleInvoiceLookup(msg);
+        if (invoiceResult != null) return invoiceResult;
+
         // Gợi ý món ăn
         var recommendResult = HandleRecommendation(msg);
         if (recommendResult != null) return recommendResult;
@@ -173,6 +179,79 @@ public class ChatbotController : BaseController
                     "\n- 📅 Ngày đặt: " + donHang.ngaydathang?.ToString("dd/MM/yyyy HH:mm"),
             quickReplies = new[] { "Gợi ý món ăn", "Phí ship thế nào?", "Đặt món mới" }
         };
+    }
+
+    /// <summary>
+    /// Tra cứu hóa đơn / vận đơn điện tử
+    /// </summary>
+    private object? HandleInvoiceLookup(string msg)
+    {
+        bool isInvoiceQuery = ContainsAny(msg, "hóa đơn", "hoá đơn", "invoice", "vận đơn", "van don", "chứng từ", "chung tu", "e-invoice", "e-waybill");
+        if (!isInvoiceQuery) return null;
+
+        // Tìm mã đơn hàng trong câu hỏi
+        var orderMatch = Regex.Match(msg, @"(?:#|mã\s+|đơn\s+|order\s+|đơn hàng\s+)(\d{2,8})");
+        int orderId;
+        if (orderMatch.Success)
+        {
+            orderId = int.Parse(orderMatch.Groups[1].Value);
+        }
+        else
+        {
+            return new
+            {
+                reply = "Vui lòng cung cấp mã đơn hàng để tra cứu hóa đơn. Ví dụ: `hóa đơn #123`",
+                quickReplies = new[] { "Tra cứu đơn hàng #", "Gợi ý món ăn", "Phí ship thế nào?" }
+            };
+        }
+
+        try
+        {
+            // ponytail: GetAwaiter().GetResult() tránh deadlock khi gọi async từ sync context
+            var docs = _eDelivery.GetDocumentsByOrder(orderId).GetAwaiter().GetResult();
+            if (docs.Count == 0)
+            {
+                return new
+                {
+                    reply = $"📄 Đơn hàng #{orderId} chưa có hóa đơn/vận đơn điện tử. Chứng từ sẽ được tạo tự động sau khi thanh toán và giao hàng thành công.",
+                    quickReplies = new[] { "Tra cứu đơn hàng #", "Gợi ý món ăn", "Liên hệ hỗ trợ" }
+                };
+            }
+
+            var replyText = $"📑 **CHỨNG TỪ ĐIỆN TỬ - ĐƠN HÀNG #{orderId}**\n\n";
+            foreach (var doc in docs)
+            {
+                var emoji = doc.loaichungtu == "EInvoice" ? "🧾" : "📦";
+                var name = doc.loaichungtu == "EInvoice" ? "Hóa đơn điện tử" : "Vận đơn điện tử";
+                replyText += $"{emoji} **{name}**\n";
+                replyText += $"  Số: `{doc.invoice_number}`\n";
+                replyText += $"  Ngày xuất: {doc.ngayxuat:dd/MM/yyyy HH:mm}\n";
+                replyText += $"  Giá trị: {doc.tongtien:N0}đ\n";
+                replyText += $"  Đã ký số: {(doc.is_digital_signed ? "✅" : "❌")}\n";
+                replyText += $"  🔗 Xem chi tiết: {GetBaseUrl()}/Cart/EInvoice?id={doc.einvoice_id}\n\n";
+            }
+
+            return new
+            {
+                reply = replyText,
+                quickReplies = new[] { "Tra cứu đơn hàng #", "Gợi ý món ăn", "Liên hệ hỗ trợ" }
+            };
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"[Chatbot] Invoice lookup error: {ex.Message}");
+            return new
+            {
+                reply = "❌ Không thể tra cứu hóa đơn lúc này. Vui lòng thử lại sau.",
+                quickReplies = new[] { "Tra cứu đơn hàng #", "Gợi ý món ăn", "Liên hệ hỗ trợ" }
+            };
+        }
+    }
+
+    private string GetBaseUrl()
+    {
+        var request = HttpContext.Request;
+        return $"{request.Scheme}://{request.Host}";
     }
 
     private string GetStatusEmoji(string? status)

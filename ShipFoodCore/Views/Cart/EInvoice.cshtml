@@ -1,0 +1,142 @@
+@model ShipFood.Models.tbEInvoice
+@{
+    ViewBag.Title = "Chứng từ điện tử";
+    Layout = "~/Views/Shared/_LayoutPage.cshtml";
+
+    var donHang = ViewBag.donHang as ShipFood.Models.tbDonHang;
+    var title = Model.loaichungtu == "EInvoice" ? "HÓA ĐƠN ĐIỆN TỬ" : "VẬN ĐƠN ĐIỆN TỬ";
+    var emoji = Model.loaichungtu == "EInvoice" ? "🧾" : "📦";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+            <!-- Document Card -->
+            <div class="card shadow-sm border-0" style="border-radius: 16px; overflow: hidden;">
+                <!-- Header -->
+                <div class="px-4 py-4 text-white" style="background: linear-gradient(135deg, #1a1a2e, #16213e);">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="mb-1" style="font-weight: 700; letter-spacing: 1px;">@emoji @title</h3>
+                            <span class="badge bg-light text-dark fs-6">@Model.invoice_number</span>
+                        </div>
+                        <div class="text-end">
+                            <small class="d-block opacity-75">Ngày xuất</small>
+                            <strong>@Model.ngayxuat.ToString("dd/MM/yyyy HH:mm")</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-body p-4">
+                    <!-- Status Badge -->
+                    <div class="text-center mb-4">
+                        @if (Model.is_digital_signed)
+                        {
+                            <span class="badge bg-success fs-6 px-4 py-2" style="border-radius: 8px;">
+                                ✅ Đã ký số điện tử
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-warning fs-6 px-4 py-2" style="border-radius: 8px;">
+                                ⏳ Chờ ký số
+                            </span>
+                        }
+                    </div>
+
+                    <!-- Order Info -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <div class="p-3 rounded-3" style="background: #f8f9fa;">
+                                <small class="text-muted d-block">Đơn hàng</small>
+                                <strong>#@Model.madh</strong>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 rounded-3" style="background: #f8f9fa;">
+                                <small class="text-muted d-block">Giá trị</small>
+                                <strong class="text-success">@Model.tongtien.ToString("N0")đ</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (donHang != null)
+                    {
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <div class="p-3 rounded-3" style="background: #f0f7ff;">
+                                    <small class="text-muted d-block">Quán ăn</small>
+                                    <strong>@donHang.tbQuanAn?.tenquanan</strong>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="p-3 rounded-3" style="background: #f0f7ff;">
+                                    <small class="text-muted d-block">Khách hàng</small>
+                                    <strong>@donHang.tbThongTinDatHang?.tennguoinhan</strong>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    <!-- QR Code -->
+                    <div class="text-center my-4">
+                        <div class="d-inline-block p-3 rounded-3 border" style="background: white;">
+                            @if (!string.IsNullOrEmpty(Model.qr_code_data))
+                            {
+                                var qrUrl = $"https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={Uri.EscapeDataString(Model.qr_code_data)}";
+                                <img src="@qrUrl" alt="QR Code" style="width: 180px; height: 180px; border-radius: 8px;" />
+                            }
+                            else
+                            {
+                                <div style="width: 180px; height: 180px; background: #f0f0f0; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #999;">
+                                    Không có QR
+                                </div>
+                            }
+                        </div>
+                        <p class="mt-2 text-muted small">
+                            <i class="fas fa-info-circle"></i> Quét mã để xác nhận bàn giao
+                        </p>
+                    </div>
+
+                    <!-- Raw Data (for verification) -->
+                    <details class="mt-3">
+                        <summary class="text-muted small" style="cursor: pointer;">
+                            <i class="fas fa-code"></i> Dữ liệu kiểm tra
+                        </summary>
+                        <pre class="mt-2 p-3 rounded-3" style="background: #f5f5f5; font-size: 12px; overflow-x: auto; max-height: 150px;">
+                            @if (!string.IsNullOrEmpty(Model.qr_code_data))
+                            {
+                                var rawData = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(Model.qr_code_data));
+                                @rawData
+                            }
+                        </pre>
+                    </details>
+
+                    <!-- Actions -->
+                    <div class="d-flex gap-2 justify-content-center mt-4">
+                        <button class="btn btn-outline-primary" onclick="window.print()">
+                            <i class="fas fa-print"></i> In chứng từ
+                        </button>
+                        <a href="@Url.Action("ChiTietDonHang", "Cart", new { id = Model.madh })" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left"></i> Về đơn hàng
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer note -->
+            <p class="text-center text-muted small mt-3">
+                Chứng từ điện tử được tạo bởi <strong>FastShip</strong> — Giá trị tương đương chứng từ giấy
+            </p>
+        </div>
+    </div>
+</div>
+
+<style>
+    @@media print {
+        .navbar, .footer, .btn-outline-primary, .btn-outline-secondary, details, .text-center.text-muted {
+            display: none !important;
+        }
+        .card { box-shadow: none !important; border: 1px solid #ddd !important; }
+    }
+</style>

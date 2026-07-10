@@ -14,14 +14,17 @@ public class PaymentController : BaseController
     private readonly IHubContext<Chats> _hubContext;
     private readonly MoMoService _moMoService;
     private readonly IConfiguration _configuration;
+    private readonly EDeliveryService _eDelivery;
 
-    public PaymentController(dbFoodyEntities context, ILogger<PaymentController> logger, IHubContext<Chats> hubContext, MoMoService moMoService, IConfiguration configuration)
+    public PaymentController(dbFoodyEntities context, ILogger<PaymentController> logger, IHubContext<Chats> hubContext,
+        MoMoService moMoService, IConfiguration configuration, EDeliveryService eDelivery)
     {
         db = context;
         _logger = logger;
         _hubContext = hubContext;
         _moMoService = moMoService;
         _configuration = configuration;
+        _eDelivery = eDelivery;
     }
 
     // ─── Bank transfer config (đọc từ env vars) ───
@@ -396,6 +399,10 @@ public class PaymentController : BaseController
                             donHang.momo_trans_id = transId; // Lưu mã giao dịch MoMo để dùng cho Refund
                             _logger.LogInformation("MoMo payment confirmed for order #{OrderId}, TransId={TransId}", madh, transId);
 
+                            // ─── E-Delivery: Auto-sinh E-Invoice ───
+                            try { await _eDelivery.GenerateEInvoice(madh); }
+                            catch (Exception edEx) { _logger.LogWarning(edEx, "E-Invoice generation failed for order #{OrderId}", madh); }
+
                             // SignalR broadcast đến khách hàng
                             try
                             {
@@ -532,6 +539,10 @@ public class PaymentController : BaseController
             donHang.trangthai = "Đã đặt";
             donHang.ngaythanhtoan = DateTime.Now;
             await db.SaveChangesAsync();
+
+            // ─── E-Delivery: Auto-sinh E-Invoice khi bank transfer confirmed ───
+            try { await _eDelivery.GenerateEInvoice(madh); }
+            catch (Exception edEx) { _logger.LogWarning(edEx, "E-Invoice generation failed for order #{OrderId}", madh); }
 
             _logger.LogInformation("BankWebhook: Order #{OrderId} auto-approved via bank transfer", madh);
 

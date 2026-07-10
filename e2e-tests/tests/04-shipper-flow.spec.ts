@@ -29,17 +29,22 @@ async function loginAsShipper(page: any) {
   const url = await login.login(SHIPPER.username, SHIPPER.password);
   console.log(`📍 URL sau login: ${url}`);
   // ponytail: redirect về /Home/Login → cold start làm mất session cookie
-  // Solution: goto trực tiếp /Shipper, retry 1 lần nếu fail
+  // Solution: goto trực tiếp /Shipper, retry nhanh với domcontentloaded
   if (url.includes('/Home/Error') || url.includes('/Home/Login')) {
-    for (let retry = 0; retry < 2; retry++) {
+    await page.waitForTimeout(2000); // chờ session cookie settle
+    for (let retry = 0; retry < 3; retry++) {
       try {
-        await page.goto('/Shipper', { waitUntil: 'load', timeout: 30_000 });
-        break;
+        await page.goto('/Shipper', { waitUntil: 'domcontentloaded', timeout: 15_000 });
+        if (page.url().includes('/Shipper')) break;
       } catch {
         console.log(`⚠️ Fallback goto Shipper #${retry+1} failed`);
-        await page.waitForTimeout(3000);
+        await page.waitForTimeout(1000);
       }
     }
+  }
+  // ponytail: safety net nếu retry không kịp
+  if (!page.url().includes('/Shipper')) {
+    await page.goto('/Shipper', { waitUntil: 'domcontentloaded', timeout: 15_000 }).catch(() => {});
   }
 }
 

@@ -399,7 +399,6 @@ test.describe('🔒 Security & Boundary Testing', () => {
     for (const payload of sqlInjections) {
       await home.searchInput.fill(payload);
       await home.searchButton.click();
-      // ponytail: timeout trên Render free thì bỏ qua payload này
       try {
         await page.waitForLoadState('networkidle', { timeout: 20_000 });
       } catch {

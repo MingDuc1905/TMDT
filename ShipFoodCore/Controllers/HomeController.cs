@@ -922,7 +922,7 @@ VALUES ('test_debug', 'test123', 'Khách hàng', '0999999999', 0, 'test@debug.co
     }
 
     /// <summary>
-    /// Seed database — chèn seed data từ mysql_utf8.sql.
+    /// Seed database — chèn seed data từ seed.sql (PostgreSQL).
     /// KHÔNG skip nếu đã có user — INSERT thất bại sẽ được bỏ qua (try-catch),
     /// chỉ các bảng trống mới được thêm dữ liệu.
     /// Gọi GET /Home/SeedDb từ browser để fix dữ liệu thiếu.
@@ -934,26 +934,22 @@ VALUES ('test_debug', 'test123', 'Khách hàng', '0999999999', 0, 'test@debug.co
             var logger = HttpContext.RequestServices.GetRequiredService<ILogger<HomeController>>();
             var env = HttpContext.RequestServices.GetRequiredService<IWebHostEnvironment>();
 
-            // Ưu tiên seed.sql (PostgreSQL), fallback mysql_utf8.sql
             string sqlPath = System.IO.Path.Combine(env.ContentRootPath, "seed.sql");
             if (!System.IO.File.Exists(sqlPath))
             {
-                sqlPath = System.IO.Path.Combine(env.ContentRootPath, "mysql_utf8.sql");
-            }
-            if (!System.IO.File.Exists(sqlPath))
-            {
-                return Content("❌ Không tìm thấy seed.sql hoặc mysql_utf8.sql tại: " + env.ContentRootPath);
+                return Content("❌ Không tìm thấy seed.sql tại: " + sqlPath);
             }
 
-            var sql = System.IO.File.ReadAllText(sqlPath);
-            // Tách các câu lệnh SQL theo dấu ;
-            var statements = sql.Split(';', StringSplitOptions.RemoveEmptyEntries);
+            var sql = System.IO.File.ReadAllText(sqlPath).Replace("\r\n", "\n");
+            // Tách theo ";\n" — giống Program.cs startup seed
+            var statements = sql.Split(new[] { "\nGO\n", ";\n" }, StringSplitOptions.RemoveEmptyEntries);
 
             int success = 0, fail = 0;
             foreach (var stmt in statements)
             {
                 var trimmed = stmt.Trim();
-                if (trimmed.Length == 0 || trimmed.StartsWith("--") || trimmed.StartsWith("DROP") || trimmed.StartsWith("CREATE") || trimmed.StartsWith("SET"))
+                // Chỉ skip DROP/CREATE/SET — KHÔNG skip -- comments vì INSERT nằm sau comment
+                if (trimmed.Length == 0 || trimmed.StartsWith("DROP") || trimmed.StartsWith("CREATE") || trimmed.StartsWith("SET"))
                     continue;
 
                 try

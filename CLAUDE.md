@@ -15,6 +15,34 @@ quy_tắc_bắt_buộc:
   - Nếu có nhiều skill liên quan, dùng kết hợp tất cả
 ```
 
+### 🕐 Tần suất Load Skill
+
+```yaml
+tần_suất_load_skill:
+  # Mỗi phiên (session) chỉ cần load 1 lần
+  - Đầu phiên: load tất cả skill liên quan đến dự án hiện tại
+  - Khi chuyển task mới: load skill phù hợp với task đó (nếu chưa load trong phiên)
+  - KHÔNG cần reload skill đã load trong cùng phiên
+  
+  # Khi nào load lại:
+  - Bắt đầu session mới (mở lại terminal/IDE)
+  - Chuyển sang dự án khác
+  - Cần skill mới chưa load trong phiên hiện tại
+```
+
+### 📚 Quy trình Load Skill Chuẩn
+
+```yaml
+quy_trình_load_skill:
+  step_1: "Xác định task cần làm → skill nào phù hợp?"
+  step_2: "Kiểm tra skill đã load trong phiên chưa?"
+  step_3: |
+    Nếu CHƯA load → dùng skill tool để load
+    Nếu ĐÃ load → dùng luôn, không load lại
+  step_4: "Tham khảo codebase (Project.md, UI-UX.md, file-picker)"
+  step_5: "Bắt đầu làm việc với sự hỗ trợ của skill"
+```
+
 ### Các nhóm skills chính:
 
 | Nhóm | Skill | Khi nào dùng |
@@ -59,7 +87,40 @@ flowchart TD
 
 - File rules chi tiết: `.agents/skills/fastship-rules.md`
 - Danh sách đầy đủ skills: `skills-lock.json`
-- Thư mục skills: `.agents/skills/`
+- Thư mục skills chính: `.agents/skills/`
+
+## 4. 📦 Kho Repo trong thư mục `ShipFoodCore/Skills/`
+
+### Các repo skills chính:
+
+| Repo | Mô tả | Khi nào dùng |
+|------|-------|-------------|
+| **agent-reach-main** | Agent truy cập 13+ nền tảng (Twitter, Reddit, YouTube, GitHub...) | Cần tìm kiếm/tương tác web |
+| **ponytail-main** | Ponytail optimization suite | Tối ưu code, giảm thiểu, refactor |
+| **codegraph-main** (trong `Graph/`) | CodeGraph retrieval & indexing | Phân tích codebase, tìm kiếm nâng cao |
+| **gstack-main** | Security router suite | Audit bảo mật |
+| **superpowers-main** (trong `FLow/`) | Superpowers workflow tools | Quản lý workflow, phiên làm việc |
+| **whisper-flow-main** (trong `prompt/`) | Prompt engineering | Thiết kế prompt tối ưu |
+| **ui-ux-pro-max** (trong `UI UX/` + `Skill/`) | UI/UX design: 50+ styles, 161 palettes, 57 font pairings | Thiết kế giao diện (2 repo này cũng nội dung, dùng 1 cái) |
+| **scientific-agent-skills-main** | Khoa học: bioinformatics, ML, statistics... | Phân tích dữ liệu khoa học |
+| **developer-icons-main** | Bộ icon SVG cho developer | Tạo icon, logo, UI elements |
+
+### Repo tham khảo:
+
+| Repo | Mô tả |
+|------|-------|
+| **public-apis-master** | 📚 Danh sách public APIs miễn phí — tham khảo khi cần tích hợp API bên thứ 3 (không phải skill AI, chỉ là danh sách tham khảo) |
+
+### 🎯 Khi nào dùng repo trong Skills/
+
+```yaml
+dùng_repo_khi:
+  - Cần code mẫu từ skill chưa được load sẵn
+  - Muốn tham khảo implementation của 1 skill cụ thể
+  - Cần documentation chi tiết của skill
+  - Muốn xem ví dụ/test cases từ skill repo
+  - Cần API reference từ public-apis-master
+```
 
 ---
 

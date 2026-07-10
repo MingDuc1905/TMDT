@@ -6,16 +6,16 @@
 
 # Test info
 
-- Name: 03-restaurant-flow.spec.ts >> 🏪 Dashboard Quán ăn - KPI & Thống kê >> [TC-3.3] Sidebar hiển thị đầy đủ menu: Dashboard, Order List, ...
-- Location: tests\03-restaurant-flow.spec.ts:65:7
+- Name: 03-restaurant-flow.spec.ts >> 🏪 Dashboard Quán ăn - KPI & Thống kê >> [TC-3.2] Dashboard hiển thị thẻ KPI (tổng đơn, doanh thu, đánh giá)
+- Location: tests\03-restaurant-flow.spec.ts:49:7
 
 # Error details
 
 ```
-Error: expect(received).toBeGreaterThan(expected)
+TimeoutError: page.waitForSelector: Timeout 20000ms exceeded.
+Call log:
+  - waiting for locator('.card-header') to be visible
 
-Expected: > 0
-Received:   0
 ```
 
 # Page snapshot
@@ -131,7 +131,8 @@ Received:   0
   50  |     await loginAsRestaurant(page);
   51  | 
   52  |     // Chờ KPI cards load
-  53  |     await page.waitForSelector('.card-header', { timeout: 20_000 });
+> 53  |     await page.waitForSelector('.card-header', { timeout: 20_000 });
+      |                ^ TimeoutError: page.waitForSelector: Timeout 20000ms exceeded.
   54  |     const kpiCount = await page.locator('.card-header').count();
   55  |     console.log(`📊 KPI cards: ${kpiCount}`);
   56  |     expect(kpiCount).toBeGreaterThan(0);
@@ -148,8 +149,7 @@ Received:   0
   67  | 
   68  |     const sidebarLinks = await page.locator('.deznav a[href]').count();
   69  |     console.log(`🔗 Sidebar links: ${sidebarLinks}`);
-> 70  |     expect(sidebarLinks).toBeGreaterThan(0);
-      |                          ^ Error: expect(received).toBeGreaterThan(expected)
+  70  |     expect(sidebarLinks).toBeGreaterThan(0);
   71  | 
   72  |     // Kiểm tra link "Danh sách đơn hàng" hiển thị
   73  |     await expect(page.locator('a[href*="/Restaurant/OrderList"]').first()).toBeVisible({ timeout: 5_000 });
@@ -233,21 +233,4 @@ Received:   0
   151 | 
   152 |     const restaurant = new RestaurantPage(page);
   153 |     await restaurant.gotoOrderList();
-  154 |     await page.waitForSelector('#example5', { timeout: 20_000 });
-  155 | 
-  156 |     // Kiểm tra nút nhận đơn
-  157 |     const acceptBtns = await page.locator('a[href*="/Restaurant/nhandon/"]').count();
-  158 |     console.log(`🟢 Nhận đơn buttons: ${acceptBtns}`);
-  159 |   });
-  160 | });
-  161 | 
-  162 | // ─── TEST SUITE 3: Xử lý đơn hàng (Accept -> Prepare -> Complete) ───
-  163 | test.describe('🔄 Xử lý đơn hàng - Accept & Status Transitions', () => {
-  164 | 
-  165 |   test('[TC-3.9] Tạo đơn mới từ customer -> kiểm tra quán ăn thấy đơn', async ({ page, context }) => {
-  166 |     // Mở tab mới cho customer để tạo đơn
-  167 |     const customerPage = await context.newPage();
-  168 |     const loginC = new LoginPage(customerPage);
-  169 |     await loginC.gotoLogin();
-  170 |     await loginC.usernameInput.fill(USERS.customer1.username);
 ```

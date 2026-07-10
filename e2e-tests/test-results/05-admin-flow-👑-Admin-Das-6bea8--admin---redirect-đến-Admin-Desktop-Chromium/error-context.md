@@ -21,59 +21,54 @@ Received string:    "https://fastship-web.onrender.com/Home/Login"
 # Page snapshot
 
 ```yaml
-- generic [ref=e2]:
-  - banner [ref=e3]:
-    - generic [ref=e4]:
-      - link "Fastship" [ref=e5] [cursor=pointer]:
-        - /url: /Home
-        - generic [ref=e6]: Fastship
-      - generic [ref=e7]:
-        - link " Trang chủ" [ref=e8] [cursor=pointer]:
-          - /url: /Home
-          - generic [ref=e9]: 
-          - text: Trang chủ
-        - link "Đăng ký" [ref=e10] [cursor=pointer]:
-          - /url: /Home/Signup
-  - main [ref=e11]:
-    - generic [ref=e12]:
-      - link "Fastship" [ref=e13] [cursor=pointer]:
-        - /url: /Home
-        - heading "Fastship" [level=1] [ref=e14]
-      - heading "Đăng nhập" [level=2] [ref=e15]
-      - generic [ref=e16]:
-        - generic [ref=e18]:
-          - link "Đăng nhập bằng Google" [ref=e19] [cursor=pointer]:
-            - /url: /Home/GoogleLogin
-            - img [ref=e20]
-            - generic [ref=e25]: Đăng nhập bằng Google
-          - link " Đăng ký làm Đối tác Quán ăn / Shipper" [ref=e27] [cursor=pointer]:
-            - /url: /Home/GooglePartnerLogin
-            - generic [ref=e28]: 
-            - text: Đăng ký làm Đối tác Quán ăn / Shipper
-        - generic [ref=e29]: hoặc bằng tài khoản
-        - generic [ref=e30]: Tên đăng nhập hoặc số điện thoại
-        - textbox "Tên đăng nhập hoặc số điện thoại" [ref=e31]
-        - generic [ref=e32]: Mật khẩu
-        - generic [ref=e33]:
-          - textbox "Mật khẩu" [ref=e34]
-          - button "Hiện/ẩn mật khẩu" [ref=e35] [cursor=pointer]:
-            - generic: 
-        - generic [ref=e36]:
-          - generic [ref=e37] [cursor=pointer]:
-            - checkbox "Lưu đăng nhập" [ref=e38]
-            - text: Lưu đăng nhập
-          - link "Quên mật khẩu?" [ref=e39] [cursor=pointer]:
-            - /url: /Home/Forgot
-        - button "Đăng nhập" [ref=e40] [cursor=pointer]
-      - generic [ref=e42]:
-        - text: Chưa có tài khoản?
-        - link "Đăng ký" [ref=e43] [cursor=pointer]:
-          - /url: /Home/Signup
-      - generic [ref=e44]:
-        - text: Bằng cách đăng nhập hoặc đăng ký, bạn đồng ý với
-        - link "Điều khoản dịch vụ" [ref=e45] [cursor=pointer]:
-          - /url: "#"
-        - text: của Fastship
+- generic [ref=e7]:
+  - link [ref=e9] [cursor=pointer]:
+    - /url: /Admin/QuanLyQuanAn
+  - navigation [ref=e17]:
+    - generic [ref=e18]:
+      - img [ref=e22] [cursor=pointer]
+      - list [ref=e24]:
+        - listitem [ref=e25]:
+          - link [ref=e26] [cursor=pointer]:
+            - /url: "#"
+            - img [ref=e27]
+        - listitem [ref=e32]:
+          - button "Xin chào, Admin" [ref=e33] [cursor=pointer]:
+            - generic [ref=e35]:
+              - text: Xin chào,
+              - strong [ref=e36]: Admin
+  - list [ref=e39]:
+    - listitem [ref=e40]:
+      - link " Dashboard" [ref=e41] [cursor=pointer]:
+        - /url: /Admin/Dashboard
+        - generic [ref=e42]:
+          - generic [ref=e43]: 
+          - text: Dashboard
+    - listitem [ref=e44]:
+      - link "Xem quán ăn" [ref=e45] [cursor=pointer]:
+        - /url: /Admin/QuanLyQuanAn
+    - listitem [ref=e46]:
+      - link "Xem admin" [ref=e47] [cursor=pointer]:
+        - /url: /Admin/QuanLyQuanTriVien
+    - listitem [ref=e48]:
+      - link "Xem tài xế" [ref=e49] [cursor=pointer]:
+        - /url: /Admin/QuanLyShipper
+    - listitem [ref=e50]:
+      - link "Xem khách hàng" [ref=e51] [cursor=pointer]:
+        - /url: /Admin/QuanLyKhachHang
+    - listitem [ref=e52]:
+      - link "Xem đơn hàng" [ref=e53] [cursor=pointer]:
+        - /url: /Admin/Order
+    - listitem [ref=e54]:
+      - link "Xem danh mục" [ref=e55] [cursor=pointer]:
+        - /url: /Admin/Category
+    - listitem [ref=e56]:
+      - link " Chat khách hàng" [ref=e57] [cursor=pointer]:
+        - /url: /AdminChat
+        - generic [ref=e58]:
+          - generic [ref=e59]: 
+          - text: Chat khách hàng
+  - heading "Index" [level=2] [ref=e60]
 ```
 
 # Test source

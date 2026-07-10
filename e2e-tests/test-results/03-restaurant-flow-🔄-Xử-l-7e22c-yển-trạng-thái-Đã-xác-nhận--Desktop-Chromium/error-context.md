@@ -279,6 +279,6 @@ Call log:
   327 |     expect(imgResult.broken).toBe(0);
   328 |   });
   329 | 
-  330 |   test('[TC-3.15] Console không có lỗi trên dashboard quán', async ({ page }) => {
-  331 |     const errors: string[] = [];
+  330 |   test('[TC-3.15] Console không có JS errors (bỏ qua network 429)', async ({ page }) => {
+  331 |     const jsErrors: string[] = [];
 ```

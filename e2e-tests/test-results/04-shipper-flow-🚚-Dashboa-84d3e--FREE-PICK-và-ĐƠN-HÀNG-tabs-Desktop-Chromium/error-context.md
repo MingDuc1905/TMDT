@@ -22,20 +22,45 @@ Error: element(s) not found
 Call log:
   - Expect "toBeVisible" with timeout 10000ms
   - waiting for locator('#orders-all-tab')
-    - waiting for" https://fastship-web.onrender.com/Shipper" navigation to finish...
-    - navigated to "https://fastship-web.onrender.com/Home/Error?traceId=00-ab916892dcbdd3f28a0ae66d56a2c1f8-cd39d8cf556b7d18-00"
 
 ```
 
 ```yaml
-- text: Fastship ⚠️
-- heading "Đã xảy ra lỗi" [level=1]
-- paragraph: Máy chủ đang gặp sự cố tạm thời. Đội ngũ Fastship đã được thông báo và sẽ khắc phục sớm nhất. Vui lòng thử lại sau.
-- strong: "Mã lỗi:"
-- text: 00-ab916892dcbdd3f28a0ae66d56a2c1f8-cd39d8cf556b7d18-00
-- link "← Quay về trang chủ":
-  - /url: /Home
-- text: Fastship © 2026 — Nếu lỗi vẫn tiếp diễn, vui lòng liên hệ fastship@contact.com
+- banner:
+  - link "Fastship":
+    - /url: /Home
+  - link " Trang chủ":
+    - /url: /Home
+  - link "Đăng ký":
+    - /url: /Home/Signup
+- main:
+  - link "Fastship":
+    - /url: /Home
+    - heading "Fastship" [level=1]
+  - heading "Đăng nhập" [level=2]
+  - link "Đăng nhập bằng Google":
+    - /url: /Home/GoogleLogin
+    - img
+    - text: Đăng nhập bằng Google
+  - link " Đăng ký làm Đối tác Quán ăn / Shipper":
+    - /url: /Home/GooglePartnerLogin
+  - text: hoặc bằng tài khoản Tên đăng nhập hoặc số điện thoại
+  - textbox "Tên đăng nhập hoặc số điện thoại"
+  - text: Mật khẩu
+  - textbox "Mật khẩu"
+  - button "Hiện/ẩn mật khẩu": 
+  - checkbox "Lưu đăng nhập"
+  - text: Lưu đăng nhập
+  - link "Quên mật khẩu?":
+    - /url: /Home/Forgot
+  - button "Đăng nhập"
+  - text: Chưa có tài khoản?
+  - link "Đăng ký":
+    - /url: /Home/Signup
+  - text: Bằng cách đăng nhập hoặc đăng ký, bạn đồng ý với
+  - link "Điều khoản dịch vụ":
+    - /url: "#"
+  - text: của Fastship
 ```
 
 # Test source

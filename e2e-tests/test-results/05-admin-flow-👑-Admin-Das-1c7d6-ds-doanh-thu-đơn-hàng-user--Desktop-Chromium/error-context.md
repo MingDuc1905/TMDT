@@ -22,53 +22,58 @@ Received:   0
 
 ```yaml
 - generic [ref=e2]:
-  - link [ref=e4] [cursor=pointer]:
-    - /url: /Admin/QuanLyQuanAn
-  - navigation [ref=e12]:
-    - generic [ref=e13]:
-      - img [ref=e17] [cursor=pointer]
-      - list [ref=e19]:
-        - listitem [ref=e20]:
-          - link [ref=e21] [cursor=pointer]:
-            - /url: "#"
-            - img [ref=e22]
-        - listitem [ref=e27]:
-          - button "Xin chào, Admin" [ref=e28] [cursor=pointer]:
-            - generic [ref=e30]:
-              - text: Xin chào,
-              - strong [ref=e31]: Admin
-  - list [ref=e34]:
-    - listitem [ref=e35]:
-      - link " Dashboard" [ref=e36] [cursor=pointer]:
-        - /url: /Admin/Dashboard
-        - generic [ref=e37]:
-          - generic [ref=e38]: 
-          - text: Dashboard
-    - listitem [ref=e39]:
-      - link "Xem quán ăn" [ref=e40] [cursor=pointer]:
-        - /url: /Admin/QuanLyQuanAn
-    - listitem [ref=e41]:
-      - link "Xem admin" [ref=e42] [cursor=pointer]:
-        - /url: /Admin/QuanLyQuanTriVien
-    - listitem [ref=e43]:
-      - link "Xem tài xế" [ref=e44] [cursor=pointer]:
-        - /url: /Admin/QuanLyShipper
-    - listitem [ref=e45]:
-      - link "Xem khách hàng" [ref=e46] [cursor=pointer]:
-        - /url: /Admin/QuanLyKhachHang
-    - listitem [ref=e47]:
-      - link "Xem đơn hàng" [ref=e48] [cursor=pointer]:
-        - /url: /Admin/Order
-    - listitem [ref=e49]:
-      - link "Xem danh mục" [ref=e50] [cursor=pointer]:
-        - /url: /Admin/Category
-    - listitem [ref=e51]:
-      - link " Chat khách hàng" [ref=e52] [cursor=pointer]:
-        - /url: /AdminChat
-        - generic [ref=e53]:
-          - generic [ref=e54]: 
-          - text: Chat khách hàng
-  - heading "Index" [level=2] [ref=e57]
+  - banner [ref=e3]:
+    - generic [ref=e4]:
+      - link "Fastship" [ref=e5] [cursor=pointer]:
+        - /url: /Home
+        - generic [ref=e6]: Fastship
+      - generic [ref=e7]:
+        - link " Trang chủ" [ref=e8] [cursor=pointer]:
+          - /url: /Home
+          - generic [ref=e9]: 
+          - text: Trang chủ
+        - link "Đăng ký" [ref=e10] [cursor=pointer]:
+          - /url: /Home/Signup
+  - main [ref=e11]:
+    - generic [ref=e12]:
+      - link "Fastship" [ref=e13] [cursor=pointer]:
+        - /url: /Home
+        - heading "Fastship" [level=1] [ref=e14]
+      - heading "Đăng nhập" [level=2] [ref=e15]
+      - generic [ref=e16]:
+        - generic [ref=e18]:
+          - link "Đăng nhập bằng Google" [ref=e19] [cursor=pointer]:
+            - /url: /Home/GoogleLogin
+            - img [ref=e20]
+            - generic [ref=e25]: Đăng nhập bằng Google
+          - link " Đăng ký làm Đối tác Quán ăn / Shipper" [ref=e27] [cursor=pointer]:
+            - /url: /Home/GooglePartnerLogin
+            - generic [ref=e28]: 
+            - text: Đăng ký làm Đối tác Quán ăn / Shipper
+        - generic [ref=e29]: hoặc bằng tài khoản
+        - generic [ref=e30]: Tên đăng nhập hoặc số điện thoại
+        - textbox "Tên đăng nhập hoặc số điện thoại" [ref=e31]
+        - generic [ref=e32]: Mật khẩu
+        - generic [ref=e33]:
+          - textbox "Mật khẩu" [ref=e34]
+          - button "Hiện/ẩn mật khẩu" [ref=e35] [cursor=pointer]:
+            - generic: 
+        - generic [ref=e36]:
+          - generic [ref=e37] [cursor=pointer]:
+            - checkbox "Lưu đăng nhập" [ref=e38]
+            - text: Lưu đăng nhập
+          - link "Quên mật khẩu?" [ref=e39] [cursor=pointer]:
+            - /url: /Home/Forgot
+        - button "Đăng nhập" [ref=e40] [cursor=pointer]
+      - generic [ref=e42]:
+        - text: Chưa có tài khoản?
+        - link "Đăng ký" [ref=e43] [cursor=pointer]:
+          - /url: /Home/Signup
+      - generic [ref=e44]:
+        - text: Bằng cách đăng nhập hoặc đăng ký, bạn đồng ý với
+        - link "Điều khoản dịch vụ" [ref=e45] [cursor=pointer]:
+          - /url: "#"
+        - text: của Fastship
 ```
 
 # Test source

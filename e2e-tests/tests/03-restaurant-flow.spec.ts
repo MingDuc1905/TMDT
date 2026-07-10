@@ -29,10 +29,17 @@ async function loginAsRestaurant(page: any) {
   const url = await login.login(RESTAURANT.username, RESTAURANT.password);
   console.log(`📍 URL sau login: ${url}`);
   // ponytail: redirect về /Home/Login → cold start làm mất session cookie
-  // Solution: goto trực tiếp /Restaurant
+  // Solution: goto trực tiếp /Restaurant, retry 1 lần nếu fail
   if (url.includes('/Home/Error') || url.includes('/Home/Login')) {
-    console.log('⏳ Cold start / redirect crash, goto /Restaurant directly...');
-    await page.goto('/Restaurant', { waitUntil: 'domcontentloaded', timeout: 30_000 }).catch(() => console.log('⚠️ Fallback goto Restaurant failed'));
+    for (let retry = 0; retry < 2; retry++) {
+      try {
+        await page.goto('/Restaurant', { waitUntil: 'load', timeout: 30_000 });
+        break;
+      } catch {
+        console.log(`⚠️ Fallback goto Restaurant #${retry+1} failed`);
+        await page.waitForTimeout(3000);
+      }
+    }
   }
 }
 

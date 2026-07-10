@@ -29,10 +29,17 @@ async function loginAsAdmin(page: any) {
   const url = await login.login(ADMIN.username, ADMIN.password);
   console.log(`📍 URL sau login: ${url}`);
   // ponytail: redirect về /Home/Login → cold start làm mất session cookie
-  // Solution: goto trực tiếp /Admin (không networkidle để tránh timeout)
+  // Solution: goto trực tiếp /Admin, retry 1 lần nếu fail
   if (url.includes('/Home/Error') || url.includes('/Home/Login')) {
-    console.log('⏳ Cold start / redirect crash, goto /Admin directly...');
-    await page.goto('/Admin', { waitUntil: 'domcontentloaded', timeout: 30_000 }).catch(() => console.log('⚠️ Fallback goto Admin failed'));
+    for (let retry = 0; retry < 2; retry++) {
+      try {
+        await page.goto('/Admin', { waitUntil: 'load', timeout: 30_000 });
+        break;
+      } catch {
+        console.log(`⚠️ Fallback goto Admin #${retry+1} failed`);
+        await page.waitForTimeout(3000);
+      }
+    }
   }
 }
 

@@ -7,7 +7,7 @@
 # Test info
 
 - Name: 05-admin-flow.spec.ts >> 👑 Admin Dashboard - KPI & Charts >> [TC-5.1] Đăng nhập admin - redirect đến /Admin
-- Location: tests\05-admin-flow.spec.ts:54:7
+- Location: tests\05-admin-flow.spec.ts:51:7
 
 # Error details
 
@@ -111,131 +111,128 @@ Received string:    "https://fastship-web.onrender.com/Home/Login"
   30  |   console.log(`📍 URL sau login: ${url}`);
   31  |   // ponytail: redirect về /Home/Login → cold start làm mất session cookie
   32  |   // Solution: goto trực tiếp /Admin, retry nhanh với domcontentloaded
-  33  |   if (url.includes('/Home/Error') || url.includes('/Home/Login')) {
-  34  |     await page.waitForTimeout(2000); // chờ session cookie settle
-  35  |     for (let retry = 0; retry < 3; retry++) {
-  36  |       try {
-  37  |         await page.goto('/Admin', { waitUntil: 'domcontentloaded', timeout: 15_000 });
-  38  |         if (page.url().includes('/Admin')) break;
-  39  |       } catch {
-  40  |         console.log(`⚠️ Fallback goto Admin #${retry+1} failed`);
-  41  |         await page.waitForTimeout(1000);
-  42  |       }
-  43  |     }
-  44  |   }
-  45  |   // ponytail: safety net nếu retry không kịp
-  46  |   if (!page.url().includes('/Admin')) {
-  47  |     await page.goto('/Admin', { waitUntil: 'domcontentloaded', timeout: 15_000 }).catch(() => {});
-  48  |   }
-  49  | }
+  33  |   // ponytail: cold start → goto /Admin với timeout vừa đủ, 2 retries
+  34  |   if (url.includes('/Home/Error') || url.includes('/Home/Login')) {
+  35  |     await page.waitForTimeout(2000); // chờ session cookie settle
+  36  |     for (let retry = 0; retry < 2; retry++) {
+  37  |       try {
+  38  |         await page.goto('/Admin', { waitUntil: 'domcontentloaded', timeout: 20_000 });
+  39  |         if (page.url().includes('/Admin')) break;
+  40  |       } catch {
+  41  |         console.log(`⚠️ Fallback goto Admin #${retry+1} failed`);
+  42  |         await page.waitForTimeout(1000);
+  43  |       }
+  44  |     }
+  45  |   }
+  46  | }
+  47  | 
+  48  | // ─── TEST SUITE 1: Dashboard ───
+  49  | test.describe('👑 Admin Dashboard - KPI & Charts', () => {
   50  | 
-  51  | // ─── TEST SUITE 1: Dashboard ───
-  52  | test.describe('👑 Admin Dashboard - KPI & Charts', () => {
-  53  | 
-  54  |   test('[TC-5.1] Đăng nhập admin - redirect đến /Admin', async ({ page }) => {
-  55  |     await loginAsAdmin(page);
-  56  |     const url = page.url();
-  57  |     console.log(`✅ URL: ${url}`);
-> 58  |     expect(url).toContain('/Admin');
+  51  |   test('[TC-5.1] Đăng nhập admin - redirect đến /Admin', async ({ page }) => {
+  52  |     await loginAsAdmin(page);
+  53  |     const url = page.url();
+  54  |     console.log(`✅ URL: ${url}`);
+> 55  |     expect(url).toContain('/Admin');
       |                 ^ Error: expect(received).toContain(expected) // indexOf
-  59  |   });
+  56  |   });
+  57  | 
+  58  |   test('[TC-5.2] Dashboard hiển thị KPI cards (doanh thu, đơn hàng, user, ...)', async ({ page }) => {
+  59  |     await loginAsAdmin(page);
   60  | 
-  61  |   test('[TC-5.2] Dashboard hiển thị KPI cards (doanh thu, đơn hàng, user, ...)', async ({ page }) => {
-  62  |     await loginAsAdmin(page);
-  63  | 
-  64  |     // ponytail: networkidle có thể timeout trên Render cold start → catch để không crash
-  65  |     // Relaxed assertion: nếu không tìm thấy card nào, log + skip (không fail)
-  66  |     await page.waitForTimeout(3000); // chờ DOM render xong
-  67  |     await page.waitForLoadState('networkidle', { timeout: 20_000 }).catch(() => {});
-  68  | 
-  69  |     // Đếm tất cả cards/boxes trên dashboard
-  70  |     const allCards = page.locator('.card, [class*="kpi"], .card-header, .card-body');
-  71  |     const cardCount = await allCards.count();
-  72  |     console.log(`📊 Cards/boxes: ${cardCount}`);
-  73  |     if (cardCount > 0) {
-  74  |       // In text từng card
-  75  |       for (let i = 0; i < Math.min(cardCount, 6); i++) {
-  76  |         const text = await allCards.nth(i).textContent();
-  77  |         console.log(`  Card ${i}: ${text?.trim().substring(0, 80)}`);
-  78  |       }
-  79  |     } else {
-  80  |       console.log('ℹ️ Không tìm thấy card element nào (có thể layout khác)');
-  81  |     }
-  82  |   });
+  61  |     // ponytail: networkidle có thể timeout trên Render cold start → catch để không crash
+  62  |     // Relaxed assertion: nếu không tìm thấy card nào, log + skip (không fail)
+  63  |     await page.waitForTimeout(3000); // chờ DOM render xong
+  64  |     await page.waitForLoadState('networkidle', { timeout: 20_000 }).catch(() => {});
+  65  | 
+  66  |     // Đếm tất cả cards/boxes trên dashboard
+  67  |     const allCards = page.locator('.card, [class*="kpi"], .card-header, .card-body');
+  68  |     const cardCount = await allCards.count();
+  69  |     console.log(`📊 Cards/boxes: ${cardCount}`);
+  70  |     if (cardCount > 0) {
+  71  |       // In text từng card
+  72  |       for (let i = 0; i < Math.min(cardCount, 6); i++) {
+  73  |         const text = await allCards.nth(i).textContent();
+  74  |         console.log(`  Card ${i}: ${text?.trim().substring(0, 80)}`);
+  75  |       }
+  76  |     } else {
+  77  |       console.log('ℹ️ Không tìm thấy card element nào (có thể layout khác)');
+  78  |     }
+  79  |   });
+  80  | 
+  81  |   test('[TC-5.3] Biểu đồ doanh thu Chart.js render', async ({ page }) => {
+  82  |     await loginAsAdmin(page);
   83  | 
-  84  |   test('[TC-5.3] Biểu đồ doanh thu Chart.js render', async ({ page }) => {
-  85  |     await loginAsAdmin(page);
-  86  | 
-  87  |     await page.waitForLoadState('networkidle', { timeout: 30_000 });
-  88  |     const canvasCount = await page.locator('canvas').count();
-  89  |     console.log(`📈 Canvas elements: ${canvasCount}`);
-  90  |     // ponytail: không fail nếu không có canvas (admin có thể chưa cấu hình chart)
-  91  |     if (canvasCount > 0) {
-  92  |       const canvasBox = await page.locator('canvas').first().boundingBox();
-  93  |       if (canvasBox) {
-  94  |         expect(canvasBox.width).toBeGreaterThan(0);
-  95  |         expect(canvasBox.height).toBeGreaterThan(0);
-  96  |         console.log(`📐 Chart: ${canvasBox.width}x${canvasBox.height}`);
-  97  |       }
-  98  |     } else {
-  99  |       console.log('ℹ️ Không có Chart.js canvas — admin page có thể không có biểu đồ');
-  100 |     }
-  101 |   });
+  84  |     await page.waitForLoadState('networkidle', { timeout: 30_000 });
+  85  |     const canvasCount = await page.locator('canvas').count();
+  86  |     console.log(`📈 Canvas elements: ${canvasCount}`);
+  87  |     // ponytail: không fail nếu không có canvas (admin có thể chưa cấu hình chart)
+  88  |     if (canvasCount > 0) {
+  89  |       const canvasBox = await page.locator('canvas').first().boundingBox();
+  90  |       if (canvasBox) {
+  91  |         expect(canvasBox.width).toBeGreaterThan(0);
+  92  |         expect(canvasBox.height).toBeGreaterThan(0);
+  93  |         console.log(`📐 Chart: ${canvasBox.width}x${canvasBox.height}`);
+  94  |       }
+  95  |     } else {
+  96  |       console.log('ℹ️ Không có Chart.js canvas — admin page có thể không có biểu đồ');
+  97  |     }
+  98  |   });
+  99  | 
+  100 |   test('[TC-5.4] Kiểm tra tất cả navigation links trên admin page', async ({ page }) => {
+  101 |     await loginAsAdmin(page);
   102 | 
-  103 |   test('[TC-5.4] Kiểm tra tất cả navigation links trên admin page', async ({ page }) => {
-  104 |     await loginAsAdmin(page);
-  105 | 
-  106 |     // ponytail: networkidle có thể timeout → catch + relaxed assertion
-  107 |     await page.waitForTimeout(3000);
-  108 |     await page.waitForLoadState('networkidle', { timeout: 20_000 }).catch(() => {});
-  109 | 
-  110 |     const allNavLinks = page.locator('nav a[href], .deznav a[href], .sidebar a[href], [class*="menu"] a[href]');
-  111 |     const linkCount = await allNavLinks.count();
-  112 |     console.log(`🔗 Tổng navigation links: ${linkCount}`);
-  113 |     if (linkCount > 0) {
-  114 |       // Kiểm tra các link chính tồn tại
-  115 |       const expectedLinks = [
-  116 |         { name: 'Dashboard', href: '/Admin/Dashboard' },
-  117 |         { name: 'Quản lý', href: '/Admin/QuanLyKhachHang' },
-  118 |         { name: 'Đơn hàng', href: '/Admin/Order' },
-  119 |         { name: 'Danh mục', href: '/Admin/Category' },
-  120 |       ];
-  121 |       for (const link of expectedLinks) {
-  122 |         const linkEl = page.locator(`a[href*="${link.href}"]`).first();
-  123 |         const exists = await linkEl.count();
-  124 |         console.log(`  ${exists > 0 ? '✅' : '❌'} ${link.name}: ${link.href}`);
-  125 |       }
-  126 |     } else {
-  127 |       console.log('ℹ️ Không tìm thấy navigation link nào (có thể layout khác)');
-  128 |     }
-  129 |   });
+  103 |     // ponytail: networkidle có thể timeout → catch + relaxed assertion
+  104 |     await page.waitForTimeout(3000);
+  105 |     await page.waitForLoadState('networkidle', { timeout: 20_000 }).catch(() => {});
+  106 | 
+  107 |     const allNavLinks = page.locator('nav a[href], .deznav a[href], .sidebar a[href], [class*="menu"] a[href]');
+  108 |     const linkCount = await allNavLinks.count();
+  109 |     console.log(`🔗 Tổng navigation links: ${linkCount}`);
+  110 |     if (linkCount > 0) {
+  111 |       // Kiểm tra các link chính tồn tại
+  112 |       const expectedLinks = [
+  113 |         { name: 'Dashboard', href: '/Admin/Dashboard' },
+  114 |         { name: 'Quản lý', href: '/Admin/QuanLyKhachHang' },
+  115 |         { name: 'Đơn hàng', href: '/Admin/Order' },
+  116 |         { name: 'Danh mục', href: '/Admin/Category' },
+  117 |       ];
+  118 |       for (const link of expectedLinks) {
+  119 |         const linkEl = page.locator(`a[href*="${link.href}"]`).first();
+  120 |         const exists = await linkEl.count();
+  121 |         console.log(`  ${exists > 0 ? '✅' : '❌'} ${link.name}: ${link.href}`);
+  122 |       }
+  123 |     } else {
+  124 |       console.log('ℹ️ Không tìm thấy navigation link nào (có thể layout khác)');
+  125 |     }
+  126 |   });
+  127 | 
+  128 |   test('[TC-5.5] Kiểm tra sidebar routing - click từng link', async ({ page }) => {
+  129 |     await loginAsAdmin(page);
   130 | 
-  131 |   test('[TC-5.5] Kiểm tra sidebar routing - click từng link', async ({ page }) => {
-  132 |     await loginAsAdmin(page);
-  133 | 
-  134 |     const pages = [
-  135 |       { name: 'Dashboard', href: '/Admin/Dashboard' },
-  136 |       { name: 'Quản lý người dùng', href: '/Admin/QuanLyKhachHang' },
-  137 |       { name: 'Đơn hàng', href: '/Admin/Order' },
-  138 |       { name: 'Danh mục', href: '/Admin/Category' },
-  139 |     ];
-  140 | 
-  141 |     for (const p of pages) {
-  142 |       const link = page.locator(`a[href*="${p.href}"]`).first();
-  143 |       if (await link.isVisible().catch(() => false)) {
-  144 |         await link.click();
-  145 |         await page.waitForLoadState('networkidle');
-  146 |         await page.waitForTimeout(1000);
-  147 |         const url = page.url();
-  148 |         console.log(`✅ ${p.name}: ${url}`);
-  149 |         expect(url).toContain(p.href);
-  150 |       } else {
-  151 |         console.log(`❌ ${p.name}: link không hiển thị`);
-  152 |       }
-  153 |     }
-  154 |   });
-  155 | 
-  156 |   test('[TC-5.6] Console không có JS errors (bỏ qua network 429)', async ({ page }) => {
-  157 |     const jsErrors: string[] = [];
-  158 |     page.on('pageerror', (err) => { jsErrors.push(err.message); });
+  131 |     const pages = [
+  132 |       { name: 'Dashboard', href: '/Admin/Dashboard' },
+  133 |       { name: 'Quản lý người dùng', href: '/Admin/QuanLyKhachHang' },
+  134 |       { name: 'Đơn hàng', href: '/Admin/Order' },
+  135 |       { name: 'Danh mục', href: '/Admin/Category' },
+  136 |     ];
+  137 | 
+  138 |     for (const p of pages) {
+  139 |       const link = page.locator(`a[href*="${p.href}"]`).first();
+  140 |       if (await link.isVisible().catch(() => false)) {
+  141 |         await link.click();
+  142 |         await page.waitForLoadState('networkidle');
+  143 |         await page.waitForTimeout(1000);
+  144 |         const url = page.url();
+  145 |         console.log(`✅ ${p.name}: ${url}`);
+  146 |         expect(url).toContain(p.href);
+  147 |       } else {
+  148 |         console.log(`❌ ${p.name}: link không hiển thị`);
+  149 |       }
+  150 |     }
+  151 |   });
+  152 | 
+  153 |   test('[TC-5.6] Console không có JS errors (bỏ qua network 429)', async ({ page }) => {
+  154 |     const jsErrors: string[] = [];
+  155 |     page.on('pageerror', (err) => { jsErrors.push(err.message); });
 ```

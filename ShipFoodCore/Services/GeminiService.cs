@@ -46,7 +46,7 @@ QUY TẮC:
 
         try
         {
-            using var httpClient = new HttpClient();
+            using var httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
             httpClient.DefaultRequestHeaders.Add("X-Goog-Api-Key", _apiKey);
 
             // Build contents array for Gemini API
@@ -70,7 +70,6 @@ QUY TẮC:
 
             var requestBody = new
             {
-                // Dùng systemInstruction chính thức của Gemini API thay vì fake conversation turn
                 systemInstruction = new { parts = new[] { new { text = SystemPrompt } } },
                 contents,
                 generationConfig = new
@@ -97,15 +96,24 @@ QUY TẮC:
         }
         catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
         {
-            Console.Error.WriteLine($"Gemini API 429 Too Many Requests: {ex.Message}");
-            // Trả về thông báo thân thiện thay vì null (không crash UI, không ẩn khung chat)
+            Console.Error.WriteLine($"[Gemini] 429 Too Many Requests: {ex.Message}");
             return "⚠️ Hệ thống AI đang quá tải do lượt truy cập cao vào giờ cao điểm, vui lòng thử lại sau 1 phút.";
+        }
+        catch (TaskCanceledException)
+        {
+            Console.Error.WriteLine("[Gemini] Request timeout after 30s — Google AI Studio may be slow or unreachable from Render");
+            return "⏱️ Hệ thống AI phản hồi chậm do kết nối mạng, vui lòng thử lại sau vài giây.";
+        }
+        catch (HttpRequestException ex)
+        {
+            Console.Error.WriteLine($"[Gemini] Network error: {ex.Message}");
+            if (ex.InnerException != null)
+                Console.Error.WriteLine($"[Gemini] Inner: {ex.InnerException.Message}");
+            return "🔌 Mất kết nối đến dịch vụ AI, vui lòng kiểm tra mạng và thử lại.";
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"Gemini API error: {ex.Message}");
-            if (ex.InnerException != null)
-                Console.Error.WriteLine($"Inner exception: {ex.InnerException.Message}");
+            Console.Error.WriteLine($"[Gemini] Unexpected: {ex.GetType().Name}: {ex.Message}");
             return null; // Fallback to rule-based
         }
     }

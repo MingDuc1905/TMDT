@@ -249,14 +249,14 @@ catch (Exception ex)
 // Register Services
 builder.Services.AddScoped<ShipFood.Services.RecommendationService>();
 builder.Services.AddHostedService<ShipFood.Services.AutoPreparingService>(); // Task 3b
-builder.Services.AddScoped<ShipFood.Services.GeminiService>(sp =>
+// ponytail: AddSingleton để tránh mất/gãy API key do SignalR ChatHub tạo lại service liên tục
+builder.Services.AddSingleton<ShipFood.Services.GeminiService>(sp =>
 {
     var configuration = sp.GetRequiredService<IConfiguration>();
     // Ưu tiên đọc từ Environment Variable (Railway) trước, fallback xuống appsettings.json
-    // Không lưu API Key vào Session tạm — khi container restart, Session bị mất
     var apiKey = Environment.GetEnvironmentVariable("Gemini__ApiKey") ?? configuration["Gemini:ApiKey"];
     if (!string.IsNullOrEmpty(apiKey))
-        Log.Information("GeminiService initialized (key source: {Source})",
+        Log.Information("GeminiService initialized as Singleton (key source: {Source})",
             Environment.GetEnvironmentVariable("Gemini__ApiKey") != null ? "env var" : "appsettings");
     return new ShipFood.Services.GeminiService(apiKey);
 });

@@ -18,7 +18,7 @@
                     <tr>
                         <td class="cell">#@item.madanhmuc</td>
                         <td class="cell"><span class="truncate">@item.tendanhmuc</span></td>
-                        <td class="cell"><img style="width: 100px; height: 100px" src="~/Source/images/Danhmuc/@item.hinhanh" alt=""></td>
+                        <td class="cell"><img style="width: 100px; height: 100px" src="@TinhToan.HinhAnhUrl(item.hinhanh)" alt="" onerror="this.style.display='none'"></td>
                         <td class="cell">@item.mota</td>
                         <td style="text-align: center;">
                             <a style="color: red" href="@Url.Action("EditCategory","Admin", new {id=item.madanhmuc })">Sửa</a> |

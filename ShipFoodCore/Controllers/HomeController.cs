@@ -960,8 +960,8 @@ VALUES ('test_debug', 'test123', 'Khách hàng', '0999999999', 0, 'test@debug.co
                 db.Database.ExecuteSqlRaw(@"DELETE FROM ""tbMonAnKhuyenMai"";");
                 db.Database.ExecuteSqlRaw(@"DELETE FROM ""tbBienTheMonAn"";");
                 db.Database.ExecuteSqlRaw(@"DELETE FROM ""tbMonAn"";");
-                db.Database.ExecuteSqlRaw(@"ALTER SEQUENCE ""tbBienTheMonAn_id_seq"" RESTART WITH 1;");
-                db.Database.ExecuteSqlRaw(@"ALTER SEQUENCE ""tbChiTietDonHang_mactdh_seq"" RESTART WITH 1;");
+                db.Database.ExecuteSqlRaw(@"ALTER TABLE ""tbBienTheMonAn"" ALTER COLUMN ""id"" RESTART WITH 1;");
+                db.Database.ExecuteSqlRaw(@"ALTER TABLE ""tbChiTietDonHang"" ALTER COLUMN ""mactdh"" RESTART WITH 1;");
                 sb.AppendLine("✅ Đã xoá dữ liệu cũ + reset sequence.");
             }
             catch (Exception ex)

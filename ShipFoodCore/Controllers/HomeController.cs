@@ -922,10 +922,9 @@ VALUES ('test_debug', 'test123', 'Khách hàng', '0999999999', 0, 'test@debug.co
     }
 
     /// <summary>
-    /// Seed database — chèn seed data từ seed.sql (PostgreSQL).
-    /// KHÔNG skip nếu đã có user — INSERT thất bại sẽ được bỏ qua (try-catch),
-    /// chỉ các bảng trống mới được thêm dữ liệu.
-    /// Gọi GET /Home/SeedDb từ browser để fix dữ liệu thiếu.
+    /// ALTER các cột hinhanh bị giới hạn độ dài (fix cho DB cũ đã tạo với VARCHAR(50))
+    /// Sau đó seed database từ seed.sql.
+    /// Gọi GET /Home/SeedDb từ browser.
     /// </summary>
     public IActionResult SeedDb()
     {
@@ -934,21 +933,36 @@ VALUES ('test_debug', 'test123', 'Khách hàng', '0999999999', 0, 'test@debug.co
             var logger = HttpContext.RequestServices.GetRequiredService<ILogger<HomeController>>();
             var env = HttpContext.RequestServices.GetRequiredService<IWebHostEnvironment>();
 
+            // ── Bước 1: ALTER các cột hinhanh bị giới hạn độ dài ──
+            var alterStatements = new[]
+            {
+                @"ALTER TABLE ""tbMonAn"" ALTER COLUMN ""hinhanh"" TYPE VARCHAR(500);",
+                @"ALTER TABLE ""tbQuanAn"" ALTER COLUMN ""hinhanh"" TYPE VARCHAR(500);",
+                @"ALTER TABLE ""tbDanhMuc"" ALTER COLUMN ""hinhanh"" TYPE VARCHAR(500);",
+                @"ALTER TABLE ""tbShipper"" ALTER COLUMN ""hinhanh"" TYPE VARCHAR(500);",
+                @"ALTER TABLE ""tbDanhGia"" ALTER COLUMN ""hinhanh"" TYPE VARCHAR(500);"
+            };
+            int alterOk = 0, alterFail = 0;
+            foreach (var alter in alterStatements)
+            {
+                try { db.Database.ExecuteSqlRaw(alter); alterOk++; }
+                catch (Exception ex) { logger.LogWarning("ALTER skipped: {Error}", ex.Message); alterFail++; }
+            }
+
+            // ── Bước 2: Seed data từ seed.sql ──
             string sqlPath = System.IO.Path.Combine(env.ContentRootPath, "seed.sql");
             if (!System.IO.File.Exists(sqlPath))
             {
-                return Content("❌ Không tìm thấy seed.sql tại: " + sqlPath);
+                return Content($"✅ ALTER: {alterOk} OK, {alterFail} lỗi. ❌ Không tìm thấy seed.sql tại: " + sqlPath);
             }
 
             var sql = System.IO.File.ReadAllText(sqlPath).Replace("\r\n", "\n");
-            // Tách theo ";\n" — giống Program.cs startup seed
             var statements = sql.Split(new[] { "\nGO\n", ";\n" }, StringSplitOptions.RemoveEmptyEntries);
 
             int success = 0, fail = 0;
             foreach (var stmt in statements)
             {
                 var trimmed = stmt.Trim();
-                // Chỉ skip DROP/CREATE/SET — KHÔNG skip -- comments vì INSERT nằm sau comment
                 if (trimmed.Length == 0 || trimmed.StartsWith("DROP") || trimmed.StartsWith("CREATE") || trimmed.StartsWith("SET"))
                     continue;
 
@@ -959,16 +973,16 @@ VALUES ('test_debug', 'test123', 'Khách hàng', '0999999999', 0, 'test@debug.co
                 }
                 catch (Exception ex)
                 {
-                    logger.LogWarning("Seed SQL statement failed: {Error}", ex.Message);
+                    logger.LogWarning("Seed SQL failed: {Error}", ex.Message);
                     fail++;
                 }
             }
 
-            return Content($"✅ Seed hoàn tất! {success} câu lệnh thành công, {fail} lỗi (do data đã tồn tại hoặc lỗi khác).");
+            return Content($"✅ ALTER: {alterOk}/{alterOk + alterFail} cột OK. ✅ Seed: {success} thành công, {fail} lỗi.");
         }
         catch (Exception ex)
         {
-            return Content($"❌ Lỗi seed: {ex.Message}");
+            return Content($"❌ Lỗi: {ex.Message}");
         }
     }
 

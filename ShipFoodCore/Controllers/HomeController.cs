@@ -941,7 +941,8 @@ VALUES ('test_debug', 'test123', 'Khách hàng', '0999999999', 0, 'test@debug.co
                 @"ALTER TABLE ""tbQuanAn"" ALTER COLUMN ""hinhanh"" TYPE VARCHAR(500);",
                 @"ALTER TABLE ""tbDanhMuc"" ALTER COLUMN ""hinhanh"" TYPE VARCHAR(500);",
                 @"ALTER TABLE ""tbShipper"" ALTER COLUMN ""hinhanh"" TYPE VARCHAR(500);",
-                @"ALTER TABLE ""tbDanhGia"" ALTER COLUMN ""hinhanh"" TYPE VARCHAR(500);"
+                @"ALTER TABLE ""tbDanhGia"" ALTER COLUMN ""hinhanh"" TYPE VARCHAR(500);",
+                @"ALTER TABLE ""tbMonAn"" ALTER COLUMN ""isDeleted"" SET DEFAULT false;"
             };
             int alterOk = 0, alterFail = 0;
             foreach (var alter in alterStatements)

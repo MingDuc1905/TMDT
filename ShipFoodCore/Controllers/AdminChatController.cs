@@ -109,12 +109,13 @@ public class AdminChatController : BaseController
     }
 
     /// <summary>
-    /// API: G?i tin nh?n (dùng chung cho Customer + Shipper) — t? ???ng phát hi?n role
+    /// API: G?i tin nh?n (dùng chung cho m?i role) — t? ???ng phát hi?n role
     /// L?u DB + broadcast SignalR qua Groups phù h?p v?i role
+    /// targetUserId: (optional) dùng cho shipper g?i tr?c ti?p cho customer
     /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<JsonResult> CustomerSendMessage(int orderId, string message)
+    public async Task<JsonResult> CustomerSendMessage(int orderId, string message, int? targetUserId = null)
     {
         var user = GetCurrentUser();
         if (user == null)
@@ -127,13 +128,17 @@ public class AdminChatController : BaseController
         {
             bool isShipper = user.loaitaikhoan.Equals("Shipper");
             bool isCustomer = user.loaitaikhoan.Equals("Khách hàng");
+            bool isAdmin = user.loaitaikhoan.Equals("Admin");
 
-            // Lưu tin nhắn vào DB v?i role t??ng ?ng
+            // Xác ??nh customerId: t? tham s? targetUserId ho?c t? user hi?n t?i
+            int? customerId = isCustomer ? user.userid : targetUserId;
+
+            // L?u tin nh?n vào DB v?i role t??ng ?ng
             var tinNhan = new tbTinNhan
             {
                 madh = orderId > 0 ? orderId : null,
                 noidung = message,
-                makh = isCustomer ? user.userid : null,
+                makh = customerId,
                 mashipper = isShipper ? user.userid : null
             };
             db.tbTinNhans.Add(tinNhan);
@@ -141,23 +146,25 @@ public class AdminChatController : BaseController
 
             if (isCustomer)
             {
-                // Customer g?i → broadcast ??n admin group
+                // Customer g?i → broadcast ??n admin + order group
                 await _hubContext.Clients.Group($"customer_{user.userid}").SendAsync("customerMessage", message, orderId, user.username, user.userid);
+                await _hubContext.Clients.Group("admins").SendAsync("customerMessage", message, orderId, user.username, user.userid);
                 if (orderId > 0)
                     await _hubContext.Clients.Group($"order_{orderId}").SendAsync("customerMessage", message, orderId, user.username, user.userid);
             }
-            else if (isShipper)
+            else if (isShipper && customerId.HasValue)
             {
-                // Shipper g?i → broadcast ??n admin group
+                // Shipper g?i → broadcast ??n customer + admin
                 var senderName = user.username ?? "Shipper";
+                await _hubContext.Clients.Group($"customer_{customerId}").SendAsync("directMessage", message, senderName, "Shipper");
                 await _hubContext.Clients.Group("admins").SendAsync("shipperMessage", message, orderId, senderName, user.userid);
                 if (orderId > 0)
                     await _hubContext.Clients.Group($"order_{orderId}").SendAsync("shipperMessage", message, orderId, senderName, user.userid);
             }
-            else
+            else if (isAdmin && customerId.HasValue)
             {
-                // Admin g?i → broadcast ??n customer group
-                await _hubContext.Clients.Group($"customer_{user.userid}").SendAsync("adminMessage", message, orderId, "Admin");
+                // Admin g?i → broadcast ??n customer + order
+                await _hubContext.Clients.Group($"customer_{customerId}").SendAsync("adminMessage", message, orderId, "Admin");
                 if (orderId > 0)
                     await _hubContext.Clients.Group($"order_{orderId}").SendAsync("adminMessage", message, orderId, "Admin");
             }

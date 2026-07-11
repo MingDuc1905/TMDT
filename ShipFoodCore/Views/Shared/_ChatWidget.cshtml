@@ -362,6 +362,18 @@
     </text>
     }
 
+    // Hàm hi?n badge khi có tin nh?n m?i (tách riêng ?? tái s? d?ng)
+    function showMsgBadge() {
+        if (currentTab !== 'admin') {
+            var badge = document.getElementById('adminTabBadge');
+            var cur = parseInt(badge.textContent) || 0;
+            badge.textContent = cur + 1 > 9 ? '9+' : cur + 1;
+            badge.classList.add('show');
+            document.getElementById('chatBadge').textContent = cur + 1 > 9 ? '9+' : cur + 1;
+            document.getElementById('chatBadge').style.display = 'flex';
+        }
+    }
+
     function updateBadgeCount(count) {
         count = count || 0;
         if (currentTab !== 'admin' && count > 0) {
@@ -387,22 +399,41 @@
         if (adminConnPromise) return adminConnPromise;
         adminConn = new signalR.HubConnectionBuilder().withUrl('/nhantin').withAutomaticReconnect().build();
 
+        // ═══ Nh?n tin nh?n t? Admin ═══
         adminConn.on('adminMessage', function(msg, orderId, sender) {
             if (orderId === adminOrderId || (orderId === 0 && adminOrderId === 0)) {
                 addMsg('adminMsgs', msg, 'admin');
             }
-            // Show badge n?u dang ? tab AI
-            if (currentTab !== 'admin') {
-                var badge = document.getElementById('adminTabBadge');
-                var cur = parseInt(badge.textContent) || 0;
-                badge.textContent = cur + 1 > 9 ? '9+' : cur + 1;
-                badge.classList.add('show');
-                document.getElementById('chatBadge').textContent = cur + 1 > 9 ? '9+' : cur + 1;
-                document.getElementById('chatBadge').style.display = 'flex';
+            showMsgBadge();
+        });
+
+        // ═══ Nh?n tin nh?n tr?c ti?p t? Shipper (qua SendDirectMessage) ═══
+        adminConn.on('directMessage', function(msg, senderName, senderRole, connId) {
+            if (senderRole === 'Shipper') {
+                addMsg('adminMsgs', '📦 [Ship] ' + (senderName || 'Shipper') + ': ' + msg, 'admin');
+            } else {
+                addMsg('adminMsgs', msg, 'admin');
+            }
+            showMsgBadge();
+        });
+
+        // ═══ Nh?n tin nh?n t? Shipper (qua CustomerSendMessage API) ═══
+        adminConn.on('shipperMessage', function(msg, orderId, senderName, shipperId) {
+            if (orderId === adminOrderId || adminOrderId === 0) {
+                addMsg('adminMsgs', '📦 ' + (senderName || 'Shipper') + ': ' + msg, 'admin');
+            }
+            showMsgBadge();
+        });
+
+        // ═══ Nh?n tin nh?n t? Customer (echo t? API) — b? qua tin c?a chính mình tránh double ═══
+        adminConn.on('customerMessage', function(msg, orderId, senderName, customerId) {
+            if (customerId === adminUserId) return; // tin c?a chính mình, ?ã hi?n local r?i
+            if (orderId === adminOrderId || adminOrderId === 0) {
+                addMsg('adminMsgs', msg, 'customer');
             }
         });
 
-        // L?ng nghe s? ki?n real-time unreadCountUpdate t? SignalR hub (thay th? polling 30s)
+        // ═══ C?p nh?t s? tin ch?a ??c ═══
         adminConn.on('unreadCountUpdate', function(count) {
             updateBadgeCount(count);
         });

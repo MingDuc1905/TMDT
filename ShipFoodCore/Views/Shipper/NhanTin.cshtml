@@ -109,7 +109,19 @@
             }).catch(function() {});
         }
 
-        // ─── Gửi tin nhắn ───
+        // ─── Rời và tham gia order group (tránh nhận tin nh?n c?) ───
+        function switchOrderGroup(newOrderId) {
+            if (!conn || conn.state !== 'Connected') return;
+            if (currentOrderId > 0) {
+                // Không có API r?i group, ch? c?n join group m?i
+            }
+            if (newOrderId > 0) {
+                conn.invoke('JoinOrderGroup', newOrderId).catch(function(){});
+            }
+            currentOrderId = newOrderId;
+        }
+
+        // ─── G?i tin nh?n ───
         function sendMsg() {
             var input = document.getElementById('msgInput');
             var msg = input.value.trim();
@@ -118,16 +130,11 @@
             addMsg(msg, 'own', 'Bạn');
             input.value = '';
 
-            // Gửi qua SignalR broadcast (không lưu DB - chỉ real-time)
-            if (conn && conn.state === 'Connected') {
-                conn.invoke('SendDirectMessage', msg, targetUserId, userName, 'Shipper').catch(function(){});
-            }
-
-            // Lưu vào DB qua API
+            // Ch? g?i 1 request: AJAX l?u DB + Server broadcast SignalR
             $.ajax({
                 url: '@Url.Action("CustomerSendMessage", "AdminChat")',
                 type: 'POST',
-                data: { orderId: 0, message: msg },
+                data: { orderId: currentOrderId, message: msg, targetUserId: targetUserId },
                 headers: { 'RequestVerificationToken': getToken() },
                 success: function() { loadConversations(); },
                 error: function() { addMsg('❌ Lỗi gửi tin nhắn', 'other', 'Hệ thống'); }
@@ -200,7 +207,7 @@
             });
         }
 
-        // ─── Chọn hội thoại ───
+        // ─── Ch?n h?i tho?i ───
         function selectConversation(uid, name) {
             targetUserId = uid;
             document.getElementById('chatPartnerName').innerHTML = '<i class="fas fa-user-circle text-success me-2"></i>' + escHtml(name);
@@ -208,6 +215,10 @@
             document.getElementById('chatInputArea').style.display = 'block';
             document.getElementById('currentTargetUserId').value = uid;
             document.getElementById('onlineDot').style.background = '#3CB815';
+
+            // Join order group n?u có (l?y t? message g?n nh?t)
+            var orderId = document.getElementById('currentOrderId').value || 0;
+            switchOrderGroup(parseInt(orderId) || 0);
 
             // Load lịch sử tin nhắn
             var c = document.getElementById('chatMessages');
@@ -222,12 +233,21 @@
                         addMsg('Bắt đầu cuộc trò chuyện!', 'other', 'Hệ thống');
                         return;
                     }
+
+                    // L?y orderId t? message ??u tiên có orderId > 0
+                    var foundOrderId = 0;
                     res.data.forEach(function(msg) {
+                        if (msg.orderId > 0 && foundOrderId === 0) foundOrderId = msg.orderId;
                         var isShipper = msg.sender === 'Shipper';
-                        addMsg(msg.content, isShipper ? 'own' : 'other', isShipper ? 'Bạn' : msg.sender);
+                        addMsg(msg.content, isShipper ? 'own' : 'other', isShipper ? 'B?n' : msg.sender);
                     });
+
+                    // Join order group n?u tìm th?y order
+                    if (foundOrderId > 0) {
+                        switchOrderGroup(foundOrderId);
+                    }
                 },
-                error: function() { c.innerHTML = '<div class="text-center text-danger py-4">Lỗi tải tin nhắn</div>'; }
+                error: function() { c.innerHTML = '<div class="text-center text-danger py-4">L?i t?i tin nh?n</div>'; }
             });
 
             // Update conversation list highlight

@@ -239,13 +239,24 @@ public class CartController : BaseController
             return RedirectToAction("Index", "Home");
         }
 
-        var cart = GetCart() ?? new Cart();
         var item = BienTheToCartItem(maMonAn);
         if (item == null)
         {
             TempData["CartError"] = "Món ăn không tồn tại";
             return RedirectToAction("Index", "Home");
         }
+
+        // ═══ HIGH-2: Stock check — kiểm tra món còn hàng không ═══
+        var monAn = db.tbMonAn.Find(item.mamon);
+        if (monAn != null && monAn.conhang == false)
+        {
+            TempData["CartError"] = $"Món '{item.tenmon}' đã hết hàng. Vui lòng chọn món khác.";
+            if (item.maquanan != null)
+                return RedirectToAction("DetailRestaurant", "Home", new { id = item.maquanan });
+            return RedirectToAction("Index", "Home");
+        }
+
+        var cart = GetCart() ?? new Cart();
 
         // ═══ MULTI-RESTAURANT: Cho phép thêm món từ nhiều quán khác nhau ═══
         // Nếu quán mới khác quán hiện tại, giữ nguyên giỏ hàng và cho phép thêm
@@ -296,6 +307,11 @@ public class CartController : BaseController
         var item = BienTheToCartItem(maMonAn);
         if (item == null)
             return Json(new { success = false, message = "Món ăn không tồn tại" });
+
+        // ═══ HIGH-2: Stock check — kiểm tra món còn hàng không ═══
+        var monAn = db.tbMonAn.Find(item.mamon);
+        if (monAn != null && monAn.conhang == false)
+            return Json(new { success = false, message = $"Món '{item.tenmon}' đã hết hàng. Vui lòng chọn món khác." });
 
         var cart = GetCart() ?? new Cart();
 

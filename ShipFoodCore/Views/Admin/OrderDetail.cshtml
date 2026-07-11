@@ -56,7 +56,7 @@
         <!-- Left Column: Restaurant Info + Note -->
         <div class="col-xl-3 col-lg-4">
             <div class="restaurant-info">
-                <img src="@TinhToan.HinhAnhUrl(Model.tbQuanAn?.hinhanh)" alt="" onerror="this.src='/Source/Home/images/default-food.png'" />
+                <img src="@TinhToan.HinhAnhUrl(Model.tbQuanAn?.hinhanh)" alt="" onerror="this.src='/Source/Home/img/pizza.jpg'" />
                 <h3>@Model.tbQuanAn?.tenquanan</h3>
                 <span class="badge"><i class="fas fa-map-pin"></i> @Model.tbQuanAn?.diachi</span>
             </div>
@@ -116,7 +116,7 @@
                                             <div class="d-flex align-items-center gap-3">
                                                 <img src="@TinhToan.HinhAnhUrl(item.tbMonAn?.hinhanh)" width="48" height="48"
                                                      style="border-radius:10px;object-fit:cover;" alt=""
-                                                     onerror="this.src='/Source/Home/images/default-food.png'" />
+                                                     onerror="this.src='/Source/Home/img/pizza.jpg'" />
                                                 <div>
                                                     <strong style="color:#1a1a2e;">@item.tbMonAn?.tenmon</strong>
                                                     <br /><small style="color:#6b7280;">@item.tbMonAn?.tbDanhMuc?.tendanhmuc</small>

@@ -17,18 +17,7 @@
     string urlChiTietDH = Url.Action("ChiTietDonHang", "Cart")!;
     string urlCheckout = Url.Action("Checkout", "Cart")!;
 }
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Thanh toán | Fastship</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link href="~/Source/Cart/css/bootstrap.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="~/Source/Cart/css/elegant-icons.css" type="text/css">
-    <link rel="stylesheet" href="~/Source/Cart/css/style.css" type="text/css">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet" />
-    <style>
+<style>
         body { font-family: 'Inter', sans-serif; background: #f8f9fa; }
         .checkout-card { background: #fff; border-radius: 16px; box-shadow: 0 2px 16px rgba(0,0,0,.07); padding: 28px; margin-bottom: 20px; }
         .address-tabs .tab-btn { cursor:pointer; padding: 10px 18px; border: 2px solid #dee2e6; border-radius: 30px; font-size: 14px; font-weight: 500; background: #fff; transition: all .2s; margin-right: 8px; margin-bottom: 8px; }
@@ -70,8 +59,6 @@
         .popup-overlay { position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.55);z-index:9999;display:flex;align-items:center;justify-content:center; }
         .popup-box { background:#fff;border-radius:20px;padding:40px 32px;text-align:center;max-width:420px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.2);animation:popIn .3s ease; }
     </style>
-</head>
-<body>
 <!-- Breadcrumb -->
 <section style="margin-top:120px;padding:24px 0;background:linear-gradient(135deg,#3CB815,#27a001);">
     <div class="container">
@@ -722,7 +709,7 @@
                     + '<p class="text-muted" style="font-size:14px;margin-bottom:16px;">' + detail + '</p>'
                     + '<div style="background:#f0f8ff;border:1px solid #b8daff;border-radius:12px;padding:16px;margin-bottom:16px;text-align:left;">'
                     + '<div style="margin-bottom:12px;text-align:center;">'
-                    + '<img src="' + qrCodeUrl + '" alt="VietQR" style="width:200px;height:200px;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.1);" onerror="this.style.display=\'none\'" />'
+                    + '<img src="' + qrCodeUrl + '" alt="VietQR" style="width:200px;height:200px;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.1);" onerror="this.src='/Source/Home/img/pizza.jpg'" />'
                     + '</div>'
                     + '<div style="font-size:13px;">'
                     + '<div class="d-flex justify-content-between mb-1"><span class="text-muted">Ngân hàng:</span><strong>' + escHtml(bankInfo.bankId || '') + '</strong></div>'
@@ -936,5 +923,4 @@
     </div>
 </div>
 
-</body>
-</html>
+

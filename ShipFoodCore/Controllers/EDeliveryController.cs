@@ -16,30 +16,22 @@ namespace ShipFood.Controllers;
 public class EDeliveryController : BaseController
 {
     private readonly IHubContext<Chats> _hubContext;
-    private readonly IWebHostEnvironment _env;
-    private readonly ILogger<EDeliveryController> _logger;
     private readonly EDeliveryService _eDelivery;
     private const string QR_HASH_SECRET = "FastShip2024!EDelivery@Secure";
 
     public EDeliveryController(
         dbFoodyEntities context,
         IHubContext<Chats> hubContext,
-        IWebHostEnvironment env,
-        ILogger<EDeliveryController> logger,
         EDeliveryService eDelivery)
     {
         db = context;
         _hubContext = hubContext;
-        _env = env;
-        _logger = logger;
         _eDelivery = eDelivery;
     }
 
     // ════════════════════════════════════════════════════════════════
-    // 1. GENERATE QR CODE (PNG)
-    // GET /edelivery/qr/{orderId}
+    // 1. GENERATE QR CODE (PNG) — GET /edelivery/qr/{orderId}
     // ════════════════════════════════════════════════════════════════
-    [HttpGet]
     public IActionResult GenerateQR(int orderId)
     {
         try
@@ -51,7 +43,6 @@ public class EDeliveryController : BaseController
             using var qrGenerator = new QRCodeGenerator();
             using var qrData = qrGenerator.CreateQrCode(qrContent, QRCodeGenerator.ECCLevel.Q);
             using var qrCode = new PngByteQRCode(qrData);
-            // QRCoder 1.7: GetGraphic(pixelsPerModule, darkColorRgb, lightColorRgb)
             var darkRgb = new byte[] { 0x1a, 0x1a, 0x2e };
             var lightRgb = new byte[] { 0xff, 0xff, 0xff };
             var qrBytes = qrCode.GetGraphic(20, darkRgb, lightRgb);
@@ -60,16 +51,15 @@ public class EDeliveryController : BaseController
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "[EDelivery] QR generation failed for order #{OrderId}", orderId);
+            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<EDeliveryController>>();
+            logger.LogError(ex, "[EDelivery] QR generation failed for order #{OrderId}", orderId);
             return NotFound();
         }
     }
 
     // ════════════════════════════════════════════════════════════════
-    // 2. QR SCAN LANDING PAGE
-    // GET /edelivery/scan/{token}
+    // 2. SCAN LANDING PAGE — GET /edelivery/scan/{token}
     // ════════════════════════════════════════════════════════════════
-    [HttpGet]
     public async Task<IActionResult> ScanQR(string token)
     {
         var orderId = ValidateToken(token);
@@ -96,8 +86,7 @@ public class EDeliveryController : BaseController
     }
 
     // ════════════════════════════════════════════════════════════════
-    // 3. CONFIRM SCAN — Merchant quét QR xác nhận đã lấy hàng
-    // POST /edelivery/confirm-scan
+    // 3. CONFIRM SCAN — POST /edelivery/confirm-scan
     // ════════════════════════════════════════════════════════════════
     [HttpPost]
     public async Task<JsonResult> ConfirmScan([FromBody] ScanRequest request)
@@ -122,27 +111,21 @@ public class EDeliveryController : BaseController
             if (donHang == null)
                 return Json(new { success = false, message = "Đơn hàng không tồn tại." });
 
-            // Chỉ cho phép chuyển từ "Đã xác nhận" hoặc "Chờ shipper lấy hàng" -> "Đã lấy"
             if (donHang.trangthai != "Đã xác nhận" && donHang.trangthai != "Chờ shipper lấy hàng")
-            {
-                _logger.LogWarning("[EDelivery] Order #{OrderId} in state '{Status}' cannot be scanned", orderId, donHang.trangthai);
                 return Json(new { success = false, message = $"Đơn hàng đang ở trạng thái '{donHang.trangthai}', không thể quét." });
-            }
 
             donHang.trangthai = "Đã lấy";
             donHang.ngaygiaohang = DateTime.Now;
             await db.SaveChangesAsync();
 
-            // ─── Sinh E-Invoice ───
             try { await _eDelivery.GenerateEInvoice(orderId); } catch { }
 
-            // ─── SignalR: Broadcast 3 channels ───
             var now = DateTime.Now.ToString("HH:mm");
             await _hubContext.Clients.Group($"order_{orderId}").SendAsync("orderDeliveryScanned", orderId, donHang.trangthai, now);
             await _hubContext.Clients.Group("shippers").SendAsync("orderDeliveryScanned", orderId, donHang.trangthai, now);
             await _hubContext.Clients.Group("admins").SendAsync("deliveryScanEvent", new
             {
-                orderId = orderId,
+                orderId,
                 trangthai = donHang.trangthai,
                 restaurantName = donHang.tbQuanAn?.tenquanan ?? "N/A",
                 customerName = donHang.tbThongTinDatHang?.tennguoinhan ?? "N/A",
@@ -150,26 +133,24 @@ public class EDeliveryController : BaseController
                 shipperName = donHang.tbShipper?.tenshipper ?? "N/A"
             });
 
-            _logger.LogInformation("[EDelivery] Order #{OrderId} confirmed via QR scan → Đã lấy", orderId);
-
             return Json(new
             {
                 success = true,
                 message = $"✅ Xác nhận đơn hàng #{orderId} đã được lấy thành công!",
-                orderId = orderId,
+                orderId,
                 trangthai = donHang.trangthai
             });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "[EDelivery] ConfirmScan failed");
+            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<EDeliveryController>>();
+            logger.LogError(ex, "[EDelivery] ConfirmScan failed");
             return Json(new { success = false, message = "Lỗi hệ thống: " + ex.Message });
         }
     }
 
     // ════════════════════════════════════════════════════════════════
-    // 4. BYPASS — Admin ép trạng thái thủ công
-    // POST /edelivery/bypass
+    // 4. BYPASS — Admin ép trạng thái — POST /edelivery/bypass
     // ════════════════════════════════════════════════════════════════
     [HttpPost]
     public async Task<JsonResult> Bypass([FromBody] BypassRequest request)
@@ -184,7 +165,6 @@ public class EDeliveryController : BaseController
                 return Json(new { success = false, message = "Thiếu mã đơn hàng." });
 
             var orderId = request.OrderId.Value;
-
             var donHang = await db.tbDonHang
                 .Include(d => d.tbQuanAn)
                 .Include(d => d.tbThongTinDatHang)
@@ -193,7 +173,6 @@ public class EDeliveryController : BaseController
 
             if (donHang == null)
                 return Json(new { success = false, message = "Đơn hàng không tồn tại." });
-
             if (donHang.trangthai == "Hoàn thành" || donHang.trangthai == "Đã hủy")
                 return Json(new { success = false, message = $"Đơn hàng đã ở trạng thái '{donHang.trangthai}', không thể bypass." });
 
@@ -206,26 +185,22 @@ public class EDeliveryController : BaseController
             await _hubContext.Clients.Group($"order_{orderId}").SendAsync("deliveryBypassed", orderId, statusTarget, now);
             await _hubContext.Clients.Group("admins").SendAsync("deliveryBypassed", orderId, statusTarget, now);
 
-            _logger.LogInformation("[EDelivery] Admin bypassed order #{OrderId} → {Status}", orderId, statusTarget);
-
             return Json(new
             {
                 success = true,
                 message = $"✅ Đã xử lý thủ công đơn hàng #{orderId} → '{statusTarget}'",
-                orderId = orderId,
+                orderId,
                 trangthai = statusTarget
             });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "[EDelivery] Bypass failed for order #{OrderId}", request?.OrderId);
             return Json(new { success = false, message = "Lỗi hệ thống: " + ex.Message });
         }
     }
 
     // ════════════════════════════════════════════════════════════════
-    // 5. DELIVERY LOGS — Admin dashboard
-    // GET /edelivery/delivery-logs
+    // 5. DELIVERY LOGS — Admin — GET /edelivery/delivery-logs
     // ════════════════════════════════════════════════════════════════
     [HttpGet]
     public async Task<ActionResult> DeliveryLogs()
@@ -246,14 +221,13 @@ public class EDeliveryController : BaseController
     }
 
     // ════════════════════════════════════════════════════════════════
-    // 6. MERCHANT SCANNER PAGE
-    // GET /edelivery/merchant-scan
+    // 6. MERCHANT SCANNER — GET /edelivery/merchant-scan
     // ════════════════════════════════════════════════════════════════
     [HttpGet]
     public ActionResult MerchantScan()
     {
         var user = GetCurrentUser();
-        if (user == null)
+        if (user == null || (user.loaitaikhoan != "Quán ăn" && user.loaitaikhoan != "Admin"))
             return RedirectToAction("Login", "Home");
         return View("~/Views/Restaurant/Scanner.cshtml");
     }
@@ -304,10 +278,7 @@ public class EDeliveryController : BaseController
 
             return orderId;
         }
-        catch
-        {
-            return null;
-        }
+        catch { return null; }
     }
 }
 

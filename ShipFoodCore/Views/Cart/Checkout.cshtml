@@ -318,8 +318,8 @@
                                 "<div style=\"width:44px;height:44px;background:linear-gradient(135deg,#6f42c1,#e83e8c);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px;\">" +
                                 "<i class='fas fa-credit-card text-white'></i></div>");
 
-                            <div class="payment-option" id="payment-opt-@pt.mahttt" onclick="selectPayment(@pt.mahttt, '@Html.Raw(pt.tenhinhthuc?.Replace("'","\\'")??"")' )">
-                                <input type="radio" name="pttt" value="@pt.mahttt" class="payment-method" data-name="@pt.tenhinhthuc">
+                            <div class="payment-option" id="payment-opt-@pt.mahttt" onclick="selectPayment(@pt.mahttt, '@Html.Raw(pt.tenhinhthuc?.Replace("'","\\'")??"")' )" style="cursor:pointer;">
+                                <input type="radio" name="pttt" value="@pt.mahttt" class="payment-method" data-name="@pt.tenhinhthuc" style="pointer-events:none;">
                                 @brandIcon
                                 <div>
                                     <div style="font-weight:600;font-size:15px;">@pt.tenhinhthuc</div>

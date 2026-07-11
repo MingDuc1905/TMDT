@@ -199,6 +199,8 @@ function resetFilters() {
 }
 
 function applyFilters() {
+    // Cập nhật filter state từ sheet (bao gồm sync chips)
+    syncChipsFromSheet();
     updateFilter();
     closeFilterSheet();
     triggerSearch();
@@ -232,6 +234,55 @@ function triggerSearch() {
     .catch(function(err) {
         console.error('Filter search failed:', err);
     });
+}
+
+// ─── Sync filter chips with bottom sheet state ───
+function syncChipsFromSheet() {
+    // Sync mode radio
+    var modeRadio = document.querySelector('input[name="filterMode"]:checked');
+    if (modeRadio) {
+        filterState.mode = modeRadio.value;
+        var modeChip = document.querySelector('.fs-chip[data-filter="mode"]');
+        if (modeChip) {
+            if (filterState.mode === 'pickup') modeChip.classList.add('active');
+            else modeChip.classList.remove('active');
+        }
+    }
+
+    // Sync sort
+    var sortRadio = document.querySelector('input[name="sortBy"]:checked');
+    if (sortRadio) filterState.sortBy = sortRadio.value;
+
+    // Sync checkboxes
+    document.querySelectorAll('.fs-sheet-body input[type="checkbox"]').forEach(function(cb) {
+        var label = cb.closest('.fs-checkbox');
+        if (!label) return;
+        var text = label.textContent.trim();
+        if (text.includes('khuyến mãi') || text.includes('Khuyến mãi')) {
+            filterState.isPromo = cb.checked;
+            var promo = document.querySelector('.fs-chip[data-filter="promo"]');
+            if (promo) { if (cb.checked) promo.classList.add('active'); else promo.classList.remove('active'); }
+        }
+        if (text.includes('Bán chạy')) {
+            filterState.isBestSeller = cb.checked;
+            var best = document.querySelector('.fs-chip[data-filter="bestseller"]');
+            if (best) { if (cb.checked) best.classList.add('active'); else best.classList.remove('active'); }
+        }
+    });
+
+    // Sync price level
+    var activePrice = document.querySelector('.fs-price-btn.active');
+    if (activePrice) filterState.maxPriceLevel = activePrice.dataset.value;
+    else filterState.maxPriceLevel = '';
+
+    // Sync category
+    var activeCat = document.querySelector('.fs-cat-btn.active');
+    if (activeCat) {
+        var val = activeCat.dataset.value;
+        filterState.categoryId = val ? parseInt(val) : null;
+    }
+
+    updateActiveBadge();
 }
 
 // ─── Render Results ───
@@ -284,6 +335,11 @@ function renderSearchResults(data) {
 }
 
 // ─── Initialize on DOM ready ───
+// ponytail: CHỈ giữ các event listeners KHÔNG xung đột với HTML onclick attributes
+// Các onclick/onchange trong Default.cshtml đã xử lý: toggleChip, closeFilterSheet,
+// selectPriceLevel, selectCategory, updateFilter, toggleSheetCheckbox, resetFilters, applyFilters
+// → KHÔNG thêm addEventListener trùng lặp
+// → applyFilters() đã tích hợp syncChipsFromSheet() bên trong
 document.addEventListener('DOMContentLoaded', function() {
     // Close sheet on Escape
     document.addEventListener('keydown', function(e) {
@@ -294,9 +350,12 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Prevent sheet close when clicking inside sheet
-    document.getElementById('filterSheet').addEventListener('click', function(e) {
-        e.stopPropagation();
-    });
+    var sheet = document.getElementById('filterSheet');
+    if (sheet) {
+        sheet.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+    }
 
     // Load initial filter state from URL params
     var urlParams = new URLSearchParams(window.location.search);

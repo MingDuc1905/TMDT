@@ -405,33 +405,33 @@
 
             <!-- Role Cards -->
             <div class="fs-role-grid" id="roleGrid">
-                <label class="fs-role-card role-customer" onclick="selectRole(this, 'Khách hàng')">
-                    <input type="radio" name="roleRadio" value="Khách hàng">
+                <div class="fs-role-card role-customer" onclick="selectRole(this, 'Khách hàng')" role="button" tabindex="0" aria-label="Đăng ký làm Khách hàng" onkeydown="if(event.key==='Enter'||event.key===' ')selectRole(this,'Khách hàng')">
+                    <input type="radio" name="roleRadio" value="Khách hàng" id="role-customer">
                     <div class="role-icon"><i class="fas fa-user"></i></div>
                     <div class="role-info">
                         <div class="role-name">Khách hàng</div>
                         <div class="role-desc">Đặt món ăn, theo dõi đơn hàng</div>
                     </div>
                     <div class="role-check"><i class="fas fa-check"></i></div>
-                </label>
-                <label class="fs-role-card role-restaurant" onclick="selectRole(this, 'Quán ăn')">
-                    <input type="radio" name="roleRadio" value="Quán ăn">
+                </div>
+                <div class="fs-role-card role-restaurant" onclick="selectRole(this, 'Quán ăn')" role="button" tabindex="0" aria-label="Đăng ký làm Đối tác Quán ăn" onkeydown="if(event.key==='Enter'||event.key===' ')selectRole(this,'Quán ăn')">
+                    <input type="radio" name="roleRadio" value="Quán ăn" id="role-restaurant">
                     <div class="role-icon"><i class="fas fa-store"></i></div>
                     <div class="role-info">
                         <div class="role-name">Đối tác Quán ăn</div>
                         <div class="role-desc">Quản lý thực đơn, đơn hàng</div>
                     </div>
                     <div class="role-check"><i class="fas fa-check"></i></div>
-                </label>
-                <label class="fs-role-card role-shipper" onclick="selectRole(this, 'Shipper')">
-                    <input type="radio" name="roleRadio" value="Shipper">
+                </div>
+                <div class="fs-role-card role-shipper" onclick="selectRole(this, 'Shipper')" role="button" tabindex="0" aria-label="Đăng ký làm Tài xế Shipper" onkeydown="if(event.key==='Enter'||event.key===' ')selectRole(this,'Shipper')">
+                    <input type="radio" name="roleRadio" value="Shipper" id="role-shipper">
                     <div class="role-icon"><i class="fas fa-motorcycle"></i></div>
                     <div class="role-info">
                         <div class="role-name">Tài xế Shipper</div>
                         <div class="role-desc">Nhận đơn giao hàng, kiếm thu nhập</div>
                     </div>
                     <div class="role-check"><i class="fas fa-check"></i></div>
-                </label>
+                </div>
             </div>
 
             <!-- Google Signup -->

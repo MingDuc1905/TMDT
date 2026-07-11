@@ -125,6 +125,36 @@ flowchart TD
 | **ui-ux-pro-max** | UI/UX design | Thiết kế giao diện |
 | **developer-icons-main** | Bộ icon SVG | Tạo icon, logo |
 
+## 5. 🖼️ Nguồn Ảnh & Tài Nguyên Media
+
+### 📸 Nguồn ảnh được phép sử dụng:
+
+| Nguồn | URL | Loại |
+|-------|-----|------|
+| **Pexels Videos** | `https://www.pexels.com/videos/` | Video stock miễn phí |
+| Unsplash | `https://unsplash.com` | Ảnh stock (đã biết 403 — ưu tiên local) |
+
+**Quy tắc sử dụng ảnh:**
+- ❌ KHÔNG dùng link Unsplash trực tiếp trong code (dễ bị 403)
+- ✅ Tải ảnh về local: `/Source/images/MonAn/` (món ăn), `/Source/Home/img/` (rest, icons)
+- ✅ Fallback khi ảnh lỗi: `onerror="this.src='/Source/Home/img/pizza.jpg'"`
+- ✅ Đặt ảnh trong wwwroot để ASP.NET Core serve trực tiếp
+
+## 6. 🌿 Git Branch Management
+
+**Từ nay chỉ giữ 2 branch chính:**
+
+| Branch | Mục đích |
+|--------|---------|
+| `master` | Production — ổn định, đã deploy |
+| `feat/redesign-v2` | Feature development — đang phát triển |
+
+**Quy tắc:**
+- ❌ KHÔNG tạo branch tạm thời như `fix/xxx`, `railway/*`, `deploy/*`
+- ✅ Mọi thay đổi đều làm trên nhánh hiện tại, commit trực tiếp
+- ✅ Khi cần thử nghiệm, dùng `feat/redesign-v2`
+- ✅ Xóa branch remote không cần thiết ngay sau khi dùng xong
+
 ---
 
 *File này được AI đọc tự động mỗi khi làm việc với dự án. Tuân thủ nghiêm ngặt.*

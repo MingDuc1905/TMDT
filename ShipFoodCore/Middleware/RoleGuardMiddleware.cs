@@ -18,8 +18,16 @@ public class RoleGuardMiddleware
         "/health",
         "/Home/Error",
         "/Home/Login",
+        "/Home/GoogleLogin",
+        "/Home/GoogleResponse",
+        "/Home/GooglePartnerLogin",
+        "/Home/SelectRoleGoogle",
+        "/Home/CompleteGoogleRegistration",
         "/Home/Logout",
         "/Home/Signup",
+        "/Home/DbDebug",
+        "/Home/FixPasswords",
+        "/Home/SeedDb",
         "/nhantin",  // SignalR hub
     };
 
@@ -82,6 +90,14 @@ public class RoleGuardMiddleware
         // ═══ Chưa đăng nhập → redirect về login ═══
         if (user == null)
         {
+            // NẾU ĐANG Ở /Home/Login → KHÔNG redirect nữa (tránh loop)
+            if (path.StartsWith("/home/login", StringComparison.OrdinalIgnoreCase) ||
+                path.StartsWith("/home/", StringComparison.OrdinalIgnoreCase))
+            {
+                await _next(context);
+                return;
+            }
+
             // AJAX → JSON 401
             if (context.Request.Headers["X-Requested-With"] == "XMLHttpRequest" ||
                 context.Request.Headers["Accept"].ToString().Contains("application/json"))

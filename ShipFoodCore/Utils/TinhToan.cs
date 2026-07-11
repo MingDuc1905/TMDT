@@ -31,7 +31,7 @@ public class TinhToan
     /// Không crash dù dữ liệu đầu vào có vấn đề
     /// </summary>
     /// <summary>
-    /// Trả về URL hình ảnh hoàn chỉnh.
+    /// Trả về URL hình ảnh hoàn chỉnh cho món ăn.
     /// Nếu hinhanh là full URL (http:// hoặc https://) → dùng trực tiếp.
     /// Nếu không → prepend đường dẫn local ~/Source/images/MonAn/
     /// Nếu rỗng/null → trả về placeholder pizza.jpg
@@ -43,6 +43,20 @@ public class TinhToan
         if (hinhanh.StartsWith("http://") || hinhanh.StartsWith("https://"))
             return hinhanh;
         return "/Source/images/MonAn/" + hinhanh;
+    }
+
+    /// <summary>
+    /// Trả về URL hình ảnh avatar cho quán ăn / shipper.
+    /// Avatar lưu ở thư mục riêng: ~/Source/Restaurant/images/avatar/
+    /// Nếu rỗng/null → trả về placeholder quán ăn
+    /// </summary>
+    public static string AvatarUrl(string? hinhanh)
+    {
+        if (string.IsNullOrWhiteSpace(hinhanh))
+            return "/Source/Home/img/pizza.jpg";
+        if (hinhanh.StartsWith("http://") || hinhanh.StartsWith("https://"))
+            return hinhanh;
+        return "/Source/Restaurant/images/avatar/" + hinhanh;
     }
 
     public static (double Lat, double Lng) TryParseToado(string? toado)

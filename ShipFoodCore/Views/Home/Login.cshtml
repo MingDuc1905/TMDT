@@ -174,5 +174,12 @@
         });
     });
 })();
+
+    // Restore cart badge count from localStorage khi load trang login
+    document.addEventListener('DOMContentLoaded', function() {
+        if (window.FastShipCart) {
+            window.FastShipCart.updateBadge(window.FastShipCart.getCount());
+        }
+    });
 </script>
 }

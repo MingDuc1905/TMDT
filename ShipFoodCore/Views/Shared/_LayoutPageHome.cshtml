@@ -130,8 +130,9 @@
 
                 <!-- Mobile right: cart + toggler -->
                 <div class="d-flex d-lg-none align-items-center ms-auto gap-2 me-2">
-                    <a class="fs-cart-btn" href="/Cart" aria-label="Giỏ hàng">
+                    <a class="fs-cart-btn" href="/Cart" aria-label="Giỏ hàng" id="navCartBtnMobile" style="position:relative;">
                         <i class="fa fa-shopping-bag"></i>
+                        <span class="fs-cart-badge" id="navCartBadgeMobile" style="display:none;position:absolute;top:-6px;right:-6px;background:#dc3545;color:#fff;width:20px;height:20px;border-radius:50%;font-size:11px;align-items:center;justify-content:center;font-weight:700;">0</span>
                     </a>
                     <button type="button" class="navbar-toggler border-0" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Mở menu">
                         <span class="navbar-toggler-icon"></span>
@@ -233,8 +234,9 @@
                             </div>
                         }
 
-                        <a class="fs-cart-btn d-none d-lg-flex ms-2" href="/Cart" aria-label="Giỏ hàng">
+                        <a class="fs-cart-btn d-none d-lg-flex ms-2" href="/Cart" aria-label="Giỏ hàng" id="navCartBtn">
                             <i class="fa fa-shopping-bag"></i>
+                            <span class="fs-cart-badge" id="navCartBadge" style="display:none;position:absolute;top:-6px;right:-6px;background:#dc3545;color:#fff;width:20px;height:20px;border-radius:50%;font-size:11px;align-items:center;justify-content:center;font-weight:700;">0</span>
                         </a>
                     </div>
                 </div>

@@ -4,19 +4,25 @@
     Layout = "~/Views/Shared/_LayoutPageRestaurant.cshtml";
     ShipFood.Models.tbMonAn monAn = ViewBag.monAn;
     List<ShipFood.Models.tbDanhMuc> danhMucs = _db.tbDanhMuc.ToList();
+    
+    // Lấy các biến thể hiện tại
+    var bienThes = monAn.mamon > 0 ? _db.tbBienTheMonAn.Where(b => b.mamon == monAn.mamon).ToList() : new List<ShipFood.Models.tbBienTheMonAn>();
+    var giaM = bienThes.FirstOrDefault(b => b.size == "M")?.giatien ?? monAn.giatien;
+    var sizeLVal = bienThes.FirstOrDefault(b => b.size == "L");
+    var sizeXLVal = bienThes.FirstOrDefault(b => b.size == "XL");
 }
 
 <div class="container-fluid">
     <div class="row page-titles mx-0">
         <div class="col-sm-6 p-md-0">
             <div class="welcome-text">
-                <h4>Chi tiết món ăn</h4>
+                <h4>@(monAn.mamon > 0 ? "Chỉnh sửa" : "Thêm") Thực đơn</h4>
             </div>
         </div>
         <div class="col-sm-6 p-md-0 justify-content-sm-end mt-2 mt-sm-0 d-flex">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="javascript:void(0)">Cửa hàng</a></li>
-                <li class="breadcrumb-item active"><a href="javascript:void(0)">Chi tiết món</a></li>
+                <li class="breadcrumb-item active"><a href="javascript:void(0)">@(monAn.mamon > 0 ? "Chỉnh sửa" : "Thêm") món</a></li>
             </ol>
         </div>
     </div>
@@ -24,88 +30,108 @@
         <div class="col-lg-12">
             <div class="card">
                 <div class="card-header">
-                    <h4 class="card-title">Thêm Thực đơn</h4>
+                    <h4 class="card-title">@(monAn.mamon > 0 ? "Chỉnh sửa" : "Thêm") Thực đơn</h4>
                 </div>
                 <div class="card-body">
                     <div class="form-validation">
                         <form class="form-valide" action="~/Restaurant/PostMonAn" method="post" enctype="multipart/form-data">
                             <div class="row">
                                 <div class="col-xl-12">
+                                    <input type="hidden" name="mamon" value="@monAn.mamon" />
+                                    
+                                    <!-- Tên món -->
                                     <div class="form-group row">
-                                        <input type="hidden" name="mamon" value="@monAn.mamon" />
-                                        <label class="col-lg-4 col-form-label" for="val-username">
-                                            Tên món
-                                            <span class="text-danger">*</span>
+                                        <label class="col-lg-4 col-form-label" for="val-name">
+                                            Tên món <span class="text-danger">*</span>
                                         </label>
                                         <div class="col-lg-6">
-                                            <input type="text"
-                                                   class="form-control"
-                                                   id="val-name"
-                                                   name="tenmon"
-                                                   value="@monAn.tenmon"
-                                                   placeholder="Nhập tên món" />
+                                            <input type="text" class="form-control" id="val-name" name="tenmon"
+                                                   value="@monAn.tenmon" placeholder="Nhập tên món" required />
                                         </div>
                                     </div>
+                                    
+                                    <!-- Danh mục -->
                                     <div class="form-group row">
                                         <label class="col-lg-4 col-form-label" for="val-mon">
-                                            Danh mục
-                                            <span class="text-danger">*</span>
+                                            Danh mục <span class="text-danger">*</span>
                                         </label>
                                         <div class="col-lg-6">
                                             <select class="form-control" id="val-mon" name="madanhmuc">
                                                 <option value="">Chọn danh mục</option>
                                                 @foreach (var i in danhMucs)
                                                 {
-                                                    <option style="padding:0px" value="@i.madanhmuc" selected="@(monAn.madanhmuc == i.madanhmuc)">@i.tendanhmuc</option>
+                                                    <option value="@i.madanhmuc" @(monAn.madanhmuc == i.madanhmuc ? "selected" : "")>@i.tendanhmuc</option>
                                                 }
                                             </select>
                                         </div>
                                     </div>
+                                    
+                                    <!-- GIÁ THEO SIZE (như Grab/ShopeeFood) -->
                                     <div class="form-group row">
-                                        <label class="col-lg-4 col-form-label" for="val-price">
-                                            Giá tiền <span class="text-danger">*</span>
-                                        </label>
+                                        <label class="col-lg-4 col-form-label">Giá theo size</label>
                                         <div class="col-lg-6">
-                                            <input type="number"
-                                                   class="form-control"
-                                                   id="val-price"
-                                                   required
-                                                   name="giatien"
-                                                   value="@(monAn.giatien?.ToString("N0") ?? "0")"
-                                                   placeholder="Nhập giá tiền" />
+                                            <div class="row g-2 mb-2">
+                                                <div class="col-4">
+                                                    <div class="input-group">
+                                                        <span class="input-group-text">Size M</span>
+                                                        <input type="number" class="form-control" name="giatien"
+                                                               value="@(giaM?.ToString("N0") ?? "")" placeholder="Giá M" required />
+                                                    </div>
+                                                </div>
+                                                <div class="col-4">
+                                                    <div class="input-group">
+                                                        <span class="input-group-text">Size L</span>
+                                                        <input type="number" class="form-control" name="giaL"
+                                                               value="@(sizeLVal?.giatien?.ToString("N0") ?? "")" placeholder="Giá L" />
+                                                    </div>
+                                                    <input type="hidden" name="sizeL" value="@(sizeLVal != null ? "L" : "L")" />
+                                                </div>
+                                                <div class="col-4">
+                                                    <div class="input-group">
+                                                        <span class="input-group-text">Size XL</span>
+                                                        <input type="number" class="form-control" name="giaXL"
+                                                               value="@(sizeXLVal?.giatien?.ToString("N0") ?? "")" placeholder="Giá XL" />
+                                                    </div>
+                                                    <input type="hidden" name="sizeXL" value="@(sizeXLVal != null ? "XL" : "XL")" />
+                                                </div>
+                                            </div>
+                                            <small class="text-muted">Nhập giá Size M là bắt buộc. Size L/XL để trống nếu không có.</small>
                                         </div>
                                     </div>
+                                    
+                                    <!-- Mô tả -->
                                     <div class="form-group row">
                                         <label class="col-lg-4 col-form-label" for="val-suggestions">
-                                            Mô tả <span class="text-danger">*</span>
+                                            Mô tả
                                         </label>
                                         <div class="col-lg-6">
-                                            <textarea class="form-control"
-                                                      id="val-suggestions"
-                                                      name="mota"
-                                                      rows="5"
-                                                      placeholder="Nhập mô tả món ăn...">@monAn.mota</textarea>
+                                            <textarea class="form-control" id="val-suggestions" name="mota"
+                                                      rows="4" placeholder="Nhập mô tả món ăn...">@monAn.mota</textarea>
                                         </div>
                                     </div>
+                                    
+                                    <!-- Hình ảnh -->
                                     <div class="form-group row">
-                                        <label class="col-lg-4 col-form-label" for="val-price">
+                                        <label class="col-lg-4 col-form-label">
                                             Hình ảnh món <span class="text-danger">*</span>
                                         </label>
                                         <div class="col-lg-6">
-                                            <a class="btn btn-primary light mr-1 px-3">
-                                                <input id="hinh-anh" type="file" name="fileAnh" />
-                                            </a>
+                                            <input type="file" id="hinh-anh" name="fileAnh" accept="image/*" class="form-control" />
                                         </div>
-                                        <div style=" margin: 30px auto; border: 1px solid;" id="bg_add">
-                                            @if(monAn.hinhanh != null) { 
-                                                <img src="@TinhToan.HinhAnhUrl(monAn.hinhanh)" width="300"/>
+                                        <div class="col-lg-8 offset-lg-4 mt-2" id="bg_add">
+                                            @if (!string.IsNullOrEmpty(monAn.hinhanh))
+                                            {
+                                                <img src="@TinhToan.HinhAnhUrl(monAn.hinhanh)" style="max-width:300px;max-height:200px;border-radius:8px;border:1px solid #ddd;" />
                                             }
                                         </div>
                                     </div>
 
-                                    <div class="form-group row">
-                                        <div class="col-lg-8 ml-auto">
-                                            <button type="submit" class="btn btn-primary">Xác nhận</button>
+                                    <div class="form-group row mt-4">
+                                        <div class="col-lg-8 offset-lg-4">
+                                            <button type="submit" class="btn btn-primary px-5">
+                                                <i class="fa fa-check"></i> @(monAn.mamon > 0 ? "Cập nhật" : "Thêm món")
+                                            </button>
+                                            <a href="~/Restaurant/ProductList" class="btn btn-outline-secondary ml-2">Hủy</a>
                                         </div>
                                     </div>
                                 </div>
@@ -117,28 +143,28 @@
         </div>
     </div>
 </div>
+
 <script type="text/javascript">
     function uploadImage() {
         var fileInput = document.getElementById('hinh-anh');
         var file = fileInput.files[0];
+        if (!file) return;
         var imageType = /image.*/;
 
         if (file.type.match(imageType)) {
             var reader = new FileReader();
-
             reader.onload = function (e) {
                 var img = new Image();
                 img.src = reader.result;
-                img.width = 300;
-                var imagePreview = document.getElementById('bg_add');
-                imagePreview.innerHTML = '';
-                imagePreview.appendChild(img);
+                img.style.cssText = 'max-width:300px;max-height:200px;border-radius:8px;border:1px solid #ddd;';
+                var preview = document.getElementById('bg_add');
+                preview.innerHTML = '';
+                preview.appendChild(img);
             }
-
             reader.readAsDataURL(file);
-        }
-        else {
+        } else {
             alert('Chỉ chấp nhận file hình ảnh');
         }
     }
-    document.getElementById('hinh-anh').addEventListener('change', uploadImage);</script>
+    document.getElementById('hinh-anh').addEventListener('change', uploadImage);
+</script>

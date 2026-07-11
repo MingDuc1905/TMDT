@@ -428,7 +428,10 @@ public class RestaurantController : BaseController
     }
 
     [HttpPost]
-    public ActionResult PostMonAn(tbMonAn monAn, IFormFile? fileAnh)
+    public ActionResult PostMonAn(tbMonAn monAn, IFormFile? fileAnh,
+        decimal? giatien, string? sizeM, decimal? giaM,
+        string? sizeL, decimal? giaL,
+        string? sizeXL, decimal? giaXL)
     {
         if (!checkLogin()) return RedirectToAction("Login", "Home");
 
@@ -446,6 +449,36 @@ public class RestaurantController : BaseController
         {
             monAn.maquanan = getQuanAn().userid;
             db.tbMonAn.Add(monAn);
+            db.SaveChanges();
+
+            // ─── Tạo biến thể (size) mặc định ───
+            db.tbBienTheMonAn.Add(new tbBienTheMonAn
+            {
+                mamon = monAn.mamon,
+                size = "M",
+                giatien = giatien ?? 0
+            });
+
+            // Size L nếu có
+            if (!string.IsNullOrEmpty(sizeL) && giaL > 0)
+            {
+                db.tbBienTheMonAn.Add(new tbBienTheMonAn
+                {
+                    mamon = monAn.mamon,
+                    size = sizeL,
+                    giatien = giaL
+                });
+            }
+            // Size XL nếu có
+            if (!string.IsNullOrEmpty(sizeXL) && giaXL > 0)
+            {
+                db.tbBienTheMonAn.Add(new tbBienTheMonAn
+                {
+                    mamon = monAn.mamon,
+                    size = sizeXL,
+                    giatien = giaXL
+                });
+            }
         }
         else
         {
@@ -454,13 +487,37 @@ public class RestaurantController : BaseController
             {
                 monAnOld.tenmon = monAn.tenmon;
                 monAnOld.mota = monAn.mota;
-                // Giá được quản lý qua tbBienTheMonAn, không sửa trực tiếp ở tbMonAn
                 if (monAn.hinhanh != null) monAnOld.hinhanh = monAn.hinhanh;
                 monAnOld.madanhmuc = monAn.madanhmuc;
+
+                // Cập nhật biến thể M (mặc định)
+                var bienTheM = db.tbBienTheMonAn.FirstOrDefault(b => b.mamon == monAn.mamon && b.size == "M");
+                if (bienTheM != null && giatien > 0)
+                    bienTheM.giatien = giatien;
+                else if (bienTheM == null && giatien > 0)
+                    db.tbBienTheMonAn.Add(new tbBienTheMonAn { mamon = monAn.mamon, size = "M", giatien = giatien });
+
+                // Cập nhật size L
+                UpdateOrCreateBienThe(monAn.mamon, sizeL, giaL);
+                // Cập nhật size XL
+                UpdateOrCreateBienThe(monAn.mamon, sizeXL, giaXL);
             }
         }
         db.SaveChanges();
         return RedirectToAction("ProductList");
+    }
+
+    /// <summary>
+    /// Helper: tạo mới hoặc cập nhật biến thể theo size
+    /// </summary>
+    private void UpdateOrCreateBienThe(int mamon, string? size, decimal? gia)
+    {
+        if (string.IsNullOrEmpty(size) || gia == null || gia <= 0) return;
+        var existing = db.tbBienTheMonAn.FirstOrDefault(b => b.mamon == mamon && b.size == size);
+        if (existing != null)
+            existing.giatien = gia;
+        else
+            db.tbBienTheMonAn.Add(new tbBienTheMonAn { mamon = mamon, size = size, giatien = gia });
     }
 
     public ActionResult XoaMonAn(int? id)

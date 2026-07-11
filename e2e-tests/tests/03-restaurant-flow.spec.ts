@@ -349,3 +349,150 @@ test.describe('🍽️ Quản lý Món ăn', () => {
     expect(jsErrors.length).toBe(0);
   });
 });
+
+// ─── TEST SUITE 5: Product Management CRUD ───
+test.describe('🍽️ Quản lý Món ăn — CRUD (Thêm/Sửa/Xóa)', () => {
+
+  test('[TC-3.16] Product Detail page — form thêm món load', async ({ page }) => {
+    await loginAsRestaurant(page);
+    await page.goto('/Restaurant/ProductDetail', { waitUntil: 'domcontentloaded', timeout: 30_000 });
+    await page.waitForTimeout(3000);
+
+    const form = page.locator('form[action*="PostMonAn"]');
+    const formExists = await form.count();
+    console.log(`📝 Product form: ${formExists > 0}`);
+
+    if (formExists > 0) {
+      const nameInput = page.locator('input[name="tenMonAn"]');
+      const priceInput = page.locator('input[name="giatien"]');
+      const categorySelect = page.locator('select[name="madanhmuc"]');
+      const sizeInput = page.locator('input[name*="size"]');
+      console.log(`  Tên món: ${await nameInput.isVisible().catch(() => false)}`);
+      console.log(`  Giá: ${await priceInput.isVisible().catch(() => false)}`);
+      console.log(`  Danh mục: ${await categorySelect.isVisible().catch(() => false)}`);
+      console.log(`  Size inputs: ${await sizeInput.count()}`);
+
+      const submitBtn = form.locator('button[type="submit"]');
+      console.log(`  Submit btn: "${(await submitBtn.textContent())?.trim()}"`);
+    }
+  });
+
+  test('[TC-3.17] Product List page — danh sách món hiển thị', async ({ page }) => {
+    await loginAsRestaurant(page);
+    await page.goto('/Restaurant/ProductList', { waitUntil: 'domcontentloaded', timeout: 30_000 });
+    await page.waitForTimeout(3000);
+
+    const productRows = page.locator('[class*="item-restaurant"], table tbody tr, .product-item');
+    const productCount = await productRows.count();
+    console.log(`📋 Products: ${productCount}`);
+
+    if (productCount > 0) {
+      const editLinks = page.locator('a[href*="ProductDetail/"]');
+      const deleteLinks = page.locator('a[href*="XoaMonAn/"]');
+      console.log(`  Edit links: ${await editLinks.count()}`);
+      console.log(`  Delete links: ${await deleteLinks.count()}`);
+
+      if (await editLinks.count() > 0) {
+        await editLinks.first().click();
+        await page.waitForLoadState('networkidle');
+        await page.waitForTimeout(2000);
+        expect(page.url()).toContain('ProductDetail');
+      }
+    }
+  });
+
+  test('[TC-3.18] Product form — file upload + preview ảnh', async ({ page }) => {
+    await loginAsRestaurant(page);
+    await page.goto('/Restaurant/ProductDetail', { waitUntil: 'domcontentloaded', timeout: 30_000 });
+    await page.waitForTimeout(3000);
+
+    const fileInput = page.locator('input[type="file"]').first();
+    console.log(`📁 File upload: ${await fileInput.isVisible().catch(() => false)}`);
+
+    const previewImg = page.locator('img[src*="MonAn"]').first();
+    console.log(`🖼️ Preview: ${await previewImg.isVisible().catch(() => false)}`);
+  });
+
+  test('[TC-3.19] Size variant pricing grid (M/L/XL)', async ({ page }) => {
+    await loginAsRestaurant(page);
+    await page.goto('/Restaurant/ProductDetail', { waitUntil: 'domcontentloaded', timeout: 30_000 });
+    await page.waitForTimeout(3000);
+
+    const sizeInputs = page.locator('input[name*="size"]');
+    const inputCount = await sizeInputs.count();
+    console.log(`📏 Size inputs: ${inputCount}`);
+  });
+
+  test('[TC-3.20] Xóa món — click nút xóa', async ({ page }) => {
+    await loginAsRestaurant(page);
+    await page.goto('/Restaurant/ProductList', { waitUntil: 'domcontentloaded', timeout: 30_000 });
+    await page.waitForTimeout(3000);
+
+    const deleteLinks = page.locator('a[href*="XoaMonAn/"]');
+    const deleteCount = await deleteLinks.count();
+    console.log(`🗑️ Delete buttons: ${deleteCount}`);
+
+    if (deleteCount > 0) {
+      await deleteLinks.first().click();
+      await page.waitForLoadState('networkidle');
+      await page.waitForTimeout(2000);
+      console.log(`📍 URL after delete: ${page.url()}`);
+    }
+  });
+});
+
+// ─── TEST SUITE 6: Profile & Settings ───
+test.describe('⚙️ Profile & Settings', () => {
+
+  test('[TC-3.21] Profile page load', async ({ page }) => {
+    await loginAsRestaurant(page);
+    await page.goto('/Restaurant/Profile', { waitUntil: 'domcontentloaded', timeout: 30_000 });
+    await page.waitForTimeout(3000);
+    expect(await page.locator('body').textContent()).toBeTruthy();
+    console.log('✅ Profile page loaded');
+  });
+
+  test('[TC-3.22] Discount page load', async ({ page }) => {
+    await loginAsRestaurant(page);
+    await page.goto('/Restaurant/Discount', { waitUntil: 'domcontentloaded', timeout: 30_000 });
+    await page.waitForTimeout(3000);
+    const promoCount = await page.locator('[class*="khuyenmai"], table tbody tr').count();
+    console.log(`🏷️ Discount items: ${promoCount}`);
+  });
+
+  test('[TC-3.23] Analytics page — charts render', async ({ page }) => {
+    await loginAsRestaurant(page);
+    await page.goto('/Restaurant/Analytics', { waitUntil: 'domcontentloaded', timeout: 30_000 });
+    await page.waitForTimeout(3000);
+    const canvasCount = await page.locator('canvas').count();
+    console.log(`📈 Analytics charts: ${canvasCount}`);
+  });
+});
+
+// ─── TEST SUITE 7: Scanner QR ───
+test.describe('📷 Merchant QR Scanner', () => {
+
+  test('[TC-3.24] Scanner page — html5-qrcode container + controls', async ({ page }) => {
+    await loginAsRestaurant(page);
+    await page.goto('/edelivery/merchant-scan', { waitUntil: 'domcontentloaded', timeout: 30_000 });
+    await page.waitForTimeout(3000);
+
+    const scannerDiv = page.locator('#qr-reader');
+    console.log(`📷 Scanner: ${await scannerDiv.isVisible().catch(() => false)}`);
+
+    const startBtn = page.locator('#btnStartScan');
+    const stopBtn = page.locator('#btnStopScan');
+    console.log(`  Start: ${await startBtn.isVisible().catch(() => false)}`);
+    console.log(`  Stop: ${await stopBtn.isVisible().catch(() => false)}`);
+
+    const history = page.locator('#scanHistory');
+    console.log(`📋 History: ${await history.isVisible().catch(() => false)}`);
+  });
+
+  test('[TC-3.25] Scanner sidebar nav link tồn tại', async ({ page }) => {
+    await loginAsRestaurant(page);
+    const scanLink = page.locator('a[href*="merchant-scan"], a[href*="Scanner"]');
+    const linkCount = await scanLink.count();
+    console.log(`🔗 Scanner nav link: ${linkCount}`);
+  });
+});

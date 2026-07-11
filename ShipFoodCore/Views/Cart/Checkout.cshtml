@@ -414,8 +414,7 @@
     </div>
 </section>
 
-<script src="~/Source/Cart/js/jquery-3.3.1.min.js"></script>
-<script src="~/Source/Cart/js/bootstrap.min.js"></script>
+<!-- ponytail: Layout đã load jQuery + Bootstrap, không load lại gây conflict -->
 <script>
     // === Server-side URLs (Razor renders these, no ~ issues in JS) ===
     var URL_PROCESS_PAYMENT = '@Html.Raw(urlProcessPayment)';

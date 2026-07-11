@@ -635,7 +635,7 @@
             return true;
         }
 
-        // ═══ 4c: Optimistic UI — Add to Cart via AJAX ═══
+        // ═══ 4c: Optimistic UI — Add to Cart via AJAX (hỗ trợ anonymous) ═══
         function optimisticAddToCart(btn, event) {
             event.preventDefault();
             var $btn = $(btn);
@@ -644,6 +644,28 @@
             var form = $btn.closest('form');
             var maMonAn = parseInt(form.find('input[name="maMonAn"]').val());
             var soLuong = parseInt(form.find('input[name="soLuong"]').val()) || 1;
+            
+            // ═══ Anonymous mode: nếu chưa login, lưu vào localStorage ═══
+            var hasAuthCookie = document.cookie.indexOf('.AspNetCore.Cookies') !== -1;
+            if (!hasAuthCookie && typeof FastShipCart !== 'undefined' && FastShipCart.addUnauth) {
+                // Lấy thông tin món từ DOM
+                var itemRow = $btn.closest('.item-restaurant-row');
+                var tenmon = itemRow.find('.item-restaurant-name').text().trim();
+                var giaText = itemRow.find('.current-price').text().trim().replace(/[^0-9]/g, '');
+                var giatien = parseFloat(giaText) || 0;
+                var hinhanh = itemRow.find('img').first().attr('src') || '';
+                var maquanan = @ViewBag.maquan;
+                
+                FastShipCart.addUnauth(maMonAn, soLuong, tenmon, giatien, hinhanh, maquanan);
+                
+                // Feedback
+                var origHtml = $btn.html();
+                $btn.html('<i class="fas fa-check"></i> ✅').removeClass('btn-success').addClass('btn-success');
+                setTimeout(function() {
+                    $btn.html(origHtml);
+                }, 1500);
+                return false;
+            }
             
             // Optimistic: đổi text nút ngay
             var origHtml = $btn.html();
@@ -657,35 +679,24 @@
                 data: { maMonAn: maMonAn, soLuong: soLuong },
                 success: function(res) {
                     if (res.success) {
-                        // Success: hiển thị feedback
                         $btn.html('<i class="fas fa-check"></i> ✅').removeClass('btn-secondary').addClass('btn-success');
                         showCartToast('✅ Đã thêm vào giỏ hàng');
-                        
-                        // Cập nhật badge giỏ hàng nếu có
-                        var badge = document.querySelector('.cart-badge');
-                        if (badge && res.cartTotal) {
-                            badge.textContent = res.cartTotal;
-                        }
                     } else if (res.conflict) {
-                        // Multi-restaurant conflict
                         $btn.html(origHtml).prop('disabled', false).removeClass('btn-secondary').addClass('btn-success');
                         if (confirm('Giỏ hàng đang có món từ ' + res.currentRestaurant + '. Bạn muốn chuyển sang ' + res.newRestaurant + ' không?')) {
                             window.location.href = '/Cart/ApiForceSwitchRestaurant?maMonAn=' + maMonAn + '&soLuong=' + soLuong;
                         }
                     } else {
-                        // Rollback
                         $btn.html(origHtml).prop('disabled', false).removeClass('btn-secondary').addClass('btn-success');
                         showCartToast('❌ ' + (res.message || 'Lỗi'));
                     }
                 },
                 error: function() {
-                    // Rollback
                     $btn.html(origHtml).prop('disabled', false).removeClass('btn-secondary').addClass('btn-success');
                     showCartToast('❌ Lỗi kết nối');
                 },
                 complete: function() {
                     $btn.data('adding', false);
-                    // Restore sau 1.5s
                     setTimeout(function() {
                         $btn.html(origHtml).prop('disabled', false).removeClass('btn-secondary').addClass('btn-success');
                     }, 1500);

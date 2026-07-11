@@ -45,10 +45,10 @@ public class TinhToan
     public static string HinhAnhUrl(string? hinhanh)
     {
         if (string.IsNullOrWhiteSpace(hinhanh))
-            return "/Source/Home/img/food-placeholder.png";
+            return "/Source/Home/img/pizza.jpg";
         if (hinhanh.StartsWith("http://") || hinhanh.StartsWith("https://"))
             return hinhanh;
-        return "/Source/images/MonAn/" + hinhanh;
+        return "/Source/Home/img/" + hinhanh;
     }
 
     public static (double Lat, double Lng) TryParseToado(string? toado)

@@ -353,13 +353,14 @@
      * Supports: data-lucide="name", class="li-name", class="fa fa-name", class="fas fa-name"
      */
     function load() {
-        // Single selector for all icon elements (skip brand icons)
-        var els = document.querySelectorAll('[data-lucide], [class*="li-"], i[class*="fa-"]');
+        // Single selector: data-lucide or li-* icons only
+        // Skip FA (fa, fas, far) — they're handled by Font Awesome CSS
+        var els = document.querySelectorAll('[data-lucide], [class*="li-"]');
         els.forEach(function(el) {
             if (el.querySelector('svg')) return;
-            // Skip brand icons (fab)
             var cls = el.className || '';
-            if (cls.indexOf('fab') === 0 || cls.indexOf(' fab ') !== -1) return;
+            // Skip FA icons (handled by Font Awesome CSS)
+            if (cls.indexOf('fa-') !== -1 || cls.indexOf('fas ') !== -1 || cls.indexOf('far ') !== -1 || cls.indexOf('fab ') !== -1) return;
             renderIcon(el);
         });
     }

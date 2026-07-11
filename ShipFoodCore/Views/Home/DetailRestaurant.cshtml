@@ -343,10 +343,8 @@
                                         </a>
                                         @foreach (var thucdon in ViewBag.ThucDon)
                                         {
-                                            var searchKey = ViewBag.searchKey;
-                                            var href = string.IsNullOrEmpty(searchKey)
-                                                ? $"~/Home/DetailRestaurant?idDM={thucdon.madanhmuc}&id={ViewBag.maquan}"
-                                                : $"~/Home/DetailRestaurant?idDM={thucdon.madanhmuc}&id={ViewBag.maquan}&searchKey={Uri.EscapeDataString(searchKey)}";
+                                            var searchKey = !string.IsNullOrEmpty(ViewBag.searchKey as string) ? ViewBag.searchKey : null;
+                                            var href = Url.Action("DetailRestaurant", "Home", new { id = ViewBag.maquan, idDM = thucdon.madanhmuc, searchKey = searchKey });
                                             <a href="@href">
                                                 <div class="item">
                                                     <span id="cat-@thucdon.madanhmuc" title="@thucdon.tendanhmuc" class="item-link @(ViewBag.idDM == thucdon.madanhmuc ? "active" : "")">@thucdon.tendanhmuc</span>

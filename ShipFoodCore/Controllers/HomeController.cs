@@ -605,6 +605,7 @@ public class HomeController : BaseController
         // Họ tên
         if (string.IsNullOrWhiteSpace(hoten) || hoten.Length < 2 || hoten.Length > 100)
         {
+            if (IsAjaxRequest()) return Json(new { success = false, message = "Họ tên phải từ 2-100 ký tự" });
             ViewBag.err = "Họ tên phải từ 2-100 ký tự";
             return View();
         }
@@ -612,62 +613,73 @@ public class HomeController : BaseController
         // Username
         if (string.IsNullOrWhiteSpace(user.username) || user.username.Length < 3 || user.username.Length > 50)
         {
+            if (IsAjaxRequest()) return Json(new { success = false, message = "Tên đăng nhập phải từ 3-50 ký tự" });
             ViewBag.err = "Tên đăng nhập phải từ 3-50 ký tự";
             return View();
         }
 
-        // Mật khẩu - sử dụng password strength validation mới
-        if (string.IsNullOrEmpty(user.pwd))
+        // Mật khẩu — chỉ bắt buộc với Quán ăn/Shipper. Khách hàng được auto-gen.
+        bool requiresPwd = user.loaitaikhoan == "Quán ăn" || user.loaitaikhoan == "Shipper";
+        if (requiresPwd)
         {
-            ViewBag.err = "Vui lòng nhập mật khẩu";
-            return View();
+            if (string.IsNullOrEmpty(user.pwd))
+            {
+                if (IsAjaxRequest()) return Json(new { success = false, message = "Vui lòng nhập mật khẩu" });
+                ViewBag.err = "Vui lòng nhập mật khẩu";
+                return View();
+            }
+            if (user.pwd.Length < 8)
+            {
+                if (IsAjaxRequest()) return Json(new { success = false, message = "Mật khẩu phải có ít nhất 8 ký tự" });
+                ViewBag.err = "Mật khẩu phải có ít nhất 8 ký tự";
+                return View();
+            }
+            if (user.pwd != repeatpw)
+            {
+                if (IsAjaxRequest()) return Json(new { success = false, message = "Xác nhận mật khẩu không khớp" });
+                ViewBag.err = "Xác nhận mật khẩu không khớp";
+                return View();
+            }
         }
-        var (pwdValid, pwdMessage) = ValidatePasswordStrength(user.pwd);
-        if (!pwdValid)
+        else
         {
-            ViewBag.err = pwdMessage;
-            return View();
-        }
-        if (user.pwd != repeatpw)
-        {
-            ViewBag.err = "Xác nhận mật khẩu không khớp";
-            return View();
+            // Khách hàng: auto-generate password (giống Google auth pattern)
+            user.pwd = $"FS_{Guid.NewGuid():N}";
         }
         // Mật khẩu được lưu dạng plain-text (không hash)
 
-        // Số điện thoại — validate format Việt Nam (10-11 số, bắt đầu bằng 0)
-        if (string.IsNullOrWhiteSpace(user.sdt))
+        // Số điện thoại
+        if (string.IsNullOrWhiteSpace(user.sdt) || !System.Text.RegularExpressions.Regex.IsMatch(user.sdt, @"^0[1-9][0-9]{8,9}$"))
         {
-            ViewBag.err = "Vui lòng nhập số điện thoại";
-            return View();
-        }
-        if (!System.Text.RegularExpressions.Regex.IsMatch(user.sdt, @"^0[1-9][0-9]{8,9}$"))
-        {
-            ViewBag.err = "Số điện thoại không hợp lệ — phải là 10-11 số, bắt đầu bằng 0 (VD: 0912345678)";
+            if (IsAjaxRequest()) return Json(new { success = false, message = "Số điện thoại không hợp lệ — phải là 10-11 số, bắt đầu bằng 0 (VD: 0912345678)" });
+            ViewBag.err = "Số điện thoại không hợp lệ";
             return View();
         }
 
         // Email
         if (string.IsNullOrWhiteSpace(user.email))
         {
+            if (IsAjaxRequest()) return Json(new { success = false, message = "Vui lòng nhập email" });
             ViewBag.err = "Vui lòng nhập email";
             return View();
         }
         try
         {
             var addr = new System.Net.Mail.MailAddress(user.email);
-            if (addr.Address != user.email)
-                throw new Exception();
+            if (addr.Address != user.email) throw new Exception();
         }
         catch
         {
+            if (IsAjaxRequest()) return Json(new { success = false, message = "Email không hợp lệ (VD: example@gmail.com)" });
             ViewBag.err = "Email không hợp lệ (VD: example@gmail.com)";
             return View();
         }
 
-        // Địa chỉ
-        if (string.IsNullOrWhiteSpace(diachi) || diachi.Length < 5 || diachi.Length > 250)
+        // Địa chỉ (chỉ bắt buộc với Quán ăn / Shipper)
+        bool requiresAddress = user.loaitaikhoan == "Quán ăn" || user.loaitaikhoan == "Shipper";
+        if (requiresAddress && (string.IsNullOrWhiteSpace(diachi) || diachi.Length < 5))
         {
+            if (IsAjaxRequest()) return Json(new { success = false, message = "Địa chỉ phải từ 5-250 ký tự" });
             ViewBag.err = "Địa chỉ phải từ 5-250 ký tự";
             return View();
         }
@@ -675,12 +687,14 @@ public class HomeController : BaseController
         // Loại tài khoản
         if (string.IsNullOrWhiteSpace(user.loaitaikhoan))
         {
+            if (IsAjaxRequest()) return Json(new { success = false, message = "Vui lòng chọn loại tài khoản" });
             ViewBag.err = "Vui lòng chọn loại tài khoản";
             return View();
         }
         var validRoles = new[] { "Khách hàng", "Quán ăn", "Shipper" };
         if (!validRoles.Contains(user.loaitaikhoan))
         {
+            if (IsAjaxRequest()) return Json(new { success = false, message = "Loại tài khoản không hợp lệ" });
             ViewBag.err = "Loại tài khoản không hợp lệ";
             return View();
         }
@@ -689,12 +703,14 @@ public class HomeController : BaseController
         var existingUsers = db.tbUser.Where(u => u.username.Equals(user.username)).ToList();
         if (existingUsers.Count != 0)
         {
+            if (IsAjaxRequest()) return Json(new { success = false, message = "Tên tài khoản đã tồn tại" });
             ViewBag.err = "Tên tài khoản đã tồn tại";
             return View();
         }
         var existingEmails = db.tbUser.Where(u => u.email == user.email).ToList();
         if (existingEmails.Count != 0)
         {
+            if (IsAjaxRequest()) return Json(new { success = false, message = "Email này đã được sử dụng" });
             ViewBag.err = "Email này đã được sử dụng";
             return View();
         }
@@ -731,6 +747,7 @@ public class HomeController : BaseController
             var cart = new Cart { userid = user.userid };
             SetCart(cart);
             SetSessionUser(user);
+            if (IsAjaxRequest()) return Json(new { success = true, redirectUrl = Url.Action("Index", "Restaurant") });
             return RedirectToAction("Index", "Restaurant");
         }
         else if (user.loaitaikhoan.Equals("Shipper"))
@@ -752,7 +769,16 @@ public class HomeController : BaseController
             db.SaveChanges();
         }
 
+        if (IsAjaxRequest()) return Json(new { success = true, redirectUrl = Url.Action("Login", "Home") });
         return RedirectToAction("Login");
+    }
+
+    /// <summary>
+    /// Kiểm tra request có phải AJAX không
+    /// </summary>
+    private bool IsAjaxRequest()
+    {
+        return HttpContext.Request.Headers["X-Requested-With"] == "XMLHttpRequest";
     }
 
     public ActionResult Forgot()

@@ -4,6 +4,25 @@
 
 ---
 
+## 0. 📝 LOG SKILL KHI LÀM VIỆC
+
+**BẮT BUỘC**: Mỗi khi bắt đầu hoặc trong quá trình thực hiện task, Buffy PHẢI ghi log các skill đã load:
+
+```yaml
+quy_tắc_log_skill:
+  - Khi mỗi response bắt đầu, ghi "**Skill đã load**: <danh sách skill>"
+  - Khi load skill mới, ghi "**Skill mới load**: <tên skill>"
+  - Khi spawn agent, ghi "**Agent spawned**: <tên agent> | mục đích"
+```
+
+**Ví dụ**:
+```
+**Skill đã load**: brainstorming, ui-ux-pro-max, dispatching-parallel-agents
+**Agent spawned**: basher | chạy E2E test để verify fix
+```
+
+---
+
 ## 1. 🎯 Nguyên tắc sử dụng Skills
 
 **TRƯỚC KHI LÀM VIỆC**, phải kiểm tra và sử dụng skill phù hợp từ `.agents/skills/`:
@@ -13,6 +32,7 @@ quy_tắc_bắt_buộc:
   - Luôn load skill phù hợp với task trước khi bắt đầu
   - Dùng skill thay vì tự suy luận nếu skill đã có sẵn
   - Nếu có nhiều skill liên quan, dùng kết hợp tất cả
+  - Ghi log tất cả skill đã load vào mỗi response
 ```
 
 ### 🕐 Tần suất Load Skill
@@ -54,9 +74,9 @@ quy_trình_load_skill:
 | **📝 Code Review** | `requesting-code-review`, `receiving-code-review`, `code-reviewer-deepseek-flash` | Review code sau khi thay đổi |
 | **🐛 Debug** | `systematic-debugging` | Khi gặp bug, test failure |
 | **✂️ Tối ưu code** | `ponytail`, `ponytail-review`, `ponytail-audit` | Giảm thiểu code thừa, tối ưu |
+| **🚀 Phát triển** | `subagent-driven-development`, `dispatching-parallel-agents`, `verification-before-completion`, `finishing-a-development-branch` | Chia nhỏ task, chạy parallel agents |
 | **🧬 Khoa học/Data** | `scikit-learn`, `matplotlib`, `seaborn`, `statsmodels`, `pandas`... | Phân tích dữ liệu, ML, thống kê |
 | **🔬 Bioinformatics** | `scanpy`, `biopython`, `rdkit`, `pydeseq2`... | Nếu dự án có liên quan sinh học/hóa học |
-| **🚀 Phát triển** | `subagent-driven-development`, `dispatching-parallel-agents`, `verification-before-completion`, `finishing-a-development-branch` | Chia nhỏ task, chạy parallel agents |
 | **🛡 Bảo mật** | `gstack` (security router) | Audit bảo mật |
 | **📊 Git/Workflow** | `using-git-worktrees`, `using-superpowers` | Quản lý branch, workflow |
 | **📝 Viết skills mới** | `writing-skills` | Khi cần tạo skill tùy chỉnh |
@@ -67,7 +87,7 @@ quy_trình_load_skill:
 
 ```mermaid
 flowchart TD
-    A[Nhận task] --> B[Load skill phù hợp]
+    A[Nhận task] --> B[Load skill phù hợp + GHI LOG]
     B --> C[Đọc file liên quan]
     C --> D[Spawn agent/subagent nếu cần]
     D --> E[Thực hiện thay đổi]
@@ -76,10 +96,11 @@ flowchart TD
 ```
 
 1. **Load skill trước**: Dùng `skill tool` để load skill phù hợp
-2. **Đọc tài liệu**: `Project.md`, `UI-UX.md`
-3. **Tìm file**: Dùng file-picker, code-searcher
-4. **Thực hiện**: Với sự hỗ trợ của skill đã load
-5. **Review**: Dùng code-review skill
+2. **Ghi log**: Ghi rõ skill nào đã load
+3. **Đọc tài liệu**: `Project.md`, `UI-UX.md`
+4. **Tìm file**: Dùng file-picker, code-searcher
+5. **Thực hiện**: Với sự hỗ trợ của skill đã load
+6. **Review**: Dùng code-review skill
 
 ---
 
@@ -95,32 +116,14 @@ flowchart TD
 
 | Repo | Mô tả | Khi nào dùng |
 |------|-------|-------------|
-| **agent-reach-main** | Agent truy cập 13+ nền tảng (Twitter, Reddit, YouTube, GitHub...) | Cần tìm kiếm/tương tác web |
+| **agent-reach-main** | Agent truy cập 13+ nền tảng | Cần tìm kiếm/tương tác web |
 | **ponytail-main** | Ponytail optimization suite | Tối ưu code, giảm thiểu, refactor |
-| **codegraph-main** (trong `Graph/`) | CodeGraph retrieval & indexing | Phân tích codebase, tìm kiếm nâng cao |
+| **codegraph-main** | CodeGraph retrieval & indexing | Phân tích codebase |
 | **gstack-main** | Security router suite | Audit bảo mật |
-| **superpowers-main** (trong `FLow/`) | Superpowers workflow tools | Quản lý workflow, phiên làm việc |
-| **whisper-flow-main** (trong `prompt/`) | Prompt engineering | Thiết kế prompt tối ưu |
-| **ui-ux-pro-max** (trong `UI UX/` + `Skill/`) | UI/UX design: 50+ styles, 161 palettes, 57 font pairings | Thiết kế giao diện (2 repo này cũng nội dung, dùng 1 cái) |
-| **scientific-agent-skills-main** | Khoa học: bioinformatics, ML, statistics... | Phân tích dữ liệu khoa học |
-| **developer-icons-main** | Bộ icon SVG cho developer | Tạo icon, logo, UI elements |
-
-### Repo tham khảo:
-
-| Repo | Mô tả |
-|------|-------|
-| **public-apis-master** | 📚 Danh sách public APIs miễn phí — tham khảo khi cần tích hợp API bên thứ 3 (không phải skill AI, chỉ là danh sách tham khảo) |
-
-### 🎯 Khi nào dùng repo trong Skills/
-
-```yaml
-dùng_repo_khi:
-  - Cần code mẫu từ skill chưa được load sẵn
-  - Muốn tham khảo implementation của 1 skill cụ thể
-  - Cần documentation chi tiết của skill
-  - Muốn xem ví dụ/test cases từ skill repo
-  - Cần API reference từ public-apis-master
-```
+| **superpowers-main** | Superpowers workflow tools | Quản lý workflow |
+| **whisper-flow-main** | Prompt engineering | Thiết kế prompt |
+| **ui-ux-pro-max** | UI/UX design | Thiết kế giao diện |
+| **developer-icons-main** | Bộ icon SVG | Tạo icon, logo |
 
 ---
 

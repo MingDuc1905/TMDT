@@ -99,11 +99,11 @@ table, th, td, li, a,
     font-family: var(--fs-font) !important;
 }
 
-/* Icon font exception — phục hồi FontAwesome bị ghi đè font-family */
-/* Hỗ trợ cả FA5 (CDN) và FA6 (local fallback) */
-.fa, .fas, .far { font-family: 'Font Awesome 6 Free', 'Font Awesome 5 Free' !important; font-weight: 900; }
+/* Icon font — bảo vệ FA icon khỏi bị Inter !important override */
+/* Chỉ FA5 (CDN), không force FA6, tránh conflict FA5 vs FA6 */
+.fa, .fas, .far { font-family: 'Font Awesome 5 Free' !important; font-weight: 900; }
 .far { font-weight: 400; }
-.fab { font-family: 'Font Awesome 6 Brands', 'Font Awesome 5 Brands' !important; font-weight: 400; }
+.fab { font-family: 'Font Awesome 5 Brands' !important; font-weight: 400; }
 
 /* ── 3. Typography Scale ──────────────────────────────────── */
 .fs-h1 { font-size: clamp(1.8rem, 4vw, 3rem); font-weight: 800; line-height: 1.15; }

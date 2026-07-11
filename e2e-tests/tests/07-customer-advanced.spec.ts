@@ -55,7 +55,7 @@ test.describe('💳 Payment Methods', () => {
 
   test('[TC-7.3] Verify Bank Transaction API', async ({ page }) => {
     await loginAsCustomer(page);
-    const resp = await page.request.get('/Payment/VerifyBankTransaction', { params: { madh: 0 } });
+    const resp = await page.request.get('/Payment/VerifyBankTransaction', { params: { madh: 0 }, headers: { 'X-Requested-With': 'XMLHttpRequest' } });
     const json = await resp.json();
     console.log(`📡 VerifyBank API: ${JSON.stringify(json)}`);
     expect(json).toBeDefined();

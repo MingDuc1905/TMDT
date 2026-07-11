@@ -157,7 +157,8 @@ test.describe('🏪 Merchant — QR Scanner', () => {
 
     // Verify API endpoint tồn tại
     const apiResponse = await page.request.post('/edelivery/confirm-scan', {
-      data: { token: 'invalid-token-test' }
+      data: { token: 'invalid-token-test' },
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
     });
     const responseJson = await apiResponse.json();
     console.log(`📡 API response: ${JSON.stringify(responseJson)}`);
@@ -345,7 +346,8 @@ test.describe('👑 Admin — Delivery Logs Matrix & Bypass', () => {
 
     // Test bypass với order không tồn tại
     const response = await page.request.post('/edelivery/bypass', {
-      data: { orderId: 99999, targetStatus: 'Đã lấy' }
+      data: { orderId: 99999, targetStatus: 'Đã lấy' },
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
     });
     const json = await response.json();
     console.log(`📡 Bypass API response: ${JSON.stringify(json)}`);

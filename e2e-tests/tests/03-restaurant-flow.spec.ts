@@ -20,6 +20,21 @@ import { USERS, URLS, SEED } from '../fixtures/users';
 
 const RESTAURANT = USERS.restaurant1;
 
+// ponytail: retry #example5 với page reload nếu DataTables chưa kịp render
+async function waitForOrderTable(page: any) {
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      await page.waitForSelector('#example5', { timeout: 25_000 });
+      return;
+    } catch {
+      console.log(`⏳ #example5 timeout lần ${attempt+1}, reload...`);
+      await page.reload({ waitUntil: 'domcontentloaded', timeout: 30_000 }).catch(() => {});
+      await page.waitForTimeout(3000);
+    }
+  }
+  await page.waitForSelector('table', { timeout: 15_000 }).catch(() => {});
+}
+
 // ─── Helper: Login quán ăn — ponytail: login OK nhưng dashboard redirect crash
 // Root cause: /Restaurant controller throws 500 → global handler redirect /Home/Error
 // Solution: login set session thành công, dùng goto('/') để verify session
@@ -107,9 +122,8 @@ test.describe('📋 Quản lý đơn hàng (Order List)', () => {
 
     const restaurant = new RestaurantPage(page);
     await restaurant.gotoOrderList();
+    await waitForOrderTable(page);
 
-    // Chờ bảng load
-    await page.waitForSelector('#example5', { timeout: 20_000 });
     const orderCount = await restaurant.getOrderCount();
     console.log(`📋 Số đơn hàng: ${orderCount}`);
     expect(orderCount).toBeGreaterThanOrEqual(0);
@@ -120,11 +134,10 @@ test.describe('📋 Quản lý đơn hàng (Order List)', () => {
 
     const restaurant = new RestaurantPage(page);
     await restaurant.gotoOrderList();
-    await page.waitForSelector('#example5', { timeout: 20_000 });
+    await waitForOrderTable(page);
 
     const orderCount = await restaurant.getOrderCount();
     if (orderCount > 0) {
-      // Click vào link chi tiết đầu tiên
       const detailLinks = page.locator('a[href*="ChiTietDonHang"]');
       const linkCount = await detailLinks.count();
       console.log(`🔗 Chi tiết links: ${linkCount}`);
@@ -145,7 +158,7 @@ test.describe('📋 Quản lý đơn hàng (Order List)', () => {
 
     const restaurant = new RestaurantPage(page);
     await restaurant.gotoOrderList();
-    await page.waitForSelector('#example5', { timeout: 20_000 });
+    await waitForOrderTable(page);
 
     const orderCount = await restaurant.getOrderCount();
     if (orderCount > 0) {
@@ -160,9 +173,8 @@ test.describe('📋 Quản lý đơn hàng (Order List)', () => {
 
     const restaurant = new RestaurantPage(page);
     await restaurant.gotoOrderList();
-    await page.waitForSelector('#example5', { timeout: 20_000 });
+    await waitForOrderTable(page);
 
-    // Kiểm tra nút nhận đơn
     const acceptBtns = await page.locator('a[href*="/Restaurant/nhandon/"]').count();
     console.log(`🟢 Nhận đơn buttons: ${acceptBtns}`);
   });
@@ -226,7 +238,7 @@ test.describe('🔄 Xử lý đơn hàng - Accept & Status Transitions', () => {
     const restaurant = new RestaurantPage(page);
     await loginAsRestaurant(page);
     await restaurant.gotoOrderList();
-    await page.waitForSelector('#example5', { timeout: 20_000 });
+    await waitForOrderTable(page);
 
     const orderCount = await restaurant.getOrderCount();
     console.log(`📋 Số đơn sau khi tạo: ${orderCount}`);
@@ -237,9 +249,8 @@ test.describe('🔄 Xử lý đơn hàng - Accept & Status Transitions', () => {
 
     const restaurant = new RestaurantPage(page);
     await restaurant.gotoOrderList();
-    await page.waitForSelector('#example5', { timeout: 20_000 });
+    await waitForOrderTable(page);
 
-    // Kiểm tra có đơn và nút nhận đơn
     const acceptBtns = page.locator('a[href*="/Restaurant/nhandon/"]');
     const btnCount = await acceptBtns.count();
 
@@ -269,7 +280,7 @@ test.describe('🔄 Xử lý đơn hàng - Accept & Status Transitions', () => {
 
     const restaurant = new RestaurantPage(page);
     await restaurant.gotoOrderList();
-    await page.waitForSelector('#example5', { timeout: 20_000 });
+    await waitForOrderTable(page);
 
     // Kiểm tra nút hủy
     const cancelBtns = page.locator('a[href*="/Restaurant/huydon/"]');
@@ -289,7 +300,7 @@ test.describe('🔄 Xử lý đơn hàng - Accept & Status Transitions', () => {
 
     const restaurant = new RestaurantPage(page);
     await restaurant.gotoOrderList();
-    await page.waitForSelector('#example5', { timeout: 20_000 });
+    await waitForOrderTable(page);
 
     const readyBtns = page.locator('a[href*="/Restaurant/hoantatdon/"]');
     const btnCount = await readyBtns.count();

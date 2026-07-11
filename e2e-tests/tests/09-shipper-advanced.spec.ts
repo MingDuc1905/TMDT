@@ -40,7 +40,8 @@ test.describe('🔄 Cập nhật trạng thái giao hàng', () => {
     await loginAsShipper(page);
     // Test API với order không tồn tại
     const resp = await page.request.post('/Shipper/UpdateDonHang', {
-      params: { status: 'lh', id: 99999 }
+      params: { status: 'lh', id: 99999 },
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
     });
     const json = await resp.json();
     console.log(`📡 UpdateDonHang API: ${JSON.stringify(json)}`);

@@ -48,32 +48,38 @@ export class LoginPage extends BasePage {
   }
 
   /** Đăng nhập với username/password — tự động gotoLogin + fill + click + retry 429 */
-  async login(username: string, password: string, maxRetries: number = 2): Promise<string> {
+  async login(username: string, password: string, maxRetries: number = 3): Promise<string> {
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       if (attempt > 0) {
-        console.log(`⏳ Login retry #${attempt} (chờ 30s tránh rate limit)...`);
-        await this.page.waitForTimeout(30_000);
+        const jitter = 45_000 + Math.floor(Math.random() * 30_001);
+        console.log(`⏳ Login retry #${attempt} (chờ ${Math.round(jitter/1000)}s tránh rate limit)...`);
+        await this.page.waitForTimeout(jitter);
       }
-      // ponytail: fill credentials + click login trên MỌI attempt (kể cả attempt=0)
       await this.gotoLogin();
       await this.usernameInput.fill(username);
       await this.passwordInput.fill(password);
       await this.loginButton.click();
 
       try {
-        await this.page.waitForLoadState('networkidle', { timeout: 20_000 });
-      } catch {
-        // Timeout là bình thường nếu form POST redirect
-      }
+        await this.page.waitForLoadState('networkidle', { timeout: 30_000 });
+      } catch {}
+      await this.page.waitForTimeout(2000);
 
       const url = this.page.url();
-      // Kiểm tra rate limit 429
-      const bodyText = await this.page.locator('body').textContent().catch(() => '');
-      if (bodyText && bodyText.includes('429') && bodyText.includes('quá nhiều')) {
-        console.log(`⚠️ Rate limited (429), sẽ retry...`);
+      const bodyText = (await this.page.locator('body').textContent().catch(() => '')) || '';
+      const isRateLimited = bodyText.includes('429') || bodyText.includes('quá nhiều') || bodyText.includes('Rate limit') || bodyText.includes('Too Many Requests');
+      if (isRateLimited) {
+        console.log(`⚠️ Rate limited, sẽ retry sau...`);
         continue;
       }
-
+      if (url.includes('/Home/Login')) {
+        const errorMsg = await this.getErrorMessage();
+        if (!errorMsg) {
+          console.log('ℹ️ Login page không có lỗi — session có thể đã được set');
+          return url;
+        }
+        console.log(`ℹ️ Login failed: ${errorMsg?.trim()}`);
+      }
       return url;
     }
     return this.page.url();

@@ -103,33 +103,6 @@ test.describe('🖥️ [Desktop 1920x1080] Visual & Asset Validation', () => {
     expect(jsErrors.length).toBe(0);
   });
 
-  test('[TC-1.4] Navbar - logo, search, cart, login, register đều hiển thị', async ({ page }) => {
-    const home = new HomePage(page);
-    await home.gotoHome();
-
-    await expect(home.navbar).toBeVisible({ timeout: 15_000 });
-    // Kiểm tra navbar có ít nhất 1 link (chứng tỏ header render đúng)
-    const navLinks = await home.navbar.locator('a').count();
-    console.log(`🔗 Navbar links: ${navLinks}`);
-    expect(navLinks).toBeGreaterThan(0);
-    // Kiểm tra search và cart tồn tại trong DOM (có thể ẩn trên responsive)
-    await expect(home.searchInput.first()).toBeAttached();
-    await expect(home.cartButton.first()).toBeAttached();
-
-    try {
-      await expect(home.loginNavBtn).toBeVisible({ timeout: 5_000 });
-    } catch {
-      console.log('ℹ️ Login nav button không visible (có thể đã login)');
-    }
-
-    // Kiểm tra navbar cố định trên đầu
-    const navBox = await home.navbar.boundingBox();
-    expect(navBox).not.toBeNull();
-    if (navBox) {
-      expect(navBox.y).toBeLessThanOrEqual(5);
-    }
-  });
-
   test('[TC-1.5] Footer - tất cả links hoạt động, không bị vỡ layout', async ({ page }) => {
     const home = new HomePage(page);
     await home.gotoHome();

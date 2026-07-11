@@ -44,7 +44,7 @@ test.describe('👥 CRUD Người dùng', () => {
   test('[TC-10.2] LockOrUnlock — khóa/mở user', async ({ page }) => {
     await loginAsAdmin(page);
     // Test API trực tiếp
-    const resp = await page.request.get('/Admin/LockOrUnlock', { params: { id: USERS.customer1 } });
+    const resp = await page.request.get('/Admin/LockOrUnlock', { params: { id: USERS.customer1 }, headers: { 'X-Requested-With': 'XMLHttpRequest' } });
     expect(resp.status()).toBe(200);
     const url = resp.url();
     console.log(`📍 LockOrUnlock redirect: ${url}`);
@@ -52,13 +52,13 @@ test.describe('👥 CRUD Người dùng', () => {
 
   test('[TC-10.3] Duyet user — approve Shipper/Quán', async ({ page }) => {
     await loginAsAdmin(page);
-    const resp = await page.request.get('/Admin/Duyet', { params: { id: 3 } });
+    const resp = await page.request.get('/Admin/Duyet', { params: { id: 3 }, headers: { 'X-Requested-With': 'XMLHttpRequest' } });
     console.log(`✅ Duyet API: ${resp.status()}`);
   });
 
   test('[TC-10.4] Huy user — reject Shipper/Quán', async ({ page }) => {
     await loginAsAdmin(page);
-    const resp = await page.request.get('/Admin/Huy', { params: { id: 3 } });
+    const resp = await page.request.get('/Admin/Huy', { params: { id: 3 }, headers: { 'X-Requested-With': 'XMLHttpRequest' } });
     console.log(`❌ Huy API: ${resp.status()}`);
   });
 });
@@ -67,7 +67,7 @@ test.describe('👥 CRUD Người dùng', () => {
 test.describe('📊 Dashboard APIs', () => {
   test('[TC-10.5] GetDashboardStats — JSON response', async ({ page }) => {
     await loginAsAdmin(page);
-    const resp = await page.request.get('/Admin/GetDashboardStats');
+    const resp = await page.request.get('/Admin/GetDashboardStats', { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
     const json = await resp.json();
     console.log(`📊 Dashboard stats: tongDoanhThu=${json.tongDoanhThu}, tongSoDon=${json.tongSoDon}`);
     expect(json).toBeDefined();
@@ -76,7 +76,7 @@ test.describe('📊 Dashboard APIs', () => {
 
   test('[TC-10.6] GetRevenueChart — JSON daily data', async ({ page }) => {
     await loginAsAdmin(page);
-    const resp = await page.request.get('/Admin/GetRevenueChart');
+    const resp = await page.request.get('/Admin/GetRevenueChart', { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
     const json = await resp.json();
     console.log(`📈 Revenue chart: ${json.length} days`);
     expect(Array.isArray(json)).toBe(true);
@@ -84,7 +84,7 @@ test.describe('📊 Dashboard APIs', () => {
 
   test('[TC-10.7] GetTopRestaurants — top 5', async ({ page }) => {
     await loginAsAdmin(page);
-    const resp = await page.request.get('/Admin/GetTopRestaurants');
+    const resp = await page.request.get('/Admin/GetTopRestaurants', { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
     const json = await resp.json();
     console.log(`🏪 Top restaurants: ${json.length}`);
     if (json.length > 0) console.log(`  #1: ${json[0].tenQuan} - ${json[0].doanhThu}`);
@@ -92,7 +92,7 @@ test.describe('📊 Dashboard APIs', () => {
 
   test('[TC-10.8] GetOrderStatusPie — chart data', async ({ page }) => {
     await loginAsAdmin(page);
-    const resp = await page.request.get('/Admin/GetOrderStatusPie');
+    const resp = await page.request.get('/Admin/GetOrderStatusPie', { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
     const json = await resp.json();
     console.log(`🥧 Status pie: ${json.labels?.join(', ')}`);
     expect(json.labels).toBeDefined();
@@ -135,7 +135,8 @@ test.describe('💳 Mock Payment', () => {
   test('[TC-10.12] MockPaymentWebhook — xác nhận thanh toán', async ({ page }) => {
     await loginAsAdmin(page);
     const resp = await page.request.post('/Admin/MockPaymentWebhook', {
-      params: { madh: 0 } // order 0 = không tồn tại
+      params: { madh: 0 },
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
     });
     const json = await resp.json();
     console.log(`💳 MockPayment API: ${JSON.stringify(json)}`);
@@ -184,7 +185,8 @@ test.describe('📸 E-Delivery Admin', () => {
     await loginAsAdmin(page);
     // Test với order không tồn tại
     const resp1 = await page.request.post('/edelivery/bypass', {
-      data: { orderId: 99999, targetStatus: 'Đã lấy' }
+      data: { orderId: 99999, targetStatus: 'Đã lấy' },
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
     });
     const json1 = await resp1.json();
     console.log(`📡 Bypass invalid: ${JSON.stringify(json1)}`);

@@ -176,7 +176,7 @@ public class HomeController : BaseController
     [HttpPost]
     [EnableRateLimiting("login-policy")]
     [ValidateAntiForgeryToken]
-    public ActionResult Login(string usernameOrPhone, string pwd, bool rememberMe = false)
+    public async Task<ActionResult> Login(string usernameOrPhone, string pwd, bool rememberMe = false)
     {
         try
         {
@@ -218,6 +218,13 @@ public class HomeController : BaseController
             var cart = new Cart { userid = userFind.userid };
             SetCart(cart);
             SetSessionUser(userFind);
+
+            // ─── Task 6a: Force session commit TRƯỚC redirect ───
+            // ponytail: Session.SetString chỉ đánh dấu modified, chưa ghi cookie ngay.
+            // Nếu redirect 302 xảy ra quá nhanh, request tiếp theo sẽ đọc cookie cũ (rỗng)
+            // → GetCurrentUser() trả về null → redirect back /Home/Login
+            // Fix: CommitAsync() đảm bảo session cookie được ghi trước khi redirect
+            await HttpContext.Session.CommitAsync();
 
             // Nếu người dùng chọn "Lưu đăng nhập", làm cho session cookie persistent
             // Dùng HttpContext.Session.Id thay vì Request.Cookies vì cookie chưa tồn tại trong request

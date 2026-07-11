@@ -26,9 +26,19 @@ export class BasePage {
 
   /** Điều hướng đến URL tương đối */
   async goto(path: string = '/') {
-    await this.page.goto(path, { waitUntil: 'networkidle' });
+    // ponytail: dùng domcontentloaded thay networkidle — Render free tier rất chậm
+    // nếu dùng networkidle sẽ timeout vì Render giữ kết nối lâu
+    try {
+      await this.page.goto(path, { waitUntil: 'domcontentloaded', timeout: 60_000 });
+    } catch {
+      // Retry 1 lần nếu timeout (Render cold-start)
+      console.log('⚠️ goto timeout, retrying...');
+      await this.page.goto(path, { waitUntil: 'domcontentloaded', timeout: 60_000 });
+    }
     // Chờ skeleton loading biến mất (nếu có)
     await this.waitForSkeletonHidden();
+    // Chờ thêm để network idle (không bắt buộc)
+    try { await this.page.waitForLoadState('networkidle', { timeout: 30_000 }); } catch { }
   }
 
   /** Chờ skeleton loading ẩn đi */

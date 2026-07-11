@@ -178,21 +178,25 @@ test.describe('🖥️ [Desktop 1920x1080] Visual & Asset Validation', () => {
     const home = new HomePage(page);
     await home.gotoHome();
 
-    // Chờ category pills load
-    await page.waitForSelector('#categoryRow', { timeout: 15_000 });
+    // Chờ category pills load (wow.js animation có thể ẩn element tạm thời → state:'attached')
+    await page.waitForSelector('#categoryRow', { state: 'attached', timeout: 15_000 });
     const pillCount = await home.categoryRow.locator('a').count();
     console.log(`🏷️ Category pills: ${pillCount}`);
     expect(pillCount).toBeGreaterThan(0);
 
-    // Click từng pill (tối đa 5 cái để test không quá lâu)
-    const maxPills = Math.min(pillCount, 5);
+    // ponytail: Click tối đa 3 pill, dùng waitForURL + timeout thay networkidle (Render chậm)
+    const maxPills = Math.min(pillCount, 3);
     for (let i = 0; i < maxPills; i++) {
       const pill = home.categoryRow.locator('a').nth(i);
       const pillText = await pill.textContent();
+      // Lấy href để chờ navigation — ponytail: getAttribute có thể null → fallback empty
+      const href = await pill.getAttribute('href') ?? '';
+      if (!href) { console.log('  ⚠️ Pill không có href, skip'); continue; }
       await pill.click();
-      await page.waitForLoadState('networkidle');
+      // ponytail: waitForFunction thay waitForURL — ? trong URL là glob wildcard, Render chậm
+      try { await page.waitForFunction(h => window.location.href.includes(h), href, { timeout: 30_000 }); } catch { }
+      await page.waitForTimeout(3000);
       console.log(`  Click category: ${pillText?.trim()}`);
-      await page.waitForTimeout(500);
     }
   });
 

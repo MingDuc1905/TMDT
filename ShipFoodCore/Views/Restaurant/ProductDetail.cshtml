@@ -60,7 +60,14 @@
                                                 <option value="">Chọn danh mục</option>
                                                 @foreach (var i in danhMucs)
                                                 {
-                                                    <option value="@i.madanhmuc" @(monAn.madanhmuc == i.madanhmuc ? "selected" : "")>@i.tendanhmuc</option>
+                                                    if (monAn.madanhmuc == i.madanhmuc)
+                                                    {
+                                                        <option value="@i.madanhmuc" selected="selected">@i.tendanhmuc</option>
+                                                    }
+                                                    else
+                                                    {
+                                                        <option value="@i.madanhmuc">@i.tendanhmuc</option>
+                                                    }
                                                 }
                                             </select>
                                         </div>

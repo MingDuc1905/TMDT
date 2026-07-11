@@ -144,6 +144,20 @@ FastShipTracking.createHubConnection = function(orderId, callbacks) {
         });
     }
 
+    // ── ═══ E-DELIVERY: QR Scan confirmed (Merchant scanned) ═══ ──
+    if (callbacks.onDeliveryScanned) {
+        conn.on('orderDeliveryScanned', function(madh, trangthai, timestamp) {
+            callbacks.onDeliveryScanned(madh, trangthai, timestamp);
+        });
+    }
+
+    // ── ═══ E-DELIVERY: Admin bypass ═══ ──
+    if (callbacks.onDeliveryBypassed) {
+        conn.on('deliveryBypassed', function(madh, status, timestamp) {
+            callbacks.onDeliveryBypassed(madh, status, timestamp);
+        });
+    }
+
     // ── Connection state ──
     conn.onreconnecting(function() {
         console.log('SignalR reconnecting...');

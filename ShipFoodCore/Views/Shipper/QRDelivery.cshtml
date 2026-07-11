@@ -1,0 +1,266 @@
+@{
+    ViewBag.Title = "QR Giao hàng";
+    Layout = "~/Views/Shared/_LayoutPageShipper.cshtml";
+    var orders = ViewBag.MyOrders as List<ShipFood.Models.tbDonHang> ?? new();
+    var activeTab = ViewBag.ActiveTab as string ?? "pending";
+}
+
+<style>
+    /* ── QR Delivery Page ── */
+    .qr-page { padding: 24px; max-width: 1200px; margin: 0 auto; }
+    @@media (max-width: 768px) { .qr-page { padding: 12px; } }
+
+    .qr-page h2 { font-size: 22px; font-weight: 700; color: #1a1a2e; margin: 0 0 20px; display: flex; align-items: center; gap: 10px; }
+
+    /* ── QR Tab Filters ── */
+    .qr-tabs { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
+    .qr-tab-btn {
+        padding: 10px 24px; border-radius: 12px; border: 1.5px solid #e5e7eb;
+        background: #fff; font-size: 13px; font-weight: 600; color: #6b7280;
+        cursor: pointer; transition: all .2s;
+    }
+    .qr-tab-btn.active { background: #3CB815; color: #fff; border-color: #3CB815; box-shadow: 0 4px 12px rgba(60,184,21,.25); }
+    .qr-tab-btn:hover:not(.active) { border-color: #3CB815; color: #3CB815; }
+
+    /* ── QR Order Card ── */
+    .qr-order-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 20px; }
+    @@media (max-width: 480px) { .qr-order-grid { grid-template-columns: 1fr; } }
+
+    .qr-order-card {
+        background: #fff; border-radius: 18px; padding: 24px;
+        box-shadow: 0 4px 20px rgba(0,0,0,.06);
+        border: 1px solid #f0f0f0;
+        transition: all .3s ease;
+        position: relative; overflow: hidden;
+    }
+    .qr-order-card:hover { box-shadow: 0 8px 30px rgba(0,0,0,.1); transform: translateY(-2px); }
+    /* Glassmorphism overlay */
+    .qr-order-card::before {
+        content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+        background: linear-gradient(90deg, #3CB815, #20c997);
+    }
+
+    .qr-order-card .card-header {
+        display: flex; justify-content: space-between; align-items: center;
+        margin-bottom: 16px; padding-bottom: 14px;
+        border-bottom: 1px solid #f3f4f6;
+    }
+    .qr-order-card .order-id { font-size: 18px; font-weight: 700; color: #1a1a2e; }
+    .qr-order-card .order-status-badge {
+        padding: 4px 14px; border-radius: 20px; font-size: 11px; font-weight: 600;
+    }
+    .status-delivered { background: #f0fdf4; color: #16a34a; }
+    .status-pending { background: #fefce8; color: #d97706; }
+    .status-inprogress { background: #dbeafe; color: #2563eb; }
+
+    .qr-order-card .order-details { font-size: 13px; color: #4b5563; line-height: 1.8; }
+    .qr-order-card .order-details strong { color: #1a1a2e; }
+
+    /* ── QR Code Container ── */
+    .qr-container {
+        display: flex; justify-content: center; align-items: center;
+        margin: 16px 0; padding: 16px;
+        background: linear-gradient(135deg, #f8f9fa, #fff);
+        border-radius: 14px; border: 2px dashed #e5e7eb;
+        min-height: 160px;
+    }
+    .qr-container img {
+        width: 140px; height: 140px; border-radius: 12px;
+        transition: transform .3s;
+    }
+    .qr-container img:hover { transform: scale(1.05); }
+    .qr-container .qr-fallback {
+        text-align: center; color: #9ca3af; font-size: 13px;
+    }
+    .qr-container .qr-fallback .icon { font-size: 36px; margin-bottom: 8px; }
+    /* Shimmer loading */
+    .qr-shimmer {
+        width: 140px; height: 140px; border-radius: 12px;
+        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.5s infinite;
+    }
+    @@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+    .qr-order-card .card-actions { margin-top: 16px; padding-top: 14px; border-top: 1px solid #f3f4f6; }
+    .qr-order-card .card-actions .btn {
+        width: 100%; padding: 10px; border-radius: 10px;
+        font-size: 13px; font-weight: 600; text-align: center;
+        transition: all .2s; border: none; cursor: pointer;
+    }
+    .qr-order-card .card-actions .btn-primary { background: #3CB815; color: #fff; }
+    .qr-order-card .card-actions .btn-primary:hover { background: #34a013; }
+    .qr-order-card .card-actions .btn-outline { background: #f3f4f6; color: #4b5563; border: 1px solid #e5e7eb; }
+    .qr-order-card .card-actions .btn-outline:hover { background: #e5e7eb; }
+
+    /* ── Empty State ── */
+    .qr-empty { text-align: center; padding: 60px 20px; color: #9ca3af; }
+    .qr-empty .icon { font-size: 56px; margin-bottom: 12px; }
+</style>
+
+<div class="qr-page">
+    <h2>
+        <i class="fas fa-qrcode" style="color:#3CB815;"></i>
+        Mã QR Giao hàng
+    </h2>
+
+    <!-- Tab Filter -->
+    <div class="qr-tabs">
+        <button class="qr-tab-btn @(activeTab == "pending" ? "active" : "")" data-tab="pending">
+            <i class="fas fa-hourglass-half"></i> Chờ giao
+        </button>
+        <button class="qr-tab-btn @(activeTab == "delivering" ? "active" : "")" data-tab="delivering">
+            <i class="fas fa-truck"></i> Đang giao
+        </button>
+        <button class="qr-tab-btn @(activeTab == "completed" ? "active" : "")" data-tab="completed">
+            <i class="fas fa-check-circle"></i> Hoàn thành
+        </button>
+    </div>
+
+    <!-- Pending Orders (cần scan) -->
+    <div class="qr-tab-content" data-tab="pending">
+        @{
+            var pendingOrders = orders.Where(o => o.trangthai == "Đã xác nhận" || o.trangthai == "Chờ shipper lấy hàng").ToList();
+        }
+        @if (pendingOrders.Any())
+        {
+            <div class="qr-order-grid">
+                @foreach (var order in pendingOrders)
+                {
+                    <div class="qr-order-card" data-order-id="@order.madh">
+                        <div class="card-header">
+                            <span class="order-id">#@order.madh</span>
+                            <span class="order-status-badge status-pending">@order.trangthai</span>
+                        </div>
+                        <div class="order-details">
+                            <div><i class="fas fa-store me-2" style="color:#3CB815;width:16px;"></i> <strong>@(order.tbQuanAn?.tenquanan ?? "N/A")</strong></div>
+                            <div><i class="fas fa-map-pin me-2" style="color:#ef4444;width:16px;"></i> @(order.tbThongTinDatHang?.diachi ?? "N/A")</div>
+                            <div><i class="fas fa-money-bill-wave me-2" style="color:#f59e0b;width:16px;"></i> <strong>@order.tongtien?.ToString("N0")đ</strong></div>
+                        </div>
+                        <!-- QR Code -->
+                        <div class="qr-container">
+                            <div class="qr-shimmer" id="qr-shimmer-@order.madh"></div>
+                            <img src="@Url.Action("GenerateQR", "EDelivery", new { orderId = order.madh })"
+                                 alt="QR #@order.madh"
+                                 id="qr-img-@order.madh"
+                                 style="display:none;"
+                                 onload="document.getElementById('qr-shimmer-@order.madh').style.display='none';this.style.display='block'"
+                                 onerror="document.getElementById('qr-shimmer-@order.madh').outerHTML='<div class=\\'qr-fallback\\'><div class=\\'icon\\'>📱</div><p>Không thể tải QR</p><small style=\\'color:#bbb;\\'>Vui lòng thử lại</small></div>'"
+                                 crossorigin="anonymous" />
+                        </div>
+                        <div class="card-actions">
+                            <a href="@Url.Action("OrderDetail", "Shipper", new { id = order.madh })" class="btn btn-primary">
+                                <i class="fas fa-eye"></i> Xem chi tiết
+                            </a>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="qr-empty">
+                <div class="icon">📭</div>
+                <p>Không có đơn hàng nào cần quét mã</p>
+                <small style="color:#bbb;">Khi nhận đơn mới, QR sẽ hiển thị tại đây</small>
+            </div>
+        }
+    </div>
+
+    <!-- Delivering Orders -->
+    <div class="qr-tab-content" data-tab="delivering" style="display:none;">
+        @{
+            var deliveringOrders = orders.Where(o => o.trangthai == "Đã lấy" || o.trangthai == "Đang giao").ToList();
+        }
+        @if (deliveringOrders.Any())
+        {
+            <div class="qr-order-grid">
+                @foreach (var order in deliveringOrders)
+                {
+                    <div class="qr-order-card">
+                        <div class="card-header">
+                            <span class="order-id">#@order.madh</span>
+                            <span class="order-status-badge status-inprogress">@order.trangthai</span>
+                        </div>
+                        <div class="order-details">
+                            <div><i class="fas fa-store me-2" style="color:#3CB815;width:16px;"></i> <strong>@(order.tbQuanAn?.tenquanan ?? "N/A")</strong></div>
+                            <div><i class="fas fa-map-pin me-2" style="color:#ef4444;width:16px;"></i> @(order.tbThongTinDatHang?.diachi ?? "N/A")</div>
+                            <div><i class="fas fa-money-bill-wave me-2" style="color:#f59e0b;width:16px;"></i> <strong>@order.tongtien?.ToString("N0")đ</strong></div>
+                        </div>
+                        <div class="card-actions">
+                            <a href="@Url.Action("OrderDetail", "Shipper", new { id = order.madh })" class="btn btn-outline">
+                                <i class="fas fa-info-circle"></i> Chi tiết
+                            </a>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="qr-empty">
+                <div class="icon">🚚</div>
+                <p>Không có đơn nào đang giao</p>
+            </div>
+        }
+    </div>
+
+    <!-- Completed Orders -->
+    <div class="qr-tab-content" data-tab="completed" style="display:none;">
+        @{
+            var completedOrders = orders.Where(o => o.trangthai == "Hoàn thành").ToList();
+        }
+        @if (completedOrders.Any())
+        {
+            <div class="qr-order-grid">
+                @foreach (var order in completedOrders)
+                {
+                    <div class="qr-order-card" style="opacity:0.75;">
+                        <div class="card-header">
+                            <span class="order-id">#@order.madh</span>
+                            <span class="order-status-badge status-delivered">✅ Hoàn thành</span>
+                        </div>
+                        <div class="order-details">
+                            <div><i class="fas fa-store me-2" style="color:#3CB815;width:16px;"></i> <strong>@(order.tbQuanAn?.tenquanan ?? "N/A")</strong></div>
+                            <div><i class="fas fa-calendar me-2" style="color:#6b7280;width:16px;"></i> @order.ngaythanhtoan?.ToString("dd/MM HH:mm")</div>
+                            <div><i class="fas fa-money-bill-wave me-2" style="color:#f59e0b;width:16px;"></i> Ship: <strong>@order.phiship?.ToString("N0")đ</strong></div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="qr-empty">
+                <div class="icon">📦</div>
+                <p>Chưa có đơn hoàn thành</p>
+            </div>
+        }
+    </div>
+</div>
+
+<script>
+    // ── Tab Switching ──
+    document.querySelectorAll('.qr-tab-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            var tab = this.dataset.tab;
+            document.querySelectorAll('.qr-tab-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            document.querySelectorAll('.qr-tab-content').forEach(c => c.style.display = 'none');
+            document.querySelector('.qr-tab-content[data-tab="' + tab + '"]').style.display = '';
+        });
+    });
+
+    // ── SignalR: Real-time refresh ──
+    $(document).ready(function() {
+        var conn = new signalR.HubConnectionBuilder()
+            .withUrl('/nhantin').withAutomaticReconnect().build();
+
+        conn.on('orderDeliveryScanned', function(orderId) {
+            // Reload to update state
+            setTimeout(function() { location.reload(); }, 1000);
+        });
+
+        conn.start().catch(function(err) { console.error('SignalR:', err); });
+    });
+</script>

@@ -1,0 +1,368 @@
+@model List<ShipFood.Models.tbDonHang>
+@{
+    ViewBag.Title = "Giám sát giao hàng";
+    Layout = "~/Views/Shared/_LayoutPageAmin.cshtml";
+    var user = Context.Session.GetString("user");
+}
+
+<style>
+    /* ── Delivery Logs Matrix: No vertical borders, only thin horizontal ── */
+    .delivery-wrapper { padding: 24px; max-width: 1400px; margin: 0 auto; }
+    @@media (max-width: 768px) { .delivery-wrapper { padding: 12px; } }
+
+    .delivery-wrapper .page-header {
+        display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
+        margin-bottom: 20px;
+    }
+    .delivery-wrapper .page-header h2 {
+        font-size: 22px; font-weight: 700; color: #1a1a2e; margin: 0;
+        display: flex; align-items: center; gap: 10px;
+    }
+
+    /* ── Stat Cards ── */
+    .delivery-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 20px; }
+    .stat-card {
+        background: #fff; border-radius: 14px; padding: 16px;
+        border: 1px solid #f0f0f0; text-align: center;
+        transition: all .2s;
+    }
+    .stat-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.06); transform: translateY(-1px); }
+    .stat-card .stat-icon { font-size: 24px; margin-bottom: 6px; }
+    .stat-card .stat-value { font-size: 24px; font-weight: 700; color: #1a1a2e; margin: 0; }
+    .stat-card .stat-label { font-size: 11px; color: #6b7280; text-transform: uppercase; letter-spacing: .5px; }
+
+    /* ── Table: No vertical borders, thin horizontal lines ── */
+    .delivery-table { width: 100%; border-collapse: collapse; }
+    .delivery-table thead th {
+        padding: 14px 12px; font-size: 12px; font-weight: 600; color: #6b7280;
+        text-transform: uppercase; letter-spacing: .5px;
+        border: none; border-bottom: 1.5px solid #e5e7eb;
+        text-align: left; white-space: nowrap;
+    }
+    .delivery-table tbody tr { transition: background .15s; }
+    .delivery-table tbody tr:hover { background: #f8f9fa; }
+    .delivery-table tbody td {
+        padding: 14px 12px; font-size: 13px; color: #1a1a2e;
+        border: none; border-bottom: 1px solid #f3f4f6;
+        vertical-align: middle;
+    }
+    .delivery-table tbody tr:last-child td { border-bottom: none; }
+
+    /* ── Pastel Status Badges ── */
+    .pastel-badge {
+        display: inline-flex; align-items: center; gap: 4px;
+        padding: 4px 12px; border-radius: 20px;
+        font-size: 11px; font-weight: 600; white-space: nowrap;
+    }
+    .pastel-badge.pending { background: #fefce8; color: #92400e; }
+    .pastel-badge.picked { background: #dbeafe; color: #1e40af; }
+    .pastel-badge.delivering { background: #e0e7ff; color: #4338ca; }
+    .pastel-badge.completed { background: #f0fdf4; color: #16a34a; }
+    .pastel-badge.cancelled { background: #fef2f2; color: #dc2626; }
+    .pastel-badge.scanned { background: #f5f3ff; color: #7c3aed; }
+
+    /* ── Bypass Button ── */
+    .btn-bypass {
+        padding: 6px 14px; border-radius: 8px; font-size: 11px; font-weight: 600;
+        border: 1.5px solid #f59e0b; background: #fffbeb; color: #92400e;
+        cursor: pointer; transition: all .2s;
+    }
+    .btn-bypass:hover { background: #fef3c7; border-color: #d97706; }
+
+    /* ── Confirm Modal ── */
+    .bypass-modal-backdrop {
+        position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 9998;
+        display: none; align-items: center; justify-content: center;
+        backdrop-filter: blur(4px);
+    }
+    .bypass-modal-backdrop.show { display: flex; }
+    .bypass-modal {
+        background: #fff; border-radius: 20px; padding: 32px; max-width: 440px; width: 90%;
+        box-shadow: 0 20px 60px rgba(0,0,0,.15); animation: modalIn .25s ease;
+    }
+    @@keyframes modalIn { 0% { transform: scale(.95); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+    .bypass-modal h3 { font-size: 18px; font-weight: 700; margin: 0 0 8px; display: flex; align-items: center; gap: 10px; }
+    .bypass-modal p { color: #6b7280; font-size: 14px; margin: 0 0 16px; }
+    .bypass-modal .status-select {
+        width: 100%; padding: 10px 14px; border-radius: 10px;
+        border: 1.5px solid #e5e7eb; font-size: 14px; margin-bottom: 16px;
+        background: #fff;
+    }
+    .bypass-modal .modal-actions { display: flex; gap: 10px; }
+    .bypass-modal .modal-actions .btn {
+        flex: 1; padding: 10px; border-radius: 10px; font-size: 13px; font-weight: 600;
+        text-align: center; cursor: pointer; border: none; transition: all .2s;
+    }
+    .bypass-modal .btn-cancel { background: #f3f4f6; color: #4b5563; }
+    .bypass-modal .btn-cancel:hover { background: #e5e7eb; }
+    .bypass-modal .btn-confirm { background: #f59e0b; color: #fff; }
+    .bypass-modal .btn-confirm:hover { background: #d97706; }
+    .bypass-modal .btn-confirm:disabled { opacity: .5; cursor: not-allowed; }
+
+    @@media (max-width: 768px) {
+        .delivery-table thead { position: absolute; top: -9999px; left: -9999px; }
+        .delivery-table tbody td {
+            display: flex; align-items: center; padding: 8px 12px !important;
+            border-bottom: none !important;
+        }
+        .delivery-table tbody td::before {
+            content: attr(data-label); font-weight: 600; color: #6b7280;
+            width: 100px; flex-shrink: 0; font-size: 11px;
+        }
+        .delivery-table tbody tr {
+            display: block; background: #fff; border-radius: 12px;
+            margin-bottom: 10px; padding: 8px;
+            border: 1px solid #f0f0f0;
+        }
+    }
+</style>
+
+<div class="delivery-wrapper">
+    <div class="page-header">
+        <h2>
+            <i class="fas fa-qrcode" style="color:#7c3aed;"></i>
+            Giám sát vận đơn điện tử
+        </h2>
+        <a href="javascript:location.reload()" class="btn" style="background:#f3f4f6;color:#4b5563;border:1px solid #e5e7eb;border-radius:10px;padding:8px 20px;font-size:13px;">
+            <i class="fas fa-sync-alt"></i> Làm mới
+        </a>
+    </div>
+
+    <!-- Stats Overview -->
+    @{
+        var totalOrders = Model.Count;
+        var scannedOrders = Model.Count(o => o.trangthai == "Đã lấy");
+        var deliveringOrders = Model.Count(o => o.trangthai == "Đang giao" || o.trangthai == "Chờ shipper lấy hàng");
+        var completedOrders = Model.Count(o => o.trangthai == "Hoàn thành");
+        var pendingScan = Model.Count(o => o.trangthai == "Đã xác nhận" || o.trangthai == "Chờ shipper lấy hàng");
+    }
+    <div class="delivery-stats">
+        <div class="stat-card"><div class="stat-icon">📋</div><p class="stat-value">@totalOrders</p><p class="stat-label">Tổng đơn</p></div>
+        <div class="stat-card"><div class="stat-icon">📸</div><p class="stat-value">@scannedOrders</p><p class="stat-label">Đã quét</p></div>
+        <div class="stat-card"><div class="stat-icon">🚚</div><p class="stat-value">@deliveringOrders</p><p class="stat-label">Đang giao</p></div>
+        <div class="stat-card"><div class="stat-icon">✅</div><p class="stat-value">@completedOrders</p><p class="stat-label">Hoàn thành</p></div>
+        <div class="stat-card" style="border-color:#f59e0b;"><div class="stat-icon">⏳</div><p class="stat-value">@pendingScan</p><p class="stat-label">Chờ quét</p></div>
+    </div>
+
+    <!-- Delivery Logs Table -->
+    <div class="card" style="border-radius:16px;border:1px solid #f0f0f0;box-shadow:0 2px 12px rgba(0,0,0,.04);">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="delivery-table">
+                    <thead>
+                        <tr>
+                            <th>Đơn hàng</th>
+                            <th>Quán ăn</th>
+                            <th>Khách hàng</th>
+                            <th>Shipper</th>
+                            <th>Trạng thái</th>
+                            <th>Ngày</th>
+                            <th style="text-align:center;">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach(var item in Model)
+                        {
+                            var isPending = item.trangthai == "Đã xác nhận" || item.trangthai == "Chờ shipper lấy hàng";
+                            var isScannable = isPending;
+                            var badgeClass = "pending";
+                            if (item.trangthai == "Đã lấy") badgeClass = "scanned";
+                            else if (item.trangthai == "Đang giao") badgeClass = "delivering";
+                            else if (item.trangthai == "Hoàn thành") badgeClass = "completed";
+                            else if (item.trangthai == "Đã hủy") badgeClass = "cancelled";
+                            else if (item.trangthai == "Đã xác nhận" || item.trangthai == "Chờ shipper lấy hàng") badgeClass = "pending";
+
+                            <tr id="order-row-@item.madh">
+                                <td data-label="Đơn hàng"><strong style="color:#1a1a2e;">#@item.madh</strong></td>
+                                <td data-label="Quán ăn">@(item.tbQuanAn?.tenquanan ?? "N/A")</td>
+                                <td data-label="Khách hàng">@(item.tbThongTinDatHang?.tennguoinhan ?? "N/A")</td>
+                                <td data-label="Shipper">@(item.tbShipper?.tenshipper ?? "—")</td>
+                                <td data-label="Trạng thái">
+                                    <span class="pastel-badge @badgeClass">
+                                        @if (item.trangthai == "Đã lấy") { <text>📸 @item.trangthai</text> }
+                                        else if (item.trangthai == "Hoàn thành") { <text>✅ @item.trangthai</text> }
+                                        else if (item.trangthai == "Đã hủy") { <text>❌ @item.trangthai</text> }
+                                        else if (item.trangthai == "Đang giao") { <text>🚚 @item.trangthai</text> }
+                                        else { <text>⏳ @item.trangthai</text> }
+                                    </span>
+                                </td>
+                                <td data-label="Ngày" style="color:#6b7280;font-size:12px;">@item.ngaydathang?.ToString("dd/MM HH:mm")</td>
+                                <td data-label="Thao tác" style="text-align:center;">
+                                    @if (isScannable || item.trangthai == "Đã lấy" || item.trangthai == "Đang giao")
+                                    {
+                                        <div style="display:flex;gap:6px;justify-content:center;">
+                                            <button class="btn-bypass" onclick="openBypassModal(@item.madh, '@(item.trangthai ?? "Đã xác nhận")')">
+                                                <i class="fas fa-hard-hat"></i> XỬ LÝ THỦ CÔNG
+                                            </button>
+                                            <a href="@Url.Action("OrderDetail","Admin", new { id = item.madh })" class="btn" style="padding:6px 10px;border-radius:8px;font-size:11px;border:1px solid #e5e7eb;background:#fff;">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <span style="color:#9ca3af;font-size:11px;">—</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div style="text-align:center;padding:60px 20px;color:#9ca3af;">
+            <div style="font-size:48px;margin-bottom:12px;">📭</div>
+            <p>Chưa có đơn hàng nào</p>
+        </div>
+    }
+</div>
+
+<!-- Bypass Confirmation Modal -->
+<div class="bypass-modal-backdrop" id="bypassModal">
+    <div class="bypass-modal">
+        <h3>
+            <i class="fas fa-hard-hat" style="color:#f59e0b;"></i>
+            Xử lý thủ công
+        </h3>
+        <p id="bypassModalDesc">Bạn có chắc chắn muốn chuyển trạng thái đơn hàng <strong>#<span id="bypassOrderId"></span></strong>?</p>
+
+        <label style="font-size:12px;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">Chuyển sang trạng thái:</label>
+        <select class="status-select" id="bypassStatusSelect">
+            <option value="Đã lấy">📸 Đã lấy hàng (scan)</option>
+            <option value="Đang giao">🚚 Đang giao</option>
+            <option value="Hoàn thành">✅ Hoàn thành</option>
+            <option value="Đã hủy">❌ Đã hủy</option>
+        </select>
+
+        <div id="bypassResult" style="margin-bottom:12px;font-size:13px;display:none;padding:10px;border-radius:8px;"></div>
+
+        <div class="modal-actions">
+            <button class="btn btn-cancel" onclick="closeBypassModal()">Hủy</button>
+            <button class="btn btn-confirm" id="btnConfirmBypass" onclick="confirmBypass()">
+                <i class="fas fa-check"></i> Xác nhận
+            </button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+<script>
+    var _bypassOrderId = 0;
+
+    function openBypassModal(orderId, currentStatus) {
+        _bypassOrderId = orderId;
+        document.getElementById('bypassOrderId').textContent = orderId;
+        document.getElementById('bypassModalDesc').innerHTML = 'Bạn có chắc chắn muốn chuyển trạng thái đơn hàng <strong>#' + orderId + '</strong>? ' +
+            '<br><span style="color:#6b7280;font-size:12px;">Hiện tại: <strong>' + currentStatus + '</strong></span>';
+        document.getElementById('bypassResult').style.display = 'none';
+        document.getElementById('bypassResult').innerHTML = '';
+        document.getElementById('btnConfirmBypass').disabled = false;
+        document.getElementById('btnConfirmBypass').innerHTML = '<i class="fas fa-check"></i> Xác nhận';
+        document.getElementById('bypassModal').classList.add('show');
+    }
+
+    function closeBypassModal() {
+        document.getElementById('bypassModal').classList.remove('show');
+    }
+
+    function confirmBypass() {
+        var targetStatus = document.getElementById('bypassStatusSelect').value;
+        var btn = document.getElementById('btnConfirmBypass');
+        var resultDiv = document.getElementById('bypassResult');
+
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Đang xử lý...';
+        resultDiv.style.display = 'none';
+
+        $.ajax({
+            url: '/edelivery/bypass',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ orderId: _bypassOrderId, targetStatus: targetStatus }),
+            success: function(res) {
+                if (res.success) {
+                    resultDiv.style.display = 'block';
+                    resultDiv.innerHTML = '<span style="color:#16a34a;">✅ ' + res.message + '</span>';
+                    resultDiv.style.background = '#f0fdf4';
+
+                    // Update the row
+                    var row = document.getElementById('order-row-' + _bypassOrderId);
+                    if (row) {
+                        // Update status cell
+                        var statusCell = row.querySelector('td[data-label="Trạng thái"]');
+                        if (statusCell) {
+                            statusCell.innerHTML = '<span class="pastel-badge ' +
+                                (targetStatus === 'Hoàn thành' ? 'completed' : targetStatus === 'Đã lấy' ? 'scanned' : targetStatus === 'Đang giao' ? 'delivering' : 'pending') +
+                                '">' + targetStatus + '</span>';
+                        }
+                        // Disable bypass button
+                        var actionCell = row.querySelector('td[data-label="Thao tác"]');
+                        if (actionCell) {
+                            actionCell.innerHTML = '<span style="color:#9ca3af;font-size:11px;">✅ Đã xử lý</span>';
+                        }
+                    }
+
+                    btn.innerHTML = '<i class="fas fa-check"></i> Hoàn tất';
+                    setTimeout(closeBypassModal, 1500);
+                } else {
+                    resultDiv.style.display = 'block';
+                    resultDiv.innerHTML = '<span style="color:#dc2626;">❌ ' + res.message + '</span>';
+                    resultDiv.style.background = '#fef2f2';
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-check"></i> Xác nhận';
+                }
+            },
+            error: function() {
+                resultDiv.style.display = 'block';
+                resultDiv.innerHTML = '<span style="color:#dc2626;">❌ Lỗi kết nối máy chủ</span>';
+                resultDiv.style.background = '#fef2f2';
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-check"></i> Xác nhận';
+            }
+        });
+    }
+
+    // Close modal on backdrop click
+    document.getElementById('bypassModal').addEventListener('click', function(e) {
+        if (e.target === this) closeBypassModal();
+    });
+
+    // ── SignalR: Real-time updates ──
+    $(document).ready(function() {
+        var conn = new signalR.HubConnectionBuilder()
+            .withUrl('/nhantin').withAutomaticReconnect().build();
+
+        conn.on('deliveryScanEvent', function(data) {
+            // Animate the row
+            var row = document.getElementById('order-row-' + data.orderId);
+            if (row) {
+                row.style.background = '#f0fdf4';
+                setTimeout(function() { row.style.background = ''; }, 3000);
+            }
+            // Show toast
+            var toast = $(
+                '<div style="position:fixed;top:80px;right:20px;z-index:9999;background:#7c3aed;color:#fff;padding:14px 20px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.15);font-size:13px;max-width:380px;animation:slideIn .3s ease;">'
+                + '<div><strong>📸 QR Scan!</strong></div>'
+                + '<div>Đơn #' + data.orderId + ' — ' + (data.restaurantName || '') + '</div>'
+                + '<div style="font-size:11px;opacity:.8;">Shipper: ' + (data.shipperName || 'N/A') + '</div>'
+                + '</div>'
+            );
+            $('body').append(toast);
+            setTimeout(function() { toast.fadeOut(400, function() { $(this).remove(); }); }, 4000);
+        });
+
+        conn.on('deliveryBypassed', function(orderId, status) {
+            var row = document.getElementById('order-row-' + orderId);
+            if (row) {
+                row.style.background = '#fffbeb';
+                setTimeout(function() { row.style.background = ''; }, 3000);
+            }
+        });
+
+        conn.start().catch(function(err) { console.error('SignalR:', err); });
+    });
+</script>

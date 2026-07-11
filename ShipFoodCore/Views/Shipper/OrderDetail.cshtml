@@ -7,6 +7,14 @@
 @{ List<ShipFood.Models.tbChiTietDonHang> listctdh = ViewBag.listctdh;
     ShipFood.Models.tbDonHang dh = ViewBag.dh;
 }
+
+<style>
+    @@keyframes shimmer {
+        0% { background-position: -200% 0; }
+        100% { background-position: 200% 0; }
+    }
+</style>
+
 <div class="content-body">
     <div class="container-fluid">
         <div class="form-head d-flex mb-3 align-items-start">
@@ -125,32 +133,69 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="col-xl-12">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="full-map-area mb-4" id="live-map" style="height:300px; background:#f0f0f0; border-radius:12px;">
-                                    <!-- Leaflet map will be initialized here -->
-                                </div>
-                                <div class="d-flex mx-0 justify-content-between">
-                                    <div class="iconbox">
-                                        <i class="fas fa-user"></i>
-                                        <p class="my-0 text-black">@dh.tbThongTinDatHang.tennguoinhan</p>
-                                    </div>
-                                    <div class="iconbox">
-                                        <i class="fas fa-phone"></i>
-                                        <p>@dh.tbThongTinDatHang.sdt</p>
-                                    </div>
-                                    <div class="iconbox">
-                                        <a class="" href="@Url.Action("NhanTin", "Shipper")">
-                                            <i class="fab fa-facebook-messenger"></i>
-                                            <p>Chat ngay!</p>
-                                        </a>
+                    </div>                            <!-- ═══ QR CODE CARD: E-Delivery Glassmorphism ═══ -->
+                            <div class="col-xl-12">
+                                <div class="card" style="border-radius:18px;overflow:hidden;border:1px solid rgba(255,255,255,.3);background:linear-gradient(135deg,rgba(255,255,255,.9),rgba(255,255,255,.7));backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 8px 32px rgba(0,0,0,.08);">
+                                    <div class="card-body text-center" style="padding:24px;">
+                                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
+                                            <div style="display:flex;align-items:center;gap:8px;">
+                                                <i class="fas fa-qrcode" style="color:#3CB815;font-size:18px;"></i>
+                                                <h5 style="font-weight:700;margin:0;font-size:15px;color:#1a1a2e;">Mã QR giao hàng</h5>
+                                            </div>
+                                            <span style="font-size:11px;color:#6b7280;background:#f3f4f6;padding:4px 12px;border-radius:20px;">
+                                                Đưa mã cho quán quét
+                                            </span>
+                                        </div>
+
+                                        <div style="display:flex;justify-content:center;align-items:center;padding:16px;background:linear-gradient(135deg,#f8f9fa,#fff);border-radius:16px;border:2px dashed #e5e7eb;min-height:160px;">
+                                            <!-- Shimmer loading -->
+                                            <div class="qr-shimmer-box" id="qr-shimmer-@dh.madh" style="width:140px;height:140px;border-radius:12px;background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;"></div>
+                                            <img src="@Url.Action("GenerateQR", "EDelivery", new { orderId = dh.madh })"
+                                                 alt="QR #@dh.madh"
+                                                 style="width:140px;height:140px;border-radius:12px;display:none;transition:transform .3s;"
+                                                 id="qr-img-@dh.madh"
+                                                 onload="document.getElementById('qr-shimmer-@dh.madh').style.display='none';this.style.display='block'"
+                                                 onerror="document.getElementById('qr-shimmer-@dh.madh').outerHTML='<div style=\'text-align:center;padding:20px;color:#9ca3af;\'><div style=\'font-size:36px;margin-bottom:8px;\'>📱</div><p style=\'font-size:13px;\'>Không thể tải mã QR</p><small style=\'color:#bbb;font-size:11px;\'>Vui lòng thử lại sau</small></div>'"
+                                                 crossorigin="anonymous" />
+                                        </div>
+
+                                        <div style="margin-top:12px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+                                            <a href="@Url.Action("GenerateQR","EDelivery", new { orderId = dh.madh })" target="_blank" class="btn btn-sm" style="background:#3CB815;color:#fff;border-radius:8px;padding:6px 16px;font-size:12px;">
+                                                <i class="fas fa-download"></i> Tải QR
+                                            </a>
+                                            <a href="@Url.Action("QRDelivery","Shipper")" class="btn btn-sm" style="background:#f3f4f6;color:#4b5563;border:1px solid #e5e7eb;border-radius:8px;padding:6px 16px;font-size:12px;">
+                                                <i class="fas fa-qrcode"></i> DS QR
+                                            </a>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
+
+                            <div class="col-xl-12">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div class="full-map-area mb-4" id="live-map" style="height:300px; background:#f0f0f0; border-radius:12px;">
+                                            <!-- Leaflet map will be initialized here -->
+                                        </div>
+                                        <div class="d-flex mx-0 justify-content-between">
+                                            <div class="iconbox">
+                                                <i class="fas fa-user"></i>
+                                                <p class="my-0 text-black">@dh.tbThongTinDatHang.tennguoinhan</p>
+                                            </div>
+                                            <div class="iconbox">
+                                                <i class="fas fa-phone"></i>
+                                                <p>@dh.tbThongTinDatHang.sdt</p>
+                                            </div>
+                                            <div class="iconbox">
+                                                <a class="" href="@Url.Action("NhanTin", "Shipper")">
+                                                    <i class="fab fa-facebook-messenger"></i>
+                                                    <p>Chat ngay!</p>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                 </div>
             </div>
             <div class="col-xl-12">

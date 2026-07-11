@@ -1,0 +1,151 @@
+@{
+    ViewBag.Title = "Quét mã giao hàng";
+    Layout = "~/Views/Shared/_LayoutPageHome.cshtml";
+    var error = ViewBag.Error as string;
+    var order = ViewBag.Order as ShipFood.Models.tbDonHang;
+    var token = ViewBag.Token as string;
+}
+
+<style>
+    .scan-result-wrapper {
+        min-height: 80vh; display: flex; align-items: center; justify-content: center;
+        padding: 24px; background: linear-gradient(135deg, #f0fff0 0%, #e8f5e9 100%);
+        margin-top: 80px;
+    }
+    .scan-card {
+        background: #fff; border-radius: 24px; padding: 40px 32px;
+        max-width: 460px; width: 100%; text-align: center;
+        box-shadow: 0 8px 40px rgba(0,0,0,.08);
+        animation: fadeIn .4s ease;
+    }
+    @@keyframes fadeIn { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: translateY(0); } }
+
+    .scan-card .status-icon { font-size: 48px; margin-bottom: 16px; }
+    .scan-card h2 { font-size: 22px; font-weight: 700; color: #1a1a2e; margin: 0 0 8px; }
+    .scan-card p { color: #6b7280; font-size: 14px; margin: 0 0 20px; line-height: 1.6; }
+
+    .scan-details { text-align: left; background: #f8f9fa; border-radius: 14px; padding: 16px; margin-bottom: 20px; }
+    .scan-details .row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 13px; }
+    .scan-details .label { color: #6b7280; }
+    .scan-details .value { font-weight: 600; color: #1a1a2e; }
+
+    .scan-btn {
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 12px 32px; border-radius: 12px;
+        font-size: 15px; font-weight: 600; cursor: pointer;
+        border: none; transition: all .2s;
+    }
+    .scan-btn.confirm { background: #3CB815; color: #fff; }
+    .scan-btn.confirm:hover { background: #34a013; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(60,184,21,.3); }
+    .scan-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+    .scan-toast {
+        position: fixed; top: 100px; right: 20px; z-index: 9999;
+        padding: 14px 20px; border-radius: 12px; color: #fff;
+        font-size: 13px; font-weight: 600; max-width: 360px;
+        box-shadow: 0 4px 20px rgba(0,0,0,.15);
+        animation: slideInRight .3s ease;
+    }
+    @@keyframes slideInRight { 0% { transform: translateX(100px); opacity: 0; } 100% { transform: translateX(0); opacity: 1; } }
+</style>
+
+<div class="scan-result-wrapper">
+    <div class="scan-card">
+        @if (!string.IsNullOrEmpty(error))
+        {
+            <div class="status-icon">⚠️</div>
+            <h2>Mã QR không hợp lệ</h2>
+            <p>@error</p>
+            <a href="javascript:history.back()" class="scan-btn" style="background:#f3f4f6;color:#4b5563;text-decoration:none;">
+                <i class="fas fa-arrow-left"></i> Quay lại
+            </a>
+        }
+        else if (order != null)
+        {
+            <div class="status-icon">📋</div>
+            <h2>Xác nhận giao hàng</h2>
+            <p>Vui lòng kiểm tra thông tin đơn hàng trước khi xác nhận</p>
+
+            <div class="scan-details">
+                <div class="row"><span class="label">Mã đơn hàng</span><span class="value">#@order.madh</span></div>
+                <div class="row"><span class="label">Quán ăn</span><span class="value">@(order.tbQuanAn?.tenquanan ?? "N/A")</span></div>
+                <div class="row"><span class="label">Khách hàng</span><span class="value">@(order.tbThongTinDatHang?.tennguoinhan ?? "N/A")</span></div>
+                <div class="row"><span class="label">Địa chỉ</span><span class="value">@(order.tbThongTinDatHang?.diachi ?? "N/A")</span></div>
+                <div class="row"><span class="label">Tổng tiền</span><span class="value">@order.tongtien?.ToString("N0")đ</span></div>
+                <div class="row"><span class="label">Trạng thái</span><span class="value" style="color:#d97706;">@order.trangthai</span></div>
+            </div>
+
+            <button id="btnConfirmScan" class="scan-btn confirm" onclick="confirmScan()">
+                <i class="fas fa-check-circle"></i> Xác nhận đã lấy hàng
+            </button>
+            <div id="scanResult" style="margin-top:12px;font-size:13px;"></div>
+        }
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+<script>
+    var _token = '@token';
+
+    function confirmScan() {
+        var btn = document.getElementById('btnConfirmScan');
+        var resultDiv = document.getElementById('scanResult');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Đang xử lý...';
+
+        $.ajax({
+            url: '/edelivery/confirm-scan',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ token: _token }),
+            success: function(res) {
+                if (res.success) {
+                    resultDiv.innerHTML = '<div style="padding:12px;background:#f0fdf4;border-radius:10px;color:#16a34a;font-weight:600;">'
+                        + '✅ ' + res.message + '</div>';
+                    btn.innerHTML = '<i class="fas fa-check-circle"></i> ✅ Đã xác nhận';
+                    btn.style.background = '#16a34a';
+                    showToast('success', '✅ ' + res.message);
+                } else {
+                    resultDiv.innerHTML = '<div style="padding:12px;background:#fef2f2;border-radius:10px;color:#dc2626;">'
+                        + '❌ ' + res.message + '</div>';
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-check-circle"></i> Xác nhận đã lấy hàng';
+                    showToast('error', '❌ ' + res.message);
+                }
+            },
+            error: function() {
+                resultDiv.innerHTML = '<div style="padding:12px;background:#fef2f2;border-radius:10px;color:#dc2626;">❌ Lỗi kết nối. Vui lòng thử lại.</div>';
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-check-circle"></i> Xác nhận đã lấy hàng';
+                showToast('error', '❌ Lỗi kết nối');
+            }
+        });
+    }
+
+    function showToast(type, msg) {
+        var color = type === 'error' ? '#dc3545' : '#28a745';
+        var toast = document.createElement('div');
+        toast.className = 'scan-toast';
+        toast.style.background = color;
+        toast.innerHTML = msg;
+        document.body.appendChild(toast);
+        setTimeout(function() {
+            toast.style.opacity = '0';
+            toast.style.transition = 'opacity .3s';
+            setTimeout(function() { toast.remove(); }, 400);
+        }, 4000);
+    }
+
+    // ── SignalR: Lắng nghe event ──
+    $(document).ready(function() {
+        var conn = new signalR.HubConnectionBuilder()
+            .withUrl('/nhantin').withAutomaticReconnect().build();
+        conn.on('deliveryBypassed', function(orderId) {
+            if (orderId == @(order?.madh ?? 0)) {
+                showToast('success', '✅ Admin đã xử lý đơn hàng #' + orderId);
+                document.getElementById('btnConfirmScan').disabled = true;
+            }
+        });
+        conn.start().catch(function(err) { console.error('SignalR:', err); });
+    });
+</script>

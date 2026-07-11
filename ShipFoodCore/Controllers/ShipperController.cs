@@ -219,6 +219,26 @@ public class ShipperController : BaseController
         return View();
     }
 
+    /// <summary>
+    /// ═══ E-DELIVERY: Danh sách đơn hàng có mã QR để quét ═══
+    /// </summary>
+    public ActionResult QRDelivery()
+    {
+        var sh = GetCurrentUser();
+        if (sh == null || !checkShipper()) return RedirectToAction("Login", "Home");
+
+        var myOrders = db.tbDonHang
+            .Include(d => d.tbQuanAn)
+            .Include(d => d.tbThongTinDatHang)
+            .Where(dh => dh.mashipper == sh.userid)
+            .OrderByDescending(dh => dh.ngaydathang)
+            .Take(50)
+            .ToList();
+        ViewBag.MyOrders = myOrders;
+
+        return View();
+    }
+
     public ActionResult NhanTin() => View();
 
     [HttpPost]

@@ -143,6 +143,32 @@ public class Chats : Hub
     }
 
     /// <summary>
+    /// ═══ E-DELIVERY: Merchant/Shipper tham gia delivery group để nhận event ═══
+    /// </summary>
+    public async Task JoinDeliveryGroup(int orderId)
+    {
+        await Groups.AddToGroupAsync(Context.ConnectionId, $"delivery_{orderId}");
+    }
+
+    /// <summary>
+    /// ═══ E-DELIVERY: Broadcast QR scan confirmation (Merchant → System) ═══
+    /// </summary>
+    public async Task NotifyDeliveryScanned(int orderId)
+    {
+        await Clients.Group($"order_{orderId}").SendAsync("orderDeliveryScanned", orderId, "Đã lấy", DateTime.Now.ToString("HH:mm"));
+        await Clients.Group("shippers").SendAsync("deliveryScannedNotification", orderId);
+    }
+
+    /// <summary>
+    /// ═══ E-DELIVERY: Broadcast admin bypass ═══
+    /// </summary>
+    public async Task NotifyDeliveryBypassed(int orderId, string targetStatus)
+    {
+        await Clients.Group($"order_{orderId}").SendAsync("deliveryBypassed", orderId, targetStatus, DateTime.Now.ToString("HH:mm"));
+        await Clients.Group("admins").SendAsync("deliveryBypassed", orderId, targetStatus);
+    }
+
+    /// <summary>
     /// Kiểm tra user online
     /// </summary>
     public async Task<bool> IsUserOnline(int userId)

@@ -260,15 +260,28 @@ $(document).ready(function() {
             if (madh === @donHang.madh) {
                 showToast('info', '🚚 Đã có shipper: <strong>' + shipperName + '</strong>');
             }
-        },
-        onPaymentConfirmed: function(madh, amount) {
-            if (madh === @donHang.madh) {
-                showToast('success', '✅ Thanh toán đã được xác nhận!');
-                // ═══ Ẩn QR card, hiển thị thành công ═══
-                $('.bank-qr-card').fadeOut();
-                $('#paymentWaitingIndicator').html('<span style="color:#28a745;">✅ Thanh toán thành công! Số tiền: ' + Number(amount || 0).toLocaleString() + 'đ</span>');
-            }
-        },
+        },                        onPaymentConfirmed: function(madh, amount) {
+                            if (madh === @donHang.madh) {
+                                showToast('success', '✅ Thanh toán đã được xác nhận!');
+                                // ═══ Ẩn QR card, hiển thị thành công ═══
+                                $('.bank-qr-card').fadeOut();
+                                $('#paymentWaitingIndicator').html('<span style="color:#28a745;">✅ Thanh toán thành công! Số tiền: ' + Number(amount || 0).toLocaleString() + 'đ</span>');
+                            }
+                        },
+                        onDeliveryScanned: function(madh, trangthai, timestamp) {
+                            if (madh === @donHang.madh) {
+                                showToast('info', '📸 Quán đã xác nhận lấy hàng! Đơn hàng chuyển sang: <strong>Đã lấy</strong>');
+                                FastShipTracking.updateProgressBar('trackingProgress', trangthai);
+                                $('.tracking-card:first .badge').text(trangthai);
+                            }
+                        },
+                        onDeliveryBypassed: function(madh, status, timestamp) {
+                            if (madh === @donHang.madh) {
+                                showToast('warning', '🛠️ Admin đã xử lý thủ công đơn hàng #' + madh + ' → <strong>' + status + '</strong>');
+                                FastShipTracking.updateProgressBar('trackingProgress', status);
+                                $('.tracking-card:first .badge').text(status);
+                            }
+                        },
         onConnected: function(conn) {
             console.log('SignalR connected for order tracking');
         },

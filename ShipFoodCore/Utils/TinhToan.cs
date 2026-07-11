@@ -36,10 +36,16 @@ public class TinhToan
     /// Nếu không → prepend đường dẫn local ~/Source/images/MonAn/
     /// Nếu rỗng/null → trả về placeholder 1x1 trong suốt (không hiện ảnh vỡ)
     /// </summary>
+    /// <summary>
+    /// Trả về URL hình ảnh hoàn chỉnh.
+    /// Nếu hinhanh là full URL (http:// hoặc https://) → dùng trực tiếp.
+    /// Nếu không → prepend đường dẫn local ~/Source/images/MonAn/
+    /// Nếu rỗng/null → trả về placeholder food image (không hiện ảnh vỡ)
+    /// </summary>
     public static string HinhAnhUrl(string? hinhanh)
     {
         if (string.IsNullOrWhiteSpace(hinhanh))
-            return "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1' height='1'%3E%3C/svg%3E";
+            return "/Source/Home/img/food-placeholder.png";
         if (hinhanh.StartsWith("http://") || hinhanh.StartsWith("https://"))
             return hinhanh;
         return "/Source/images/MonAn/" + hinhanh;

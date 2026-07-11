@@ -21,10 +21,31 @@ public class Cart
 {
     public int? userid { get; set; }
     public decimal? tongTien { get; set; }
-    public int? maquanan { get; set; }
+    public int? maquanan { get; set; }  // Legacy: first restaurant
     public int? maKM { get; set; }
     public List<CartItem> items { get; set; } = new();
     public tbThongTinDatHang? thongTinDatHang { get; set; }
+
+    // ─── Multi-restaurant support ───
+    /// <summary>
+    /// Get unique restaurant IDs in cart
+    /// </summary>
+    [NotMapped]
+    public List<int> RestaurantIds => items
+        .Where(i => i.maquanan.HasValue)
+        .Select(i => i.maquanan!.Value)
+        .Distinct()
+        .ToList();
+
+    /// <summary>
+    /// Check if adding item from another restaurant is allowed
+    /// </summary>
+    public bool CanAddFromRestaurant(int? restaurantId)
+    {
+        if (!restaurantId.HasValue) return false;
+        if (!items.Any(i => i.maquanan.HasValue)) return true;
+        return RestaurantIds.Contains(restaurantId.Value);
+    }
 
     public Cart()
     {

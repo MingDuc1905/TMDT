@@ -248,6 +248,7 @@ catch (Exception ex)
 
 // Register Services
 builder.Services.AddScoped<ShipFood.Services.RecommendationService>();
+builder.Services.AddScoped<ShipFood.Services.VoucherService>();
 builder.Services.AddScoped<ShipFood.Services.EDeliveryService>();
 builder.Services.AddHostedService<ShipFood.Services.AutoPreparingService>(); // Task 3b
 // ponytail: AddSingleton để tránh mất/gãy API key do SignalR ChatHub tạo lại service liên tục

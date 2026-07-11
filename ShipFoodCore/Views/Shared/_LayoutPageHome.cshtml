@@ -160,7 +160,7 @@
                                 }
                             }
                         </select>
-                        <input type="text" value="@ViewBag.txtSearch" name="txtSearch" placeholder="Tìm quán ăn, món ăn..." aria-label="Từ khoá tìm kiếm" />
+                        <input type="text" value="@ViewBag.txtSearch" name="txtSearch" placeholder="Tìm món ăn, quán ăn..." aria-label="Từ khoá tìm kiếm" id="mainSearchInput" />
                         <button type="submit" aria-label="Tìm kiếm"><i class="fa fa-search me-1"></i>Tìm</button>
                     </form>
                 </div>
@@ -377,6 +377,7 @@
     <script src="~/js/filter.js"></script>
     <script src="~/js/cart-local.js"></script>
     <script src="~/js/map.js"></script>
+    <script src="~/js/lucide-icons.js"></script>
     
     @RenderSection("scripts", required: false)
 

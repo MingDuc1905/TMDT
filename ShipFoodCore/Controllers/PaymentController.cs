@@ -58,7 +58,14 @@ public class PaymentController : BaseController
         if (cart == null || cart.items.Count == 0)
             return Json(new { success = false, message = "Giỏ hàng trống." });
 
-        if (cart.maquanan == null)
+        // ═══ MULTI-RESTAURANT: Lấy danh sách quán từ cart items ═══
+        var restaurantIds = cart.items
+            .Where(i => i.maquanan.HasValue)
+            .Select(i => i.maquanan!.Value)
+            .Distinct()
+            .ToList();
+
+        if (restaurantIds.Count == 0)
             return Json(new { success = false, message = "Giỏ hàng không có thông tin quán ăn. Vui lòng thêm món lại." });
 
         if (testResult == "failure")
@@ -180,73 +187,115 @@ public class PaymentController : BaseController
             bool isBankTransfer = IsBankTransferMethod(pttt);
             var trangThaiBanDau = isBankTransfer ? "Chờ thanh toán" : "Đã đặt";
 
-            var dh = new tbDonHang
-            {
-                maquan    = cart.maquanan,
-                mattdh    = ttdh.mattdh,
-                ngaydathang = DateTime.Now,
-                trangthai = trangThaiBanDau,
-                tongtien  = tongCong,
-                hinhthucthanhtoan = pttt,
-                ghichu    = note,
-                phiship   = phiShip,
-                makhuyenmai = appliedCouponId
-            };
-            db.tbDonHang.Add(dh);
-            db.SaveChanges();
-
-            foreach (var i in cart.items)
-            {
-                db.tbChiTietDonHang.Add(new tbChiTietDonHang
-                {
-                    madh    = dh.madh,
-                    mamon   = i.mabienthe,
-                    soluong = i.soLuong,
-                    dongia  = i.giatien
-                });
-            }
-            db.SaveChanges();
-
-            // ─── MoMo Payment: Nếu chọn thanh toán MoMo (mahttt=5), tạo payment request ───
-            // ⚠️ Fix: KHÔNG xóa cart trước khi MoMo API hoàn tất
-            // Nếu MoMo thất bại, user vẫn còn cart để thử lại
+            // ═══ MULTI-RESTAURANT: Tạo đơn riêng cho từng quán ═══
+            // Nếu chỉ có 1 quán, tạo 1 đơn như bình thường
+            // Nếu nhiều quán, tạo N đơn riêng biệt, gộp chung vào 1 địa chỉ giao hàng
+            var createdOrders = new List<int>();
             string? momoPayUrl = null;
-            if (pttt == 5) // mahttt=5 = MoMo (xem tbLoaiHinhThanhToan seed)
+            decimal totalAllOrders = 0;
+
+            foreach (var resId in restaurantIds)
             {
+                var resItems = cart.items.Where(i => i.maquanan == resId).ToList();
+                if (resItems.Count == 0) continue;
+
+                // Tính tiền cho từng quán riêng
+                decimal resTongTienMon = 0;
+                foreach (var item in resItems)
+                {
+                    var bt = db.tbBienTheMonAn.Find(item.mabienthe);
+                    if (bt?.giatien == null)
+                    {
+                        return Json(new { success = false, message = $"Món '{item.tenmon}' không còn tồn tại hoặc đã thay đổi giá. Vui lòng tải lại giỏ hàng." });
+                    }
+                    item.giatien = bt.giatien;
+                    resTongTienMon += (bt.giatien ?? 0) * item.soLuong;
+                }
+
+                // Chỉ áp dụng discount cho đơn đầu tiên (tránh giảm nhiều lần)
+                decimal resDiscount = (resId == restaurantIds.First()) ? discountAmount : 0;
+                decimal resTongCong = Math.Max(resTongTienMon + phiShip - resDiscount, 0);
+                totalAllOrders += resTongCong;
+
+                var dh = new tbDonHang
+                {
+                    maquan    = resId,
+                    mattdh    = ttdh.mattdh,
+                    ngaydathang = DateTime.Now,
+                    trangthai = trangThaiBanDau,
+                    tongtien  = resTongCong,
+                    hinhthucthanhtoan = pttt,
+                    ghichu    = note,
+                    phiship   = phiShip,
+                    makhuyenmai = (resId == restaurantIds.First()) ? appliedCouponId : null
+                };
+                db.tbDonHang.Add(dh);
+                db.SaveChanges();
+
+                foreach (var item in resItems)
+                {
+                    db.tbChiTietDonHang.Add(new tbChiTietDonHang
+                    {
+                        madh    = dh.madh,
+                        mamon   = item.mabienthe,
+                        soluong = item.soLuong,
+                        dongia  = item.giatien
+                    });
+                }
+                db.SaveChanges();
+
+                createdOrders.Add(dh.madh);
+                _logger.LogInformation("Order #{OrderId} (Restaurant #{ResId}) placed by user {UserId}", dh.madh, resId, user!.userid);
+
+                // MoMo: chỉ tạo payment cho đơn đầu tiên nếu là MoMo
+                if (pttt == 5 && momoPayUrl == null && resId == restaurantIds.First())
+                {
+                    try
+                    {
+                        var momoRequest = new MoMoCreatePaymentRequest
+                        {
+                            OrderId = $"FS{dh.madh}_{DateTime.Now:yyyyMMddHHmmss}",
+                            OrderInfo = $"Thanh toan don hang FastShip #{dh.madh}",
+                            Amount = (long)(resTongCong * 1000),
+                            RedirectUrl = $"{Request.Scheme}://{Request.Host}/Cart/SuccessView?orderId={dh.madh}",
+                            IpnUrl = $"{Request.Scheme}://{Request.Host}/Payment/MoMoIpn",
+                            RequestType = "captureWallet",
+                            ExtraData = $"{dh.madh}"
+                        };
+
+                        var momoResult = await _moMoService.CreatePaymentAsync(momoRequest);
+                        if (momoResult.IsSuccess)
+                        {
+                            momoPayUrl = momoResult.PayUrl;
+                            _logger.LogInformation("MoMo payment URL created for order #{OrderId}: {PayUrl}", dh.madh, momoPayUrl);
+                        }
+                        else
+                        {
+                            _logger.LogWarning("MoMo payment failed for order #{OrderId}: {Message}", dh.madh, momoResult.Message);
+                        }
+                    }
+                    catch (Exception momoEx)
+                    {
+                        _logger.LogError(momoEx, "MoMo payment creation failed for order #{OrderId}", dh.madh);
+                    }
+                }
+
+                // SignalR broadcast đến từng quán
                 try
                 {
-                    var momoRequest = new MoMoCreatePaymentRequest
+                    await _hubContext.Clients.Group($"restaurant_{resId}").SendAsync("newOrder", new
                     {
-                        OrderId = $"FS{dh.madh}_{DateTime.Now:yyyyMMddHHmmss}",
-                        OrderInfo = $"Thanh toan don hang FastShip #{dh.madh}",
-                        Amount = (long)(tongCong * 1000), // MoMo tính theo VND (số nguyên)
-                        RedirectUrl = $"{Request.Scheme}://{Request.Host}/Cart/SuccessView?orderId={dh.madh}",
-                        IpnUrl = $"{Request.Scheme}://{Request.Host}/Payment/MoMoIpn",
-                        RequestType = "captureWallet",
-                        ExtraData = $"{dh.madh}"
-                    };
-
-                    var momoResult = await _moMoService.CreatePaymentAsync(momoRequest);
-                    if (momoResult.IsSuccess)
-                    {
-                        momoPayUrl = momoResult.PayUrl;
-                        _logger.LogInformation("MoMo payment URL created for order #{OrderId}: {PayUrl}", dh.madh, momoPayUrl);
-                    }
-                    else
-                    {
-                        _logger.LogWarning("MoMo payment failed for order #{OrderId}: {Message}", dh.madh, momoResult.Message);
-                    }
+                        orderId = dh.madh,
+                        customerName = hoten ?? "Khách",
+                        totalAmount = resTongCong,
+                        status = trangThaiBanDau,
+                        time = DateTime.Now.ToString("HH:mm")
+                    });
                 }
-                catch (Exception momoEx)
-                {
-                    _logger.LogError(momoEx, "MoMo payment creation failed for order #{OrderId}", dh.madh);
-                }
+                catch { }
             }
 
-            _logger.LogInformation("Order #{OrderId} placed by user {UserId}", dh.madh, user.userid);
-
-            // ─── 1h: Ghi nhận lịch sử sử dụng mã giảm giá ───
-            // ⚠️ Non-blocking: nếu bảng chưa tồn tại hoặc lỗi ghi, payment vẫn thành công
+            // ─── Ghi nhận lịch sử sử dụng mã giảm giá ───
             if (appliedCouponId != null)
             {
                 try
@@ -256,34 +305,32 @@ public class PaymentController : BaseController
                         userid = user!.userid,
                         makm = appliedCouponId.Value,
                         ngaydung = DateTime.Now,
-                        madh = dh.madh
+                        madh = createdOrders.First()
                     });
                     db.SaveChanges();
                 }
                 catch (Exception couponEx)
                 {
-                    _logger.LogWarning(couponEx, "Failed to record coupon usage for order #{OrderId}, coupon #{CouponId}", dh.madh, appliedCouponId);
-                    // Không throw — payment vẫn thành công
+                    _logger.LogWarning(couponEx, "Failed to record coupon usage for order #{OrderId}", createdOrders.FirstOrDefault());
                 }
             }
+
+            var firstOrderId = createdOrders.FirstOrDefault();
 
             // ─── Bank Transfer: KHÔNG xóa cart, trả về QR URL ───
             if (isBankTransfer)
             {
-                // Tạo VietQR URL động
-                var memo = $"FASTSHIP{dh.madh}";
-                var qrUrl = $"https://img.vietqr.io/image/{BankId}-{BankAccountNo}-compact2.png?amount={(long)tongCong}&addInfo={Uri.EscapeDataString(memo)}&accountName={Uri.EscapeDataString(BankAccountName)}";
+                var memo = $"FASTSHIP{firstOrderId}";
+                var qrUrl = $"https://img.vietqr.io/image/{BankId}-{BankAccountNo}-compact2.png?amount={(long)totalAllOrders}&addInfo={Uri.EscapeDataString(memo)}&accountName={Uri.EscapeDataString(BankAccountName)}";
 
-                _logger.LogInformation("Bank transfer QR URL generated for order #{OrderId}: {QrUrl}", dh.madh, qrUrl);
-
-                // Không clear cart — user cần quay lại nếu muốn đặt thêm
-                // ponytail: giữ cart để user dễ đặt lại nếu không muốn chờ QR
+                _logger.LogInformation("Bank transfer QR URL generated. Orders: {OrderIds}", string.Join(",", createdOrders));
 
                 return Json(new
                 {
                     success = true,
-                    message = $"Đơn hàng #{dh.madh} đang chờ thanh toán. Vui lòng quét mã QR để chuyển khoản.",
-                    orderId = dh.madh,
+                    message = $"Đã tạo {createdOrders.Count} đơn hàng! Vui lòng quét mã QR để chuyển khoản.",
+                    orderId = firstOrderId,
+                    orderIds = createdOrders,
                     trangthai = "Chờ thanh toán",
                     qrCodeUrl = qrUrl,
                     bankInfo = new
@@ -291,34 +338,23 @@ public class PaymentController : BaseController
                         bankId = BankId,
                         accountNo = BankAccountNo,
                         accountName = BankAccountName,
-                        amount = (long)tongCong,
+                        amount = (long)totalAllOrders,
                         memo = memo
                     }
                 });
             }
 
-            // ─── Chỉ xóa cart sau khi MoMo API đã được gọi (dù thành công hay thất bại) ───
-            // Cart được clear sau khi MoMo attempt để nếu MoMo thất bại, user còn giỏ hàng để thử lại
+            // ─── Xóa cart sau khi tạo đơn thành công ───
             SetCart(new Cart());
 
-            try
-            {
-                await _hubContext.Clients.Group($"restaurant_{cart.maquanan}").SendAsync("newOrder", new
-                {
-                    orderId = dh.madh,
-                    customerName = hoten ?? "Khách",
-                    totalAmount = tongCong,
-                    status = "Đã đặt",
-                    time = DateTime.Now.ToString("HH:mm")
-                });
-            }
-            catch { }
+            _logger.LogInformation("Orders created successfully: {OrderIds}", string.Join(",", createdOrders));
 
             return Json(new
             {
                 success  = true,
-                message  = $"Đặt hàng thành công! Mã đơn hàng: #{dh.madh}",
-                orderId  = dh.madh,
+                message  = $"Đặt hàng thành công! Đã tạo {createdOrders.Count} đơn hàng.",
+                orderId  = firstOrderId,
+                orderIds = createdOrders,
                 trangthai = "Đang xử lý",
                 momoPayUrl = momoPayUrl
             });

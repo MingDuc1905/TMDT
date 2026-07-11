@@ -167,6 +167,16 @@
             transform: translateY(0);
         }
 
+        /* Smooth scroll cho #reviews-section */
+        html {
+            scroll-behavior: smooth;
+        }
+        @@media (prefers-reduced-motion: reduce) {
+            html {
+                scroll-behavior: auto;
+            }
+        }
+
         /* Drag Handle */
         .fs-bs-handle {
             flex-shrink: 0;
@@ -293,7 +303,7 @@
                         <span class="number-rating">@Model.soluotdanhgia</span>đánh giá trên Fastship
                     </div>
                     <div class="view-more-rating">
-                        <a href="#" rel="noopener noreferrer nofollow" target="_blank" class="number-review">Xem thêm lượt đánh giá từ Fastship</a>
+                        <a href="#reviews-section" rel="noopener noreferrer" class="number-review">Xem thêm lượt đánh giá từ Fastship <i class="fa fa-arrow-down"></i></a>
                     </div>
                     <div class="status-restaurant">
                         <div class="opentime-status"><span class="stt online" title="@Model.trangthai"></span></div>
@@ -326,7 +336,7 @@
                             <div class="menu-restaurant-category">
                                 <div class="list-category" id="scroll-spy">
                                     <div class="scrollbar-container ps">
-                                        <a href="~/Home/DetailRestaurant?id=@ViewBag.maquan">
+                                        <a href="@Url.Action("DetailRestaurant", new { id = ViewBag.maquan })">
                                             <div class="item">
                                                 <span title="Tất cả" class="item-link @(ViewBag.idDM == null ? "active" : "")">Tất cả</span>
                                             </div>
@@ -339,7 +349,7 @@
                                                 : $"~/Home/DetailRestaurant?idDM={thucdon.madanhmuc}&id={ViewBag.maquan}&searchKey={Uri.EscapeDataString(searchKey)}";
                                             <a href="@href">
                                                 <div class="item">
-                                                    <span id="-1" title="@thucdon.tendanhmuc" class="item-link @(ViewBag.idDM == thucdon.madanhmuc ? "active" : "")">@thucdon.tendanhmuc</span>
+                                                    <span id="cat-@thucdon.madanhmuc" title="@thucdon.tendanhmuc" class="item-link @(ViewBag.idDM == thucdon.madanhmuc ? "active" : "")">@thucdon.tendanhmuc</span>
                                                 </div>
                                             </a>
                                         }
@@ -390,7 +400,9 @@
                                                     </button>
                                                     @if (khuyenMai != null)
                                                     {
-                                                        <span style="position:absolute;top:0;left:0;background:var(--fs-danger);color:var(--fs-white);padding:2px 6px;font-size:10px;border-radius:3px;">-@khuyenMai.phantramgiam%</span>
+                                                        <span style="position:absolute;top:0;left:0;background:var(--fs-danger);color:var(--fs-white);padding:4px 8px;font-size:11px;font-weight:700;border-radius:0 0 8px 0;box-shadow:0 2px 4px rgba(231,76,60,.3);display:flex;align-items:center;gap:3px;">
+                                                            <i class="fa fa-fire"></i> -@khuyenMai.phantramgiam%
+                                                        </span>
                                                     }
                                                 </div>
                                                 <div class="col item-restaurant-info">
@@ -498,9 +510,7 @@
             <div class="fs-bs-list" id="categorySheetList">
                 <!-- Populated by JavaScript -->
             </div>
-        </div>
-
-        <!-- ========== CUSTOMER REVIEWS SECTION ========== -->
+        </div>        <!-- ========== CUSTOMER REVIEWS SECTION ========== -->
         <div class="container" style="margin-top: 40px; margin-bottom: 60px;">
             <div id="reviews-section" style="background:#fff; border-radius:16px; padding:32px; box-shadow:0 2px 16px rgba(0,0,0,.07);">
 

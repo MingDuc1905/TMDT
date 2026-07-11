@@ -8,12 +8,15 @@ namespace ShipFood.Controllers;
 public class CartController : BaseController
 {
     private readonly RecommendationService _recommendationService;
+    private readonly VoucherService _voucherService;
     private readonly IConfiguration _configuration;
 
-    public CartController(dbFoodyEntities context, RecommendationService recommendationService, IConfiguration configuration)
+    public CartController(dbFoodyEntities context, RecommendationService recommendationService,
+                          VoucherService voucherService, IConfiguration configuration)
     {
         db = context;
         _recommendationService = recommendationService;
+        _voucherService = voucherService;
         _configuration = configuration;
     }
 
@@ -46,7 +49,7 @@ public class CartController : BaseController
     }
 
     [HttpGet]
-    public ActionResult Checkout()
+    public async Task<ActionResult> Checkout()
     {
         if (!CheckLogin())
             return RedirectToAction("Login", "Home");
@@ -61,8 +64,20 @@ public class CartController : BaseController
 
         // Hiển thị tất cả phương thức thanh toán (bao gồm MoMo, ZaloPay, Paypal)
         ViewBag.phuongthuctt = db.tbLoaiHinhThanhToan.ToList();
-        ViewBag.diachicosan = db.tbThongTinDatHang.Where(tt => tt.userid == user!.userid).ToList();
+        // ═══ GROUP BY: deduplicate addresses by sdt + diachi + tennguoinhan ═══
+        var allAddresses = db.tbThongTinDatHang.Where(tt => tt.userid == user!.userid).ToList();
+        ViewBag.diachicosan = allAddresses
+            .GroupBy(tt => new { tt.sdt, tt.diachi, tt.tennguoinhan })
+            .Select(g => g.First())
+            .ToList();
         ViewBag.cart = cart;
+
+        // ═══ VOUCHER AUTO-ASSIGN: Gợi ý voucher theo khung giờ + thông tin user ═══
+        var recommendedVouchers = await _voucherService.GetRecommendedVouchers(user?.userid, cart.tongTien);
+        ViewBag.RecommendedVouchers = recommendedVouchers;
+        ViewBag.CurrentTimeSlot = VoucherService.GetCurrentTimeSlotInfo();
+
+        // Coupon list thường (fallback)
         ViewBag.CouponList = db.tbKhuyenMai.Where(k => k.ngayketthuc == null || k.ngayketthuc >= DateTime.Now).Take(5).ToList();
         return View();
     }
@@ -114,6 +129,24 @@ public class CartController : BaseController
             })
             .ToList();
         return Json(new { success = true, coupons = coupons });
+    }
+
+    // ─── API: Bỏ chọn mã giảm giá ───
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public JsonResult RemoveCoupon()
+    {
+        var roleCheck = CheckRoleJson("Khách hàng");
+        if (roleCheck != null) return roleCheck;
+
+        var cart = GetCart();
+        if (cart != null)
+        {
+            cart.maKM = null;
+            SetCart(cart);
+        }
+
+        return Json(new { success = true });
     }
 
     [HttpPost]
@@ -214,15 +247,9 @@ public class CartController : BaseController
             return RedirectToAction("Index", "Home");
         }
 
-        if (cart.maquanan != null && cart.maquanan != item.maquanan)
-        {
-            TempData["CartConflict"] = "true";
-            TempData["ConflictNewQuan"] = item.maquanan?.ToString() ?? "";
-            TempData["ConflictNewMonId"] = maMonAn.ToString();
-            TempData["ConflictNewSoLuong"] = soLuong.ToString();
-            return RedirectToAction("Index");
-        }
-
+        // ═══ MULTI-RESTAURANT: Cho phép thêm món từ nhiều quán khác nhau ═══
+        // Nếu quán mới khác quán hiện tại, giữ nguyên giỏ hàng và cho phép thêm
+        // Checkout sẽ tách đơn riêng theo từng quán
         if (cart.maquanan == null)
             cart.maquanan = item.maquanan;
 
@@ -272,22 +299,7 @@ public class CartController : BaseController
 
         var cart = GetCart() ?? new Cart();
 
-        if (cart.maquanan != null && cart.maquanan != item.maquanan && cart.items.Any())
-        {
-            var currentQuan = db.tbQuanAn.Find(cart.maquanan);
-            var newQuan = db.tbQuanAn.Find(item.maquanan);
-            return Json(new
-            {
-                success = false,
-                conflict = true,
-                maMonAn = maMonAn,
-                soLuong = soLuong,
-                currentRestaurant = currentQuan?.tenquanan ?? "",
-                newRestaurant = newQuan?.tenquanan ?? "",
-                message = "Giỏ hàng đã có món từ quán khác"
-            });
-        }
-
+        // ═══ MULTI-RESTAURANT: Cho phép thêm món từ nhiều quán ═══
         if (cart.maquanan == null)
             cart.maquanan = item.maquanan;
         cart.themMon(item, soLuong);
@@ -337,10 +349,9 @@ public class CartController : BaseController
         if (item == null)
             return Json(new { success = false, message = "Món ăn không tồn tại" });
 
+        // ═══ MULTI-RESTAURANT: Cho phép tăng số lượng từ bất kỳ quán nào ═══
         if (cart.maquanan == null)
             cart.maquanan = item.maquanan;
-        else if (cart.maquanan != item.maquanan)
-            cart = new Cart { maquanan = item.maquanan };
 
         cart.themMon(item, soLuong);
         SetCart(cart);

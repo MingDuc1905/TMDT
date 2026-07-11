@@ -231,7 +231,15 @@ INSERT INTO "tbBienTheMonAn" ("mamon", "size", "giatien") VALUES
 INSERT INTO "tbKhuyenMai" ("makm", "tenkm", "mota", "loaikm", "phantramgiam", "dieukien", "ngaybatdau", "ngayketthuc") VALUES
 (1, 'Khuyến mãi mùa hè', 'Giảm giá 20% cho tất cả sản phẩm mùa hè', 'Giảm giá', 20, 'Sản phẩm mùa hè', '2026-06-01 00:00:00', '2026-08-31 00:00:00'),
 (2, 'Khuyến mãi sinh nhật', 'Giảm 30% cho khách hàng sinh nhật trong tháng', 'Giảm giá', 30, 'Khách hàng sinh nhật', '2026-01-01 00:00:00', '2026-12-31 00:00:00'),
-(3, 'Khuyến mãi mua hàng lớn', 'Giảm giá 10% cho hóa đơn từ 1 triệu trở lên', 'Giảm giá', 10, 'Hóa đơn từ 1 triệu', '2026-01-01 00:00:00', '2026-12-31 00:00:00');
+(3, 'Khuyến mãi mua hàng lớn', 'Giảm giá 10% cho hóa đơn từ 1 triệu trở lên', 'Giảm giá', 10, 'Hóa đơn từ 1 triệu', '2026-01-01 00:00:00', '2026-12-31 00:00:00'),
+-- ═══ TIME-SLOT VOUCHERS (tự động áp dụng theo khung giờ) ═══
+(4, 'SÁNG KHOẺ - Giảm 15%', 'Giảm 15% cho đơn hàng từ 50K, áp dụng 6:00-10:00', 'Giảm giá', 15, 'Đơn từ 50.000đ, khung giờ 6:00-10:00', '2026-01-01 00:00:00', '2026-12-31 00:00:00'),
+(5, 'TRƯA NGON - Giảm 25%', 'Giảm 25% cho đơn từ 50K, áp dụng 10:00-14:00', 'Giảm giá', 25, 'Đơn từ 50.000đ, khung giờ 10:00-14:00', '2026-01-01 00:00:00', '2026-12-31 00:00:00'),
+(6, 'XẾ MÊ - Giảm 10%', 'Giảm 10% cho đơn từ 30K, áp dụng 14:00-17:00', 'Giảm giá', 10, 'Đơn từ 30.000đ, khung giờ 14:00-17:00', '2026-01-01 00:00:00', '2026-12-31 00:00:00'),
+(7, 'TỐI VUI - Giảm 25%', 'Giảm 25% cho đơn từ 100K, áp dụng 17:00-22:00', 'Giảm giá', 25, 'Đơn từ 100.000đ, khung giờ 17:00-22:00', '2026-01-01 00:00:00', '2026-12-31 00:00:00'),
+(8, 'KHUYA - Giảm 30%', 'Giảm 30% cho đơn từ 50K, áp dụng 22:00-06:00', 'Giảm giá', 30, 'Đơn từ 50.000đ, khung giờ 22:00-06:00', '2026-01-01 00:00:00', '2026-12-31 00:00:00'),
+(9, 'ĐẶT LẦN ĐẦU - Giảm 40%', 'Giảm 40% cho đơn đầu tiên, tối đa 50.000đ', 'Giảm giá', 40, 'Đơn hàng đầu tiên, tối đa giảm 50.000đ', '2026-01-01 00:00:00', '2026-12-31 00:00:00'),
+(10, 'MIỄN PHÍ SHIP', 'Miễn phí giao hàng cho đơn từ 50K', 'Miễn phí ship', 0, 'Đơn từ 50.000đ, miễn phí ship 15.000đ', '2026-01-01 00:00:00', '2026-12-31 00:00:00');
 
 -- ==================== tbMonAnKhuyenMai ====================
 INSERT INTO "tbMonAnKhuyenMai" ("makm", "mamon", "soluong", "trangthai", "phantramgiam") VALUES
@@ -251,6 +259,17 @@ INSERT INTO "tbLoaiHinhThanhToan" ("mahttt", "tenhinhthuc", "mota") VALUES
 INSERT INTO "tbThongTinDatHang" ("sdt", "diachi", "toado", "tennguoinhan", "userid") VALUES
 ('0987654321', '02 Thanh Sơn, Thanh Bình, Hải Châu, TP. Hồ Chí Minh', NULL, 'Trần Thị B', 1),
 ('0901234567', '48 Cao Thắng, Thanh Bình, Hải Châu, TP. Hồ Chí Minh', NULL, 'Lê Văn C', 2);
+
+-- ==================== Tránh duplicate tbThongTinDatHang ====================
+-- Nếu chạy seed nhiều lần, unique constraint sẽ chặn insert trùng
+-- Có thể chạy lệnh sau để xóa duplicate (PostgreSQL):
+-- DELETE FROM "tbThongTinDatHang" a USING (
+--   SELECT MIN(mattdh) as min_id, "sdt", "diachi", "userid"
+--   FROM "tbThongTinDatHang"
+--   GROUP BY "sdt", "diachi", "userid"
+--   HAVING COUNT(*) > 1
+-- ) b WHERE a."sdt" = b."sdt" AND a."diachi" = b."diachi" AND a."userid" = b."userid"
+-- AND a."mattdh" > b.min_id;
 
 -- ==================== tbDonHang ====================
 INSERT INTO "tbDonHang" ("maquan", "mattdh", "ngaydathang", "trangthai", "tongtien", "hinhthucthanhtoan", "ghichu", "makhuyenmai", "phiship", "phidichvu", "ngaygiaohang", "ngaythanhtoan", "mashipper") VALUES

@@ -109,7 +109,8 @@ public class AdminChatController : BaseController
     }
 
     /// <summary>
-    /// API: Khách hàng gửi tin nhắn (từ widget chat) — lưu DB + broadcast SignalR qua Groups
+    /// API: G?i tin nh?n (dùng chung cho Customer + Shipper) — t? ???ng phát hi?n role
+    /// L?u DB + broadcast SignalR qua Groups phù h?p v?i role
     /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -124,24 +125,41 @@ public class AdminChatController : BaseController
 
         try
         {
-            // Lưu tin nhắn vào DB
+            bool isShipper = user.loaitaikhoan.Equals("Shipper");
+            bool isCustomer = user.loaitaikhoan.Equals("Khách hàng");
+
+            // Lưu tin nhắn vào DB v?i role t??ng ?ng
             var tinNhan = new tbTinNhan
             {
                 madh = orderId > 0 ? orderId : null,
                 noidung = message,
-                makh = user.userid,
-                mashipper = null
+                makh = isCustomer ? user.userid : null,
+                mashipper = isShipper ? user.userid : null
             };
             db.tbTinNhans.Add(tinNhan);
             await db.SaveChangesAsync();
 
-            // Broadcast đến group customer_{userId} — admin đã join group này khi chọn khách hàng
-            await _hubContext.Clients.Group($"customer_{user.userid}").SendAsync("customerMessage", message, orderId, user.username, user.userid);
-
-            // Đồng thời gửi đến group đơn hàng (nếu có) — admin trong group cũng nhận
-            if (orderId > 0)
+            if (isCustomer)
             {
-                await _hubContext.Clients.Group($"order_{orderId}").SendAsync("customerMessage", message, orderId, user.username, user.userid);
+                // Customer g?i → broadcast ??n admin group
+                await _hubContext.Clients.Group($"customer_{user.userid}").SendAsync("customerMessage", message, orderId, user.username, user.userid);
+                if (orderId > 0)
+                    await _hubContext.Clients.Group($"order_{orderId}").SendAsync("customerMessage", message, orderId, user.username, user.userid);
+            }
+            else if (isShipper)
+            {
+                // Shipper g?i → broadcast ??n admin group
+                var senderName = user.username ?? "Shipper";
+                await _hubContext.Clients.Group("admins").SendAsync("shipperMessage", message, orderId, senderName, user.userid);
+                if (orderId > 0)
+                    await _hubContext.Clients.Group($"order_{orderId}").SendAsync("shipperMessage", message, orderId, senderName, user.userid);
+            }
+            else
+            {
+                // Admin g?i → broadcast ??n customer group
+                await _hubContext.Clients.Group($"customer_{user.userid}").SendAsync("adminMessage", message, orderId, "Admin");
+                if (orderId > 0)
+                    await _hubContext.Clients.Group($"order_{orderId}").SendAsync("adminMessage", message, orderId, "Admin");
             }
 
             return Json(new { success = true });
@@ -183,19 +201,42 @@ public class AdminChatController : BaseController
     }
 
     /// <summary>
-    /// API: L?y danh sách cu?c h?i tho?i theo khách hàng (cho admin panel)
+    /// API: L?y danh sách cu?c h?i tho?i (cho admin panel & shipper chat)
+    /// - Admin: xem t?t c? h?i tho?i
+    /// - Shipper: xem h?i tho?i v?i khách hàng
     /// </summary>
     [HttpGet]
     public JsonResult GetConversations()
     {
-        if (!checkAdmin())
-            return Json(new { success = false });
+        var currentUser = GetCurrentUser();
+        if (currentUser == null)
+            return Json(new { success = false, data = new object[0] });
+
+        bool isAdmin = currentUser.loaitaikhoan.Equals("Admin");
+        bool isShipper = currentUser.loaitaikhoan.Equals("Shipper");
 
         try
         {
-            // Lọc tin nhắn của khách hàng (makh != null), group theo userId
-            var messageGroups = db.tbTinNhans
-                .Where(t => t.makh != null && t.makh.HasValue)
+            // Admin: xem t?t c? h?i tho?i; Shipper: ch? xem h?i tho?i c?a mình
+            IQueryable<tbTinNhan> query = db.tbTinNhans.Where(t => t.makh != null && t.makh.HasValue);
+
+            if (isShipper)
+            {
+                // Shipper ch? th?y tin nh?n t? khách hàng mà shipper ?ã t??ng tác
+                var shipperCustomerIds = db.tbTinNhans
+                    .Where(t => t.mashipper == currentUser.userid && t.makh != null)
+                    .Select(t => t.makh!.Value)
+                    .Distinct()
+                    .ToList();
+                query = query.Where(t => shipperCustomerIds.Contains(t.makh!.Value));
+            }
+            else if (!isAdmin)
+            {
+                // Các role khác (khách hàng) không ???c xem danh sách h?i tho?i
+                return Json(new { success = false, data = new object[0] });
+            }
+
+            var messageGroups = query
                 .AsEnumerable()
                 .GroupBy(t => t.makh!.Value)
                 .Select(g => new
@@ -241,13 +282,19 @@ public class AdminChatController : BaseController
     }
 
     /// <summary>
-    /// API: L?y tin nh?n c?a m?t khách hàng
+    /// API: L?y tin nh?n c?a m?t khách hàng (cho admin panel & shipper chat)
+    /// Cho phép c? Admin và Shipper truy c?p
     /// </summary>
     [HttpGet]
     public JsonResult GetCustomerMessages(int userId)
     {
-        if (!checkAdmin())
-            return Json(new { success = false });
+        var currentUser = GetCurrentUser();
+        if (currentUser == null)
+            return Json(new { success = false, data = new object[0] });
+
+        bool isAdminOrShipper = currentUser.loaitaikhoan.Equals("Admin") || currentUser.loaitaikhoan.Equals("Shipper");
+        if (!isAdminOrShipper)
+            return Json(new { success = false, data = new object[0] });
 
         try
         {

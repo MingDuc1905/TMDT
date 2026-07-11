@@ -9,7 +9,6 @@ public class Chats : Hub
     private readonly IDistributedCache _cache;
     private readonly ILogger<Chats> _logger;
 
-    // ponytail: Redis keys prefix cho connection tracking
     private const string CONN_KEY_PREFIX = "UserConnection:";
     private const string USER_KEY_PREFIX = "UserConn:";
 
@@ -20,7 +19,7 @@ public class Chats : Hub
     }
 
     /// <summary>
-    /// Gửi tin nhắn giữa shipper và khách hàng
+    /// Gửi tin nhắn giữa shipper và khách hàng (legacy)
     /// </summary>
     public async Task Message(string message, int id)
     {
@@ -28,8 +27,7 @@ public class Chats : Hub
     }
 
     /// <summary>
-    /// Gửi tin nhắn từ admin đến khách hàng/shipper THEO GROUP (không dùng ConnectionId)
-    /// Chỉ gửi qua group — bền vững khi admin reload trang
+    /// Admin gửi tin nhắn đến group đơn hàng
     /// </summary>
     public async Task AdminSendMessage(string message, int orderId, string connectionId)
     {
@@ -45,7 +43,53 @@ public class Chats : Hub
     }
 
     /// <summary>
-    /// Restaurant tham gia group để nhận đơn hàng mới real-time
+    /// ═══ CROSS-ROLE CHAT: Gửi tin nhắn từ bất kỳ role nào đến group order ═══
+    /// Dùng chung cho: Shipper→Order, Customer→Order, Admin→Order, Restaurant→Order
+    /// </summary>
+    public async Task SendToOrderGroup(string message, int orderId, string senderName, string senderRole)
+    {
+        await Clients.Group($"order_{orderId}").SendAsync("orderMessage", message, orderId, senderName, senderRole, Context.ConnectionId);
+    }
+
+    /// <summary>
+    /// ═══ CROSS-ROLE CHAT: Gửi tin nhắn giữa shipper và customer (không cần order) ═══
+    /// Shipper gửi → customer_{userId} group
+    /// Customer gửi → shipper_{userId} group
+    /// </summary>
+    public async Task SendDirectMessage(string message, int targetUserId, string senderName, string senderRole)
+    {
+        var groupName = senderRole == "Shipper" ? $"customer_{targetUserId}" : $"shipper_{targetUserId}";
+        await Clients.Group(groupName).SendAsync("directMessage", message, senderName, senderRole, Context.ConnectionId);
+    }
+
+    /// <summary>
+    /// ═══ JOIN: Shipper tham gia group shipper + shipper_{userId} ═══
+    /// </summary>
+    public async Task JoinShipperGroup(int userId)
+    {
+        await Groups.AddToGroupAsync(Context.ConnectionId, "shippers");
+        await Groups.AddToGroupAsync(Context.ConnectionId, $"shipper_{userId}");
+    }
+
+    /// <summary>
+    /// ═══ JOIN: Customer tham gia group customer_{userId} ═══
+    /// </summary>
+    public async Task JoinCustomerSupportGroup(int userId)
+    {
+        await Groups.AddToGroupAsync(Context.ConnectionId, $"customer_{userId}");
+    }
+
+    /// <summary>
+    /// ═══ JOIN: Admin tham gia group admin + customer_{userId} (để nhận tin từ customer) ═══
+    /// </summary>
+    public async Task JoinAdminGroup(int userId)
+    {
+        await Groups.AddToGroupAsync(Context.ConnectionId, "admins");
+        await Groups.AddToGroupAsync(Context.ConnectionId, $"admin_{userId}");
+    }
+
+    /// <summary>
+    /// ═══ JOIN: Restaurant tham gia group restaurant_{id} + quản lý đơn hàng ═══
     /// </summary>
     public async Task JoinRestaurantGroup(int restaurantId)
     {
@@ -53,11 +97,11 @@ public class Chats : Hub
     }
 
     /// <summary>
-    /// Shipper tham gia group để nhận đơn mới real-time
+    /// ═══ JOIN: Tham gia group đơn hàng (để nhận tin nhắn real-time) ═══
     /// </summary>
-    public async Task JoinShipperGroup()
+    public async Task JoinOrderGroup(int orderId)
     {
-        await Groups.AddToGroupAsync(Context.ConnectionId, "shippers");
+        await Groups.AddToGroupAsync(Context.ConnectionId, $"order_{orderId}");
     }
 
     /// <summary>
@@ -74,37 +118,61 @@ public class Chats : Hub
     }
 
     /// <summary>
-    /// Tham gia group theo đơn hàng (để nhận tin nhắn riêng)
+    /// Thông báo cho tất cả shipper rằng đơn hàng đã được shipper khác nhận
     /// </summary>
-    public async Task JoinOrderGroup(int orderId)
+    public async Task NotifyOrderAccepted(int orderId, int acceptedShipperId)
     {
-        await Groups.AddToGroupAsync(Context.ConnectionId, $"order_{orderId}");
+        await Clients.Group("shippers").SendAsync("orderAccepted", orderId, acceptedShipperId);
     }
 
     /// <summary>
-    /// Tham gia group hỗ trợ khách hàng riêng (dùng cho yêu cầu chung không có đơn hàng)
-    /// </summary>
-    public async Task JoinCustomerSupportGroup(int userId)
-    {
-        await Groups.AddToGroupAsync(Context.ConnectionId, $"customer_{userId}");
-    }
-
-    /// <summary>
-    /// Gửi tin nhắn trong group đơn hàng
-    /// </summary>
-    public async Task SendToOrderGroup(string message, int orderId, string senderName, string senderRole)
-    {
-        await Clients.Group($"order_{orderId}").SendAsync("orderMessage", message, orderId, senderName, senderRole, Context.ConnectionId);
-    }
-
-    /// <summary>
-    /// Gửi tín hiệu "có tin nhắn mới" đến một user cụ thể (dùng thay cho polling)
-    /// Admin gọi phương thức này khi gửi tin nhắn cho khách hàng
+    /// Gửi tín hiệu "có tin nhắn mới" đến một user cụ thể
     /// </summary>
     public async Task NotifyNewMessage(int userId, int count)
     {
-        // Gửi real-time đến đúng user qua group customer_{userId}
         await Clients.Group($"customer_{userId}").SendAsync("unreadCountUpdate", count);
+        await Clients.Group($"shipper_{userId}").SendAsync("unreadCountUpdate", count);
+    }
+
+    /// <summary>
+    /// Cập nhật toạ độ shipper real-time khi đang giao hàng
+    /// </summary>
+    public async Task UpdateLocation(int orderId, double lat, double lng)
+    {
+        await Clients.Group($"order_{orderId}").SendAsync("shipperLocationUpdate", orderId, lat, lng);
+    }
+
+    /// <summary>
+    /// Kiểm tra user online
+    /// </summary>
+    public async Task<bool> IsUserOnline(int userId)
+    {
+        try
+        {
+            var connId = await _cache.GetStringAsync($"{USER_KEY_PREFIX}{userId}");
+            return !string.IsNullOrEmpty(connId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Redis unavailable when checking online status for user {UserId}", userId);
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Lấy connectionId của user
+    /// </summary>
+    public async Task<string?> GetUserConnectionId(int userId)
+    {
+        try
+        {
+            return await _cache.GetStringAsync($"{USER_KEY_PREFIX}{userId}");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Redis unavailable when getting connection for user {UserId}", userId);
+            return null;
+        }
     }
 
     public override async Task OnConnectedAsync()
@@ -115,7 +183,6 @@ public class Chats : Hub
             var userIdStr = httpContext.Request.Query["userId"].FirstOrDefault();
             if (!string.IsNullOrEmpty(userIdStr) && int.TryParse(userIdStr, out int userId) && userId > 0)
             {
-                // ponytail: Redis-based connection tracking — tồn tại qua restart
                 try
                 {
                     await _cache.SetStringAsync($"{CONN_KEY_PREFIX}{Context.ConnectionId}", userId.ToString());
@@ -123,7 +190,7 @@ public class Chats : Hub
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, "Redis cache unavailable for connection tracking — using in-memory fallback");
+                    _logger.LogWarning(ex, "Redis cache unavailable for connection tracking");
                 }
 
                 await Clients.All.SendAsync("userOnline", userId, true);
@@ -152,58 +219,5 @@ public class Chats : Hub
         }
 
         await base.OnDisconnectedAsync(exception);
-    }
-
-    /// <summary>
-    /// Cập nhật toạ độ shipper real-time khi đang giao hàng
-    /// Shipper gọi method này, server broadcast đến group order_{orderId}
-    /// </summary>
-    public async Task UpdateLocation(int orderId, double lat, double lng)
-    {
-        await Clients.Group($"order_{orderId}").SendAsync("shipperLocationUpdate", orderId, lat, lng);
-    }
-
-    /// <summary>
-    /// Thông báo cho tất cả shipper rằng đơn hàng đã được shipper khác nhận
-    /// → Các shipper còn lại xóa đơn khỏi FREE-PICK list real-time
-    /// </summary>
-    public async Task NotifyOrderAccepted(int orderId, int acceptedShipperId)
-    {
-        await Clients.Group("shippers").SendAsync("orderAccepted", orderId, acceptedShipperId);
-    }
-
-    /// <summary>
-    /// Kiểm tra xem user có đang online không (qua Redis connection tracking)
-    /// Graceful degradation: nếu Redis down, báo offline
-    /// </summary>
-    public async Task<bool> IsUserOnline(int userId)
-    {
-        try
-        {
-            var connId = await _cache.GetStringAsync($"{USER_KEY_PREFIX}{userId}");
-            return !string.IsNullOrEmpty(connId);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Redis unavailable when checking online status for user {UserId}", userId);
-            return false;
-        }
-    }
-
-    /// <summary>
-    /// Lấy connectionId của user (để gửi tin nhắn real-time trực tiếp)
-    /// Graceful degradation: nếu Redis down, trả về null
-    /// </summary>
-    public async Task<string?> GetUserConnectionId(int userId)
-    {
-        try
-        {
-            return await _cache.GetStringAsync($"{USER_KEY_PREFIX}{userId}");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Redis unavailable when getting connection for user {UserId}", userId);
-            return null;
-        }
     }
 }

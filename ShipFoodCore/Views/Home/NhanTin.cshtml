@@ -1,73 +1,171 @@
 ﻿
 @{
-    ViewBag.Title = "NhanTin";
+    ViewBag.Title = "Nhắn tin | Fastship";
     Layout = "~/Views/Shared/_LayoutPageHome.cshtml";
+    var userJson = Context.Session.GetString("user");
+    ShipFood.Models.tbUser? user = userJson != null ? System.Text.Json.JsonSerializer.Deserialize<ShipFood.Models.tbUser>(userJson) : null;
+    var loggedIn = user != null && user.userid > 0;
 }
+
 <style>
-    @@media (max-width: 768px) {
-        .page-header[style*="padding-top"] { padding-top: 100px !important; }
-        .page-header h1 { font-size: 1.8rem !important; }
-        .chatbox-nt { height: 350px; padding: 12px; }
-        .meesage { max-width: 80%; font-size: 13px; }
-        .search__field { font-size: 14px; padding: 10px 14px; }
-        .button-send { padding: 10px 18px; font-size: 13px; }
-    }
+    .page-header { background: linear-gradient(135deg,#3CB815,#27a001); padding: 120px 0 40px; }
+    .page-header h1 { color: #fff; font-weight: 700; }
+    .breadcrumb { background: transparent; }
+    .breadcrumb-item, .breadcrumb-item a { color: rgba(255,255,255,.85); text-decoration: none; }
+    .breadcrumb-item.active { color: #fff; }
+    .breadcrumb-item+.breadcrumb-item::before { color: rgba(255,255,255,.5); }
+    .chat-container { max-width: 800px; margin: 40px auto; background: #fff; border-radius: 16px; box-shadow: 0 2px 20px rgba(0,0,0,.07); overflow: hidden; }
+    .chat-header { display: flex; align-items: center; gap: 12px; padding: 16px 20px; background: linear-gradient(135deg,#3CB815,#27a001); color: #fff; }
+    .chat-header .avatar { width: 42px; height: 42px; border-radius: 50%; background: rgba(255,255,255,.2); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+    .chat-header .info h6 { margin: 0; font-weight: 600; font-size: 15px; }
+    .chat-header .info small { opacity: .8; font-size: 12px; }
+    .chat-messages { height: 400px; overflow-y: auto; padding: 16px 20px; background: #f8f9fa; }
+    .chat-messages::-webkit-scrollbar { width: 4px; }
+    .chat-messages::-webkit-scrollbar-thumb { background: rgba(0,0,0,.1); border-radius: 4px; }
+    .msg { margin-bottom: 10px; max-width: 80%; padding: 10px 16px; border-radius: 12px; font-size: 14px; line-height: 1.5; word-wrap: break-word; clear: both; }
+    .msg.own { float: right; background: linear-gradient(135deg,#3CB815,#2ea310); color: #fff; border-bottom-right-radius: 4px; }
+    .msg.other { float: left; background: #fff; border: 1.5px solid #e5e7eb; color: #1a1a2e; border-bottom-left-radius: 4px; }
+    .msg .label { font-size: 10px; opacity: .65; display: block; margin-bottom: 2px; }
+    .msg .time { font-size: 10px; opacity: .6; display: block; margin-top: 4px; text-align: right; }
+    .msg.own .time { color: rgba(255,255,255,.7); }
+    .chat-input-area { display: flex; padding: 12px 20px; background: #fff; border-top: 1px solid #e5e7eb; gap: 8px; }
+    .chat-input-area input { flex: 1; border: 1.5px solid #e5e7eb; border-radius: 24px; padding: 10px 16px; outline: none; font-size: 14px; transition: border-color .2s; }
+    .chat-input-area input:focus { border-color: #3CB815; }
+    .chat-input-area button { background: linear-gradient(135deg,#3CB815,#27a001); color: #fff; border: none; border-radius: 50%; width: 40px; height: 40px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; transition: opacity .2s; }
+    .chat-input-area button:hover { opacity: .85; }
+    .chat-input-area button:disabled { opacity: .4; cursor: default; }
     @@media (max-width: 576px) {
-        .page-header { padding-top: 80px !important; padding-bottom: 30px !important; }
-        .page-header h1 { font-size: 1.4rem !important; }
-        .chatbox-nt { height: 300px; padding: 10px; }
-        .meesage { max-width: 85%; font-size: 12px; padding: 0.5em; }
-        .container-xxl.py-5 { padding-top: 0 !important; }
+        .page-header { padding: 100px 0 30px; }
+        .chat-messages { height: 300px; padding: 12px; }
+        .msg { max-width: 88%; font-size: 13px; }
     }
 </style>
-<div class="container-fluid page-header mb-5 wow fadeIn" data-wow-delay="0.1s">
+
+<div class="page-header">
     <div class="container">
-        <h1 class="display-3 mb-3 animated slideInDown">Nhắn tin</h1>
-        <nav aria-label="breadcrumb animated slideInDown">
-            <ol class="breadcrumb mb-0">
-                <li class="breadcrumb-item text-dark">Trang chủ</li>
-                <li class="breadcrumb-item text-dark" aria-current="page">Đặt hàng</li>
-                <li class="breadcrumb-item text-dark active" aria-current="page">Nhắn tin</li>
+        <h1><i class="fas fa-comments me-2"></i>Nhắn tin</h1>
+        <nav>
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="~/Home">Trang chủ</a></li>
+                <li class="breadcrumb-item active">Nhắn tin</li>
             </ol>
         </nav>
     </div>
 </div>
-<div class="container-xxl py-5">
-        <div class="content">
-            <div class="app-content" style="margin-top:0px;margin-left:0px;">
-                <div id="chatbox-nt" class="chatbox-nt">
-                </div>
-                <div id="messageForm" class="messageTyper d-flex">
-                    <input id="txtMessage" class="search__field" type="text" placeholder="Soạn tin nhắn...">
-                    <button class="button button-send" id="btnSend">Gửi</button>
-                </div>
+
+<div class="container">
+    <div class="chat-container">
+        <div class="chat-header">
+            <div class="avatar"><i class="fas fa-headset"></i></div>
+            <div class="info">
+                <h6>FastShip Hỗ trợ</h6>
+                <small>@(loggedIn ? "Trực tuyến" : "Vui lòng đăng nhập")</small>
             </div>
         </div>
+        <div class="chat-messages" id="chatMessages">
+            <div class="msg other">
+                <span class="label">FastShip</span>
+                Chào bạn! Đây là trang nhắn tin với FastShip. Hãy gửi tin nhắn để được hỗ trợ.
+            </div>
+        </div>
+        <div class="chat-input-area">
+            @Html.AntiForgeryToken()
+            <input type="text" id="msgInput" placeholder="Soạn tin nhắn..." @(loggedIn ? "" : "disabled") onkeypress="if(event.key==='Enter') sendMsg()" />
+            <button id="sendBtn" @(loggedIn ? "" : "disabled") onclick="sendMsg()"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
 </div>
-    @section scripts{
-        <script src="~/Scripts/jquery.signalR-2.4.3.js"></script>
-        <script src="~/Scripts/jquery.signalR-2.4.3.min.js"></script>
-        <script src="~/signalr/hubs"></script>
-        <script>
-            $(function () {
-                var chat = $.connection.nhantin;
-                console.log(chat);
-                loadClient(chat);
-                $.connection.hub.start().done(function () {
-                    $('#btnSend').click(function () {
-                        var msg = $('#txtMessage').val();
-                        var phanbiet = 1;
-                        chat.server.message(msg, phanbiet);
-                        $('#txtMessage').val('').focus();
-                    });
-                });
+
+@section scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+    <script>
+        var userId = @(loggedIn ? user!.userid : 0);
+        var userName = '@(loggedIn ? user!.username : "")';
+        var conn = null;
+
+        function getToken() { return $('input[name="__RequestVerificationToken"]').val(); }
+
+        function connect() {
+            if (!userId) return;
+            conn = new signalR.HubConnectionBuilder()
+                .withUrl('/nhantin')
+                .withAutomaticReconnect()
+                .build();
+
+            // Nhận tin nhắn từ admin
+            conn.on('adminMessage', function(msg, orderId, sender) {
+                addMsg(msg, 'other', 'Admin');
             });
-            function loadClient(chat) {
-                chat.client.message = function (msg, phanbiet) {
-                    $('#chatbox-nt').append("<p class='meesage " + (phanbiet == 1 ? 'own' : 'other') + "'>" + msg + "</p>");
+
+            // Nhận tin nhắn từ order group
+            conn.on('orderMessage', function(msg, orderId, senderName, senderRole, connId) {
+                if (senderRole !== 'Khách hàng') {
+                    addMsg(msg, 'other', senderRole + ' - ' + senderName);
                 }
+            });
+
+            conn.on('directMessage', function(msg, senderName, senderRole, connId) {
+                if (senderRole !== 'Khách hàng') {
+                    addMsg(msg, 'other', senderRole + ' - ' + senderName);
+                }
+            });
+
+            conn.onclose(function() { setTimeout(connect, 5000); });
+
+            conn.start().then(function() {
+                conn.invoke('JoinCustomerSupportGroup', userId).catch(function(){});
+            }).catch(function() {});
+        }
+
+        function sendMsg() {
+            var input = document.getElementById('msgInput');
+            var msg = input.value.trim();
+            if (!msg) return;
+            addMsg(msg, 'own', 'Bạn');
+            input.value = '';
+
+            $.ajax({
+                url: '@Url.Action("CustomerSendMessage", "AdminChat")',
+                type: 'POST',
+                data: { orderId: 0, message: msg },
+                headers: { 'RequestVerificationToken': getToken() },
+                error: function() { addMsg('❌ Lỗi gửi tin nhắn', 'other', 'Hệ thống'); }
+            });
+        }
+
+        function addMsg(text, type, label) {
+            var c = document.getElementById('chatMessages');
+            var d = document.createElement('div');
+            d.className = 'msg ' + type;
+            var time = new Date().toLocaleTimeString('vi-VN', {hour:'2-digit',minute:'2-digit'});
+            d.innerHTML = '<span class="label">' + (label || '') + '</span>'
+                + (text || '').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g, '<br/>')
+                + '<span class="time">' + time + '</span>';
+            c.appendChild(d);
+            c.scrollTop = c.scrollHeight;
+        }
+
+        $(document).ready(function() {
+            if (userId) connect();
+
+            // Load lịch sử tin nhắn
+            if (userId) {
+                $.ajax({
+                    url: '@Url.Action("GetMyMessages", "AdminChat")',
+                    type: 'GET', data: { orderId: 0 },
+                    success: function(res) {
+                        if (!res.success || !res.data) return;
+                        // Clear welcome message if history exists
+                        if (res.data.length > 0) {
+                            document.getElementById('chatMessages').innerHTML = '';
+                        }
+                        res.data.forEach(function(msg) {
+                            var isOwn = msg.sender === 'Khách hàng';
+                            addMsg(msg.content, isOwn ? 'own' : 'other', isOwn ? 'Bạn' : msg.sender);
+                        });
+                    }
+                });
             }
-        </script>
-
-    }
-
+        });
+    </script>
+}

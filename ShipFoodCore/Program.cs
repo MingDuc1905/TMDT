@@ -255,7 +255,7 @@ builder.Services.AddHostedService<ShipFood.Services.AutoPreparingService>(); // 
 builder.Services.AddSingleton<ShipFood.Services.GeminiService>(sp =>
 {
     var configuration = sp.GetRequiredService<IConfiguration>();
-    // Ưu tiên đọc từ Environment Variable (Railway) trước, fallback xuống appsettings.json
+    // Ưu tiên đọc từ Environment Variable trước, fallback xuống appsettings.json
     var apiKey = Environment.GetEnvironmentVariable("Gemini__ApiKey") ?? configuration["Gemini:ApiKey"];
     if (!string.IsNullOrEmpty(apiKey))
         Log.Information("GeminiService initialized as Singleton (key source: {Source})",
@@ -460,7 +460,7 @@ app.Use(async (context, next) =>
 // Dedicated healthcheck endpoint (no database dependency, always returns 200)
 app.MapGet("/health", () => Results.Ok(new { status = "healthy" }));
 
-// Ensure UTF-8 charset for all HTML responses (fixes Vietnamese character encoding on Railway)
+// Ensure UTF-8 charset for all HTML responses (fixes Vietnamese character encoding)
 app.Use(async (context, next) =>
 {
     context.Response.OnStarting(() =>
@@ -477,8 +477,8 @@ app.Use(async (context, next) =>
     await next();
 });
 
-// Railway HTTPS termination — đặt sớm để xử lý X-Forwarded-Proto header
-// Railway's reverse proxy chạy HTTPS bên ngoài, gửi HTTP vào app bên trong.
+// ─── HTTPS termination (Render) — đặt sớm để xử lý X-Forwarded-Proto header ───
+// Render's reverse proxy chạy HTTPS bên ngoài, gửi HTTP vào app bên trong.
 // Middleware này đọc header X-Forwarded-Proto và set Scheme = https,
 // giúp Url.Action() sinh URL redirect OAuth dạng https:// (Google yêu cầu)
 app.Use(async (context, next) =>

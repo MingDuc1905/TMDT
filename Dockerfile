@@ -1,6 +1,5 @@
 # ==========================================================
-# FastShip - Docker Build (Railway CI trigger)
-# Optimizations: DebugType=none, GlobalizationInvariant=1
+# FastShip - Docker Build
 # ==========================================================
 
 # ==========================================================
@@ -14,7 +13,6 @@ COPY ShipFoodCore/ShipFoodCore.csproj ./ShipFoodCore/
 RUN dotnet restore ShipFoodCore/ShipFoodCore.csproj
 
 # Copy everything else and publish
-# Railway Optimizations: DebugType=none (-10MB), DebugSymbols=false (-5MB)
 COPY . .
 RUN dotnet publish ShipFoodCore/ShipFoodCore.csproj -c Release -o /app/publish --no-restore \
     -p:DebugType=none \

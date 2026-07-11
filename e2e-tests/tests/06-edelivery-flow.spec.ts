@@ -214,7 +214,8 @@ test.describe('📱 Customer — Real-time QR Scan Notification', () => {
       console.log(`📊 Progress bar visible: ${progressVisible}`);
 
       // Kiểm tra SignalR connection
-      const hasSignalR = await page.evaluate(() => typeof signalR !== 'undefined').catch(() => false);
+      await page.waitForLoadState('networkidle');
+      const hasSignalR = await page.evaluate(() => !!window['signalR']).catch(() => false);
       console.log(`🔌 SignalR loaded: ${hasSignalR}`);
 
       // Kiểm tra map
@@ -357,15 +358,14 @@ test.describe('👑 Admin — Delivery Logs Matrix & Bypass', () => {
     await page.goto('/EDelivery/DeliveryLogs', { waitUntil: 'domcontentloaded', timeout: 30_000 });
     await page.waitForTimeout(3000);
 
-    // Kiểm tra CSS: border-collapse + không có border dọc
+    // Kiểm tra CSS: border-left/right của th/td phải là 0px (không viền dọc)
     const hasNoVerticalBorder = await page.evaluate(() => {
-      const table = document.querySelector('.delivery-table');
-      if (!table) return false;
-      const style = window.getComputedStyle(table);
-      // delivery-table dùng border-collapse: collapse và border-bottom: 1px solid
-      return style.borderCollapse === 'collapse';
+      const th = document.querySelector('.delivery-table th');
+      if (!th) return false;
+      const style = window.getComputedStyle(th);
+      return style.borderLeftWidth === '0px' && style.borderRightWidth === '0px';
     });
-    console.log(`📐 Table has no vertical borders: ${hasNoVerticalBorder}`);
+    console.log(`📐 No vertical borders (borderLeftWidth=0px): ${hasNoVerticalBorder}`);
   });
 
   test('[TC-6.14] Delivery Logs — admin sidebar nav link hoạt động', async ({ page }) => {

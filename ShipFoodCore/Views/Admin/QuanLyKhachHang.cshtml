@@ -52,6 +52,7 @@
                                     <td data-label="Username">@i.tbUser.username</td>
                                     <td data-label="Trạng thái"><span class="badge-status @statusClass">@statusText</span></td>
                                     <td data-label="Thao tác">
+                                        <a href="~/Admin/PostTaiKhoan?id=@i.userid" class="btn btn-info btn-sm">✏️ Sửa</a>
                                         @if (i.tbUser.trangthai == 1)
                                         {
                                             <a href="~/Admin/LockOrUnLock?id=@i.userid" class="btn btn-danger btn-sm">🔒 Khóa</a>

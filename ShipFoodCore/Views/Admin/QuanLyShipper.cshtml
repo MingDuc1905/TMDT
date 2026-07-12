@@ -46,6 +46,7 @@
                                     <td data-label="Username">@i.tbUser.username</td>
                                     <td data-label="Trạng thái"><span class="badge-status @statusClass">@statusText</span></td>
                                     <td data-label="Thao tác">
+                                        <a href="~/Admin/PostTaiKhoan?id=@i.userid" class="btn btn-info btn-sm">✏️ Sửa</a>
                                         @if (i.tbUser.trangthai == 0)
                                         {
                                             <a href="~/Admin/Duyet?id=@i.userid" class="btn btn-success btn-sm">Duyệt</a>

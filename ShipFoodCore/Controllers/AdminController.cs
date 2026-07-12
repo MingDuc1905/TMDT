@@ -562,16 +562,31 @@ public class AdminController : BaseController
             .Where(dh => dh.trangthai == "Hoàn thành" && dh.tbQuanAn != null)
             .GroupBy(dh => new { dh.maquan, ten = dh.tbQuanAn!.tenquanan })
             .Select(g => new
-            {
-                tenQuan = g.Key.ten,
-                doanhThu = g.Sum(dh => dh.tongtien ?? 0),
-                soDon = g.Count()
-            })
+            {                    tenQuan = g.Key.ten,
+                    doanhThu = g.Sum(dh => dh.tongtien ?? 0),
+                    soDon = g.Count()
+                })
             .OrderByDescending(g => g.doanhThu)
             .Take(5)
             .ToList();
 
-        return Json(topQuan);
+        // Lấy rating thật từ DB cho mỗi quán
+        var tenQuans = topQuan.Select(q => q.tenQuan).ToList();
+        var ratings = db.tbQuanAn
+            .Where(q => tenQuans.Contains(q.tenquanan))
+            .Select(q => new { q.tenquanan, q.diemdanhgia, q.soluotdanhgia })
+            .ToList();
+
+        var result = topQuan.Select(q => new
+        {
+            q.tenQuan,
+            q.doanhThu,
+            q.soDon,
+            diemDanhGia = ratings.FirstOrDefault(r => r.tenquanan == q.tenQuan)?.diemdanhgia ?? 0,
+            soLuotDanhGia = ratings.FirstOrDefault(r => r.tenquanan == q.tenQuan)?.soluotdanhgia ?? 0
+        }).ToList();
+
+        return Json(result);
     }
 
     [HttpGet]
@@ -590,6 +605,72 @@ public class AdminController : BaseController
             data = new[] { hoanThanh, daHuy, dangXuLy },
             colors = new[] { "#28a745", "#dc3545", "#ffc107" }
         });
+    }
+
+    [HttpGet]
+    public JsonResult GetTopItems()
+    {
+        if (!checkLogin())
+            return Json(new { error = "Unauthorized" });
+
+        var topItems = db.tbChiTietDonHang
+            .Where(ct => ct.tbDonHang != null && ct.tbDonHang.trangthai == "Hoàn thành"
+                && ct.tbBienTheMonAn != null && ct.tbBienTheMonAn.tbMonAn != null)
+            .GroupBy(ct => new
+            {
+                mamon = ct.tbBienTheMonAn!.tbMonAn!.mamon,
+                tenmon = ct.tbBienTheMonAn.tbMonAn.tenmon,
+                tenquan = ct.tbDonHang!.tbQuanAn != null ? ct.tbDonHang.tbQuanAn.tenquanan : ""
+            })
+            .Select(g => new
+            {
+                tenMon = g.Key.tenmon,
+                tenQuan = g.Key.tenquan,
+                soLuong = g.Sum(ct => ct.soluong ?? 0),
+                doanhThu = g.Sum(ct => (ct.dongia ?? 0) * (ct.soluong ?? 0))
+            })
+            .OrderByDescending(g => g.soLuong)
+            .Take(10)
+            .ToList();
+
+        return Json(topItems);
+    }
+
+    [HttpGet]
+    public JsonResult GetSystemStats()
+    {
+        if (!checkLogin())
+            return Json(new { error = "Unauthorized" });
+
+        return Json(new
+        {
+            tongQuan = db.tbQuanAn.Count(qa => qa.tbUser != null && qa.tbUser.trangthai == 1),
+            tongShipper = db.tbShipper.Count(s => s.tbUser != null && s.tbUser.trangthai == 1),
+            tongKhach = db.tbUser.Count(u => u.loaitaikhoan == "Khách hàng" && u.trangthai == 1),
+            tongMon = db.tbMonAn.Count(),
+            tongDonAll = db.tbDonHang.Count()
+        });
+    }
+
+    [HttpGet]
+    public JsonResult GetActiveCoupons()
+    {
+        if (!checkLogin())
+            return Json(new { error = "Unauthorized" });
+
+        var now = DateTime.Now;
+        var coupons = db.tbKhuyenMai
+            .Where(k => k.ngayketthuc == null || k.ngayketthuc >= now)
+            .OrderByDescending(k => k.phantramgiam)
+            .Select(k => new
+            {
+                tenkm = k.tenkm,
+                phantramgiam = k.phantramgiam ?? 0,
+                ngayketthuc = k.ngayketthuc
+            })
+            .ToList();
+
+        return Json(coupons);
     }
 
     [HttpGet]

@@ -147,6 +147,122 @@
             </div>
         </div>
 
+        <!-- ===== TOP SOLD ITEMS TABLE ===== -->
+        <div class="row">
+            <div class="col-12 mb-4">
+                <div class="card chart-container shadow-sm">
+                    <div class="card-header">
+                        <h4><i class="fas fa-utensils text-danger me-2"></i>Top món ăn bán chạy nhất</h4>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover" id="topItemsTable">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Tên món</th>
+                                        <th>Quán ăn</th>
+                                        <th class="text-center">Số lượng đã bán</th>
+                                        <th class="text-end">Doanh thu</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="topItemsBody">
+                                    <tr><td colspan="5" class="text-center text-muted">Đang tải...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== REVENUE BY RESTAURANT TABLE ===== -->
+        <div class="row">
+            <div class="col-12 mb-4">
+                <div class="card chart-container shadow-sm">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h4><i class="fas fa-store text-success me-2"></i>Doanh thu chi tiết theo quán</h4>
+                        <span class="badge bg-success rounded-pill">Từ DB thực tế</span>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover" id="revenueTable">
+                                <thead>
+                                    <tr>
+                                        <th>Quán ăn</th>
+                                        <th class="text-center">Số đơn</th>
+                                        <th class="text-end">Doanh thu</th>
+                                        <th class="text-center">Đánh giá</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="revenueBody">
+                                    <tr><td colspan="4" class="text-center text-muted">Đang tải...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== SYSTEM STATS ROW ===== -->
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="card chart-container shadow-sm">
+                    <div class="card-header">
+                        <h4><i class="fas fa-database text-info me-2"></i>Tổng quan hệ thống</h4>
+                    </div>
+                    <div class="card-body">
+                        <div id="systemStats">
+                            <div class="d-flex justify-content-between py-2 border-bottom">
+                                <span class="text-muted">Tổng số quán ăn đang hoạt động</span>
+                                <strong id="stat-tongQuan">...</strong>
+                            </div>
+                            <div class="d-flex justify-content-between py-2 border-bottom">
+                                <span class="text-muted">Tổng số shipper đang hoạt động</span>
+                                <strong id="stat-tongShipper">...</strong>
+                            </div>
+                            <div class="d-flex justify-content-between py-2 border-bottom">
+                                <span class="text-muted">Tổng số khách hàng</span>
+                                <strong id="stat-tongKhach">...</strong>
+                            </div>
+                            <div class="d-flex justify-content-between py-2 border-bottom">
+                                <span class="text-muted">Tổng số món ăn</span>
+                                <strong id="stat-tongMon">...</strong>
+                            </div>
+                            <div class="d-flex justify-content-between py-2">
+                                <span class="text-muted">Tổng số đơn hàng (all time)</span>
+                                <strong id="stat-tongDonAll">...</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="card chart-container shadow-sm">
+                    <div class="card-header">
+                        <h4><i class="fas fa-tags text-warning me-2"></i>Khuyến mãi đang hoạt động</h4>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover" id="couponTable">
+                                <thead>
+                                    <tr>
+                                        <th>Mã</th>
+                                        <th>Giảm</th>
+                                        <th>HSD</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="couponBody">
+                                    <tr><td colspan="3" class="text-center text-muted">Đang tải...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- ===== APRIORI: PHÂN TÍCH LIÊN KẾT DANH MỤC ===== -->
         @{
             var catApriori = ViewBag.CategoryAprioriInsights as List<object>;
@@ -346,6 +462,77 @@
                         }
                     }
                 });
+            });
+
+            // 5. Load top items table
+            $.getJSON('@Url.Action("GetTopItems", "Admin")', function (data) {
+                if (!data || data.length === 0) {
+                    $('#topItemsBody').html('<tr><td colspan="5" class="text-center text-muted">Chưa có dữ liệu</td></tr>');
+                    return;
+                }
+                var html = '';
+                data.forEach(function(item, idx) {
+                    html += '<tr>' +
+                        '<td>' + (idx + 1) + '</td>' +
+                        '<td><strong>' + item.tenMon + '</strong></td>' +
+                        '<td><span style="font-size:13px;color:#6c757d;">' + item.tenQuan + '</span></td>' +
+                        '<td class="text-center"><span class="badge bg-primary rounded-pill">' + item.soLuong + '</span></td>' +
+                        '<td class="text-end text-success fw-bold">' + Number(item.doanhThu).toLocaleString('vi-VN') + ' VNĐ</td>' +
+                        '</tr>';
+                });
+                $('#topItemsBody').html(html);
+            });
+
+            // 6. Load revenue by restaurant table
+            $.getJSON('@Url.Action("GetTopRestaurants", "Admin")', function (data) {
+                if (!data || data.length === 0) {
+                    $('#revenueBody').html('<tr><td colspan="4" class="text-center text-muted">Chưa có dữ liệu</td></tr>');
+                    return;
+                }
+                var html = '';
+                // Get ratings for each restaurant (thật từ DB)
+                data.forEach(function(item) {
+                    var stars = '';
+                    var diem = Math.round(item.diemDanhGia || 0);
+                    for (var i = 0; i < 5; i++) stars += (i < diem ? '★' : '☆');
+                    var ratingHtml = '<span style="color:#ffc107;letter-spacing:1px;">' + stars + '</span>'
+                        + '<br><span style="font-size:11px;color:#6c757d;">(' + (item.soLuotDanhGia || 0) + ' đánh giá)</span>';
+                    html += '<tr>' +
+                        '<td><strong>' + item.tenQuan + '</strong></td>' +
+                        '<td class="text-center">' + item.soDon + '</td>' +
+                        '<td class="text-end text-success fw-bold">' + Number(item.doanhThu).toLocaleString('vi-VN') + ' VNĐ</td>' +
+                        '<td class="text-center">' + ratingHtml + '</td>' +
+                        '</tr>';
+                });
+                $('#revenueBody').html(html);
+            });
+
+            // 7. Load system stats
+            $.getJSON('@Url.Action("GetSystemStats", "Admin")', function (data) {
+                if (data.error) return;
+                $('#stat-tongQuan').text(data.tongQuan);
+                $('#stat-tongShipper').text(data.tongShipper);
+                $('#stat-tongKhach').text(data.tongKhach);
+                $('#stat-tongMon').text(data.tongMon);
+                $('#stat-tongDonAll').text(data.tongDonAll);
+            });
+
+            // 8. Load active coupons
+            $.getJSON('@Url.Action("GetActiveCoupons", "Admin")', function (data) {
+                if (!data || data.length === 0) {
+                    $('#couponBody').html('<tr><td colspan="3" class="text-center text-muted">Không có khuyến mãi nào</td></tr>');
+                    return;
+                }
+                var html = '';
+                data.forEach(function(k) {
+                    var hsd = k.ngayketthuc ? new Date(k.ngayketthuc).toLocaleDateString('vi-VN') : 'Vô hạn';
+                    html += '<tr>' +
+                        '<td><span class="badge" style="background:#3CB815;color:#fff;padding:4px 10px;border-radius:6px;">' + k.tenkm + '</span></td>' +
+                        '<td class="text-center fw-bold text-danger">-' + k.phantramgiam + '%</td>' +
+                        '<td class="text-center" style="font-size:12px;color:#6c757d;">' + hsd + '</td>' +
+                        '</tr>';
+                });
+                $('#couponBody').html(html);
             });
         }
     </script>

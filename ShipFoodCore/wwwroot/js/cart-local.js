@@ -227,6 +227,7 @@ function addToCartUnauth(maMonAn, soLuong, tenmon, giatien, hinhanh, maquanan) {
     
     if (!existed) {
         cart.items.push({
+            mabienthe: maMonAn, // ═══ FIX: store variant ID for restore after login ═══
             mamon: maMonAn,
             tenmon: tenmon || 'Món ăn',
             giatien: giatien || 0,

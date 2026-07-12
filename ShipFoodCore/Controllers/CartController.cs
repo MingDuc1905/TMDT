@@ -640,7 +640,13 @@ public class CartController : BaseController
         var validItems = new List<CartItem>();
         foreach (var item in localCart.items)
         {
+            // ═══ FIX: tìm bằng mabienthe trước, fallback bằng mamon (anonymous cart) ═══
             var bt = db.tbBienTheMonAn.Include(b => b.tbMonAn).FirstOrDefault(b => b.id == item.mabienthe);
+            if (bt == null && item.mamon > 0)
+            {
+                bt = db.tbBienTheMonAn.Include(b => b.tbMonAn).FirstOrDefault(b => b.id == item.mamon
+                    || b.mamon == item.mamon);
+            }
             if (bt?.tbMonAn != null)
             {
                 validItems.Add(new CartItem

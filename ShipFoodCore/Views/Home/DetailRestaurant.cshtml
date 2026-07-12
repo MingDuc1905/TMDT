@@ -391,8 +391,7 @@
                                             giaKhuyenMai = giaGoc - (giaGoc * khuyenMai.phantramgiam / 100);
                                         }
                                         var daMua = daMuaMonAnIds != null && daMuaMonAnIds.Contains(item.mamon);
-                                        var allVariants = new List<ShipFood.Models.tbBienTheMonAn>();
-                                        try { allVariants = ((IEnumerable<ShipFood.Models.tbBienTheMonAn>)item.tbBienTheMonAns).ToList(); } catch { }
+                                        var allVariants = ((IEnumerable<ShipFood.Models.tbBienTheMonAn>)item.tbBienTheMonAns).ToList();
                                         var firstVariantId = allVariants.Count > 0 ? allVariants[0].id : (int?)item.mamon;                                                    <div class="item-restaurant-row @(daMua ? "item-da-mua" : "")" style="display:block;height:84px;position:relative;width:100%;margin-bottom:20px;">
                                             <div class="row">
                                                 <div class="col-auto item-restaurant-img">

@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using ShipFood.Models;
 using System.Text.Json;
 
@@ -6,6 +7,7 @@ namespace ShipFood.Middleware;
 /// <summary>
 /// RoleGuard Middleware — chặn truy cập chéo trang giữa các vai trò
 /// Kiểm tra mọi request, nếu user đăng nhập nhưng không đúng role → redirect
+/// Khi session mất (do restart), fallback sang auth cookie claims.
 /// </summary>
 public class RoleGuardMiddleware
 {
@@ -31,6 +33,27 @@ public class RoleGuardMiddleware
         "/home/menusearch",   // search autocomplete JSON API
         "/nhantin",  // SignalR hub
     };
+
+    /// <summary>
+    /// Phục hồi session từ auth cookie claims (dùng khi session mất do app restart).
+    /// </summary>
+    private static void RestoreSessionFromCookie(HttpContext context, dbFoodyEntities db)
+    {
+        var userIdClaim = context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+            return;
+
+        try
+        {
+            var user = db.tbUser.Find(userId);
+            if (user != null && user.trangthai == 1)
+            {
+                var userJson = JsonSerializer.Serialize(user);
+                context.Session.SetString("user", userJson);
+            }
+        }
+        catch { /* DB unavailable — không thể phục hồi */ }
+    }
 
     // ═══ JSON API patterns — các endpoint trả về JSON cần tự động xử lý AJAX ═══
     // Nếu URL khớp các pattern này, middleware tự động coi là AJAX request và trả JSON error
@@ -69,7 +92,7 @@ public class RoleGuardMiddleware
         _logger = logger;
     }
 
-    public async Task InvokeAsync(HttpContext context)
+    public async Task InvokeAsync(HttpContext context, dbFoodyEntities db)
     {
         var path = context.Request.Path.Value?.ToLowerInvariant() ?? "";
 
@@ -111,9 +134,25 @@ public class RoleGuardMiddleware
             catch { }
         }
 
-        // ═══ Chưa đăng nhập → redirect về login ═══
+        // ═══ Chưa đăng nhập → thử phục hồi từ auth cookie, nếu vẫn null → redirect login ═══
         if (user == null)
         {
+            // Fallback: auth cookie còn (app restart mất session) → phục hồi session
+            if (context.User?.Identity?.IsAuthenticated == true)
+            {
+                RestoreSessionFromCookie(context, db);
+                userJson = context.Session.GetString("user");
+                if (!string.IsNullOrEmpty(userJson))
+                {
+                    try { user = JsonSerializer.Deserialize<tbUser>(userJson); } catch { }
+                    if (user != null)
+                    {
+                        _logger.LogInformation("RoleGuard: Session restored from auth cookie for user {UserId}", user.userid);
+                        // Không return — để code chạy tiếp xuống role check bên dưới
+                    }
+                }
+            }
+
             // NẾU ĐANG Ở /Home/Login → KHÔNG redirect nữa (tránh loop)
             if (path.StartsWith("/home/login", StringComparison.OrdinalIgnoreCase) ||
                 path.StartsWith("/home/", StringComparison.OrdinalIgnoreCase))

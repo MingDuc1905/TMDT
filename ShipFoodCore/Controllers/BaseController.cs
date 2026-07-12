@@ -1,4 +1,7 @@
+using System.Security.Claims;
 using System.Text.Json;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using ShipFood.Models;
 
@@ -13,16 +16,115 @@ public abstract class BaseController : Controller
         ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles
     };
 
+    /// <summary>
+    /// Kiểm tra đăng nhập: ưu tiên Session, fallback Cookie Auth.
+    /// Nếu session mất (do restart) nhưng cookie auth còn → tự động phục hồi session.
+    /// </summary>
     protected bool CheckLogin()
     {
-        return HttpContext.Session.GetString("user") != null;
+        if (HttpContext.Session.GetString("user") != null)
+            return true;
+
+        // Fallback: kiểm tra auth cookie (User.Identity.IsAuthenticated)
+        if (HttpContext.User?.Identity?.IsAuthenticated == true)
+        {
+            RestoreSessionFromClaims();
+            return HttpContext.Session.GetString("user") != null;
+        }
+
+        return false;
     }
 
+    /// <summary>
+    /// Lấy user hiện tại: ưu tiên Session, fallback Cookie Auth.
+    /// </summary>
     protected tbUser? GetCurrentUser()
     {
         var userJson = HttpContext.Session.GetString("user");
-        if (userJson == null) return null;
-        return JsonSerializer.Deserialize<tbUser>(userJson, _jsonOptions);
+        if (userJson != null)
+            return JsonSerializer.Deserialize<tbUser>(userJson, _jsonOptions);
+
+        // Fallback: nếu có auth cookie, phục hồi session và trả về user
+        if (HttpContext.User?.Identity?.IsAuthenticated == true)
+        {
+            RestoreSessionFromClaims();
+            userJson = HttpContext.Session.GetString("user");
+            if (userJson != null)
+                return JsonSerializer.Deserialize<tbUser>(userJson, _jsonOptions);
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Phục hồi session từ Cookie Auth claims.
+    /// Được gọi khi session mất (restart) nhưng auth cookie còn.
+    /// </summary>
+    private void RestoreSessionFromClaims()
+    {
+        var userIdClaim = HttpContext.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var usernameClaim = HttpContext.User?.FindFirst(ClaimTypes.Name)?.Value;
+        var roleClaim = HttpContext.User?.FindFirst(ClaimTypes.Role)?.Value;
+
+        if (string.IsNullOrEmpty(userIdClaim) || string.IsNullOrEmpty(usernameClaim))
+            return;
+
+        if (!int.TryParse(userIdClaim, out var userId))
+            return;
+
+        // Tìm user trong DB
+        try
+        {
+            var user = db.tbUser.Find(userId);
+            if (user != null && user.trangthai == 1)
+            {
+                SetSessionUser(user);
+                var logger = HttpContext.RequestServices.GetRequiredService<ILogger<BaseController>>();
+                logger.LogInformation("Session restored from auth cookie for user {UserId} ({Username})", userId, usernameClaim);
+            }
+        }
+        catch
+        {
+            // DB unavailable — không thể phục hồi
+        }
+    }
+
+    /// <summary>
+    /// Set session user + tạo auth cookie (dùng cho cả manual + OAuth login).
+    /// Cookie có thời hạn 30 ngày, sliding expiration → tồn tại qua restart.
+    /// </summary>
+    protected async Task SetSessionAndCookieAsync(tbUser user, bool rememberMe = false)
+    {
+        // 1. Set session
+        SetSessionUser(user);
+
+        // 2. Tạo auth cookie với claims
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.NameIdentifier, user.userid.ToString()),
+            new Claim(ClaimTypes.Name, user.username ?? ""),
+            new Claim(ClaimTypes.Role, user.loaitaikhoan ?? "Khách hàng"),
+            new Claim("loaitaikhoan", user.loaitaikhoan ?? "Khách hàng"),
+        };
+
+        var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+        var principal = new ClaimsPrincipal(identity);
+
+        var authProperties = new AuthenticationProperties
+        {
+            IsPersistent = rememberMe,
+            ExpiresUtc = rememberMe
+                ? DateTimeOffset.UtcNow.AddDays(30)
+                : DateTimeOffset.UtcNow.AddDays(1),
+        };
+
+        await HttpContext.SignInAsync(
+            CookieAuthenticationDefaults.AuthenticationScheme,
+            principal,
+            authProperties);
+
+        // 3. Commit session để đảm bảo session cookie được ghi
+        await HttpContext.Session.CommitAsync();
     }
 
     protected void SetSessionUser(tbUser user)

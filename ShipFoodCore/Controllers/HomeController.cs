@@ -255,27 +255,8 @@ public class HomeController : BaseController
 
             var cart = new Cart { userid = userFind.userid };
             SetCart(cart);
-            SetSessionUser(userFind);
-
-            // ─── Task 6a: Force session commit TRƯỚC redirect ───
-            // ponytail: Session.SetString chỉ đánh dấu modified, chưa ghi cookie ngay.
-            // Nếu redirect 302 xảy ra quá nhanh, request tiếp theo sẽ đọc cookie cũ (rỗng)
-            // → GetCurrentUser() trả về null → redirect back /Home/Login
-            // Fix: CommitAsync() đảm bảo session cookie được ghi trước khi redirect
-            await HttpContext.Session.CommitAsync();
-
-            // Nếu người dùng chọn "Lưu đăng nhập", làm cho session cookie persistent
-            // Dùng HttpContext.Session.Id thay vì Request.Cookies vì cookie chưa tồn tại trong request
-            if (rememberMe)
-            {
-                Response.Cookies.Append(".AspNetCore.Session", HttpContext.Session.Id, new CookieOptions
-                {
-                    Expires = DateTimeOffset.UtcNow.AddDays(30),
-                    HttpOnly = true,
-                    IsEssential = true,
-                    SameSite = SameSiteMode.Lax
-                });
-            }
+            // ─── Set auth cookie + session (bền vững qua restart) ───
+            await SetSessionAndCookieAsync(userFind, rememberMe);
 
             var redirectUrl = userFind.loaitaikhoan switch
             {
@@ -441,7 +422,7 @@ public class HomeController : BaseController
 
                     var newCart = new Cart { userid = newUser.userid };
                     SetCart(newCart);
-                    SetSessionUser(newUser);
+                    await SetSessionAndCookieAsync(newUser);
 
                     return RedirectToAction("Index", "Home");
                 }
@@ -463,7 +444,7 @@ public class HomeController : BaseController
 
             var cart = new Cart { userid = userFind.userid };
             SetCart(cart);
-            SetSessionUser(userFind);
+            await SetSessionAndCookieAsync(userFind);
 
             return userFind.loaitaikhoan switch
             {
@@ -560,7 +541,7 @@ public class HomeController : BaseController
 
                     var newCart = new Cart { userid = newUser.userid };
                     SetCart(newCart);
-                    SetSessionUser(newUser);
+                    await SetSessionAndCookieAsync(newUser);
 
                     return RedirectToAction("Index", "Home");
                 }
@@ -582,7 +563,7 @@ public class HomeController : BaseController
 
             var cart = new Cart { userid = userFind.userid };
             SetCart(cart);
-            SetSessionUser(userFind);
+            await SetSessionAndCookieAsync(userFind);
 
             return userFind.loaitaikhoan switch
             {
@@ -954,9 +935,11 @@ public class HomeController : BaseController
 
     public async Task<ActionResult> Logout()
     {
+        // ─── Xoá cả session + auth cookie ───
         await HttpContext.SignOutAsync(Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme);
         HttpContext.Session.Remove("user");
         HttpContext.Session.Remove("cart");
+        await HttpContext.Session.CommitAsync();
         return RedirectToAction("Index");
     }
 

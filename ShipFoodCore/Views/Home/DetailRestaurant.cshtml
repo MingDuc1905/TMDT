@@ -567,6 +567,8 @@
                     </button>
                 </div>
 
+                @Html.AntiForgeryToken()
+
                 <!-- Viết đánh giá (chỉ hiện khi đã mua và đăng nhập) -->
                 @{
                     var userJsonReview = Context.Session.GetString("user");

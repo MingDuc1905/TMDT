@@ -221,10 +221,9 @@ public class HomeController : BaseController
 
             // ponytail: render view thành string NGAY TRONG try-catch để bắt được lỗi view rendering
             // vì return View() trả về ViewResult, exception xảy ra sau đó ở pipeline → ko catch được
-            // ponytail: render view thành string NGAY TRONG try-catch để bắt được lỗi view rendering
-            // isMainPage:true để layout được render (ko mất header/footer)
-            var html = await RenderViewToStringAsync("DetailRestaurant", quanAn);
-            return Content(html, "text/html");
+            // ponytail: bug DLR RuntimeBinderException đã fix trong view (cast item -> tbMonAn)
+            // giữ lại RenderViewToStringAsync helper để debug sau này nếu cần
+            return View(quanAn);
         }
         catch (Exception ex)
         {

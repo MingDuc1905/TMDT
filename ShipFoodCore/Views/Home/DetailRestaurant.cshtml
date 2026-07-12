@@ -381,8 +381,9 @@
                                             }
                                         </div>
                                     </div>
-                                    @foreach (var item in ViewBag.DanhSachMonAn)
+                                    @foreach (ShipFood.Models.tbMonAn item in ViewBag.DanhSachMonAn)
                                     {
+                                        // ponytail: cast item về tbMonAn để DLR không bị RuntimeBinderException với extension methods LINQ
                                         var khuyenMai = khuyenMais?.FirstOrDefault(km => km.tbBienTheMonAn?.mamon == item.mamon);
                                         var giaGoc = item.tbBienTheMonAns?.FirstOrDefault()?.giatien;
                                         var giaKhuyenMai = giaGoc;
@@ -391,7 +392,7 @@
                                             giaKhuyenMai = giaGoc - (giaGoc * khuyenMai.phantramgiam / 100);
                                         }
                                         var daMua = daMuaMonAnIds != null && daMuaMonAnIds.Contains(item.mamon);
-                                        var allVariants = ((IEnumerable<ShipFood.Models.tbBienTheMonAn>)item.tbBienTheMonAns).ToList();
+                                        var allVariants = item.tbBienTheMonAns?.ToList() ?? new List<ShipFood.Models.tbBienTheMonAn>();
                                         var firstVariantId = allVariants.Count > 0 ? allVariants[0].id : (int?)item.mamon;                                                    <div class="item-restaurant-row @(daMua ? "item-da-mua" : "")" style="display:block;height:84px;position:relative;width:100%;margin-bottom:20px;">
                                             <div class="row">
                                                 <div class="col-auto item-restaurant-img">

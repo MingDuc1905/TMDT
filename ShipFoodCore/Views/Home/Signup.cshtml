@@ -7,249 +7,620 @@
     <a href="~/Home/Login" class="fs-btn fs-btn-primary" style="padding:7px 18px;border-radius:20px;font-size:13px;font-weight:600;white-space:nowrap;">Đăng nhập</a>
 }
 
-<div class="auth-card auth-container">
-    <a href="~/Home" style="text-decoration:none;">
-        <h1 style="color:var(--fs-green);font-size:28px;margin-bottom:4px;font-weight:700;">
-            F<span style="color:var(--fs-orange);">ast</span>ship
-        </h1>
-    </a>
+<style>
+    .auth-card { padding: 0; background: transparent; box-shadow: none; }
 
-    <!-- ═══ 2-Step Progress Bar ═══ -->
-    <div class="fs-wp-2" id="wizardProgress2">
-        <div class="fs-wp-2-step active" data-step="1">
-            <span class="step-num">1</span>
-            <span class="step-label">Vai trò</span>
+    .fs-signup-wrap {
+        background: var(--fs-white);
+        border-radius: 20px;
+        box-shadow: 0 8px 40px rgba(0,0,0,.07);
+        padding: 40px 40px 32px;
+        text-align: left;
+    }
+    @@media (max-width: 576px) {
+        .fs-signup-wrap { padding: 28px 20px 24px; }
+    }
+
+    .fs-signup-wrap .fs-brand {
+        text-align: center;
+        margin-bottom: 28px;
+    }
+    .fs-signup-wrap .fs-brand h1 {
+        font-size: 26px;
+        font-weight: 800;
+        letter-spacing: -0.5px;
+        margin: 0;
+        line-height: 1.2;
+    }
+    .fs-signup-wrap .fs-brand .fs-brand-f   { color: var(--fs-green,#3CB815); }
+    .fs-signup-wrap .fs-brand .fs-brand-ast { color: #F65005; }
+    .fs-signup-wrap .fs-brand .fs-brand-ship { color: var(--fs-dark,#1a1a2e); }
+    .fs-signup-wrap .fs-brand p {
+        color: var(--fs-muted);
+        font-size: 14px;
+        margin: 4px 0 0;
+    }
+
+    /* ═══ Role Cards ═══ */
+    .fs-role-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        margin-bottom: 0;
+    }
+    @@media (max-width: 576px) {
+        .fs-role-grid { grid-template-columns: 1fr; gap: 10px; }
+    }
+
+    .fs-role-card {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        padding: 20px 14px 16px;
+        border-radius: 16px;
+        border: 2px solid #e8e8e8;
+        background: var(--fs-white);
+        cursor: pointer;
+        transition: all .25s cubic-bezier(.4,0,.2,1);
+        -webkit-tap-highlight-color: transparent;
+        user-select: none;
+    }
+    .fs-role-card:hover { border-color: #c8e6c9; }
+    .fs-role-card.selected {
+        border-color: var(--fs-green,#3CB815);
+        background: #f1faf0;
+        box-shadow: 0 4px 20px rgba(60,184,21,.15);
+        transform: translateY(-2px);
+    }
+    .fs-role-card:active { transform: scale(.97); }
+
+    .fs-role-card input[type="radio"] {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .role-icon-wrap {
+        width: 52px;
+        height: 52px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        color: var(--fs-white);
+        transition: all .25s;
+    }
+    .fs-role-card.role-customer .role-icon-wrap { background: linear-gradient(135deg,#3CB815,#2d8f10); }
+    .fs-role-card.role-restaurant .role-icon-wrap { background: linear-gradient(135deg,#F65005,#d94500); }
+    .fs-role-card.role-shipper .role-icon-wrap { background: linear-gradient(135deg,#0288d1,#026aa0); }
+
+    .role-card-name {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--fs-dark);
+        text-align: center;
+        line-height: 1.3;
+    }
+    .role-card-desc {
+        font-size: 11px;
+        color: var(--fs-muted-soft);
+        text-align: center;
+        line-height: 1.4;
+    }
+    .role-check-badge {
+        position: absolute;
+        top: -6px;
+        right: -6px;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: var(--fs-green);
+        color: var(--fs-white);
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transform: scale(.5);
+        transition: all .25s cubic-bezier(.4,0,.2,1);
+        box-shadow: 0 2px 8px rgba(60,184,21,.3);
+    }
+    .fs-role-card.selected .role-check-badge {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    /* ═══ form divider ═══ */
+    .fs-form-divider {
+        text-align: center;
+        margin: 20px 0 0;
+        position: relative;
+    }
+    .fs-form-divider::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: #e8e8e8;
+        z-index: 0;
+    }
+    .fs-form-divider span {
+        position: relative;
+        z-index: 1;
+        background: var(--fs-white);
+        padding: 0 16px;
+        font-size: 13px;
+        color: var(--fs-muted-soft);
+        font-weight: 500;
+    }
+
+    /* ═══ Form fields container (animated) ═══ */
+    .fs-form-fields {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height .5s cubic-bezier(.4,0,.2,1), opacity .4s ease, margin .4s ease;
+        opacity: 0;
+        margin-top: 0;
+    }
+    .fs-form-fields.open {
+        max-height: 900px;
+        opacity: 1;
+        margin-top: 20px;
+    }
+
+    .fs-field-group {
+        margin-bottom: 16px;
+    }
+    .fs-field-group label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--fs-dark);
+        margin-bottom: 6px;
+    }
+    .fs-field-group label .required {
+        color: var(--fs-danger);
+        margin-left: 2px;
+    }
+    .fs-field-group .fs-input-wrap {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+    .fs-field-group .fs-input-wrap .fs-input-icon {
+        position: absolute;
+        left: 14px;
+        color: #bbb;
+        font-size: 14px;
+        pointer-events: none;
+        z-index: 2;
+    }
+    .fs-field-group .fs-input-wrap input,
+    .fs-field-group .fs-input-wrap select {
+        width: 100%;
+        padding: 12px 14px 12px 42px;
+        border: 1.5px solid #e0e0e0;
+        border-radius: 12px;
+        font-size: 14px;
+        color: var(--fs-dark);
+        background: var(--fs-white);
+        outline: none;
+        transition: all .2s;
+        font-family: inherit;
+        box-sizing: border-box;
+    }
+    .fs-field-group .fs-input-wrap input:focus,
+    .fs-field-group .fs-input-wrap select:focus {
+        border-color: var(--fs-green);
+        box-shadow: 0 0 0 3px rgba(60,184,21,.12);
+    }
+    .fs-field-group .fs-input-wrap input.error {
+        border-color: var(--fs-danger);
+        box-shadow: 0 0 0 3px rgba(231,76,60,.1);
+    }
+    .fs-field-group .fs-input-wrap select {
+        padding-left: 16px;
+        appearance: auto;
+    }
+    .fs-field-group .fs-hint {
+        font-size: 11px;
+        color: var(--fs-muted-soft);
+        margin-top: 4px;
+        padding-left: 4px;
+    }
+    .fs-field-group .fs-error {
+        font-size: 12px;
+        color: var(--fs-danger);
+        margin-top: 4px;
+        padding-left: 4px;
+        display: none;
+    }
+
+    /* Password animate fields */
+    .fs-extra-fields {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height .45s cubic-bezier(.4,0,.2,1), opacity .35s ease;
+        opacity: 0;
+    }
+    .fs-extra-fields.open {
+        max-height: 500px;
+        opacity: 1;
+    }
+    .fs-extra-fields-inner {
+        padding-top: 4px;
+    }
+
+    /* Password strength */
+    .fs-pwd-meter {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 6px;
+    }
+    .fs-pwd-bar-track {
+        flex: 1;
+        height: 4px;
+        background: #e8e8e8;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+    .fs-pwd-bar-fill {
+        height: 100%;
+        width: 0;
+        border-radius: 4px;
+        transition: width .3s, background .3s;
+    }
+    .fs-pwd-label {
+        font-size: 11px;
+        font-weight: 600;
+        min-width: 60px;
+        text-align: right;
+    }
+
+    /* Agree */
+    .fs-agree {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        margin: 18px 0 16px;
+        font-size: 13px;
+        color: #666;
+        line-height: 1.5;
+    }
+    .fs-agree input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        margin-top: 2px;
+        accent-color: var(--fs-green);
+        flex-shrink: 0;
+        cursor: pointer;
+    }
+    .fs-agree a {
+        color: var(--fs-green);
+        font-weight: 600;
+        text-decoration: none;
+    }
+    .fs-agree a:hover { text-decoration: underline; }
+
+    /* Submit btn */
+    .fs-submit-btn {
+        width: 100%;
+        padding: 14px;
+        border: none;
+        border-radius: 14px;
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--fs-white);
+        background: linear-gradient(135deg, var(--fs-green), var(--fs-green-dark));
+        cursor: pointer;
+        transition: all .25s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+    .fs-submit-btn:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 24px rgba(60,184,21,.3);
+    }
+    .fs-submit-btn:active:not(:disabled) { transform: translateY(0); }
+    .fs-submit-btn:disabled {
+        opacity: .5;
+        cursor: not-allowed;
+    }
+
+    /* Social login */
+    .fs-social-section {
+        text-align: center;
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid #eee;
+    }
+    .fs-social-section .social-label {
+        font-size: 13px;
+        color: var(--fs-muted-soft);
+        margin-bottom: 12px;
+    }
+    .fs-social-icons {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+    }
+    .fs-social-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        border: 1.5px solid #e8e8e8;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all .2s;
+        text-decoration: none;
+    }
+    .fs-social-icon:hover {
+        border-color: #ccc;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,.08);
+    }
+    .fs-partner-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: #4285F4;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 500;
+        margin-top: 12px;
+        padding: 8px 16px;
+        border-radius: 20px;
+        transition: all .2s;
+    }
+    .fs-partner-link:hover {
+        background: #f0f4ff;
+    }
+
+    /* Already have account */
+    .fs-login-link {
+        text-align: center;
+        margin-top: 18px;
+        font-size: 13px;
+        color: #888;
+    }
+    .fs-login-link a {
+        color: var(--fs-green);
+        font-weight: 600;
+        text-decoration: none;
+    }
+    .fs-login-link a:hover { text-decoration: underline; }
+
+    /* Toast error */
+    .fs-toast-err {
+        background: #fff0f0;
+        border: 1px solid #f5c6cb;
+        color: #721c24;
+        font-size: 13px;
+        padding: 12px 16px;
+        border-radius: 12px;
+        margin-bottom: 16px;
+        display: none;
+        align-items: center;
+        gap: 8px;
+    }
+    .fs-toast-err.show { display: flex; }
+
+    /* Logo fallback for social */
+    .fs-social-icon svg { display: block; }
+</style>
+
+<div class="auth-container">
+    <div class="fs-signup-wrap">
+        <!-- Brand -->
+        <div class="fs-brand">
+            <a href="~/Home" style="text-decoration:none;">
+                <h1><span class="fs-brand-f">F</span><span class="fs-brand-ast">ast</span><span class="fs-brand-ship">ship</span></h1>
+            </a>
+            <p>Tạo tài khoản mới</p>
         </div>
-        <div class="fs-wp-2-line" data-step="1-2"></div>
-        <div class="fs-wp-2-step" data-step="2">
-            <span class="step-num">2</span>
-            <span class="step-label">Thông tin</span>
-        </div>
-    </div>
 
-    <!-- ═══ FORM ═══ -->
-    <form id="signupForm" method="post" action="~/Home/Signup">
-        @Html.AntiForgeryToken()
-        <input type="hidden" name="loaitaikhoan" id="hiddenRole" value="" />
-        <input type="hidden" name="diachi" id="hiddenDiachi" value="" />
+        <!-- ═══ FORM ═══ -->
+        <form id="signupForm" method="post" action="~/Home/Signup" novalidate>
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="loaitaikhoan" id="hiddenRole" value="" />
+            <input type="hidden" name="diachi" id="hiddenDiachi" value="" />
 
-        <!-- ═══════════ BƯỚC 1: CHỌN VAI TRÒ ═══════════ -->
-        <div class="fs-step-2 active" id="step1">
-            <div class="fs-step-inner">
-                <div class="fs-step-title">Bạn muốn đăng ký với tư cách gì?</div>
-                <div class="fs-step-sub">Chọn vai trò của bạn trên Fastship</div>
-
-                <!-- Role Cards -->
-                <div class="fs-role-grid" id="roleGrid">
-                    <div class="fs-role-card role-customer" onclick="selectRole(this, 'Khách hàng')" role="button" tabindex="0" aria-label="Đăng ký làm Khách hàng" onkeydown="if(event.key==='Enter'||event.key===' ')selectRole(this,'Khách hàng')">
-                        <input type="radio" name="roleRadio" value="Khách hàng" id="role-customer">
-                        <div class="role-icon"><i class="fas fa-user"></i></div>
-                        <div class="role-info">
-                            <div class="role-name">Khách hàng</div>
-                            <div class="role-desc">Đặt món ăn, theo dõi đơn hàng</div>
-                        </div>
-                        <div class="role-check"><i class="fas fa-check"></i></div>
-                    </div>
-                    <div class="fs-role-card role-restaurant" onclick="selectRole(this, 'Quán ăn')" role="button" tabindex="0" aria-label="Đăng ký làm Đối tác Quán ăn" onkeydown="if(event.key==='Enter'||event.key===' ')selectRole(this,'Quán ăn')">
-                        <input type="radio" name="roleRadio" value="Quán ăn" id="role-restaurant">
-                        <div class="role-icon"><i class="fas fa-store"></i></div>
-                        <div class="role-info">
-                            <div class="role-name">Đối tác Quán ăn</div>
-                            <div class="role-desc">Quản lý thực đơn, đơn hàng</div>
-                        </div>
-                        <div class="role-check"><i class="fas fa-check"></i></div>
-                    </div>
-                    <div class="fs-role-card role-shipper" onclick="selectRole(this, 'Shipper')" role="button" tabindex="0" aria-label="Đăng ký làm Tài xế Shipper" onkeydown="if(event.key==='Enter'||event.key===' ')selectRole(this,'Shipper')">
-                        <input type="radio" name="roleRadio" value="Shipper" id="role-shipper">
-                        <div class="role-icon"><i class="fas fa-motorcycle"></i></div>
-                        <div class="role-info">
-                            <div class="role-name">Tài xế Shipper</div>
-                            <div class="role-desc">Nhận đơn giao hàng, kiếm thu nhập</div>
-                        </div>
-                        <div class="role-check"><i class="fas fa-check"></i></div>
-                    </div>
+            <!-- Role Cards -->
+            <div class="fs-role-grid" id="roleGrid">
+                <div class="fs-role-card role-customer" onclick="selectRole(this, 'Khách hàng')" role="button" tabindex="0" aria-label="Đăng ký làm Khách hàng" onkeydown="if(event.key==='Enter'||event.key===' ')selectRole(this,'Khách hàng')">
+                    <input type="radio" name="roleRadio" value="Khách hàng" id="role-customer" />
+                    <span class="role-check-badge"><i class="fas fa-check"></i></span>
+                    <div class="role-icon-wrap"><i class="fas fa-user"></i></div>
+                    <div class="role-card-name">Khách hàng</div>
+                    <div class="role-card-desc">Đặt món, theo dõi đơn hàng</div>
                 </div>
-
-                <!-- Social Signup (icons) - matching Login exactly -->
-                @{
-                    var googleId = ViewContext.HttpContext.RequestServices
-                        .GetService<Microsoft.Extensions.Configuration.IConfiguration>()?
-                        ["Authentication:Google:ClientId"];
-                    bool googleEnabled = !string.IsNullOrEmpty(googleId);
-
-                    var fbAppId = ViewContext.HttpContext.RequestServices
-                        .GetService<Microsoft.Extensions.Configuration.IConfiguration>()?
-                        ["Authentication:Facebook:AppId"];
-                    bool fbEnabled = !string.IsNullOrEmpty(fbAppId);
-                }
-                @if (googleEnabled || fbEnabled)
-                {
-                    <div class="divider">hoặc</div>
-                    <div class="fs-social-icons">
-                        @if (googleEnabled)
-                        {
-                            <a href="@Url.Action("GoogleLogin","Home")" class="fs-social-icon" aria-label="Đăng ký bằng Google" title="Đăng ký bằng Google">
-                                <svg width="22" height="22" viewBox="0 0 48 48" fill="none"><path d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" fill="#EA4335"/><path d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" fill="#4285F4"/><path d="M10.54 28.59A14.5 14.5 0 0 1 9.5 24c0-1.59.28-3.14.76-4.59l-7.98-6.19A23.99 23.99 0 0 0 0 24c0 3.77.87 7.35 2.56 10.59l7.98-6z" fill="#FBBC05"/><path d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6C6.51 42.62 14.62 48 24 48z" fill="#34A853"/></svg>
-                            </a>
-                        }
-                        @if (fbEnabled)
-                        {
-                            <a href="@Url.Action("FacebookLogin","Home")" class="fs-social-icon" aria-label="Đăng ký bằng Facebook" title="Đăng ký bằng Facebook">
-                                <svg width="22" height="22" viewBox="0 0 48 48" fill="none">
-                                    <path d="M24 0C10.74 0 0 10.74 0 24c0 13.26 10.74 24 24 24s24-10.74 24-24C48 10.74 37.26 0 24 0zm6.22 24.08h-3.29v15.06h-6.24V24.08h-3.15v-5.34h3.15v-3.24c0-2.61 1.24-6.69 6.68-6.69l4.9.02v5.46h-3.56c-.58 0-1.4.29-1.4 1.53v2.92h5l-.09 5.34z" fill="#1877F2"/>
-                                </svg>
-                            </a>
-                        }
-                    </div>
-                    @if (googleEnabled)
-                    {
-                        <div style="text-align:center;margin-top:0;margin-bottom:4px;">
-                            <a href="@Url.Action("GooglePartnerLogin","Home")" style="color:#4285F4;text-decoration:none;font-size:12px;font-weight:500;">
-                                <i class="fas fa-store me-1"></i>Đăng ký làm Đối tác Quán ăn / Shipper
-                            </a>
-                        </div>
-                    }
-                }
-
-                <!-- Error -->
-                <div id="step1Error" class="alert alert-danger" role="alert" style="display:none;font-size:13px;padding:10px 12px;margin-bottom:12px;"></div>
-
-                <!-- Next -->
-                <div class="fs-signup-nav">
-                    <button type="button" class="fs-btn-next" id="step1Next">Tiếp theo →</button>
+                <div class="fs-role-card role-restaurant" onclick="selectRole(this, 'Quán ăn')" role="button" tabindex="0" aria-label="Đăng ký làm Đối tác Quán ăn" onkeydown="if(event.key==='Enter'||event.key===' ')selectRole(this,'Quán ăn')">
+                    <input type="radio" name="roleRadio" value="Quán ăn" id="role-restaurant" />
+                    <span class="role-check-badge"><i class="fas fa-check"></i></span>
+                    <div class="role-icon-wrap"><i class="fas fa-store"></i></div>
+                    <div class="role-card-name">Đối tác Quán ăn</div>
+                    <div class="role-card-desc">Quản lý thực đơn, đơn hàng</div>
+                </div>
+                <div class="fs-role-card role-shipper" onclick="selectRole(this, 'Shipper')" role="button" tabindex="0" aria-label="Đăng ký làm Tài xế Shipper" onkeydown="if(event.key==='Enter'||event.key===' ')selectRole(this,'Shipper')">
+                    <input type="radio" name="roleRadio" value="Shipper" id="role-shipper" />
+                    <span class="role-check-badge"><i class="fas fa-check"></i></span>
+                    <div class="role-icon-wrap"><i class="fas fa-motorcycle"></i></div>
+                    <div class="role-card-name">Tài xế Shipper</div>
+                    <div class="role-card-desc">Nhận giao hàng, kiếm thu nhập</div>
                 </div>
             </div>
-        </div>
 
-        <!-- ═══════════ BƯỚC 2: THÔNG TIN (gộp cả xác nhận) ═══════════ -->
-        <div class="fs-step-2" id="step2">
-            <div class="fs-step-inner">
-                <div class="fs-step-title">Thông tin của bạn</div>
-                <div class="fs-step-sub" id="step2Sub"><i class="fas fa-user me-1"></i>Khách hàng</div>
+            <!-- Divider + Error -->
+            <div class="fs-form-divider"><span>Điền thông tin bên dưới</span></div>
+            <div id="formError" class="fs-toast-err"><i class="fas fa-exclamation-circle"></i><span id="formErrorText"></span></div>
 
-                <!-- Ho ten -->
-                <div class="fs-signup-field">
+            <!-- ═══ Form Fields (animate in) ═══ -->
+            <div class="fs-form-fields" id="formFields">
+                <!-- Họ tên -->
+                <div class="fs-field-group">
                     <label for="inputHoten">Họ tên <span class="required">*</span></label>
                     <div class="fs-input-wrap">
                         <i class="fas fa-user fs-input-icon"></i>
-                        <input type="text" class="fs-input-capsule" name="hoten" id="inputHoten" placeholder="Nhập họ tên" autocomplete="name" required />
+                        <input type="text" id="inputHoten" name="hoten" placeholder="Nguyễn Văn A" autocomplete="name" required />
                     </div>
+                    <div class="fs-error" id="errHoten"></div>
                 </div>
 
                 <!-- Username -->
-                <div class="fs-signup-field">
+                <div class="fs-field-group">
                     <label for="inputUsername">Tên đăng nhập <span class="required">*</span></label>
                     <div class="fs-input-wrap">
                         <i class="fas fa-user-tag fs-input-icon"></i>
-                        <input type="text" class="fs-input-capsule" name="username" id="inputUsername" placeholder="VD: nguyenvan_a" autocomplete="username" required />
+                        <input type="text" id="inputUsername" name="username" placeholder="nguyenvan_a" autocomplete="username" required />
                     </div>
-                    <div style="font-size:11px;color:#999;margin-top:4px;padding-left:4px;">Chỉ chứa chữ cái, số và dấu gạch dưới</div>
+                    <div class="fs-hint">Chỉ gồm chữ cái, số và dấu gạch dưới</div>
+                    <div class="fs-error" id="errUsername"></div>
                 </div>
 
                 <!-- Email -->
-                <div class="fs-signup-field">
+                <div class="fs-field-group">
                     <label for="inputEmail">Email <span class="required">*</span></label>
                     <div class="fs-input-wrap">
                         <i class="fas fa-envelope fs-input-icon"></i>
-                        <input type="email" class="fs-input-capsule" name="email" id="inputEmail" placeholder="example@gmail.com" autocomplete="email" required />
+                        <input type="email" id="inputEmail" name="email" placeholder="example@gmail.com" autocomplete="email" required />
                     </div>
+                    <div class="fs-error" id="errEmail"></div>
                 </div>
 
-                <!-- SDT -->
-                <div class="fs-signup-field">
+                <!-- SĐT -->
+                <div class="fs-field-group">
                     <label for="inputSdt">Số điện thoại <span class="required">*</span></label>
                     <div class="fs-input-wrap">
                         <i class="fas fa-phone fs-input-icon"></i>
-                        <input type="tel" class="fs-input-capsule" name="sdt" id="inputSdt" placeholder="0912345678" autocomplete="tel" required maxlength="11" />
+                        <input type="tel" id="inputSdt" name="sdt" placeholder="0912345678" autocomplete="tel" required maxlength="11" />
                     </div>
-                    <div style="font-size:11px;color:#999;margin-top:4px;padding-left:4px;">10-11 số, bắt đầu bằng 0</div>
+                    <div class="fs-hint">10-11 số, bắt đầu bằng 0</div>
+                    <div class="fs-error" id="errSdt"></div>
                 </div>
 
-                <!-- Password fields (chỉ cho Quán ăn / Shipper) -->
-                <div id="passwordFields" style="display:none;">
-                    <div class="fs-signup-field">
-                        <label for="inputPwd">Mật khẩu <span class="required">*</span></label>
-                        <div class="fs-input-wrap fs-password-wrap">
-                            <i class="fas fa-lock fs-input-icon"></i>
-                            <input type="password" class="fs-input-capsule" name="pwd" id="inputPwd" placeholder="Tối thiểu 8 ký tự" autocomplete="new-password" />
-                            <button type="button" class="fs-password-toggle" tabindex="-1" aria-label="Hiện/ẩn mật khẩu"><i class="fas fa-eye"></i></button>
+                <!-- ═══ Extra fields: Password + Address (only for Quán ăn / Shipper) ═══ -->
+                <div class="fs-extra-fields" id="extraFields">
+                    <div class="fs-extra-fields-inner">
+                        <div class="fs-field-group">
+                            <label for="inputPwd">Mật khẩu <span class="required">*</span></label>
+                            <div class="fs-input-wrap fs-password-wrap">
+                                <i class="fas fa-lock fs-input-icon"></i>
+                                <input type="password" id="inputPwd" name="pwd" placeholder="Tối thiểu 8 ký tự" autocomplete="new-password" />
+                                <button type="button" class="fs-password-toggle" tabindex="-1" aria-label="Hiện/ẩn mật khẩu"><i class="fas fa-eye"></i></button>
+                            </div>
+                            <div class="fs-pwd-meter" id="pwdMeter" style="display:none;">
+                                <div class="fs-pwd-bar-track"><div class="fs-pwd-bar-fill" id="pwdBarFill"></div></div>
+                                <span class="fs-pwd-label" id="pwdLabel">Yếu</span>
+                            </div>
+                            <div class="fs-error" id="errPwd"></div>
                         </div>
-                        <div class="fs-pwd-strength" id="pwdStrength" style="display:none;">
-                            <div class="fs-pwd-bar"><div class="fs-pwd-bar-fill" id="pwdBarFill"></div></div>
-                            <span class="fs-pwd-label" id="pwdLabel">Yếu</span>
+                        <div class="fs-field-group">
+                            <label for="inputRepeatPwd">Xác nhận mật khẩu <span class="required">*</span></label>
+                            <div class="fs-input-wrap fs-password-wrap">
+                                <i class="fas fa-lock fs-input-icon"></i>
+                                <input type="password" id="inputRepeatPwd" name="repeatpw" placeholder="Nhập lại mật khẩu" autocomplete="new-password" />
+                                <button type="button" class="fs-password-toggle" tabindex="-1" aria-label="Hiện/ẩn mật khẩu"><i class="fas fa-eye"></i></button>
+                            </div>
+                            <div class="fs-error" id="errRepeatPwd"></div>
                         </div>
-                    </div>
-                    <div class="fs-signup-field">
-                        <label for="inputRepeatPwd">Xác nhận mật khẩu <span class="required">*</span></label>
-                        <div class="fs-input-wrap fs-password-wrap">
-                            <i class="fas fa-lock fs-input-icon"></i>
-                            <input type="password" class="fs-input-capsule" name="repeatpw" id="inputRepeatPwd" placeholder="Nhập lại mật khẩu" autocomplete="new-password" />
-                            <button type="button" class="fs-password-toggle" tabindex="-1" aria-label="Hiện/ẩn mật khẩu"><i class="fas fa-eye"></i></button>
+                        <div class="fs-field-group">
+                            <label for="inputDistrict">Địa chỉ <span class="required">*</span></label>
+                            <div class="fs-input-wrap">
+                                <i class="fas fa-map-marker-alt fs-input-icon"></i>
+                                <select id="inputDistrict" aria-label="Quận/Huyện">
+                                    <option value="">Chọn Quận/Huyện</option>
+                                    <option value="Quận 1">Quận 1</option>
+                                    <option value="Quận 3">Quận 3</option>
+                                    <option value="Quận 5">Quận 5</option>
+                                    <option value="Quận 7">Quận 7</option>
+                                    <option value="Bình Thạnh">Bình Thạnh</option>
+                                    <option value="Tân Bình">Tân Bình</option>
+                                    <option value="Gò Vấp">Gò Vấp</option>
+                                    <option value="Thủ Đức">Thủ Đức</option>
+                                    <option value="Hóc Môn">Hóc Môn</option>
+                                </select>
+                            </div>
+                            <div class="fs-input-wrap" style="margin-top:8px;">
+                                <input type="text" id="inputDetailAddr" placeholder="Số nhà, tên đường" maxlength="200" aria-label="Số nhà, tên đường" />
+                            </div>
+                            <div class="fs-error" id="errAddress"></div>
                         </div>
-                    </div>
-
-                    <!-- Address (chỉ cho Quán ăn / Shipper) -->
-                    <div class="fs-signup-field">
-                        <label for="inputDistrict">Địa chỉ <span class="required">*</span></label>
-                        <select class="fs-input-capsule" id="inputDistrict" aria-label="Quận/Huyện" style="margin-bottom:8px;padding-left:16px;">
-                            <option value="">Chọn Quận/Huyện</option>
-                            <option value="Quận 1">Quận 1</option>
-                            <option value="Quận 3">Quận 3</option>
-                            <option value="Quận 5">Quận 5</option>
-                            <option value="Quận 7">Quận 7</option>
-                            <option value="Bình Thạnh">Bình Thạnh</option>
-                            <option value="Tân Bình">Tân Bình</option>
-                            <option value="Gò Vấp">Gò Vấp</option>
-                            <option value="Thủ Đức">Thủ Đức</option>
-                            <option value="Hóc Môn">Hóc Môn</option>
-                        </select>
-                        <input type="text" class="fs-input-capsule" id="inputDetailAddr" placeholder="Số nhà, tên đường" maxlength="200" aria-label="Số nhà, tên đường" style="padding-left:16px;" />
                     </div>
                 </div>
 
-                <!-- Error -->
-                <div id="step2Error" class="alert alert-danger" role="alert" style="display:none;font-size:13px;padding:10px 12px;margin-bottom:12px;"></div>
-
-                <!-- Agreement checkbox -->
-                <label class="fs-agree-wrap">
+                <!-- Agreement -->
+                <label class="fs-agree">
                     <input type="checkbox" id="agreeCheckbox" />
-                    Tôi đồng ý với <a href="#">Điều khoản dịch vụ</a> của Fastship
+                    <span>Tôi đồng ý với <a href="#">Điều khoản dịch vụ</a> của Fastship</span>
                 </label>
 
-                <!-- Nav buttons -->
-                <div class="fs-signup-nav">
-                    <button type="button" class="fs-btn-prev" onclick="goToStep2(1)">← Quay lại</button>
-                    <button type="submit" class="fs-btn-next" id="submitBtn" disabled>✓ Hoàn tất</button>
-                </div>
+                <!-- Submit -->
+                <button type="submit" class="fs-submit-btn" id="submitBtn" disabled>
+                    <i class="fas fa-rocket"></i> Tạo tài khoản
+                </button>
             </div>
-        </div>
-    </form>
+        </form>
 
-    <div style="text-align:center;margin-top:16px;font-size:13px;color:#888;">
-        Đã có tài khoản? <a href="~/Home/Login" style="color:#3CB815;font-weight:600;text-decoration:none;">Đăng nhập</a>
+        <!-- Social Login -->
+        @{
+            var googleId = ViewContext.HttpContext.RequestServices
+                .GetService<Microsoft.Extensions.Configuration.IConfiguration>()?
+                ["Authentication:Google:ClientId"];
+            bool googleEnabled = !string.IsNullOrEmpty(googleId);
+
+            var fbAppId = ViewContext.HttpContext.RequestServices
+                .GetService<Microsoft.Extensions.Configuration.IConfiguration>()?
+                ["Authentication:Facebook:AppId"];
+            bool fbEnabled = !string.IsNullOrEmpty(fbAppId);
+        }
+        @if (googleEnabled || fbEnabled)
+        {
+            <div class="fs-social-section">
+                <div class="social-label">Hoặc đăng ký nhanh với</div>
+                <div class="fs-social-icons">
+                    @if (googleEnabled)
+                    {
+                        <a href="@Url.Action("GoogleLogin","Home")" class="fs-social-icon" aria-label="Đăng ký bằng Google" title="Đăng ký bằng Google">
+                            <svg width="22" height="22" viewBox="0 0 48 48" fill="none"><path d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" fill="#EA4335"/><path d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" fill="#4285F4"/><path d="M10.54 28.59A14.5 14.5 0 0 1 9.5 24c0-1.59.28-3.14.76-4.59l-7.98-6.19A23.99 23.99 0 0 0 0 24c0 3.77.87 7.35 2.56 10.59l7.98-6z" fill="#FBBC05"/><path d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6C6.51 42.62 14.62 48 24 48z" fill="#34A853"/></svg>
+                        </a>
+                    }
+                    @if (fbEnabled)
+                    {
+                        <a href="@Url.Action("FacebookLogin","Home")" class="fs-social-icon" aria-label="Đăng ký bằng Facebook" title="Đăng ký bằng Facebook">
+                            <svg width="22" height="22" viewBox="0 0 48 48" fill="none">
+                                <path d="M24 0C10.74 0 0 10.74 0 24c0 13.26 10.74 24 24 24s24-10.74 24-24C48 10.74 37.26 0 24 0zm6.22 24.08h-3.29v15.06h-6.24V24.08h-3.15v-5.34h3.15v-3.24c0-2.61 1.24-6.69 6.68-6.69l4.9.02v5.46h-3.56c-.58 0-1.4.29-1.4 1.53v2.92h5l-.09 5.34z" fill="#1877F2"/>
+                            </svg>
+                        </a>
+                    }
+                </div>
+                @if (googleEnabled)
+                {
+                    <a href="@Url.Action("GooglePartnerLogin","Home")" class="fs-partner-link">
+                        <i class="fas fa-store me-1"></i>Đăng ký làm Đối tác Quán ăn / Shipper
+                    </a>
+                }
+            </div>
+        }
+
+        <!-- Login link -->
+        <div class="fs-login-link">
+            Đã có tài khoản? <a href="~/Home/Login">Đăng nhập</a>
+        </div>
     </div>
 </div>
 
 @section scripts {
 <script>
 var selectedRole = '';
-var step2Data = { hoten: '', username: '', email: '', sdt: '', diachi: '' };
-
-/* ─── Step navigation ─── */
-function goToStep2(step) {
-    document.querySelectorAll('.fs-step-2').forEach(function(el) { el.classList.remove('active'); });
-    document.getElementById('step' + step).classList.add('active');
-    document.querySelectorAll('.fs-wp-2-step').forEach(function(el) {
-        var s = parseInt(el.getAttribute('data-step'));
-        el.classList.remove('active', 'done');
-        if (s === step) el.classList.add('active');
-        else if (s < step) el.classList.add('done');
-    });
-    document.querySelectorAll('.fs-wp-2-line').forEach(function(el) {
-        var pair = el.getAttribute('data-step').split('-');
-        el.classList.toggle('done', parseInt(pair[1]) <= step);
-    });
-}
 
 /* ─── Role selection ─── */
 function selectRole(card, roleName) {
@@ -258,75 +629,116 @@ function selectRole(card, roleName) {
     card.querySelector('input[type="radio"]').checked = true;
     selectedRole = roleName;
     document.getElementById('hiddenRole').value = roleName;
-    document.getElementById('step1Error').style.display = 'none';
 
-    var sub = document.getElementById('step2Sub');
-    var icons = { 'Khách hàng': 'user', 'Quán ăn': 'store', 'Shipper': 'motorcycle' };
-    var labels = { 'Khách hàng': 'Khách hàng', 'Quán ăn': 'Đối tác Quán ăn', 'Shipper': 'Tài xế Shipper' };
-    sub.innerHTML = '<i class="fas fa-' + (icons[roleName] || 'user') + ' me-1"></i>' + (labels[roleName] || roleName);
+    // Show form fields with animation
+    var fields = document.getElementById('formFields');
+    fields.classList.add('open');
 
-    var needsPwd = roleName === 'Quán ăn' || roleName === 'Shipper';
-    document.getElementById('passwordFields').style.display = needsPwd ? 'block' : 'none';
-    document.getElementById('inputPwd').required = needsPwd;
-    document.getElementById('inputRepeatPwd').required = needsPwd;
-    document.getElementById('inputDistrict').required = needsPwd;
+    // Toggle extra fields (password + address) for Quán ăn / Shipper
+    var needsExtra = (roleName === 'Quán ăn' || roleName === 'Shipper');
+    var extra = document.getElementById('extraFields');
+    if (needsExtra) {
+        extra.classList.add('open');
+        document.getElementById('inputPwd').required = true;
+        document.getElementById('inputRepeatPwd').required = true;
+        document.getElementById('inputDistrict').required = true;
+    } else {
+        extra.classList.remove('open');
+        document.getElementById('inputPwd').required = false;
+        document.getElementById('inputRepeatPwd').required = false;
+        document.getElementById('inputDistrict').required = false;
+    }
+
+    clearError('formError');
 }
 
-document.getElementById('step1Next').addEventListener('click', function() {
-    if (!selectedRole) {
-        showErr('step1Error', 'Vui lòng chọn một vai trò để tiếp tục.');
-        return;
-    }
-    goToStep2(2);
+/* ─── Show / clear error ─── */
+function showError(id, msg) {
+    var el = document.getElementById(id);
+    var textEl = document.getElementById(id + 'Text');
+    if (textEl) textEl.textContent = msg;
+    el.classList.add('show');
+    // Scroll to error
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+function clearError(id) {
+    var el = document.getElementById(id);
+    el.classList.remove('show');
+}
+
+/* ─── Password strength meter ─── */
+document.getElementById('inputPwd').addEventListener('input', function() {
+    var pwd = this.value;
+    var meter = document.getElementById('pwdMeter');
+    var fill = document.getElementById('pwdBarFill');
+    var label = document.getElementById('pwdLabel');
+    if (!pwd) { meter.style.display = 'none'; return; }
+    meter.style.display = 'flex';
+    var score = 0;
+    if (pwd.length >= 8) score += 25;
+    if (pwd.length >= 12) score += 15;
+    if (/[a-z]/.test(pwd)) score += 15;
+    if (/[A-Z]/.test(pwd)) score += 15;
+    if (/[0-9]/.test(pwd)) score += 15;
+    if (/[^a-zA-Z0-9]/.test(pwd)) score += 15;
+    var levels = [
+        { color: '#dc3545', label: 'Quá yếu' },
+        { color: '#dc3545', label: 'Yếu' },
+        { color: '#ffc107', label: 'Trung bình' },
+        { color: '#ffc107', label: 'Khá' },
+        { color: '#3CB815', label: 'Mạnh' },
+        { color: '#3CB815', label: 'Rất mạnh' }
+    ];
+    var idx = Math.min(Math.floor(score / 17), 5);
+    fill.style.width = Math.min(score, 100) + '%';
+    fill.style.background = levels[idx].color;
+    label.textContent = levels[idx].label;
+    label.style.color = levels[idx].color;
 });
 
-/* ─── Validation + Submit ─── */
-function showErr(id, msg) {
-    var el = document.getElementById(id);
-    el.innerHTML = '<i class="fas fa-exclamation-circle me-1"></i>' + msg;
-    el.style.display = 'block';
-}
-function clearErr(id) {
-    document.getElementById(id).style.display = 'none';
-}
-
+/* ─── Agreement checkbox ─── */
 document.getElementById('agreeCheckbox').addEventListener('change', function() {
     document.getElementById('submitBtn').disabled = !this.checked;
 });
 
+/* ─── Form submit ─── */
 document.getElementById('signupForm').addEventListener('submit', function(e) {
     e.preventDefault();
-    clearErr('step2Error');
+    clearError('formError');
 
-    // Validate all fields
+    if (!selectedRole) {
+        showError('formError', 'Vui lòng chọn một vai trò để đăng ký.');
+        return;
+    }
+
+    // Validate fields
     var hoten = document.getElementById('inputHoten').value.trim();
     var username = document.getElementById('inputUsername').value.trim();
     var email = document.getElementById('inputEmail').value.trim();
     var sdt = document.getElementById('inputSdt').value.trim();
 
-    if (!hoten || hoten.length < 2) { showErr('step2Error', 'Họ tên phải có ít nhất 2 ký tự'); return; }
-    if (!username || username.length < 3) { showErr('step2Error', 'Tên đăng nhập phải có ít nhất 3 ký tự'); return; }
-    if (!/^[a-zA-Z0-9_]+$/.test(username)) { showErr('step2Error', 'Tên đăng nhập chỉ được chứa chữ cái, số và dấu gạch dưới'); return; }
-    if (!email || email.indexOf('\x40') < 1 || email.lastIndexOf('.') < email.indexOf('\x40') + 2) { showErr('step2Error', 'Email không hợp lệ'); return; }
-    if (!sdt || !/^0[1-9][0-9]{8,9}$/.test(sdt)) { showErr('step2Error', 'Số điện thoại không hợp lệ (10-11 số, bắt đầu bằng 0)'); return; }
+    if (!hoten || hoten.length < 2) { showError('formError', 'Họ tên phải có ít nhất 2 ký tự'); document.getElementById('inputHoten').focus(); return; }
+    if (!username || username.length < 3) { showError('formError', 'Tên đăng nhập phải có ít nhất 3 ký tự'); document.getElementById('inputUsername').focus(); return; }
+    if (!/^[a-zA-Z0-9_]+$/.test(username)) { showError('formError', 'Tên đăng nhập chỉ gồm chữ, số và dấu gạch dưới'); document.getElementById('inputUsername').focus(); return; }
+    if (!email || email.indexOf('@@') < 1 || email.lastIndexOf('.') < email.indexOf('@@') + 2) { showError('formError', 'Email không hợp lệ'); document.getElementById('inputEmail').focus(); return; }
+    if (!sdt || !/^0[1-9][0-9]{8,9}$/.test(sdt)) { showError('formError', 'SĐT không hợp lệ (10-11 số, bắt đầu bằng 0)'); document.getElementById('inputSdt').focus(); return; }
 
     if (selectedRole === 'Quán ăn' || selectedRole === 'Shipper') {
         var pwd = document.getElementById('inputPwd').value;
         var repeatPwd = document.getElementById('inputRepeatPwd').value;
-        if (!pwd || pwd.length < 8) { showErr('step2Error', 'Mật khẩu phải có ít nhất 8 ký tự'); return; }
-        if (pwd !== repeatPwd) { showErr('step2Error', 'Xác nhận mật khẩu không khớp'); return; }
+        if (!pwd || pwd.length < 8) { showError('formError', 'Mật khẩu phải có ít nhất 8 ký tự'); return; }
+        if (pwd !== repeatPwd) { showError('formError', 'Xác nhận mật khẩu không khớp'); return; }
         var district = document.getElementById('inputDistrict').value;
         var detail = document.getElementById('inputDetailAddr').value.trim();
-        if (!district) { showErr('step2Error', 'Vui lòng chọn Quận/Huyện'); return; }
-        if (!detail || detail.length < 3) { showErr('step2Error', 'Vui lòng nhập số nhà, tên đường'); return; }
-        step2Data.diachi = detail + ', ' + district + ', TP. Hồ Chí Minh';
-        document.getElementById('hiddenDiachi').value = step2Data.diachi;
+        if (!district) { showError('formError', 'Vui lòng chọn Quận/Huyện'); return; }
+        if (!detail || detail.length < 3) { showError('formError', 'Vui lòng nhập số nhà, tên đường'); return; }
+        document.getElementById('hiddenDiachi').value = detail + ', ' + district + ', TP. Hồ Chí Minh';
     }
 
-    // Submit via AJAX
+    // Submit
     var btn = document.getElementById('submitBtn');
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang xử lý...';
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang xử lý...';
 
     var formData = new FormData();
     formData.append('__RequestVerificationToken', document.querySelector('input[name="__RequestVerificationToken"]').value);
@@ -335,7 +747,7 @@ document.getElementById('signupForm').addEventListener('submit', function(e) {
     formData.append('username', username);
     formData.append('email', email);
     formData.append('sdt', sdt);
-    formData.append('diachi', step2Data.diachi || '');
+    formData.append('diachi', document.getElementById('hiddenDiachi').value || '');
     if (selectedRole === 'Quán ăn' || selectedRole === 'Shipper') {
         formData.append('pwd', document.getElementById('inputPwd').value);
         formData.append('repeatpw', document.getElementById('inputRepeatPwd').value);
@@ -356,9 +768,9 @@ document.getElementById('signupForm').addEventListener('submit', function(e) {
                     return;
                 }
                 if (json && json.success === false && json.message) {
-                    showErr('step2Error', json.message);
+                    showError('formError', json.message);
                     btn.disabled = false;
-                    btn.innerHTML = '✓ Hoàn tất';
+                    btn.innerHTML = '<i class="fas fa-rocket"></i> Tạo tài khoản';
                     return;
                 }
             } catch(e) {}
@@ -370,54 +782,11 @@ document.getElementById('signupForm').addEventListener('submit', function(e) {
                 var resp = JSON.parse(xhr.responseText);
                 if (resp && resp.message) msg = resp.message;
             } catch(e) {}
-            showErr('step2Error', msg);
+            showError('formError', msg);
             btn.disabled = false;
-            btn.innerHTML = '✓ Hoàn tất';
+            btn.innerHTML = '<i class="fas fa-rocket"></i> Tạo tài khoản';
         }
     });
 });
-
-/* ─── Password strength ─── */
-document.getElementById('inputPwd').addEventListener('input', function() {
-    var pwd = this.value;
-    var meter = document.getElementById('pwdStrength');
-    var fill = document.getElementById('pwdBarFill');
-    var label = document.getElementById('pwdLabel');
-    if (!pwd) { meter.style.display = 'none'; return; }
-    meter.style.display = 'flex';
-    var score = 0;
-    if (pwd.length >= 8) score += 25;
-    if (pwd.length >= 12) score += 15;
-    if (/[a-z]/.test(pwd)) score += 15;
-    if (/[A-Z]/.test(pwd)) score += 15;
-    if (/[0-9]/.test(pwd)) score += 15;
-    if (/[^a-zA-Z0-9]/.test(pwd)) score += 15;
-    var colors = ['#dc3545', '#dc3545', '#ffc107', '#ffc107', '#3CB815', '#3CB815'];
-    var labels = ['Quá yếu', 'Yếu', 'Trung bình', 'Khá', 'Mạnh', 'Rất mạnh'];
-    var idx = Math.min(Math.floor(score / 17), 5);
-    fill.style.width = Math.min(score, 100) + '%';
-    fill.style.background = colors[idx];
-    label.textContent = labels[idx];
-    label.style.color = colors[idx];
-});
-
-/* ─── Password toggle ─── */
-document.querySelectorAll('#step2 .fs-password-toggle').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-        var wrap = this.closest('.fs-password-wrap');
-        var input = wrap.querySelector('input');
-        var isPassword = input.type === 'password';
-        input.type = isPassword ? 'text' : 'password';
-        this.querySelector('i').className = isPassword ? 'fas fa-eye-slash' : 'fas fa-eye';
-    });
-});
-
-/* ─── Escape HTML helper ─── */
-function escHtml(str) {
-    if (!str) return '';
-    var d = document.createElement('div');
-    d.textContent = str;
-    return d.innerHTML;
-}
 </script>
 }

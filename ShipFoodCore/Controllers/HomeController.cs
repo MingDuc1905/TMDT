@@ -1050,20 +1050,36 @@ public class HomeController : BaseController
     {
         try
         {
-            var garbageOrders = db.tbDonHang
+            // ponytail: xoá tbTinNhan trước (FK constraint) rồi mới xoá tbDonHang
+            var garbageIds = db.tbDonHang
                 .Where(dh => !dh.tbChiTietDonHangs.Any())
+                .Select(dh => dh.madh)
                 .ToList();
-            var count = garbageOrders.Count;
-            db.tbDonHang.RemoveRange(garbageOrders);
-            db.SaveChanges();
+            var count = garbageIds.Count;
+
+            if (count > 0)
+            {
+                // 1. Xoá tin nhắn liên quan (FK: tbTinNhan.madh -> tbDonHang.madh)
+                // ponytail: t.madh là int? (FK nullable), garbageIds là List<int> → cast t.madh.Value
+                var tinNhans = db.tbTinNhans.Where(t => t.madh != null && garbageIds.Contains(t.madh.Value)).ToList();
+                if (tinNhans.Any())
+                    db.tbTinNhans.RemoveRange(tinNhans);
+                db.SaveChanges();
+
+                // 2. Xoá đơn hàng rác
+                var garbageOrders = db.tbDonHang.Where(dh => garbageIds.Contains(dh.madh)).ToList();
+                db.tbDonHang.RemoveRange(garbageOrders);
+                db.SaveChanges();
+            }
 
             return Json(new { success = true, deleted = count, message = $"Đã xoá {count} đơn hàng rác (0 món)." });
         }
         catch (Exception ex)
         {
+            var inner = ex.InnerException?.Message ?? "(no inner)";
             var logger = HttpContext.RequestServices.GetRequiredService<ILogger<HomeController>>();
             logger.LogError(ex, "CleanupOrders failed");
-            return Json(new { success = false, message = "Lỗi: " + ex.Message });
+            return Json(new { success = false, message = $"Lỗi: {ex.Message} | Inner: {inner}" });
         }
     }
 

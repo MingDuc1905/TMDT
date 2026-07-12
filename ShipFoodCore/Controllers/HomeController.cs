@@ -196,11 +196,21 @@ public class HomeController : BaseController
         ViewBag.KhuyenMais = khuyenMais;
 
         // ─── Apriori: Gợi ý món thường mua kèm (dùng Apriori đa phần tử) ───
-        var firstMonId = danhSachMonAn.Any() ? danhSachMonAn.First().mamon : 0;
-        ViewBag.MuaKem = firstMonId > 0
-            ? await _recommendationService.GetAprioriRecommendations(new List<int> { firstMonId }, 4)
-            : new List<tbMonAn>();
-        ViewBag.TrendingNow = await _recommendationService.GetTimeBasedRecommendations(4);
+        try
+        {
+            var firstMonId = danhSachMonAn.Any() ? danhSachMonAn.First().mamon : 0;
+            ViewBag.MuaKem = firstMonId > 0
+                ? await _recommendationService.GetAprioriRecommendations(new List<int> { firstMonId }, 4)
+                : new List<tbMonAn>();
+            ViewBag.TrendingNow = await _recommendationService.GetTimeBasedRecommendations(4);
+        }
+        catch (Exception ex)
+        {
+            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<HomeController>>();
+            logger.LogWarning(ex, "Recommendation failed for restaurant {Id} — skipping", id);
+            ViewBag.MuaKem = new List<tbMonAn>();
+            ViewBag.TrendingNow = new List<tbMonAn>();
+        }
 
         return View(quanAn);
     }

@@ -272,6 +272,9 @@ INSERT INTO "tbThongTinDatHang" ("sdt", "diachi", "toado", "tennguoinhan", "user
 -- AND a."mattdh" > b.min_id;
 
 -- ==================== tbDonHang ====================
+-- ⚠️ Xoá đơn rác (0 chi tiết) trước khi seed — tránh tích luỹ mỗi lần seed
+DELETE FROM "tbDonHang" WHERE "madh" NOT IN (SELECT DISTINCT "madh" FROM "tbChiTietDonHang");
+
 INSERT INTO "tbDonHang" ("maquan", "mattdh", "ngaydathang", "trangthai", "tongtien", "hinhthucthanhtoan", "ghichu", "makhuyenmai", "phiship", "phidichvu", "ngaygiaohang", "ngaythanhtoan", "mashipper") VALUES
 (6, 1, '2024-05-16 08:00:00', 'Hoàn thành', 100000.0000, 1, 'Ghi chú đơn hàng', NULL, 0.0000, 5000.0000, '2024-05-20 08:00:00', '2024-05-20 08:00:00', 3),
 (6, 1, '2024-05-16 08:00:00', 'Đã đặt', 90000.0000, 1, 'Ghi chú đơn hàng', 1, 0.0000, 5000.0000, '2024-05-20 08:00:00', '2024-05-20 08:00:00', 3);

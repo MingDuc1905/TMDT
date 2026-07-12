@@ -482,6 +482,8 @@ public class CartController : BaseController
                 .Include(dh => dh.tbQuanAn)
                 .Include(dh => dh.tbChiTietDonHangs).ThenInclude(c => c.tbBienTheMonAn!).ThenInclude(b => b.tbMonAn)
                 .Where(dh => dh.tbThongTinDatHang != null && dh.tbThongTinDatHang.userid == user.userid)
+                // ponytail: lọc bỏ đơn rác (0 món) do seed bị chạy nhiều lần hoặc lỗi payment
+                .Where(dh => dh.tbChiTietDonHangs != null && dh.tbChiTietDonHangs.Any())
                 .OrderByDescending(dh => dh.ngaydathang)
                 .ToList();
             ViewBag.donHangs = donHangs;

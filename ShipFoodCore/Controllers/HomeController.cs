@@ -557,7 +557,7 @@ public class HomeController : BaseController
             }
             catch (Exception ex)
             {
-                // Log lỗi chi tiết để debug trên Railway (KHÔNG hiển thị raw SQL cho user)
+                // Log lỗi chi tiết để debug (KHÔNG hiển thị raw SQL cho user)
                 var logger = HttpContext.RequestServices.GetRequiredService<ILogger<HomeController>>();
                 logger.LogError(ex, "Google OAuth callback failed for email {Email}", email ?? "null");
 
@@ -951,6 +951,32 @@ public class HomeController : BaseController
     }
 
     /// <summary>
+    /// Dọn dẹp đơn hàng rác (0 chi tiết) do seed bị chạy nhiều lần
+    /// URL: GET /Home/CleanupOrders
+    /// </summary>
+    [HttpGet]
+    public JsonResult CleanupOrders()
+    {
+        try
+        {
+            var garbageOrders = db.tbDonHang
+                .Where(dh => !dh.tbChiTietDonHangs.Any())
+                .ToList();
+            var count = garbageOrders.Count;
+            db.tbDonHang.RemoveRange(garbageOrders);
+            db.SaveChanges();
+
+            return Json(new { success = true, deleted = count, message = $"Đã xoá {count} đơn hàng rác (0 món)." });
+        }
+        catch (Exception ex)
+        {
+            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<HomeController>>();
+            logger.LogError(ex, "CleanupOrders failed");
+            return Json(new { success = false, message = "Lỗi: " + ex.Message });
+        }
+    }
+
+    /// <summary>
     /// Debug: kiểm tra database — đếm số dòng từng bảng
     /// URL: GET /Home/DbDebug
     /// </summary>
@@ -1036,7 +1062,7 @@ VALUES ('test_debug', 'test123', 'Khách hàng', '0999999999', 0, 'test@debug.co
     }
 
     /// <summary>
-    /// Ghi đè BCrypt hash trong database Railway bằng plain-text password
+    /// Ghi đè BCrypt hash trong database bằng plain-text password
     /// Chạy 1 lần sau deploy để fix lỗi login do database cũ còn BCrypt hash
     /// URL: GET /Home/FixPasswords
     /// </summary>

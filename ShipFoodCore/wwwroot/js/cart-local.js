@@ -102,15 +102,23 @@ function syncCartFromLocal() {
         return;
     }
 
-    // Nếu đã login → restore lên server
-    var hasAuthCookie = document.cookie.indexOf('.AspNetCore.Cookies') !== -1;
+    // ═══ FIX#1: Kiểm tra đăng nhập bằng nhiều cách ═══
+    // Cookie auth có thể có tên khác nhau tuỳ config (.AspNetCore.Cookies, .AspNetCore.Identity.Application, v.v.)
+    var hasAuthCookie = document.cookie.indexOf('.AspNetCore.Cookies') !== -1
+        || document.querySelector('.nav-user-dropdown') !== null  // User dropdown trong navbar = đã login
+        || document.querySelector('#user-avatar') !== null;
+    
     if (!hasAuthCookie) {
         updateCartBadge(getCartCount());
         return; // Chưa login, chỉ hiển thị badge
     }
 
     // Check if session cart is empty, then restore from local
-    var hasSessionCart = document.querySelector('#cart-items-container') !== null;
+    // ═══ FIX#1: Dùng nhiều selector hơn để phát hiện session cart ═══
+    var hasSessionCart = document.querySelector('#cart-items-container') !== null
+        || document.querySelector('.cart-item') !== null
+        || document.querySelector('[id^="cart-item-"]') !== null;
+    
     if (hasSessionCart) {
         // Session already has cart, prefer it
         updateCartBadge(getCartCount());
@@ -119,11 +127,17 @@ function syncCartFromLocal() {
 
     // Try to restore via API
     var restoreUrl = '/Cart/RestoreFromLocal';
+    
+    // ═══ FIX#1: Tìm token ở nhiều vị trí ═══
+    var token = document.querySelector('input[name="__RequestVerificationToken"]')?.value
+        || document.querySelector('input[name="__RequestVerificationToken"]')?.value
+        || '';
+    
     fetch(restoreUrl, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'RequestVerificationToken': document.querySelector('input[name=\"__RequestVerificationToken\"]')?.value || ''
+            'RequestVerificationToken': token
         },
         body: JSON.stringify(localCart)
     })
@@ -253,20 +267,9 @@ document.addEventListener('DOMContentLoaded', function() {
     var count = getCartCount();
     updateCartBadge(count);
     
-    // Trên trang Cart/Checkout → sync với server nếu đã login
-    var isCartPage = window.location.pathname.toLowerCase().includes('/cart');
-    var isCheckoutPage = window.location.pathname.toLowerCase().includes('/checkout');
-    var isLoginPage = window.location.pathname.toLowerCase().includes('/login');
-    var isSignupPage = window.location.pathname.toLowerCase().includes('/signup');
-    
-    if (isCartPage || isCheckoutPage) {
-        syncCartFromLocal();
-    }
-    
-    // Nếu vừa login → restore cart từ localStorage
-    if (isLoginPage || isSignupPage) {
-        // Khi chuyển trang, syncCartFromLocal sẽ tự chạy
-    }
+    // ═══ FIX#1: Sync giỏ hàng từ localStorage lên server trên MỌI trang (không chỉ Cart/Checkout) ═══
+    // Điều này đảm bảo sau khi login ở bất kỳ trang nào, giỏ hàng cũng được khôi phục
+    syncCartFromLocal();
 
     patchCartActions();
     

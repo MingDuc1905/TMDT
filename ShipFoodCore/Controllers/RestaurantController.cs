@@ -229,11 +229,25 @@ public class RestaurantController : BaseController
     public async Task<ActionResult> nhandon(int id)
     {
         if (!checkLogin()) return RedirectToAction("Login", "Home");
-        var dh = db.tbDonHang.Find(id);
+        var dh = db.tbDonHang.Include(d => d.tbThongTinDatHang).FirstOrDefault(d => d.madh == id);
         if (dh != null)
         {
             dh.trangthai = "Đã xác nhận";
             db.SaveChanges();
+
+            // ═══ Auto-sinh tin nhắn khi quán xác nhận đơn ═══
+            try
+            {
+                db.tbTinNhans.Add(new tbTinNhan
+                {
+                    madh = dh.madh,
+                    noidung = "✅ Quán đã xác nhận đơn hàng! Đang chuẩn bị món.",
+                    makh = dh.tbThongTinDatHang?.userid,
+                    mashipper = null
+                });
+                await db.SaveChangesAsync();
+            }
+            catch { }
 
             // SignalR broadcast real-time đến khách hàng
             try
@@ -292,6 +306,21 @@ public class RestaurantController : BaseController
 
             db.SaveChanges();
 
+            // ═══ Auto-sinh tin nhắn khi hủy đơn ═══
+            try
+            {
+                var ttdh = db.tbThongTinDatHangs.Find(dh.mattdh);
+                db.tbTinNhans.Add(new tbTinNhan
+                {
+                    madh = dh.madh,
+                    noidung = "❌ Đơn hàng đã bị hủy.",
+                    makh = ttdh?.userid,
+                    mashipper = null
+                });
+                await db.SaveChangesAsync();
+            }
+            catch { }
+
             // SignalR broadcast real-time đến khách hàng
             try
             {
@@ -314,6 +343,21 @@ public class RestaurantController : BaseController
 
         dh.trangthai = "Chờ shipper lấy hàng";
         db.SaveChanges();
+
+        // ═══ Auto-sinh tin nhắn khi quán chuẩn bị xong ═══
+        try
+        {
+            var ttdh = db.tbThongTinDatHangs.Find(dh.mattdh);
+            db.tbTinNhans.Add(new tbTinNhan
+            {
+                madh = dh.madh,
+                noidung = "👨‍🍳 Quán đã chuẩn bị xong món! Đang chờ shipper đến lấy.",
+                makh = ttdh?.userid,
+                mashipper = null
+            });
+            db.SaveChanges();
+        }
+        catch { }
 
         // Load thông tin quán để gửi broadcast
         var quanAn = getQuanAn();            try

@@ -112,12 +112,12 @@ builder.Services.AddRateLimiter(options =>
         opt.QueueLimit = 0;
     });
 
-    // Login: 20 attempts in 5 minutes (sliding window) + theo dõi theo kết nối
-    // ponytail: tăng từ 5→20 vì E2E tests chạy nhiều login + dev test tay
+    // Login: 60 requests in 5 minutes (sliding window)
+    // ponytail: tăng từ 20→60 vì E2E tests chạy 10 files × ~3 login mỗi file = 30+ requests
     // Vẫn đủ an toàn vì bruteforce sẽ bị chặn ở tầng Render (firewall)
     options.AddSlidingWindowLimiter("login-policy", opt =>
     {
-        opt.PermitLimit = 20;
+        opt.PermitLimit = 60;
         opt.Window = TimeSpan.FromMinutes(5);
         opt.SegmentsPerWindow = 5;
         opt.QueueLimit = 0;

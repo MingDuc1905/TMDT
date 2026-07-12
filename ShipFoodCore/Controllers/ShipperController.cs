@@ -253,7 +253,7 @@ public class ShipperController : BaseController
 
         if (trangthai != null)
         {
-            var donhang = db.tbDonHang.FirstOrDefault(d => d.madh == id);
+            var donhang = db.tbDonHang.Include(d => d.tbThongTinDatHang).FirstOrDefault(d => d.madh == id);
             if (donhang != null)
             {
                 donhang.trangthai = trangthai;
@@ -274,6 +274,34 @@ public class ShipperController : BaseController
                     try { await _eDelivery.GenerateEWaybill(id); } catch { }
                 }
                 db.SaveChanges();
+
+                // ═══ FIX: Auto-sinh tin nhắn khi chuyển trạng thái (ShopeeFood-style) ═══
+                // Mỗi lần shipper cập nhật trạng thái, tự động tạo tin nhắn trong hệ thống
+                try
+                {
+                    var statusMessages = new Dictionary<string, string>
+                    {
+                        ["Đã lấy"] = "📦 Shipper đã lấy hàng từ quán! Đang trên đường giao đến bạn.",
+                        ["Đang giao"] = "🚚 Đơn hàng đang được giao đến bạn!",
+                        ["Hoàn thành"] = "✅ Đơn hàng đã giao thành công! Cảm ơn bạn đã sử dụng FastShip."
+                    };
+                    if (statusMessages.TryGetValue(trangthai, out var autoMsg))
+                    {
+                        db.tbTinNhans.Add(new tbTinNhan
+                        {
+                            madh = id,
+                            noidung = autoMsg,
+                            makh = donhang.tbThongTinDatHang?.userid,
+                            mashipper = null // system message
+                        });
+                        await db.SaveChangesAsync();
+                    }
+                }
+                catch (Exception msgEx)
+                {
+                    var logger = HttpContext.RequestServices.GetRequiredService<ILogger<ShipperController>>();
+                    logger.LogWarning(msgEx, "Failed to create auto message for order #{OrderId}", id);
+                }
 
                 // SignalR broadcast real-time đến khách hàng
                 try

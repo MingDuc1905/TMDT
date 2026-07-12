@@ -28,7 +28,31 @@ public class RoleGuardMiddleware
         "/Home/DbDebug",
         "/Home/FixPasswords",
         "/Home/SeedDb",
+        "/home/menusearch",   // search autocomplete JSON API
         "/nhantin",  // SignalR hub
+    };
+
+    // ═══ JSON API patterns — các endpoint trả về JSON cần tự động xử lý AJAX ═══
+    // Nếu URL khớp các pattern này, middleware tự động coi là AJAX request và trả JSON error
+    private static readonly HashSet<string> JsonApiPrefixes = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "/Admin/GetDashboardStats",
+        "/Admin/GetRevenueChart",
+        "/Admin/GetTopRestaurants",
+        "/Admin/GetOrderStatusPie",
+        "/Admin/MockPaymentWebhook",
+        "/Shipper/UpdateDonHang",
+        "/EDelivery/ConfirmScan",
+        "/EDelivery/Bypass",
+        "/Cart/",
+        "/Payment/",
+        "/Chatbot/",
+        "/AdminChat/",
+        "/Home/GetReviews",
+        "/Home/SubmitReview",
+        "/Home/GetReviewableItems",
+        "/Restaurant/ToggleConHang",
+        "/Restaurant/ReplyReview",
     };
 
     // Route → Role mapping
@@ -98,8 +122,20 @@ public class RoleGuardMiddleware
                 return;
             }
 
+            // ═══ FIX: Tự động detect JSON API endpoints qua pattern ═══
+            var isJsonApi = false;
+            foreach (var prefix in JsonApiPrefixes)
+            {
+                if (path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                {
+                    isJsonApi = true;
+                    break;
+                }
+            }
+
             // AJAX → JSON 401
-            if (context.Request.Headers["X-Requested-With"] == "XMLHttpRequest" ||
+            if (isJsonApi ||
+                context.Request.Headers["X-Requested-With"] == "XMLHttpRequest" ||
                 context.Request.Headers["Accept"].ToString().Contains("application/json"))
             {
                 context.Response.StatusCode = 401;

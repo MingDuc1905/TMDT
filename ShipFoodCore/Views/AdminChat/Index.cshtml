@@ -184,11 +184,18 @@
         
         connection.onreconnected(function () {
             if (currentUserId > 0) {
-                connection.invoke('JoinCustomerSupportGroup', currentUserId).catch(function () {});
+                connection.invoke('JoinAdminGroup', currentUserId).catch(function () {});
             }
         });
         
-        connectPromise = connection.start().catch(function (err) {
+        connectPromise = connection.start().then(function () {
+            // ═══ FIX: Admin cần join group 'admins' để nhận tin từ CustomerSendMessage ═══
+            // CustomerSendMessage broadcast đến 'admins' group, nhưng JoinCustomerSupportGroup chỉ join customer_{userId}
+            // → Admin không nhận được tin nhắn từ khách hàng!
+            if (currentUserId > 0) {
+                return connection.invoke('JoinAdminGroup', currentUserId).catch(function () {});
+            }
+        }).catch(function (err) {
             console.error("SignalR error: " + err.toString());
         });
         return connectPromise;

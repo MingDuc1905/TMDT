@@ -50,9 +50,7 @@
 
         <!-- Green capsule submit button -->
         <button class="login-submit" type="submit">Đăng nhập</button>
-    </form>
-
-    <!-- Social login: 2 circular icons -->
+    </form>        <!-- Social login: 2 circular icons -->
     @{
         var googleId = ViewContext.HttpContext.RequestServices
             .GetService<Microsoft.Extensions.Configuration.IConfiguration>()?
@@ -67,7 +65,7 @@
 
     @if (googleEnabled || fbEnabled)
     {
-        <div class="divider" style="margin:20px 0 16px;">hoặc đăng nhập bằng</div>
+        <div class="divider">hoặc đăng nhập bằng</div>
         <div class="fs-social-icons">
             @if (googleEnabled)
             {

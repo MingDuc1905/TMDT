@@ -128,8 +128,16 @@
                     <span class="logo-f">F</span><span class="logo-ast">ast</span><span class="logo-ship">ship</span>
                 </a>
 
-                <!-- Mobile right: cart + toggler -->
-                <div class="d-flex d-lg-none align-items-center ms-auto gap-2 me-2">
+                <!-- Mobile right: login/signup + cart + toggler -->
+                <div class="d-flex d-lg-none align-items-center ms-auto gap-1 me-1">
+                    @if (user == null)
+                    {
+                        <a href="/Home/Login" class="fs-mobile-login-btn" aria-label="Đăng nhập" title="Đăng nhập" style="display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;color:#3CB815;font-size:16px;border:1.5px solid rgba(60,184,21,.3);transition:all .15s;"
+                           onmouseenter="this.style.background='#3CB815';this.style.color='#fff'"
+                           onmouseleave="this.style.background='transparent';this.style.color='#3CB815'">
+                            <i class="fa fa-sign-in-alt" style="font-size:14px;"></i>
+                        </a>
+                    }
                     <a class="fs-cart-btn" href="/Cart" aria-label="Giỏ hàng" id="navCartBtnMobile" style="position:relative;">
                         <i class="fa fa-shopping-bag"></i>
                         <span class="fs-cart-badge" id="navCartBadgeMobile" style="display:none;position:absolute;top:-6px;right:-6px;background:#dc3545;color:#fff;width:20px;height:20px;border-radius:50%;font-size:11px;align-items:center;justify-content:center;font-weight:700;">0</span>

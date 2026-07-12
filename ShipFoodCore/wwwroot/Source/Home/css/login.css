@@ -1,42 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap');
 
-body {
-    margin: 0;
-    background: #f0f2f5;
-}
-
-/* Auth page wrapper */
-.auth-page-wrapper {
-    min-height: 100dvh;
-    height: auto;
-    overflow-y: auto;
-}
-.auth-main {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow-y: auto;
-}
-
-.login-container {
-    background: #fff;
-    padding: 40px;
-    border-radius: 12px;
-    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
-    width: 420px;
-    max-width: 92%;
-    text-align: center;
-}
-
-.login-container h2 {
-    margin-bottom: 28px;
-    font-size: 24px;
-    font-weight: 500;
-    color: #1F1F1F;
-    letter-spacing: -0.3px;
-}
-
 /* ===== Capsule Input Fields ===== */
 .fs-input-capsule {
     width: 100%;
@@ -108,53 +71,7 @@ body {
     pointer-events: none;
 }
 
-/* ===== Social Buttons (Original style - kept for backward compat) ===== */
-.google-btn-wrapper {
-    margin-bottom: 0;
-}
-
-.google-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    width: 100%;
-    padding: 12px 24px;
-    background: #FFFFFF;
-    border: 1px solid #747775;
-    border-radius: 20px;
-    font-family: 'Roboto', Arial, sans-serif;
-    font-size: 14px;
-    font-weight: 500;
-    color: #1F1F1F;
-    text-decoration: none;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    box-sizing: border-box;
-}
-
-.google-btn:hover {
-    background: #f8f9fa;
-    border-color: #5f6368;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-    color: #1F1F1F;
-    text-decoration: none;
-}
-
-.google-btn:active {
-    background: #f1f3f4;
-}
-
-.google-btn svg {
-    flex-shrink: 0;
-}
-
-.google-btn:focus-visible {
-    outline: 2px solid #4285F4;
-    outline-offset: 2px;
-}
-
-/* ===== Circular Social Icons (Login redesign) ===== */
+/* ===== Circular Social Icons ===== */
 .fs-social-icons {
     display: flex;
     justify-content: center;
@@ -197,59 +114,12 @@ body {
     outline-offset: 2px;
 }
 
-/* ===== Facebook Button (Full width, kept for Signup) ===== */
-.fb-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    width: 100%;
-    padding: 12px 24px;
-    background: #FFFFFF;
-    border: 1px solid #747775;
-    border-radius: 20px;
-    font-family: 'Roboto', Arial, sans-serif;
-    font-size: 14px;
-    font-weight: 500;
-    color: #1F1F1F;
-    text-decoration: none;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    box-sizing: border-box;
-    margin-top: 10px;
-}
-
-.fb-btn:hover {
-    background: #f8f9fa;
-    border-color: #5f6368;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-    color: #1F1F1F;
-    text-decoration: none;
-}
-
-.fb-btn:active {
-    background: #f1f3f4;
-}
-
-.fb-btn svg {
-    flex-shrink: 0;
-}
-
-.fb-btn:focus-visible {
-    outline: 2px solid #1877F2;
-    outline-offset: 2px;
-}
-
-.login-social {
-    margin-bottom: 0;
-}
-
 /* ===== Divider ===== */
 .divider {
     display: flex;
     align-items: center;
     gap: 16px;
-    margin: 24px 0;
+    margin: 20px 0 16px;
     color: #5f6368;
     font-size: 13px;
     font-weight: 400;
@@ -267,32 +137,6 @@ body {
 form {
     display: flex;
     flex-direction: column;
-}
-
-form input,
-form select {
-    padding: 12px 14px;
-    margin-bottom: 12px;
-    border: 1px solid #dadce0;
-    border-radius: 8px;
-    font-size: 14px;
-    font-family: 'Roboto', Arial, sans-serif;
-    color: #1F1F1F;
-    background: #fff;
-    transition: border-color 0.2s;
-    box-sizing: border-box;
-    width: 100%;
-}
-
-form input:focus,
-form select:focus {
-    outline: none;
-    border-color: #4285F4;
-    box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.15);
-}
-
-form input::placeholder {
-    color: #80868b;
 }
 
 .remember-forgot {
@@ -376,30 +220,18 @@ form input::placeholder {
 
 /* ===== Mobile Responsive ===== */
 @media (max-width: 576px) {
-    .login-container { padding: 24px 16px; }
-    .register-container { padding: 24px 16px; }
-    .forgot-password-container { padding: 24px 16px; }
-    .login-container h2 { font-size: 20px; margin-bottom: 20px; }
-    .register-container h2 { font-size: 20px; }
-    .forgot-password-container h2 { font-size: 20px; }
-    .google-btn { padding: 10px 16px; font-size: 13px; gap: 8px; }
     .fs-input-capsule { padding: 12px 14px 12px 40px; font-size: 16px; height: 46px; }
-    form input, form select { padding: 10px 12px; font-size: 16px; }
     .login-submit { padding: 14px 12px; font-size: 16px; }
     .register-submit { padding: 14px 12px; font-size: 15px; }
     .forgot-password-submit { padding: 14px 12px; font-size: 15px; }
-    .divider { margin: 18px 0; font-size: 12px; }
+    .divider { margin: 16px 0; font-size: 12px; gap: 12px; }
     .register { font-size: 13px; }
-    .login-note { font-size: 13px; }
     .footer-text { font-size: 11px; line-height: 1.4; }
-    .alert { font-size: 12px; padding: 8px 12px; }
     .fs-social-icon { width: 44px; height: 44px; }
+    .auth-card { padding: 24px 18px; }
 }
 @media (max-width: 400px) {
-    .login-container { padding: 18px 12px; }
-    .register-container { padding: 18px 12px; }
-    .forgot-password-container { padding: 18px 12px; }
-    .login-container h2 { font-size: 18px; }
+    .auth-card { padding: 18px 12px; }
 }
 
 /* ===== Alert ===== */
@@ -418,23 +250,323 @@ form input::placeholder {
 }
 
 /* ===== Register Page ===== */
-.register-container {
+
+/* ─── 2-Step Wizard Progress ─── */
+.fs-wp-2 {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    margin-bottom: 28px;
+    padding: 0 10px;
+}
+.fs-wp-2-step {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #b0b0b0;
+    white-space: nowrap;
+    transition: all .3s ease;
+}
+.fs-wp-2-step.active { color: #3CB815; }
+.fs-wp-2-step.done { color: #3CB815; }
+.fs-wp-2-step .step-num {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    border: 2px solid #e0e0e0;
+    transition: all .3s ease;
+    flex-shrink: 0;
     background: #fff;
-    padding: 40px;
-    border-radius: 12px;
-    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
-    width: 420px;
-    max-width: 92%;
+    color: #999;
+}
+.fs-wp-2-step.active .step-num {
+    background: #3CB815;
+    border-color: #3CB815;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(60,184,21,.25);
+}
+.fs-wp-2-step.done .step-num {
+    background: #3CB815;
+    border-color: #3CB815;
+    color: #fff;
+}
+.fs-wp-2-step.done .step-num i { font-size: 13px; }
+.fs-wp-2-line {
+    width: 60px;
+    height: 3px;
+    background: #e0e0e0;
+    margin: 0 12px;
+    border-radius: 2px;
+    transition: all .4s ease;
+    position: relative;
+    overflow: hidden;
+}
+.fs-wp-2-line::after {
+    content: '';
+    position: absolute;
+    left: 0; top: 0;
+    height: 100%;
+    width: 0%;
+    background: #3CB815;
+    border-radius: 2px;
+    transition: width .5s ease;
+}
+.fs-wp-2-line.done::after { width: 100%; }
+
+/* ─── Role Cards ─── */
+.fs-role-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+}
+@media (max-width: 576px) {
+    .fs-role-grid { grid-template-columns: 1fr; gap: 10px; }
+}
+
+.fs-role-card {
+    position: relative;
+    cursor: pointer;
+    border: 2px solid #e8e8e8;
+    border-radius: 16px;
+    padding: 22px 14px 18px;
     text-align: center;
+    transition: all .25s cubic-bezier(.22,1,.36,1);
+    background: #fff;
+    user-select: none;
 }
-
-.register-container h2 {
-    margin-bottom: 24px;
+.fs-role-card:hover {
+    border-color: #3CB815;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(60,184,21,.12);
+}
+.fs-role-card.selected {
+    border-color: #3CB815;
+    background: linear-gradient(135deg, #f0fce8, #e8f5e0);
+    box-shadow: 0 6px 24px rgba(60,184,21,.2);
+    transform: translateY(-2px);
+}
+.fs-role-card input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+.fs-role-card .role-icon {
+    width: 52px; height: 52px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 10px;
     font-size: 24px;
-    font-weight: 500;
+    transition: all .25s;
+}
+.fs-role-card.selected .role-icon { transform: scale(1.1); }
+.role-customer .role-icon   { background: #e8f5e9; color: #2e7d32; }
+.role-restaurant .role-icon { background: #fff3e0; color: #e65100; }
+.role-shipper .role-icon    { background: #e3f2fd; color: #1565c0; }
+
+.fs-role-card .role-name {
+    font-weight: 700;
+    font-size: 14px;
     color: #1F1F1F;
+    margin-bottom: 3px;
+}
+.fs-role-card .role-desc {
+    font-size: 11px;
+    color: #888;
+    line-height: 1.4;
+}
+.fs-role-card .role-check {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    border: 2px solid #e0e0e0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 10px;
+    transition: all .25s;
+    font-size: 12px;
+    color: transparent;
+}
+.fs-role-card.selected .role-check {
+    border-color: #3CB815;
+    background: #3CB815;
+    color: #fff;
+    box-shadow: 0 2px 6px rgba(60,184,21,.3);
 }
 
+/* ─── Step transitions ─── */
+.fs-step-2 { display: none; }
+.fs-step-2.active { display: block; }
+
+.fs-step-2 .fs-step-inner {
+    animation: fsStepIn .35s cubic-bezier(.22,1,.36,1);
+}
+@keyframes fsStepIn {
+    0%   { opacity: 0; transform: translateY(16px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── Signup fields ─── */
+.fs-signup-field {
+    margin-bottom: 14px;
+    text-align: left;
+}
+.fs-signup-field label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 5px;
+    display: block;
+    padding-left: 4px;
+}
+.fs-signup-field label .required { color: #dc3545; }
+
+/* ─── Password Strength ─── */
+.fs-pwd-strength {
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.fs-pwd-bar {
+    flex: 1;
+    height: 4px;
+    border-radius: 2px;
+    background: #eee;
+    overflow: hidden;
+}
+.fs-pwd-bar-fill {
+    height: 100%;
+    width: 0%;
+    border-radius: 2px;
+    transition: all .3s ease;
+}
+.fs-pwd-label {
+    font-size: 11px;
+    font-weight: 600;
+    min-width: 65px;
+    text-align: right;
+    color: #999;
+}
+
+/* ─── Signup nav buttons ─── */
+.fs-signup-nav {
+    display: flex;
+    gap: 10px;
+    margin-top: 22px;
+}
+.fs-signup-nav .fs-btn-prev {
+    flex: 0 0 auto;
+    padding: 12px 22px;
+    border: 1.5px solid #ddd;
+    border-radius: 25px;
+    background: #fff;
+    color: #555;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all .2s;
+    font-family: 'Inter', sans-serif;
+}
+.fs-signup-nav .fs-btn-prev:hover {
+    border-color: #3CB815;
+    color: #3CB815;
+}
+.fs-signup-nav .fs-btn-next {
+    flex: 1;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 25px;
+    background: #3CB815;
+    color: #fff;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all .2s;
+    font-family: 'Inter', sans-serif;
+}
+.fs-signup-nav .fs-btn-next:hover {
+    background: #35a012;
+    box-shadow: 0 4px 14px rgba(60,184,21,.35);
+    transform: translateY(-1px);
+}
+.fs-signup-nav .fs-btn-next:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* ─── Step heading ─── */
+.fs-step-title {
+    font-size: 18px;
+    margin-bottom: 4px;
+    color: #1F1F1F;
+    font-weight: 600;
+}
+.fs-step-sub {
+    font-size: 13px;
+    color: #888;
+    margin-bottom: 18px;
+}
+
+/* ─── Agreement checkbox ─── */
+.fs-agree-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #555;
+    cursor: pointer;
+    margin: 6px 0 4px;
+    padding-left: 2px;
+}
+.fs-agree-wrap input[type="checkbox"] {
+    width: 17px;
+    height: 17px;
+    accent-color: #3CB815;
+    cursor: pointer;
+    margin: 0;
+    flex-shrink: 0;
+}
+.fs-agree-wrap a {
+    color: #3CB815;
+    font-weight: 500;
+    text-decoration: none;
+}
+.fs-agree-wrap a:hover { text-decoration: underline; }
+
+/* ─── Mobile ─── */
+@media (max-width: 576px) {
+    .fs-role-grid { grid-template-columns: 1fr; }
+    .fs-role-card {
+        padding: 14px 12px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        text-align: left;
+    }
+    .fs-role-card .role-icon { margin: 0; width: 40px; height: 40px; font-size: 18px; flex-shrink: 0; }
+    .fs-role-card .role-info { flex: 1; min-width: 0; }
+    .fs-role-card .role-name { font-size: 13px; }
+    .fs-role-card .role-desc { font-size: 10px; }
+    .fs-role-card .role-check { margin: 0; flex-shrink: 0; }
+    .fs-wp-2-line { width: 32px; margin: 0 6px; }
+    .fs-wp-2-step .step-label { font-size: 12px; }
+    .fs-social-icon { width: 44px; height: 44px; }
+    .fs-signup-nav .fs-btn-prev { padding: 10px 16px; font-size: 13px; }
+}
+
+/* ─── Existing .register-submit kept for backward compat ─── */
 .register-submit {
     background: #4285F4;
     color: white;
@@ -451,63 +583,5 @@ form input::placeholder {
 }
 
 .register-submit:hover {
-    background: #3367D6;
-}
-
-.login-note {
-    margin-top: 20px;
-    font-size: 14px;
-    color: #5f6368;
-}
-
-.login-note a {
-    color: #4285F4;
-    font-weight: 500;
-    text-decoration: none;
-}
-
-.login-note a:hover {
-    text-decoration: underline;
-}
-
-/* ===== Forgot Password ===== */
-.forgot-password-container {
-    background: #fff;
-    padding: 40px;
-    border-radius: 12px;
-    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
-    width: 420px;
-    max-width: 92%;
-    text-align: center;
-}
-
-.forgot-password-container h2 {
-    margin-bottom: 8px;
-    font-size: 24px;
-    font-weight: 500;
-    color: #1F1F1F;
-}
-
-.forgot-password-container p {
-    font-size: 14px;
-    color: #5f6368;
-    margin-bottom: 24px;
-}
-
-.forgot-password-submit {
-    background: #4285F4;
-    color: white;
-    border: none;
-    padding: 12px;
-    border-radius: 8px;
-    font-family: 'Roboto', Arial, sans-serif;
-    font-size: 15px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background 0.2s;
-    width: 100%;
-}
-
-.forgot-password-submit:hover {
     background: #3367D6;
 }

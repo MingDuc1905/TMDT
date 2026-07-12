@@ -3,6 +3,9 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.ViewEngines;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using ShipFood.Models;
@@ -13,11 +16,13 @@ namespace ShipFood.Controllers;
 public class HomeController : BaseController
 {
     private readonly RecommendationService _recommendationService;
+    private readonly ICompositeViewEngine _viewEngine;
 
-    public HomeController(dbFoodyEntities context, RecommendationService recommendationService)
+    public HomeController(dbFoodyEntities context, RecommendationService recommendationService, ICompositeViewEngine viewEngine)
     {
         db = context;
         _recommendationService = recommendationService;
+        _viewEngine = viewEngine;
     }
 
     /// <summary>
@@ -214,7 +219,12 @@ public class HomeController : BaseController
                 ViewBag.TrendingNow = new List<tbMonAn>();
             }
 
-            return View(quanAn);
+            // ponytail: render view thành string NGAY TRONG try-catch để bắt được lỗi view rendering
+            // vì return View() trả về ViewResult, exception xảy ra sau đó ở pipeline → ko catch được
+            // ponytail: render view thành string NGAY TRONG try-catch để bắt được lỗi view rendering
+            // isMainPage:true để layout được render (ko mất header/footer)
+            var html = await RenderViewToStringAsync("DetailRestaurant", quanAn);
+            return Content(html, "text/html");
         }
         catch (Exception ex)
         {
@@ -1606,6 +1616,35 @@ VALUES ('test_debug', 'test123', 'Khách hàng', '0999999999', 0, 'test@debug.co
             .ToList();
 
         return Json(results);
+    }
+
+    /// <summary>
+    /// Render view thành string để bắt lỗi view rendering trong try-catch.
+    /// ponytail: vì return View() trả về ViewResult, view thực sự render ở pipeline sau
+    /// nên exception ở view ko thể catch được ở action. Helper này giải quyết vấn đề đó.
+    /// </summary>
+    private async Task<string> RenderViewToStringAsync(string viewName, object? model = null)
+    {
+        ViewData.Model = model;
+
+        using var sw = new StringWriter();
+        // ponytail: isMainPage=true để layout _LayoutPageHome được render kèm
+        var viewResult = _viewEngine.FindView(ControllerContext, viewName, isMainPage: true);
+
+        if (viewResult.View == null)
+            throw new InvalidOperationException($"View '{viewName}' not found.");
+
+        var viewContext = new ViewContext(
+            ControllerContext,
+            viewResult.View,
+            ViewData,
+            TempData,
+            sw,
+            new HtmlHelperOptions()
+        );
+
+        await viewResult.View.RenderAsync(viewContext);
+        return sw.ToString();
     }
 
     public ActionResult NhanTin()

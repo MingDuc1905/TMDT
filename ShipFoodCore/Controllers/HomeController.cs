@@ -959,7 +959,49 @@ public class HomeController : BaseController
 
     public ActionResult ChiTietSanPham(int id)
     {
-        var ctmonan = db.tbMonAn.Find(id);
+        var ctmonan = db.tbMonAn
+            .Include(m => m.tbQuanAn!).ThenInclude(q => q.tbUser)
+            .Include(m => m.tbDanhMuc)
+            .Include(m => m.tbBienTheMonAns)
+            .FirstOrDefault(m => m.mamon == id);
+        if (ctmonan == null) return RedirectToAction("Index");
+
+        // Cart session for user info
+        var cartSession = GetCart();
+        HashSet<int> daMuaMonAnIds = new HashSet<int>();
+        if (cartSession != null && cartSession.userid > 0)
+        {
+            var userId = cartSession.userid;
+            var mattdhIds = db.tbThongTinDatHang
+                .Where(t => t.userid == userId)
+                .Select(t => (int?)t.mattdh)
+                .ToList();
+            daMuaMonAnIds = db.tbChiTietDonHang
+                .Where(ct => ct.tbDonHang != null
+                    && mattdhIds.Contains(ct.tbDonHang.mattdh)
+                    && ct.tbDonHang.trangthai != "Đã hủy")
+                .Where(ct => ct.tbBienTheMonAn != null && ct.tbBienTheMonAn.tbMonAn != null)
+                .Select(ct => ct.tbBienTheMonAn!.tbMonAn!.mamon)
+                .Distinct()
+                .ToHashSet();
+        }
+        ViewBag.DaMuaMonAnIds = daMuaMonAnIds;
+
+        // Get same-restaurant items for cross-sell
+        var tuongTu = db.tbMonAn
+            .Where(m => m.maquanan == ctmonan.maquanan && m.mamon != id)
+            .Include(m => m.tbBienTheMonAns)
+            .Take(4)
+            .ToList();
+        ViewBag.MonTuongTu = tuongTu;
+
+        // Get khuyenMai for this item
+        ViewBag.KhuyenMai = db.tbMonAnKhuyenMai
+            .Where(km => km.trangthai == "Còn hạn")
+            .FirstOrDefault(km => km.tbBienTheMonAn!.mamon == id);
+
+        ViewBag.maquan = ctmonan.maquanan;
+
         return View(ctmonan);
     }
 
@@ -1551,7 +1593,7 @@ VALUES ('test_debug', 'test123', 'Khách hàng', '0999999999', 0, 'test@debug.co
 
     // ===== API: Lấy danh sách đánh giá của một quán (public) — SERVER-SIDE PAGINATION =====
     [HttpGet]
-    public JsonResult GetReviews(int quanId, int page = 1, int pageSize = 5)
+    public JsonResult GetReviews(int quanId, int page = 1, int pageSize = 5, int? mamon = null)
     {
         // 1) Query gốc: ChiTietDonHang có đánh giá, thuộc quán này
         var baseQuery = db.tbChiTietDonHang
@@ -1559,6 +1601,12 @@ VALUES ('test_debug', 'test123', 'Khách hàng', '0999999999', 0, 'test@debug.co
             .Include(c => c.tbDanhGias)
             .Include(c => c.tbDonHang!).ThenInclude(d => d.tbThongTinDatHang!).ThenInclude(t => t.tbKhachHang)
             .Where(c => c.tbBienTheMonAn != null && c.tbBienTheMonAn.tbMonAn!.maquanan == quanId && c.tbDanhGias.Any());
+
+        // Nếu có mamon (product ID), lọc chỉ lấy đánh giá cho sản phẩm đó
+        if (mamon.HasValue && mamon.Value > 0)
+        {
+            baseQuery = baseQuery.Where(c => c.tbBienTheMonAn!.tbMonAn!.mamon == mamon.Value);
+        }
 
         // 2) Đếm tổng số review (1 query COUNT trên DB)
         var total = baseQuery.SelectMany(c => c.tbDanhGias).Count();

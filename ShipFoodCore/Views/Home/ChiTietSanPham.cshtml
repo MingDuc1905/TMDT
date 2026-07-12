@@ -1,8 +1,699 @@
-﻿
+@using ShipFood.Utils
+@model ShipFood.Models.tbMonAn
+
 @{
-    ViewBag.Title = "ChiTietSanPham";
+    ViewBag.Title = Model.tenmon + " - Fastship";
     Layout = "~/Views/Shared/_LayoutPageHome.cshtml";
+
+    var variants = Model.tbBienTheMonAns?.ToList() ?? new List<ShipFood.Models.tbBienTheMonAn>();
+    var firstVariantId = variants.Count > 0 ? variants[0].id : (int?)Model.mamon;
+    var daMua = ViewBag.DaMuaMonAnIds is HashSet<int> ids && ids.Contains(Model.mamon);
+    var khuyenMai = ViewBag.KhuyenMai as ShipFood.Models.tbMonAnKhuyenMai;
+    var monTuongTu = ViewBag.MonTuongTu as List<ShipFood.Models.tbMonAn> ?? new List<ShipFood.Models.tbMonAn>();
+    var userJson = Context.Session.GetString("user");
+    var isLoggedIn = !string.IsNullOrEmpty(userJson);
 }
 
-<h2>ChiTietSanPham</h2>
+@section styles {
+    <link href="~/Source/Home/css/details.css" rel="stylesheet" />
+    <link href="~/Source/Home/css/base.css" rel="stylesheet" />
+    <style>
+        :root {
+            --fs-green: #3CB815;
+            --fs-green-dark: #2d8f10;
+            --fs-danger: #e74c3c;
+            --fs-warning: #f39c12;
+            --fs-dark: #252525;
+            --fs-muted: #6d6f71;
+            --fs-muted-soft: #999;
+            --fs-border: #ebebeb;
+            --fs-border-soft: #f0f0f0;
+            --fs-light: #f7f8fc;
+            --fs-white: #fff;
+        }
 
+        .product-detail-page {
+            max-width: 1200px;
+            margin: 100px auto 40px;
+            padding: 0 16px;
+        }
+
+        /* Breadcrumb */
+        .fs-breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--fs-muted);
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+        .fs-breadcrumb a {
+            color: #187caa;
+            text-decoration: none;
+        }
+        .fs-breadcrumb a:hover { text-decoration: underline; }
+        .fs-breadcrumb .sep { color: #ccc; }
+
+        /* Hero Section */
+        .pd-hero {
+            display: flex;
+            gap: 40px;
+            background: var(--fs-white);
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 2px 24px rgba(0,0,0,.06);
+            margin-bottom: 32px;
+        }
+
+        .pd-image-wrap {
+            flex: 0 0 420px;
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            background: var(--fs-light);
+            aspect-ratio: 4/3;
+        }
+        .pd-image-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform .4s ease;
+        }
+        .pd-image-wrap:hover img { transform: scale(1.05); }
+        .pd-image-wrap .pd-badge {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            background: var(--fs-danger);
+            color: var(--fs-white);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 2px 8px rgba(231,76,60,.3);
+        }
+        .pd-image-wrap .pd-badge-promo {
+            background: var(--fs-warning);
+            box-shadow: 0 2px 8px rgba(243,156,18,.3);
+        }
+        .pd-image-wrap .pd-badge-da-mua {
+            background: var(--fs-green);
+            right: 12px;
+            left: auto;
+            box-shadow: 0 2px 8px rgba(60,184,21,.3);
+        }
+
+        .pd-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .pd-restaurant-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: var(--fs-muted);
+            text-decoration: none;
+            margin-bottom: 8px;
+            padding: 4px 12px;
+            background: var(--fs-light);
+            border-radius: 20px;
+            transition: all .2s;
+        }
+        .pd-restaurant-link:hover {
+            background: #e8f5e9;
+            color: var(--fs-green);
+        }
+        .pd-name {
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--fs-dark);
+            margin: 0 0 6px;
+            line-height: 1.3;
+        }
+        .pd-category {
+            display: inline-block;
+            font-size: 12px;
+            color: var(--fs-muted-soft);
+            background: var(--fs-light);
+            padding: 3px 10px;
+            border-radius: 12px;
+            margin-bottom: 14px;
+        }
+        .pd-desc {
+            font-size: 15px;
+            color: #555;
+            line-height: 1.7;
+            margin-bottom: 20px;
+            padding: 16px 20px;
+            background: var(--fs-light);
+            border-radius: 10px;
+            border-left: 4px solid var(--fs-green);
+        }
+
+        /* Price */
+        .pd-price-area {
+            display: flex;
+            align-items: baseline;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .pd-current-price {
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--fs-danger);
+        }
+        .pd-current-price .unit {
+            font-size: 16px;
+            font-weight: 400;
+            position: relative;
+            top: -8px;
+        }
+        .pd-old-price {
+            font-size: 18px;
+            color: var(--fs-muted-soft);
+            text-decoration: line-through;
+        }
+        .pd-discount-tag {
+            background: #fff0f0;
+            color: var(--fs-danger);
+            font-size: 13px;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 6px;
+        }
+
+        /* Size variants */
+        .pd-variants {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        .pd-variant-chip {
+            padding: 8px 20px;
+            border-radius: 24px;
+            border: 2px solid var(--fs-border);
+            background: var(--fs-white);
+            color: #555;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .18s;
+        }
+        .pd-variant-chip:hover {
+            border-color: var(--fs-green);
+            color: var(--fs-green);
+        }
+        .pd-variant-chip.active {
+            background: var(--fs-green);
+            border-color: var(--fs-green);
+            color: var(--fs-white);
+        }
+
+        /* Add to cart */
+        .pd-cart-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            padding: 20px;
+            background: var(--fs-light);
+            border-radius: 12px;
+        }
+        .pd-qty {
+            display: flex;
+            align-items: center;
+            border: 1.5px solid var(--fs-border);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .pd-qty button {
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: var(--fs-white);
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--fs-dark);
+            cursor: pointer;
+            transition: background .15s;
+        }
+        .pd-qty button:hover { background: var(--fs-light); }
+        .pd-qty button:active { background: var(--fs-border); }
+        .pd-qty input {
+            width: 56px;
+            height: 40px;
+            border: none;
+            border-left: 1.5px solid var(--fs-border);
+            border-right: 1.5px solid var(--fs-border);
+            text-align: center;
+            font-size: 16px;
+            font-weight: 600;
+            outline: none;
+        }
+        .pd-qty input::-webkit-inner-spin-button { -webkit-appearance: none; }
+        .pd-btn-add {
+            padding: 10px 28px;
+            background: linear-gradient(135deg, var(--fs-green), var(--fs-green-dark));
+            color: var(--fs-white);
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all .2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .pd-btn-add:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(60,184,21,.35);
+        }
+        .pd-btn-add:active { transform: translateY(0); }
+
+        /* Similar Items */
+        .pd-similar {
+            background: var(--fs-white);
+            border-radius: 16px;
+            padding: 28px 32px;
+            box-shadow: 0 2px 24px rgba(0,0,0,.06);
+            margin-bottom: 32px;
+        }
+        .pd-similar h3 {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--fs-dark);
+            margin: 0 0 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .pd-similar-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 16px;
+        }
+        .pd-similar-card {
+            border: 1.5px solid var(--fs-border-soft);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all .2s;
+            text-decoration: none;
+            color: inherit;
+            background: var(--fs-white);
+        }
+        .pd-similar-card:hover {
+            box-shadow: 0 4px 20px rgba(0,0,0,.08);
+            transform: translateY(-2px);
+        }
+        .pd-similar-card img {
+            width: 100%;
+            height: 140px;
+            object-fit: cover;
+        }
+        .pd-similar-card .pd-sc-body {
+            padding: 12px 14px 14px;
+        }
+        .pd-similar-card .pd-sc-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--fs-dark);
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .pd-similar-card .pd-sc-price {
+            color: var(--fs-danger);
+            font-weight: 700;
+            font-size: 15px;
+        }
+
+        /* Reviews */
+        .pd-reviews {
+            background: var(--fs-white);
+            border-radius: 16px;
+            padding: 28px 32px;
+            box-shadow: 0 2px 24px rgba(0,0,0,.06);
+        }
+
+        /* Responsive */
+        @@media (max-width: 900px) {
+            .pd-hero { flex-direction: column; gap: 24px; padding: 20px; }
+            .pd-image-wrap { flex: none; width: 100%; aspect-ratio: 16/9; }
+            .pd-name { font-size: 22px; }
+            .pd-current-price { font-size: 26px; }
+            .product-detail-page { margin-top: 80px; }
+        }
+        @@media (max-width: 576px) {
+            .pd-hero { padding: 16px; border-radius: 12px; }
+            .pd-image-wrap { aspect-ratio: 4/3; }
+            .pd-name { font-size: 18px; }
+            .pd-desc { font-size: 14px; padding: 12px 16px; }
+            .pd-current-price { font-size: 22px; }
+            .pd-cart-area { flex-direction: column; align-items: stretch; }
+            .pd-btn-add { justify-content: center; }
+            .pd-similar-grid { grid-template-columns: repeat(2, 1fr); }
+            .pd-similar, .pd-reviews { padding: 20px 16px; }
+            .product-detail-page { margin-top: 70px; }
+        }
+    </style>
+}
+
+@{
+    // ─── Price calculation ───
+    var baseGia = variants.Count > 0 ? variants[0].giatien : 0;
+    var giaKhuyenMai = baseGia;
+    if (khuyenMai != null && khuyenMai.phantramgiam > 0)
+    {
+        giaKhuyenMai = baseGia - (baseGia * khuyenMai.phantramgiam / 100);
+    }
+    var coKhuyenMai = khuyenMai != null && khuyenMai.phantramgiam > 0;
+    var tenQuan = Model.tbQuanAn?.tenquanan ?? "Quán ăn";
+    var tenDanhMuc = Model.tbDanhMuc?.tendanhmuc ?? "Khác";
+}
+
+<div class="product-detail-page">
+
+    <!-- Breadcrumb -->
+    <nav class="fs-breadcrumb">
+        <a href="/">Trang chủ</a>
+        <span class="sep">›</span>
+        <a href="/Home/DetailRestaurant/@Model.maquanan">@tenQuan</a>
+        <span class="sep">›</span>
+        <span>@Model.tenmon</span>
+    </nav>
+
+    <!-- Hero Section -->
+    <div class="pd-hero">
+        <div class="pd-image-wrap">
+            <img src="@TinhToan.HinhAnhUrl(Model.hinhanh)"
+                 alt="@Model.tenmon"
+                 onerror="this.src='/Source/Home/img/pizza.jpg'"
+                 loading="eager" />
+            @if (coKhuyenMai)
+            {
+                <span class="pd-badge pd-badge-promo">
+                    <i class="fa fa-fire"></i> -@khuyenMai.phantramgiam%
+                </span>
+            }
+            @if (daMua)
+            {
+                <span class="pd-badge pd-badge-da-mua">
+                    <i class="fa fa-check-circle"></i> Đã mua
+                </span>
+            }
+        </div>
+
+        <div class="pd-info">
+            <a href="@Url.Action("DetailRestaurant", new { id = Model.maquanan })" class="pd-restaurant-link">
+                <i class="fa fa-store"></i> @tenQuan
+            </a>
+
+            <h1 class="pd-name">@Model.tenmon</h1>
+            <span class="pd-category"><i class="fa fa-tag"></i> @tenDanhMuc</span>
+
+            @if (!string.IsNullOrWhiteSpace(Model.mota))
+            {
+                <div class="pd-desc">@Model.mota</div>
+            }
+
+            <!-- Price -->
+            <div class="pd-price-area">
+                <span class="pd-current-price">
+                    @(coKhuyenMai ? giaKhuyenMai?.ToString("N0") : baseGia?.ToString("N0"))
+                    <span class="unit">đ</span>
+                </span>
+                @if (coKhuyenMai)
+                {
+                    <span class="pd-old-price">@baseGia?.ToString("N0")đ</span>
+                    <span class="pd-discount-tag">-@khuyenMai.phantramgiam%</span>
+                }
+            </div>
+
+            <!-- Size Variants -->
+            @if (variants.Count > 1)
+            {
+                <div class="pd-variants" id="pdVariants">
+                    @for (int vi = 0; vi < variants.Count; vi++)
+                    {
+                        var v = variants[vi];
+                        <button type="button"
+                                class="pd-variant-chip @(vi == 0 ? "active" : "")"
+                                data-bientheid="@v.id"
+                                data-giatien="@v.giatien"
+                                onclick="selectPdSize(this)">
+                            @(v.size ?? "Mặc định") - @v.giatien?.ToString("N0")đ
+                        </button>
+                    }
+                </div>
+            }
+
+            <!-- Add to Cart -->
+            <div class="pd-cart-area">
+                <div class="pd-qty">
+                    <button type="button" onclick="adjustQty(-1)">−</button>
+                    <input type="number" id="pdSoLuong" value="1" min="1" max="99" />
+                    <button type="button" onclick="adjustQty(1)">+</button>
+                </div>
+                <input type="hidden" id="pdMaMonAn" value="@firstVariantId" />
+                <button class="pd-btn-add" id="pdAddToCart" onclick="addToCartPd()">
+                    <i class="fa fa-cart-plus"></i> Thêm vào giỏ hàng
+                </button>
+            </div>
+
+            <!-- Quick info -->
+            <div style="margin-top:16px;display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--fs-muted);">
+                @if (Model.conhang)
+                {
+                    <span><i class="fa fa-check-circle" style="color:var(--fs-green);"></i> Còn hàng</span>
+                }
+                else
+                {
+                    <span><i class="fa fa-times-circle" style="color:var(--fs-danger);"></i> Hết hàng</span>
+                }
+                <span><i class="fa fa-thumbs-up"></i> 100+ đã đặt</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Same Restaurant Items -->
+    @if (monTuongTu.Any())
+    {
+        <div class="pd-similar">
+            <h3><i class="fa fa-store" style="color:var(--fs-green);"></i> Các món khác từ <strong>@tenQuan</strong></h3>
+            <div class="pd-similar-grid">
+                @foreach (var item in monTuongTu)
+                {
+                    var itemGia = item.tbBienTheMonAns?.FirstOrDefault()?.giatien;
+                    <a href="@Url.Action("ChiTietSanPham", new { id = item.mamon })" class="pd-similar-card">
+                        <img src="@TinhToan.HinhAnhUrl(item.hinhanh)"
+                             alt="@item.tenmon"
+                             loading="lazy"
+                             onerror="this.src='/Source/Home/img/pizza.jpg'" />
+                        <div class="pd-sc-body">
+                            <div class="pd-sc-name">@item.tenmon</div>
+                            <div class="pd-sc-price">@itemGia?.ToString("N0")đ</div>
+                        </div>
+                    </a>
+                }
+            </div>
+        </div>
+    }
+
+    <!-- Reviews Section -->
+    <div class="pd-reviews">
+        @{
+            var QUAN_ID = Model.maquanan ?? 0;
+        }
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
+            <h3 style="font-weight:700;margin:0;color:var(--fs-dark);">
+                <i class="fa fa-star" style="color:var(--fs-warning);"></i> Đánh giá
+            </h3>
+            <div id="pdReviewStats" style="display:flex;align-items:center;gap:12px;">
+                <span id="pdAvgScore" style="font-size:24px;font-weight:800;color:var(--fs-warning);">—</span>
+                <span id="pdStarDisplay" style="color:var(--fs-warning);font-size:16px;">☆☆☆☆☆</span>
+                <span id="pdTotalReviews" style="font-size:13px;color:var(--fs-muted);">Đang tải...</span>
+            </div>
+        </div>
+        <div id="pdReviewList" style="min-height:80px;">
+            <div style="text-align:center;padding:32px;color:var(--fs-muted-soft);">
+                <div style="font-size:28px;margin-bottom:8px;">⏳</div>
+                Đang tải đánh giá...
+            </div>
+        </div>
+        <div id="pdLoadMoreWrap" style="text-align:center;margin-top:16px;display:none;">
+            <button onclick="pdLoadMore()"
+                    style="padding:8px 28px;border:2px solid var(--fs-green);background:var(--fs-white);color:var(--fs-green);border-radius:30px;font-weight:600;cursor:pointer;transition:all .2s;">
+                Xem thêm
+            </button>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script>
+        // ═══ Size Selector ═══
+        function selectPdSize(btn) {
+            document.querySelectorAll('.pd-variant-chip').forEach(function(c) {
+                c.classList.remove('active');
+            });
+            btn.classList.add('active');
+            var giatien = btn.getAttribute('data-giatien');
+            var bientheid = btn.getAttribute('data-bientheid');
+            document.getElementById('pdMaMonAn').value = bientheid;
+            var priceEl = document.querySelector('.pd-current-price');
+            if (priceEl) {
+                var num = parseFloat(giatien) || 0;
+                priceEl.innerHTML = num.toLocaleString('vi-VN') + ' <span class="unit">đ</span>';
+            }
+        }
+
+        // ═══ Qty Adjuster ═══
+        function adjustQty(delta) {
+            var input = document.getElementById('pdSoLuong');
+            var val = parseInt(input.value) || 1;
+            var newVal = val + delta;
+            if (newVal >= 1 && newVal <= 99) input.value = newVal;
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+            var input = document.getElementById('pdSoLuong');
+            if (input) {
+                input.addEventListener('blur', function() {
+                    var val = parseInt(this.value) || 1;
+                    if (val < 1) this.value = 1;
+                    if (val > 99) this.value = 99;
+                });
+            }
+        });
+
+        // ═══ Add to Cart ═══
+        function addToCartPd() {
+            var maMonAn = parseInt(document.getElementById('pdMaMonAn').value);
+            var soLuong = parseInt(document.getElementById('pdSoLuong').value) || 1;
+            var btn = document.getElementById('pdAddToCart');
+
+            // Check anonymous cart
+            var hasAuthCookie = document.cookie.indexOf('.AspNetCore.Cookies') !== -1;
+            if (!hasAuthCookie && typeof FastShipCart !== 'undefined' && FastShipCart.addUnauth) {
+                var giaText = document.querySelector('.pd-current-price').textContent.trim().replace(/[^0-9]/g, '');
+                var giatien = parseFloat(giaText) || 0;
+                var hinhanh = document.querySelector('.pd-image-wrap img').src || '';
+                FastShipCart.addUnauth(maMonAn, soLuong, '@Model.tenmon', giatien, hinhanh, @(Model.maquanan ?? 0));
+                var orig = btn.innerHTML;
+                btn.innerHTML = '<i class=\"fa fa-check\"></i> ✅ Đã thêm';
+                setTimeout(function() { btn.innerHTML = orig; }, 1500);
+                return;
+            }
+
+            btn.disabled = true;
+            var orig = btn.innerHTML;
+            btn.innerHTML = '<i class=\"fa fa-spinner fa-spin\"></i> Đang thêm...';
+
+            $.ajax({
+                url: '/Cart/ApiThemMonAn',
+                type: 'GET',
+                data: { maMonAn: maMonAn, soLuong: soLuong },
+                success: function(res) {
+                    if (res.success) {
+                        btn.innerHTML = '<i class=\"fa fa-check\"></i> ✅ Đã thêm';
+                        showPdToast('✅ Đã thêm vào giỏ hàng');
+                    } else if (res.conflict) {
+                        if (confirm('Giỏ hàng đang có món từ ' + res.currentRestaurant + '. Chuyển sang ' + res.newRestaurant + '?')) {
+                            window.location.href = '/Cart/ApiForceSwitchRestaurant?maMonAn=' + maMonAn + '&soLuong=' + soLuong;
+                        }
+                        btn.innerHTML = orig;
+                    } else {
+                        btn.innerHTML = orig;
+                        showPdToast('❌ ' + (res.message || 'Lỗi'));
+                    }
+                },
+                error: function() {
+                    btn.innerHTML = orig;
+                    showPdToast('❌ Lỗi kết nối');
+                },
+                complete: function() {
+                    btn.disabled = false;
+                    setTimeout(function() {
+                        btn.innerHTML = orig;
+                    }, 2000);
+                }
+            });
+        }
+
+        function showPdToast(msg) {
+            var t = $('<div style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 20px;border-radius:8px;z-index:99999;font-size:14px;box-shadow:0 4px 12px rgba(0,0,0,.2);">' + msg + '</div>');
+            $('body').append(t);
+            setTimeout(function(){ t.fadeOut(400, function(){ t.remove(); }); }, 2500);
+        }
+
+        // ═══ Reviews ═══
+        var pdReviewPage = 1;
+        var pdReviewPageSize = 4;
+        var pdReviewTotal = 0;
+        var QUAN_ID = @QUAN_ID;
+        var MON_ID = @Model.mamon;
+
+        function pdLoadReviews(reset) {
+            if (reset) { pdReviewPage = 1; $('#pdReviewList').html('<div style="text-align:center;padding:32px;color:var(--fs-muted-soft);"><div style="font-size:28px;margin-bottom:8px;">⏳</div>Đang tải...</div>'); }
+            $.get('@Url.Action("GetReviews","Home")', { quanId: QUAN_ID, mamon: MON_ID, page: pdReviewPage, pageSize: pdReviewPageSize }, function(r) {
+                if (!r.success) return;
+                pdReviewTotal = r.total;
+                if (r.total > 0) {
+                    $('#pdAvgScore').text(r.avgDiem.toFixed(1));
+                    var s = ''; for (var i = 1; i <= 5; i++) s += (i <= Math.round(r.avgDiem) ? '★' : '☆');
+                    $('#pdStarDisplay').text(s);
+                    $('#pdTotalReviews').text(r.total + ' đánh giá');
+                } else {
+                    $('#pdAvgScore').text('—');
+                    $('#pdStarDisplay').text('☆☆☆☆☆');
+                    $('#pdTotalReviews').text('Chưa có đánh giá');
+                }
+                if (reset) $('#pdReviewList').empty();
+                if (r.reviews.length === 0 && pdReviewPage === 1) {
+                    $('#pdReviewList').html('<div style="text-align:center;padding:32px;color:var(--fs-muted-soft);"><div style="font-size:48px;margin-bottom:12px;">💬</div><div>Chưa có đánh giá nào</div></div>');
+                    $('#pdLoadMoreWrap').hide();
+                    return;
+                }
+                var colors = ['#3CB815','#007bff','#e74c3c','#f39c12','#9b59b6','#17a2b8'];
+                r.reviews.forEach(function(rv) {
+                    var stars = ''; for (var i=1;i<=5;i++) stars += (i<=rv.diem?'★':'☆');
+                    var initial = (rv.tenkh||'K').charAt(0).toUpperCase();
+                    var bg = colors[rv.madg % colors.length];
+                    var card = $('<div>').css({background:'var(--fs-white)',border:'1.5px solid var(--fs-border-soft)',borderRadius:'12px',padding:'16px',marginBottom:'12px'});
+                    card.html(
+                        '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">'+
+                          '<div style="width:36px;height:36px;border-radius:50%;background:'+bg+';color:var(--fs-white);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;flex-shrink:0;">'+initial+'</div>'+
+                          '<div style="flex:1;min-width:0;">'+
+                            '<div style="font-weight:700;font-size:13px;">'+rv.tenkh+'</div>'+
+                            '<div style="font-size:11px;color:var(--fs-muted-soft);">'+rv.ngaydat+'</div>'+
+                          '</div>'+
+                          '<div style="color:var(--fs-warning);font-size:14px;letter-spacing:1px;">'+stars+'</div>'+
+                        '</div>'+
+                        (rv.nhanxet?'<p style="color:#555;font-size:13px;line-height:1.6;margin:0 0 8px;">"'+$('<div>').text(rv.nhanxet).html()+'"</p>':'')+
+                        '<div style="display:flex;align-items:center;gap:6px;">'+
+                          '<span style="font-size:11px;color:var(--fs-muted);background:var(--fs-light);padding:2px 8px;border-radius:12px;">'+rv.tenmon+'</span>'+
+                        '</div>'
+                    );
+                    $('#pdReviewList').append(card);
+                });
+                var shown = (pdReviewPage-1)*pdReviewPageSize + r.reviews.length;
+                $('#pdLoadMoreWrap').toggle(shown < r.total);
+            });
+        }
+
+        function pdLoadMore() {
+            pdReviewPage++;
+            pdLoadReviews(false);
+        }
+
+        $(document).ready(function() { pdLoadReviews(true); });
+    </script>
+}

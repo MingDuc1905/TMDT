@@ -141,78 +141,87 @@ public class HomeController : BaseController
 
     public async Task<ActionResult> DetailRestaurant(int id, int? idDM, string? searchKey)
     {
-        // ponytail: không cho xem chi tiết quán đã bị khoá (tbUser.trangthai == 2)
-        var quanAn = db.tbQuanAn.Include(q => q.tbUser).Include(q => q.tbMonAns).ThenInclude(m => m.tbDanhMuc)
-            .Include(q => q.tbMonAns).ThenInclude(m => m.tbBienTheMonAns)
-            .FirstOrDefault(t => t.userid == id);
-        if (quanAn == null || quanAn.tbUser == null || quanAn.tbUser.trangthai != 1)
-            return NotFound();
-
-        var danhSachMonAn = db.tbMonAn.Where(m => m.maquanan == id).Include(m => m.tbDanhMuc).Include(m => m.tbBienTheMonAns).ToList();
-        if (idDM != null)
-            danhSachMonAn = danhSachMonAn.Where(ma => ma.madanhmuc == idDM).ToList();
-        if (!string.IsNullOrEmpty(searchKey))
-        {
-            string searchKeyNormalized = RemoveDiacritics(searchKey.ToLower());
-            danhSachMonAn = danhSachMonAn.Where(ma => RemoveDiacritics(ma.tenmon.ToLower()).Contains(searchKeyNormalized)).ToList();
-        }
-
-        var thucDon = db.tbDanhMuc.Where(d =>
-            db.tbMonAn.Any(m => m.maquanan == id && m.madanhmuc == d.madanhmuc)).ToList();
-
-        // Lấy danh sách khuyến mãi cho các món ăn (hiển thị cho người dùng)
-        var monAnIds = danhSachMonAn.Select(m => m.mamon).ToList();
-        var khuyenMais = db.tbMonAnKhuyenMai
-            .Where(km => km.trangthai == "Còn hạn")
-            .Include(km => km.tbKhuyenMai)
-            .Include(km => km.tbBienTheMonAn) // Cần để truy cập tbMonAn qua tbBienTheMonAn
-            .ToList();
-
-        // Lấy danh sách món ăn người dùng đã mua (nếu đã đăng nhập)
-        var cartSession = GetCart();
-        HashSet<int> daMuaMonAnIds = new HashSet<int>();
-        if (cartSession != null && cartSession.userid > 0)
-        {
-            var userId = cartSession.userid;
-            var mattdhIds = db.tbThongTinDatHang
-                .Where(t => t.userid == userId)
-                .Select(t => (int?)t.mattdh)
-                .ToList();
-            daMuaMonAnIds = db.tbChiTietDonHang
-                .Where(ct => ct.tbDonHang != null
-                    && mattdhIds.Contains(ct.tbDonHang.mattdh)
-                    && ct.tbDonHang.trangthai != "Đã hủy")
-                .Where(ct => ct.tbBienTheMonAn != null && ct.tbBienTheMonAn.tbMonAn != null)
-                .Select(ct => ct.tbBienTheMonAn!.tbMonAn!.mamon)
-                .Distinct()
-                .ToHashSet();
-        }
-        ViewBag.DaMuaMonAnIds = daMuaMonAnIds;
-
-        ViewBag.ThucDon = thucDon;
-        ViewBag.DanhSachMonAn = danhSachMonAn;
-        ViewBag.maquan = id;
-        ViewBag.searchKey = searchKey;
-        ViewBag.KhuyenMais = khuyenMais;
-
-        // ─── Apriori: Gợi ý món thường mua kèm (dùng Apriori đa phần tử) ───
         try
         {
-            var firstMonId = danhSachMonAn.Any() ? danhSachMonAn.First().mamon : 0;
-            ViewBag.MuaKem = firstMonId > 0
-                ? await _recommendationService.GetAprioriRecommendations(new List<int> { firstMonId }, 4)
-                : new List<tbMonAn>();
-            ViewBag.TrendingNow = await _recommendationService.GetTimeBasedRecommendations(4);
+            // ponytail: không cho xem chi tiết quán đã bị khoá (tbUser.trangthai == 2)
+            var quanAn = db.tbQuanAn.Include(q => q.tbUser).Include(q => q.tbMonAns).ThenInclude(m => m.tbDanhMuc)
+                .Include(q => q.tbMonAns).ThenInclude(m => m.tbBienTheMonAns)
+                .FirstOrDefault(t => t.userid == id);
+            if (quanAn == null || quanAn.tbUser == null || quanAn.tbUser.trangthai != 1)
+                return NotFound();
+
+            var danhSachMonAn = db.tbMonAn.Where(m => m.maquanan == id).Include(m => m.tbDanhMuc).Include(m => m.tbBienTheMonAns).ToList();
+            if (idDM != null)
+                danhSachMonAn = danhSachMonAn.Where(ma => ma.madanhmuc == idDM).ToList();
+            if (!string.IsNullOrEmpty(searchKey))
+            {
+                string searchKeyNormalized = RemoveDiacritics(searchKey.ToLower());
+                danhSachMonAn = danhSachMonAn.Where(ma => RemoveDiacritics(ma.tenmon.ToLower()).Contains(searchKeyNormalized)).ToList();
+            }
+
+            var thucDon = db.tbDanhMuc.Where(d =>
+                db.tbMonAn.Any(m => m.maquanan == id && m.madanhmuc == d.madanhmuc)).ToList();
+
+            // Lấy danh sách khuyến mãi cho các món ăn (hiển thị cho người dùng)
+            var monAnIds = danhSachMonAn.Select(m => m.mamon).ToList();
+            var khuyenMais = db.tbMonAnKhuyenMai
+                .Where(km => km.trangthai == "Còn hạn")
+                .Include(km => km.tbKhuyenMai)
+                .Include(km => km.tbBienTheMonAn)
+                .ToList();
+
+            // Lấy danh sách món ăn người dùng đã mua (nếu đã đăng nhập)
+            var cartSession = GetCart();
+            HashSet<int> daMuaMonAnIds = new HashSet<int>();
+            if (cartSession != null && cartSession.userid > 0)
+            {
+                var userId = cartSession.userid;
+                var mattdhIds = db.tbThongTinDatHang
+                    .Where(t => t.userid == userId)
+                    .Select(t => (int?)t.mattdh)
+                    .ToList();
+                daMuaMonAnIds = db.tbChiTietDonHang
+                    .Where(ct => ct.tbDonHang != null
+                        && mattdhIds.Contains(ct.tbDonHang.mattdh)
+                        && ct.tbDonHang.trangthai != "Đã hủy")
+                    .Where(ct => ct.tbBienTheMonAn != null && ct.tbBienTheMonAn.tbMonAn != null)
+                    .Select(ct => ct.tbBienTheMonAn!.tbMonAn!.mamon)
+                    .Distinct()
+                    .ToHashSet();
+            }
+            ViewBag.DaMuaMonAnIds = daMuaMonAnIds;
+
+            ViewBag.ThucDon = thucDon;
+            ViewBag.DanhSachMonAn = danhSachMonAn;
+            ViewBag.maquan = id;
+            ViewBag.searchKey = searchKey;
+            ViewBag.KhuyenMais = khuyenMais;
+
+            // ─── Apriori: Gợi ý món thường mua kèm (dùng Apriori đa phần tử) ───
+            try
+            {
+                var firstMonId = danhSachMonAn.Any() ? danhSachMonAn.First().mamon : 0;
+                ViewBag.MuaKem = firstMonId > 0
+                    ? await _recommendationService.GetAprioriRecommendations(new List<int> { firstMonId }, 4)
+                    : new List<tbMonAn>();
+                ViewBag.TrendingNow = await _recommendationService.GetTimeBasedRecommendations(4);
+            }
+            catch (Exception ex)
+            {
+                var logger = HttpContext.RequestServices.GetRequiredService<ILogger<HomeController>>();
+                logger.LogWarning(ex, "Recommendation failed for restaurant {Id} — skipping", id);
+                ViewBag.MuaKem = new List<tbMonAn>();
+                ViewBag.TrendingNow = new List<tbMonAn>();
+            }
+
+            return View(quanAn);
         }
         catch (Exception ex)
         {
             var logger = HttpContext.RequestServices.GetRequiredService<ILogger<HomeController>>();
-            logger.LogWarning(ex, "Recommendation failed for restaurant {Id} — skipping", id);
-            ViewBag.MuaKem = new List<tbMonAn>();
-            ViewBag.TrendingNow = new List<tbMonAn>();
+            logger.LogError(ex, "DetailRestaurant CRASHED for id={Id}", id);
+            return Content($"❌ LỖI DetailRestaurant: {ex.GetType().Name}: {ex.Message}\n\n{ex.StackTrace}");
         }
-
-        return View(quanAn);
     }
 
     [HttpGet]

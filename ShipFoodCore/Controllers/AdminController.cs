@@ -56,6 +56,62 @@ public class AdminController : BaseController
         return View(donhang);
     }
 
+    // ─── Task: Admin sửa đơn hàng ───
+    public ActionResult EditOrder(int? id)
+    {
+        if (!checkLogin())
+            return RedirectToAction("Login", "Home");
+
+        var donhang = db.tbDonHang
+            .Include(d => d.tbQuanAn)
+            .Include(d => d.tbThongTinDatHang)
+            .FirstOrDefault(d => d.madh == id);
+        if (donhang == null)
+        {
+            TempData["AdminError"] = "Không tìm thấy đơn hàng";
+            return RedirectToAction("Order");
+        }
+
+        // Lấy danh sách shipper đang hoạt động để gán
+        ViewBag.Shippers = db.tbShipper
+            .Where(s => s.tbUser != null && s.tbUser.trangthai == 1)
+            .ToList();
+
+        // Các trạng thái đơn hàng có thể chọn
+        ViewBag.StatusList = new[] { "Đã đặt", "Đang xử lý", "Đang giao", "Đã lấy", "Hoàn thành", "Đã hủy" };
+
+        return View(donhang);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public ActionResult EditOrder(int madh, string? trangthai, int? mashipper)
+    {
+        if (!checkLogin())
+            return RedirectToAction("Login", "Home");
+
+        var donhang = db.tbDonHang.Find(madh);
+        if (donhang == null)
+        {
+            TempData["AdminError"] = "Không tìm thấy đơn hàng";
+            return RedirectToAction("Order");
+        }
+
+        if (!string.IsNullOrEmpty(trangthai))
+            donhang.trangthai = trangthai;
+
+        if (mashipper.HasValue)
+        {
+            var shipper = db.tbShipper.Find(mashipper);
+            if (shipper != null)
+                donhang.mashipper = mashipper;
+        }
+
+        db.SaveChanges();
+        TempData["AdminSuccess"] = $"✅ Đã cập nhật đơn hàng #{madh}";
+        return RedirectToAction("Order");
+    }
+
     public ActionResult Category(int? id)
     {
         if (!checkLogin())
@@ -138,6 +194,9 @@ public class AdminController : BaseController
         var existingDanhMuc = await db.tbDanhMuc.FirstOrDefaultAsync(x => x.madanhmuc == tbDanhMuc.madanhmuc);
         if (existingDanhMuc == null) return NotFound();
 
+        // 🐛 FIX: Lưu hinhanh TRƯỚC SetValues vì SetValues ghi đè toàn bộ từ model (tbDanhMuc.hinhanh = null)
+        string? finalHinhanh = existingDanhMuc.hinhanh;
+
         if (hinhanh != null && hinhanh.Length > 0)
         {
             var uploadsDir = Path.Combine(_env.WebRootPath, "Source/images/Danhmuc");
@@ -145,18 +204,19 @@ public class AdminController : BaseController
             var fileName = Path.GetFileName(hinhanh.FileName);
             var path = Path.Combine(uploadsDir, fileName);
             using var stream = new FileStream(path, FileMode.Create);
-            await hinhanh.CopyToAsync(stream);                var oldImagePath = Path.Combine(uploadsDir, tbDanhMuc.hinhanh ?? "");
-                if (!string.IsNullOrEmpty(tbDanhMuc.hinhanh) && System.IO.File.Exists(oldImagePath))
-                    System.IO.File.Delete(oldImagePath);
+            await hinhanh.CopyToAsync(stream);
 
-            tbDanhMuc.hinhanh = fileName;
-        }
-        else
-        {
-            tbDanhMuc.hinhanh = existingDanhMuc.hinhanh;
+            // 🐛 FIX: Xoá ảnh cũ từ existingDanhMuc, không phải từ tbDanhMuc (parameter model binding)
+            var oldImagePath = Path.Combine(uploadsDir, existingDanhMuc.hinhanh ?? "");
+            if (!string.IsNullOrEmpty(existingDanhMuc.hinhanh) && System.IO.File.Exists(oldImagePath))
+                System.IO.File.Delete(oldImagePath);
+
+            finalHinhanh = fileName;
         }
 
+        // ponytail: SetValues ghi đè toàn bộ, kể cả hinhanh → null. Phải restore sau.
         db.Entry(existingDanhMuc).CurrentValues.SetValues(tbDanhMuc);
+        existingDanhMuc.hinhanh = finalHinhanh;
         await db.SaveChangesAsync();
         return RedirectToAction("Category");
     }
@@ -650,6 +710,64 @@ public class AdminController : BaseController
             tongMon = db.tbMonAn.Count(),
             tongDonAll = db.tbDonHang.Count()
         });
+    }
+
+    // ─── Task: Admin quản lý khuyến mãi tùy chỉnh ───
+    public ActionResult VoucherManager()
+    {
+        if (!checkLogin())
+            return RedirectToAction("Login", "Home");
+
+        var khuyenMais = db.tbKhuyenMai.OrderByDescending(k => k.makm).ToList();
+        return View(khuyenMais);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public ActionResult VoucherManager(tbKhuyenMai km)
+    {
+        if (!checkLogin())
+            return RedirectToAction("Login", "Home");
+
+        if (km.makm == 0)
+        {
+            db.tbKhuyenMai.Add(km);
+            db.SaveChanges();
+            TempData["AdminSuccess"] = $"✅ Đã thêm khuyến mãi \"{km.tenkm}\"";
+        }
+        else
+        {
+            var existing = db.tbKhuyenMai.Find(km.makm);
+            if (existing != null)
+            {
+                existing.tenkm = km.tenkm;
+                existing.mota = km.mota;
+                existing.loaikm = km.loaikm;
+                existing.phantramgiam = km.phantramgiam;
+                existing.dieukien = km.dieukien;
+                existing.ngaybatdau = km.ngaybatdau;
+                existing.ngayketthuc = km.ngayketthuc;
+                db.SaveChanges();
+                TempData["AdminSuccess"] = $"✅ Đã cập nhật khuyến mãi #{km.makm}";
+            }
+        }
+        return RedirectToAction("VoucherManager");
+    }
+
+    [HttpPost]
+    public ActionResult DeleteVoucher(int makm)
+    {
+        if (!checkLogin())
+            return Json(new { success = false });
+
+        var km = db.tbKhuyenMai.Find(makm);
+        if (km != null)
+        {
+            db.tbKhuyenMai.Remove(km);
+            db.SaveChanges();
+            return Json(new { success = true });
+        }
+        return Json(new { success = false });
     }
 
     [HttpGet]

@@ -1,0 +1,223 @@
+@model List<ShipFood.Models.tbKhuyenMai>
+@{
+    ViewBag.Title = "Quản lý khuyến mãi";
+    Layout = "~/Views/Shared/_LayoutPageAmin.cshtml";
+}
+
+<style>
+    .voucher-card {
+        background: white; border-radius: 14px; padding: 20px;
+        border: 1px solid #f0f0f0; transition: all .2s ease;
+        position: relative; overflow: hidden;
+    }
+    .voucher-card::before {
+        content: ''; position: absolute; top: 0; left: 0;
+        width: 4px; height: 100%; background: #3CB815;
+    }
+    .voucher-card .discount {
+        font-size: 28px; font-weight: 800; color: #3CB815;
+        line-height: 1.1;
+    }
+    .voucher-card .name { font-weight: 600; font-size: 15px; color: #1a1a2e; }
+    .voucher-card .meta { font-size: 12px; color: #6b7280; margin-top: 4px; }
+    .voucher-card .condition { font-size: 13px; color: #374151; margin-top: 8px; }
+    .voucher-card .badge-date {
+        display: inline-block; padding: 3px 10px; border-radius: 6px;
+        font-size: 11px; font-weight: 600; margin-top: 8px;
+    }
+    .badge-date.active { background: #f0fdf4; color: #16a34a; }
+    .badge-date.expired { background: #fef2f2; color: #dc2626; }
+
+    .modal-content { border-radius: 14px; border: none; }
+    .modal-header { border-bottom: 1px solid #f0f0f0; padding: 20px 24px; }
+    .modal-body { padding: 24px; }
+    .modal-footer { border-top: 1px solid #f0f0f0; padding: 16px 24px; }
+
+    .grid-vouchers {
+        display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 16px;
+    }
+</style>
+
+<div class="content-body">
+    <div class="container-fluid">
+        @if (TempData["AdminSuccess"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show">
+                @TempData["AdminSuccess"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        <div class="page-header">
+            <div>
+                <h2><i class="fas fa-tags" style="color:#3CB815;margin-right:8px;"></i>Quản lý khuyến mãi</h2>
+                <p style="color:#6b7280;font-size:13px;margin:4px 0 0;">
+                    Tổng số: <strong>@Model.Count</strong> mã khuyến mãi
+                </p>
+            </div>
+            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#voucherModal"
+                    onclick="resetForm()">
+                <i class="fas fa-plus me-2"></i> Thêm khuyến mãi
+            </button>
+        </div>
+
+        <div class="grid-vouchers">
+            @foreach (var km in Model)
+            {
+                var isExpired = km.ngayketthuc != null && km.ngayketthuc < DateTime.Now;
+                <div class="voucher-card" id="voucher-@km.makm">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="discount">@(km.phantramgiam ?? 0)%</div>
+                            <div class="name">@km.tenkm</div>
+                            <div class="meta">
+                                @km.loaikm
+                                @if (!string.IsNullOrEmpty(km.mota))
+                                {
+                                    <span> · @km.mota</span>
+                                }
+                            </div>
+                            @if (!string.IsNullOrEmpty(km.dieukien))
+                            {
+                                <div class="condition"><i class="fas fa-info-circle"></i> @km.dieukien</div>
+                            }
+                            <div>
+                                <span class="badge-date @(isExpired ? "expired" : "active")">
+                                    <i class="fas @(isExpired ? "fa-times-circle" : "fa-check-circle")"></i>
+                                    @(isExpired ? "Hết hạn" : "Còn hạn")
+                                </span>
+                                @if (km.ngayketthuc != null)
+                                {
+                                    <span class="badge-date" style="background:#f3f4f6;color:#374151;">
+                                        <i class="far fa-calendar-alt"></i> @km.ngayketthuc?.ToString("dd/MM/yyyy")
+                                    </span>
+                                }
+                            </div>
+                        </div>
+                        <div class="d-flex gap-1">
+                            <button class="btn btn-outline btn-sm" onclick="editVoucher(@km.makm, '@km.tenkm', '@km.mota', '@km.loaikm', @(km.phantramgiam ?? 0), '@km.dieukien', '@km.ngaybatdau?.ToString("yyyy-MM-ddTHH:mm")', '@km.ngayketthuc?.ToString("yyyy-MM-ddTHH:mm")')">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteVoucher(@km.makm)">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+            @if (!Model.Any())
+            {
+                <div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:#9ca3af;">
+                    <div style="font-size:48px;margin-bottom:12px;">🏷️</div>
+                    <p>Chưa có khuyến mãi nào</p>
+                    <p style="font-size:13px;">Bấm "Thêm khuyến mãi" để tạo mã đầu tiên</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="voucherModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            @using (Html.BeginForm("VoucherManager", "Admin", FormMethod.Post))
+            {
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTitle">Thêm khuyến mãi</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="makm" id="makm" value="0" />
+
+                    <div class="mb-3">
+                        <label class="form-label">Tên khuyến mãi <span class="text-danger">*</span></label>
+                        <input type="text" name="tenkm" id="tenkm" class="form-control" required maxlength="100" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Mô tả</label>
+                        <input type="text" name="mota" id="mota" class="form-control" maxlength="500" />
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <label class="form-label">Loại KM <span class="text-danger">*</span></label>
+                            <select name="loaikm" id="loaikm" class="form-select" required>
+                                <option value="Giảm giá">Giảm giá</option>
+                                <option value="Miễn phí ship">Miễn phí ship</option>
+                                <option value="Voucher">Voucher</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">% Giảm <span class="text-danger">*</span></label>
+                            <input type="number" name="phantramgiam" id="phantramgiam" class="form-control" required min="0" max="100" />
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Điều kiện</label>
+                        <input type="text" name="dieukien" id="dieukien" class="form-control" maxlength="500" placeholder="VD: Đơn từ 50.000đ" />
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <label class="form-label">Ngày bắt đầu</label>
+                            <input type="datetime-local" name="ngaybatdau" id="ngaybatdau" class="form-control" />
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Ngày kết thúc</label>
+                            <input type="datetime-local" name="ngayketthuc" id="ngayketthuc" class="form-control" />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-success">Lưu</button>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section scripts {
+<script>
+function resetForm() {
+    document.getElementById('modalTitle').textContent = 'Thêm khuyến mãi';
+    document.getElementById('makm').value = '0';
+    document.getElementById('tenkm').value = '';
+    document.getElementById('mota').value = '';
+    document.getElementById('loaikm').value = 'Giảm giá';
+    document.getElementById('phantramgiam').value = '';
+    document.getElementById('dieukien').value = '';
+    document.getElementById('ngaybatdau').value = '';
+    document.getElementById('ngayketthuc').value = '';
+}
+
+function editVoucher(makm, tenkm, mota, loaikm, phantramgiam, dieukien, ngaybatdau, ngayketthuc) {
+    document.getElementById('modalTitle').textContent = 'Sửa khuyến mãi #' + makm;
+    document.getElementById('makm').value = makm;
+    document.getElementById('tenkm').value = tenkm;
+    document.getElementById('mota').value = mota;
+    document.getElementById('loaikm').value = loaikm;
+    document.getElementById('phantramgiam').value = phantramgiam;
+    document.getElementById('dieukien').value = dieukien;
+    document.getElementById('ngaybatdau').value = ngaybatdau;
+    document.getElementById('ngayketthuc').value = ngayketthuc;
+    new bootstrap.Modal(document.getElementById('voucherModal')).show();
+}
+
+function deleteVoucher(makm) {
+    if (!confirm('Xóa khuyến mãi này?')) return;
+    fetch('@Url.Action("DeleteVoucher", "Admin")', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'makm=' + makm
+    }).then(r => r.json()).then(data => {
+        if (data.success) {
+            document.getElementById('voucher-' + makm).remove();
+        } else {
+            alert('Xóa thất bại');
+        }
+    });
+}
+</script>
+}

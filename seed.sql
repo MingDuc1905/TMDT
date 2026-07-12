@@ -260,20 +260,35 @@ INSERT INTO "tbThongTinDatHang" ("sdt", "diachi", "toado", "tennguoinhan", "user
 ('0987654321', '02 Thanh Sơn, Thanh Bình, Hải Châu, TP. Hồ Chí Minh', NULL, 'Trần Thị B', 1),
 ('0901234567', '48 Cao Thắng, Thanh Bình, Hải Châu, TP. Hồ Chí Minh', NULL, 'Lê Văn C', 2);
 
--- ==================== Tránh duplicate tbThongTinDatHang ====================
--- Nếu chạy seed nhiều lần, unique constraint sẽ chặn insert trùng
--- Có thể chạy lệnh sau để xóa duplicate (PostgreSQL):
--- DELETE FROM "tbThongTinDatHang" a USING (
---   SELECT MIN(mattdh) as min_id, "sdt", "diachi", "userid"
---   FROM "tbThongTinDatHang"
---   GROUP BY "sdt", "diachi", "userid"
---   HAVING COUNT(*) > 1
--- ) b WHERE a."sdt" = b."sdt" AND a."diachi" = b."diachi" AND a."userid" = b."userid"
--- AND a."mattdh" > b.min_id;
+-- ==================== Tránh duplicate ALL tables ====================
+-- ⚠️ Nếu chạy seed nhiều lần, các INSERT sẽ tạo bản ghi trùng lặp!
+-- Cách fix: Xoá toàn bộ dữ liệu cũ trước khi seed lại (thường dùng cho dev):
+--
+--   TRUNCATE "tbChiTietDonHang", "tbDanhGia", "tbTinNhan", "tbDonHang",
+--            "tbThongTinDatHang", "tbMonAnKhuyenMai", "tbKhuyenMai",
+--            "tbBienTheMonAn", "tbMonAn", "tbDanhMuc", "tbQuanAn",
+--            "tbShipper", "tbKhachHang", "tbAdmin", "tbUser" CASCADE;
+--
+-- Hoặc dùng lệnh sau để xoá user gốc (chạy trước seed):
+--   DELETE FROM "tbUser" WHERE "userid" BETWEEN 1 AND 18;
+--
+-- Cách fix nhẹ hơn: thêm ON CONFLICT DO NOTHING vào mỗi INSERT,
+-- nhưng yêu cầu unique constraint trên các cột.
+--
+-- Phòng ngừa duplicate:
+--   CREATE UNIQUE INDEX IF NOT EXISTS idx_tbuser_username ON "tbUser"("username");
+--   CREATE UNIQUE INDEX IF NOT EXISTS idx_tbshipper_userid ON "tbShipper"("userid");
+--   CREATE UNIQUE INDEX IF NOT EXISTS idx_tbquanan_userid ON "tbQuanAn"("userid");
+--   CREATE UNIQUE INDEX IF NOT EXISTS idx_tbkhachhang_userid ON "tbKhachHang"("userid");
+--   CREATE UNIQUE INDEX IF NOT EXISTS idx_tbadmin_userid ON "tbAdmin"("userid");
+
+-- Nếu unique constraint đã có, các INSERT sau sẽ báo lỗi duplicate key.
+-- Đó là hành vi ĐÚNG — không tạo duplicate.
+
+-- Xoá đơn hàng rác (không có chi tiết) để tránh tích luỹ khi seed lại:
+DELETE FROM "tbDonHang" WHERE "madh" NOT IN (SELECT DISTINCT "madh" FROM "tbChiTietDonHang");
 
 -- ==================== tbDonHang ====================
--- ⚠️ Xoá đơn rác (0 chi tiết) trước khi seed — tránh tích luỹ mỗi lần seed
-DELETE FROM "tbDonHang" WHERE "madh" NOT IN (SELECT DISTINCT "madh" FROM "tbChiTietDonHang");
 
 INSERT INTO "tbDonHang" ("maquan", "mattdh", "ngaydathang", "trangthai", "tongtien", "hinhthucthanhtoan", "ghichu", "makhuyenmai", "phiship", "phidichvu", "ngaygiaohang", "ngaythanhtoan", "mashipper") VALUES
 (6, 1, '2024-05-16 08:00:00', 'Hoàn thành', 100000.0000, 1, 'Ghi chú đơn hàng', NULL, 0.0000, 5000.0000, '2024-05-20 08:00:00', '2024-05-20 08:00:00', 3),

@@ -3,6 +3,38 @@ using ShipFood.Models;
 
 namespace ShipFood.Services;
 
+// ════════════════════════════════════════════════════════════════════
+// 🧠 HỆ GỢI Ý CHI TIẾT — ShipFood Recommendation Engine
+// ════════════════════════════════════════════════════════════════════
+//
+// 🔬 THUẬT TOÁT: Apriori (khai thác luật kết hợp)
+//   - Support(A→B)  = số đơn có A∩B / số đơn có A
+//   - Confidence    = Support / số đơn có A
+//   - minSupport    = 0.02 (2%)
+//   - minConfidence = 0.50 (50%)
+//
+// 📦 DỮ LIỆU:
+//   tbMonAn.mamon          → ID món ăn (chính)
+//   tbBienTheMonAn.id      → ID biến thể (size, giá) — là cầu nối
+//   tbChiTietDonHang.mamon → FK→tbBienTheMonAn.id (lịch sử đặt)
+//   tbDonHang.trangthai    = "Hoàn thành" (chỉ tính đơn đã giao)
+//
+// 📐 KIẾN TRÚC:
+//   GetPersonalizedRecommendations(userId)  → Gợi ý theo lịch sử cá nhân
+//   GetAprioriRecommendations(inputMonIds)  → Apriori: "thường mua kèm"
+//   GetPopularPairs()                      → Top cặp xuất hiện cùng nhau
+//   GetTimeBasedRecommendations()          → Theo khung giờ (sáng/trưa/tối/khuya)
+//   GetTrendingItems()                     → Bán chạy 48h gần
+//   GetRestaurantAprioriInsights()         → Dashboard nhà hàng
+//   GetCategoryAprioriInsights()           → Admin dashboard
+//
+// 🔐 LƯU Ý:
+//   - ct.mamon trong tbChiTietDonHang là FK tới tbBienTheMonAn.id, KHÔNG phải tbMonAn.mamon
+//   - Mọi method PHẢI bridge qua tbBienTheMonAn để map đúng
+//   - Try-catch ở caller để handle service crash
+//   - Dùng IQueryable + async EF để tránh N+1 query
+// ════════════════════════════════════════════════════════════════════
+
 public class RecommendationService
 {
     private readonly dbFoodyEntities _db;

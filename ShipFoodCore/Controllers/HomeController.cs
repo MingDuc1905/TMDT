@@ -316,11 +316,139 @@ public class HomeController : BaseController
             var redirectUrl = Url.Action("GoogleResponse", "Home");
             var properties = new Microsoft.AspNetCore.Authentication.AuthenticationProperties { RedirectUri = redirectUrl };
             return Challenge(properties, Microsoft.AspNetCore.Authentication.Google.GoogleDefaults.AuthenticationScheme);
+        }    /// <summary>
+        /// Đăng nhập bằng Facebook - chuyển hướng đến Facebook OAuth (1-click, mặc định Khách hàng)
+        /// </summary>
+        public IActionResult FacebookLogin()
+        {
+            // Kiểm tra Facebook OAuth có được cấu hình không
+            var fbAppId = HttpContext.RequestServices
+                .GetService<Microsoft.Extensions.Configuration.IConfiguration>()?
+                ["Authentication:Facebook:AppId"];
+            if (string.IsNullOrEmpty(fbAppId))
+            {
+                ViewBag.LoginFail = "Đăng nhập Facebook chưa được cấu hình trên hệ thống này.";
+                return View("Login");
+            }
+
+            var redirectUrl = Url.Action("FacebookResponse", "Home");
+            var properties = new Microsoft.AspNetCore.Authentication.AuthenticationProperties { RedirectUri = redirectUrl };
+            return Challenge(properties, Microsoft.AspNetCore.Authentication.Facebook.FacebookDefaults.AuthenticationScheme);
         }
 
     /// <summary>
-    /// Google OAuth callback - xử lý sau khi Google xác thực thành công
-    /// </summary>
+        /// Facebook OAuth callback - xử lý sau khi Facebook xác thực thành công
+        /// </summary>
+        public async Task<ActionResult> FacebookResponse()
+        {
+            string? email = null;
+            string? name = null;
+
+            try
+            {
+            // Đọc từ cookie (Facebook middleware tự động lưu vào cookie nhờ AddCookie)
+            var authenticateResult = await HttpContext.AuthenticateAsync(Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme);
+            if (!authenticateResult.Succeeded)
+            {
+                ViewBag.LoginFail = "Đăng nhập Facebook thất bại. Vui lòng thử lại.";
+                return View("Login");
+            }
+
+            // Lấy thông tin email từ Facebook
+            email = authenticateResult.Principal?.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+            name = authenticateResult.Principal?.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value;
+
+            // Facebook có thể không trả email nếu user dùng SĐT để đăng ký
+            // Fallback: dùng name + userId để tạo email giả
+            if (string.IsNullOrEmpty(email))
+            {
+                var fbId = authenticateResult.Principal?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                email = $"fb_{fbId ?? Guid.NewGuid().ToString("N")}@facebook.com";
+                if (string.IsNullOrEmpty(name))
+                    name = $"Facebook User";
+            }
+
+            // Tìm user theo email
+            var users = db.tbUser.Where(u => u.email == email).ToList();
+            if (users.Count == 0)
+            {
+                // ─── FACEBOOK LẦN ĐẦU: Auto-create Khách hàng ───
+                try
+                {
+                    var randomPwd = $"FB_{Guid.NewGuid():N}";
+                    var truncatedEmail = email.Length > 50 ? email[..50] : email;
+                    var shortUser = "fb_" + Guid.NewGuid().ToString("N")[..12];
+                    var tenDayDu = (!string.IsNullOrEmpty(name) ? name : truncatedEmail);
+                    if (tenDayDu.Length > 50) tenDayDu = tenDayDu[..50];
+
+                    var newUser = new tbUser
+                    {
+                        username     = shortUser,
+                        pwd          = randomPwd,
+                        email        = truncatedEmail,
+                        sdt          = "",
+                        loaitaikhoan = "Khách hàng",
+                        vitien       = 0,
+                        trangthai    = 1
+                    };
+                    db.tbUser.Add(newUser);
+                    db.SaveChanges();
+
+                    db.tbKhachHang.Add(new tbKhachHang
+                    {
+                        userid = newUser.userid,
+                        tenkh  = tenDayDu
+                    });
+                    db.SaveChanges();
+
+                    var newCart = new Cart { userid = newUser.userid };
+                    SetCart(newCart);
+                    SetSessionUser(newUser);
+
+                    return RedirectToAction("Index", "Home");
+                }
+                catch (Exception ex)
+                {
+                    var logger = HttpContext.RequestServices.GetRequiredService<ILogger<HomeController>>();
+                    logger.LogError(ex, "Auto-create Khách hàng from Facebook failed for {Email}", email);
+                    ViewBag.LoginFail = "Không thể tạo tài khoản tự động. Vui lòng thử lại.";
+                    return View("Login");
+                }
+            }
+
+            var userFind = users[0];
+            if (userFind.trangthai == 2)
+            {
+                ViewBag.LoginFail = "Tài khoản đã bị khóa";
+                return View("Login");
+            }
+
+            var cart = new Cart { userid = userFind.userid };
+            SetCart(cart);
+            SetSessionUser(userFind);
+
+            return userFind.loaitaikhoan switch
+            {
+                "Khách hàng" => RedirectToAction("Index", "Home"),
+                "Shipper" => RedirectToAction("Index", "Shipper"),
+                "Quán ăn" => RedirectToAction("Index", "Restaurant"),
+                "Admin" => RedirectToAction("Index", "Admin"),
+                _ => RedirectToAction("Index"),
+            };
+            }
+            catch (Exception ex)
+            {
+                var logger = HttpContext.RequestServices.GetRequiredService<ILogger<HomeController>>();
+                logger.LogError(ex, "Facebook OAuth callback failed for email {Email}", email ?? "null");
+
+                ViewBag.LoginFail = "Đăng nhập Facebook gặp sự cố. Vui lòng thử lại hoặc dùng tài khoản thường.";
+                return View("Login");
+            }
+        }
+
+    /// <summary>
+        /// Google OAuth callback - xử lý sau khi Google xác thực thành công
+        /// </summary>
         public async Task<ActionResult> GoogleResponse()
         {
             // Khai báo trước try để catch có thể dùng (C# scope rules)

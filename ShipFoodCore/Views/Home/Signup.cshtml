@@ -434,26 +434,46 @@
                 </div>
             </div>
 
-            <!-- Google Signup -->
+            <!-- Social Signup -->
             @{
                 var googleId = ViewContext.HttpContext.RequestServices
                     .GetService<Microsoft.Extensions.Configuration.IConfiguration>()?
                     ["Authentication:Google:ClientId"];
                 bool googleEnabled = !string.IsNullOrEmpty(googleId);
+
+                var fbAppId = ViewContext.HttpContext.RequestServices
+                    .GetService<Microsoft.Extensions.Configuration.IConfiguration>()?
+                    ["Authentication:Facebook:AppId"];
+                bool fbEnabled = !string.IsNullOrEmpty(fbAppId);
             }
-            @if (googleEnabled)
+            @if (googleEnabled || fbEnabled)
             {
                 <div class="divider">hoặc</div>
                 <div class="google-btn-wrapper">
-                    <a href="@Url.Action("GoogleLogin","Home")" class="google-btn">
-                        <svg width="20" height="20" viewBox="0 0 48 48" fill="none"><path d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" fill="#EA4335"/><path d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" fill="#4285F4"/><path d="M10.54 28.59A14.5 14.5 0 0 1 9.5 24c0-1.59.28-3.14.76-4.59l-7.98-6.19A23.99 23.99 0 0 0 0 24c0 3.77.87 7.35 2.56 10.59l7.98-6z" fill="#FBBC05"/><path d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6C6.51 42.62 14.62 48 24 48z" fill="#34A853"/></svg>
-                        <span>Đăng ký bằng Google</span>
-                    </a>
-                    <div style="margin-top:8px;font-size:12px;color:var(--fs-muted);">
-                        <a href="@Url.Action("GooglePartnerLogin","Home")" style="color:var(--fs-muted);text-decoration:underline;">
-                            <i class="fas fa-store me-1"></i>Đăng ký làm Đối tác Quán ăn / Shipper
+                    @if (googleEnabled)
+                    {
+                        <a href="@Url.Action("GoogleLogin","Home")" class="google-btn" style="margin-bottom:8px;">
+                            <svg width="20" height="20" viewBox="0 0 48 48" fill="none"><path d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" fill="#EA4335"/><path d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" fill="#4285F4"/><path d="M10.54 28.59A14.5 14.5 0 0 1 9.5 24c0-1.59.28-3.14.76-4.59l-7.98-6.19A23.99 23.99 0 0 0 0 24c0 3.77.87 7.35 2.56 10.59l7.98-6z" fill="#FBBC05"/><path d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6C6.51 42.62 14.62 48 24 48z" fill="#34A853"/></svg>
+                            <span>Đăng ký bằng Google</span>
                         </a>
-                    </div>
+                    }
+                    @if (fbEnabled)
+                    {
+                        <a href="@Url.Action("FacebookLogin","Home")" class="fb-btn">
+                            <svg width="20" height="20" viewBox="0 0 48 48" fill="none">
+                                <path d="M24 0C10.74 0 0 10.74 0 24c0 13.26 10.74 24 24 24s24-10.74 24-24C48 10.74 37.26 0 24 0zm6.22 24.08h-3.29v15.06h-6.24V24.08h-3.15v-5.34h3.15v-3.24c0-2.61 1.24-6.69 6.68-6.69l4.9.02v5.46h-3.56c-.58 0-1.4.29-1.4 1.53v2.92h5l-.09 5.34z" fill="white"/>
+                            </svg>
+                            <span>Đăng ký bằng Facebook</span>
+                        </a>
+                    }
+                    @if (googleEnabled)
+                    {
+                        <div style="margin-top:8px;font-size:12px;color:var(--fs-muted);">
+                            <a href="@Url.Action("GooglePartnerLogin","Home")" style="color:var(--fs-muted);text-decoration:underline;">
+                                <i class="fas fa-store me-1"></i>Đăng ký làm Đối tác Quán ăn / Shipper
+                            </a>
+                        </div>
+                    }
                 </div>
             }
 

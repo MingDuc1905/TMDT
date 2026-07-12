@@ -341,6 +341,23 @@ if (!string.IsNullOrEmpty(googleClientId) && !string.IsNullOrEmpty(googleClientS
     });
 }
 
+// ─── Facebook OAuth ───
+var fbAppId = builder.Configuration["Authentication:Facebook:AppId"];
+var fbAppSecret = builder.Configuration["Authentication:Facebook:AppSecret"];
+if (!string.IsNullOrEmpty(fbAppId) && !string.IsNullOrEmpty(fbAppSecret))
+{
+    authBuilder.AddFacebook(fbOptions =>
+    {
+        fbOptions.AppId = fbAppId;
+        fbOptions.AppSecret = fbAppSecret;
+        fbOptions.Fields.Add("email");
+        fbOptions.Fields.Add("name");
+        fbOptions.Scope.Add("email");
+        fbOptions.Scope.Add("public_profile");
+        fbOptions.SaveTokens = true;
+    });
+}
+
 var app = builder.Build();
 
 // ─── Task 1b: EF Core Migrations (replacing EnsureCreated) ───

@@ -1,16 +1,15 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap');
 
-/* Body style now set inline in cshtml (flexbox, min-height:100dvh, no overflow lock) */
 body {
     margin: 0;
     background: #f0f2f5;
 }
 
-/* Auth page wrapper — flexbox căn giữa, không khóa viewport */
+/* Auth page wrapper */
 .auth-page-wrapper {
     min-height: 100dvh;
     height: auto;
-    overflow-y: auto;  /* Cho phép scroll khi bàn phím ảo mở trên mobile */
+    overflow-y: auto;
 }
 .auth-main {
     flex: 1;
@@ -38,7 +37,78 @@ body {
     letter-spacing: -0.3px;
 }
 
-/* ===== Google Button (Official Google Identity Style) ===== */
+/* ===== Capsule Input Fields ===== */
+.fs-input-capsule {
+    width: 100%;
+    padding: 14px 16px 14px 44px;
+    border: 1.5px solid #dadce0;
+    border-radius: 25px;
+    font-size: 14px;
+    font-family: 'Roboto', Arial, sans-serif;
+    color: #1F1F1F;
+    background: #fff;
+    transition: all .2s ease;
+    box-sizing: border-box;
+    outline: none;
+    height: 50px;
+}
+
+.fs-input-capsule:focus {
+    border-color: #3CB815;
+    box-shadow: 0 0 0 3px rgba(60, 184, 21, 0.12);
+}
+
+.fs-input-capsule::placeholder {
+    color: #80868b;
+}
+
+.fs-input-wrap {
+    position: relative;
+    width: 100%;
+    margin-bottom: 12px;
+}
+
+.fs-input-icon {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #80868b;
+    font-size: 16px;
+    z-index: 2;
+    pointer-events: none;
+}
+
+/* Password toggle inside capsule */
+.fs-password-wrap .fs-password-toggle {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: transparent;
+    color: #80868b;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.15s ease;
+    padding: 0;
+    z-index: 2;
+}
+.fs-password-wrap .fs-password-toggle:hover {
+    color: #1F1F1F;
+    background: #f0f0f0;
+}
+.fs-password-wrap .fs-password-toggle i {
+    font-size: 16px;
+    pointer-events: none;
+}
+
+/* ===== Social Buttons (Original style - kept for backward compat) ===== */
 .google-btn-wrapper {
     margin-bottom: 0;
 }
@@ -84,7 +154,50 @@ body {
     outline-offset: 2px;
 }
 
-/* ===== Facebook Button ===== */
+/* ===== Circular Social Icons (Login redesign) ===== */
+.fs-social-icons {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin: 16px 0;
+}
+
+.fs-social-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 1.5px solid #dadce0;
+    background: #fff;
+    cursor: pointer;
+    transition: all .2s ease;
+    text-decoration: none;
+}
+
+.fs-social-icon:hover {
+    border-color: #5f6368;
+    box-shadow: 0 2px 8px rgba(0,0,0,.08);
+    transform: translateY(-1px);
+}
+
+.fs-social-icon:active {
+    transform: translateY(0);
+}
+
+.fs-social-icon svg {
+    width: 22px;
+    height: 22px;
+    display: block;
+}
+
+.fs-social-icon:focus-visible {
+    outline: 2px solid #3CB815;
+    outline-offset: 2px;
+}
+
+/* ===== Facebook Button (Full width, kept for Signup) ===== */
 .fb-btn {
     display: inline-flex;
     align-items: center;
@@ -92,13 +205,13 @@ body {
     gap: 12px;
     width: 100%;
     padding: 12px 24px;
-    background: #1877F2;
-    border: 1px solid #1877F2;
+    background: #FFFFFF;
+    border: 1px solid #747775;
     border-radius: 20px;
     font-family: 'Roboto', Arial, sans-serif;
     font-size: 14px;
     font-weight: 500;
-    color: #FFFFFF;
+    color: #1F1F1F;
     text-decoration: none;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -107,15 +220,15 @@ body {
 }
 
 .fb-btn:hover {
-    background: #166FE5;
-    border-color: #166FE5;
-    box-shadow: 0 1px 3px rgba(24, 119, 242, 0.3);
-    color: #FFFFFF;
+    background: #f8f9fa;
+    border-color: #5f6368;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    color: #1F1F1F;
     text-decoration: none;
 }
 
 .fb-btn:active {
-    background: #135CC9;
+    background: #f1f3f4;
 }
 
 .fb-btn svg {
@@ -125,13 +238,6 @@ body {
 .fb-btn:focus-visible {
     outline: 2px solid #1877F2;
     outline-offset: 2px;
-}
-
-/* ===== Social Buttons Wrapper ===== */
-.social-btn-wrapper {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
 }
 
 .login-social {
@@ -208,31 +314,35 @@ form input::placeholder {
     width: 16px;
     height: 16px;
     margin: 0;
-    accent-color: #4285F4;
+    accent-color: #3CB815;
     cursor: pointer;
 }
 
+/* ===== Green Login Button (Capsule) ===== */
 .login-submit {
-    background: #4285F4;
+    background: #3CB815;
     color: white;
     border: none;
-    padding: 12px;
-    border-radius: 8px;
+    padding: 14px;
+    border-radius: 25px;
     font-family: 'Roboto', Arial, sans-serif;
-    font-size: 15px;
-    font-weight: 500;
+    font-size: 16px;
+    font-weight: 700;
     cursor: pointer;
-    transition: background 0.2s, box-shadow 0.2s;
+    transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
     width: 100%;
+    letter-spacing: 0.3px;
 }
 
 .login-submit:hover {
-    background: #3367D6;
-    box-shadow: 0 1px 4px rgba(66, 133, 244, 0.3);
+    background: #35a012;
+    box-shadow: 0 4px 14px rgba(60, 184, 21, 0.35);
+    transform: translateY(-1px);
 }
 
 .login-submit:active {
-    background: #2a56c6;
+    background: #2e8a0e;
+    transform: translateY(0);
 }
 
 /* ===== Register Link ===== */
@@ -262,31 +372,35 @@ form input::placeholder {
 .footer-text a {
     color: #4285F4;
     text-decoration: none;
-}    /* ===== Add mobile responsive styles ===== */
-    @media (max-width: 576px) {
-        .login-container { padding: 24px 16px; }
-        .register-container { padding: 24px 16px; }
-        .forgot-password-container { padding: 24px 16px; }
-        .login-container h2 { font-size: 20px; margin-bottom: 20px; }
-        .register-container h2 { font-size: 20px; }
-        .forgot-password-container h2 { font-size: 20px; }
-        .google-btn { padding: 10px 16px; font-size: 13px; gap: 8px; }
-        form input, form select { padding: 10px 12px; font-size: 16px; /* iOS zoom prevention */ }
-        .login-submit { padding: 14px 12px; font-size: 15px; }
-        .register-submit { padding: 14px 12px; font-size: 15px; }
-        .forgot-password-submit { padding: 14px 12px; font-size: 15px; }
-        .divider { margin: 18px 0; font-size: 12px; }
-        .register { font-size: 13px; }
-        .login-note { font-size: 13px; }
-        .footer-text { font-size: 11px; line-height: 1.4; }
-        .alert { font-size: 12px; padding: 8px 12px; }
-    }
-    @@media (max-width: 400px) {
-        .login-container { padding: 18px 12px; }
-        .register-container { padding: 18px 12px; }
-        .forgot-password-container { padding: 18px 12px; }
-        .login-container h2 { font-size: 18px; }
-    }
+}
+
+/* ===== Mobile Responsive ===== */
+@media (max-width: 576px) {
+    .login-container { padding: 24px 16px; }
+    .register-container { padding: 24px 16px; }
+    .forgot-password-container { padding: 24px 16px; }
+    .login-container h2 { font-size: 20px; margin-bottom: 20px; }
+    .register-container h2 { font-size: 20px; }
+    .forgot-password-container h2 { font-size: 20px; }
+    .google-btn { padding: 10px 16px; font-size: 13px; gap: 8px; }
+    .fs-input-capsule { padding: 12px 14px 12px 40px; font-size: 16px; height: 46px; }
+    form input, form select { padding: 10px 12px; font-size: 16px; }
+    .login-submit { padding: 14px 12px; font-size: 16px; }
+    .register-submit { padding: 14px 12px; font-size: 15px; }
+    .forgot-password-submit { padding: 14px 12px; font-size: 15px; }
+    .divider { margin: 18px 0; font-size: 12px; }
+    .register { font-size: 13px; }
+    .login-note { font-size: 13px; }
+    .footer-text { font-size: 11px; line-height: 1.4; }
+    .alert { font-size: 12px; padding: 8px 12px; }
+    .fs-social-icon { width: 44px; height: 44px; }
+}
+@media (max-width: 400px) {
+    .login-container { padding: 18px 12px; }
+    .register-container { padding: 18px 12px; }
+    .forgot-password-container { padding: 18px 12px; }
+    .login-container h2 { font-size: 18px; }
+}
 
 /* ===== Alert ===== */
 .alert {

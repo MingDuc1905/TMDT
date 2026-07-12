@@ -4,6 +4,13 @@
  * Supports two-way sync between chips and sheet
  */
 
+// ─── HinhAnhUrl helper (matches TinhToan.HinhAnhUrl in C#) ───
+function hinhAnhUrl(hinhanh) {
+    if (!hinhanh) return '/Source/Home/img/food-placeholder.png';
+    if (hinhanh.indexOf('http://') === 0 || hinhanh.indexOf('https://') === 0) return hinhanh;
+    return '/Source/images/MonAn/' + hinhanh;
+}
+
 // ─── State ───
 var filterState = {
     categoryId: null,
@@ -297,7 +304,8 @@ function renderSearchResults(data) {
 
     var html = '<div class="row g-3" id="menuSearchResults">';
     data.items.forEach(function(item) {
-        var imgSrc = item.hinhanh ? '/Source/images/MonAn/' + item.hinhanh : '/Source/Home/img/food-placeholder.png';
+        // ponytail: use hinhAnhUrl() to handle full URLs and relative paths (fix mất ảnh khi lọc)
+        var imgSrc = hinhAnhUrl(item.hinhanh);
         var rating = item.avgRating ? '⭐ ' + item.avgRating.toFixed(1) : '⭐ Mới';
         var priceLabel = item.giaMin ? (item.giaMax && item.giaMax !== item.giaMin ? item.giaMin.toLocaleString('vi-VN') + ' - ' + item.giaMax.toLocaleString('vi-VN') : item.giaMin.toLocaleString('vi-VN')) : '';
 

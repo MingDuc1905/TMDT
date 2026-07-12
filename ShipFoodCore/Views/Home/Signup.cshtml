@@ -60,7 +60,7 @@
 }
 .fs-wp-line.done { background: var(--fs-green); }
 
-/* ─── Role Cards (giống SelectRoleGoogle) ─── */
+/* ─── Role Cards ─── */
 .fs-role-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -141,7 +141,35 @@
     color: #fff;
 }
 
-/* ─── Google Button ─── */
+/* ─── Social icons (circular, matching Login) ─── */
+.fs-social-icons {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin: 12px 0 4px;
+}
+.fs-social-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 1.5px solid #dadce0;
+    background: #fff;
+    cursor: pointer;
+    transition: all .2s ease;
+    text-decoration: none;
+}
+.fs-social-icon:hover {
+    border-color: #5f6368;
+    box-shadow: 0 2px 8px rgba(0,0,0,.08);
+    transform: translateY(-1px);
+}
+.fs-social-icon svg { width: 22px; height: 22px; display: block; }
+.fs-social-icon:focus-visible { outline: 2px solid #3CB815; outline-offset: 2px; }
+
+/* ─── Google Button (kept for backward compat) ─── */
 .google-btn-wrapper {
     margin: 16px 0;
 }
@@ -364,6 +392,7 @@
     .fs-role-card .role-check { margin: 0; flex-shrink: 0; }
     .fs-wp-line { width: 24px; margin: 0 4px; }
     .fs-wp-step .step-label { display: none; }
+    .fs-social-icon { width: 44px; height: 44px; }
 }
 </style>
 
@@ -392,7 +421,7 @@
         </div>
     </div>
 
-    <!-- ═══ FORM (submit cuối cùng) ═══ -->
+    <!-- ═══ FORM ═══ -->
     <form id="signupForm" method="post" action="~/Home/Signup">
         @Html.AntiForgeryToken()
         <input type="hidden" name="loaitaikhoan" id="hiddenRole" value="" />
@@ -434,7 +463,7 @@
                 </div>
             </div>
 
-            <!-- Social Signup -->
+            <!-- Social Signup (icons) -->
             @{
                 var googleId = ViewContext.HttpContext.RequestServices
                     .GetService<Microsoft.Extensions.Configuration.IConfiguration>()?
@@ -449,32 +478,30 @@
             @if (googleEnabled || fbEnabled)
             {
                 <div class="divider">hoặc</div>
-                <div class="google-btn-wrapper">
+                <div class="fs-social-icons">
                     @if (googleEnabled)
                     {
-                        <a href="@Url.Action("GoogleLogin","Home")" class="google-btn" style="margin-bottom:8px;">
-                            <svg width="20" height="20" viewBox="0 0 48 48" fill="none"><path d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" fill="#EA4335"/><path d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" fill="#4285F4"/><path d="M10.54 28.59A14.5 14.5 0 0 1 9.5 24c0-1.59.28-3.14.76-4.59l-7.98-6.19A23.99 23.99 0 0 0 0 24c0 3.77.87 7.35 2.56 10.59l7.98-6z" fill="#FBBC05"/><path d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6C6.51 42.62 14.62 48 24 48z" fill="#34A853"/></svg>
-                            <span>Đăng ký bằng Google</span>
+                        <a href="@Url.Action("GoogleLogin","Home")" class="fs-social-icon" aria-label="Đăng ký bằng Google" title="Đăng ký bằng Google">
+                            <svg width="22" height="22" viewBox="0 0 48 48" fill="none"><path d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" fill="#EA4335"/><path d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" fill="#4285F4"/><path d="M10.54 28.59A14.5 14.5 0 0 1 9.5 24c0-1.59.28-3.14.76-4.59l-7.98-6.19A23.99 23.99 0 0 0 0 24c0 3.77.87 7.35 2.56 10.59l7.98-6z" fill="#FBBC05"/><path d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6C6.51 42.62 14.62 48 24 48z" fill="#34A853"/></svg>
                         </a>
                     }
                     @if (fbEnabled)
                     {
-                        <a href="@Url.Action("FacebookLogin","Home")" class="fb-btn">
-                            <svg width="20" height="20" viewBox="0 0 48 48" fill="none">
-                                <path d="M24 0C10.74 0 0 10.74 0 24c0 13.26 10.74 24 24 24s24-10.74 24-24C48 10.74 37.26 0 24 0zm6.22 24.08h-3.29v15.06h-6.24V24.08h-3.15v-5.34h3.15v-3.24c0-2.61 1.24-6.69 6.68-6.69l4.9.02v5.46h-3.56c-.58 0-1.4.29-1.4 1.53v2.92h5l-.09 5.34z" fill="white"/>
+                        <a href="@Url.Action("FacebookLogin","Home")" class="fs-social-icon" aria-label="Đăng ký bằng Facebook" title="Đăng ký bằng Facebook">
+                            <svg width="22" height="22" viewBox="0 0 48 48" fill="none">
+                                <path d="M24 0C10.74 0 0 10.74 0 24c0 13.26 10.74 24 24 24s24-10.74 24-24C48 10.74 37.26 0 24 0zm6.22 24.08h-3.29v15.06h-6.24V24.08h-3.15v-5.34h3.15v-3.24c0-2.61 1.24-6.69 6.68-6.69l4.9.02v5.46h-3.56c-.58 0-1.4.29-1.4 1.53v2.92h5l-.09 5.34z" fill="#1877F2"/>
                             </svg>
-                            <span>Đăng ký bằng Facebook</span>
                         </a>
                     }
-                    @if (googleEnabled)
-                    {
-                        <div style="margin-top:8px;font-size:12px;color:var(--fs-muted);">
-                            <a href="@Url.Action("GooglePartnerLogin","Home")" style="color:var(--fs-muted);text-decoration:underline;">
-                                <i class="fas fa-store me-1"></i>Đăng ký làm Đối tác Quán ăn / Shipper
-                            </a>
-                        </div>
-                    }
                 </div>
+                @if (googleEnabled)
+                {
+                    <div style="text-align:center;margin-top:0px;margin-bottom:4px;">
+                        <a href="@Url.Action("GooglePartnerLogin","Home")" style="color:#4285F4;text-decoration:none;font-size:12px;font-weight:500;">
+                            <i class="fas fa-store me-1"></i>Đăng ký làm Đối tác Quán ăn / Shipper
+                        </a>
+                    </div>
+                }
             }
 
             <!-- Error -->
@@ -491,20 +518,17 @@
             <h2 style="font-size:18px;margin-bottom:4px;color:var(--fs-dark);font-weight:600;">Thông tin của bạn</h2>
             <div class="fs-step-sub" id="step2Sub"><i class="fas fa-user me-1"></i>Khách hàng</div>
 
-            <!-- Họ tên / Tên quán / Tên shipper -->
             <div class="fs-field-group">
                 <label for="inputHoten">Họ tên <span class="required">*</span></label>
                 <input type="text" class="form-control" name="hoten" id="inputHoten" placeholder="Nhập họ tên" autocomplete="name" required />
             </div>
 
-            <!-- Username -->
             <div class="fs-field-group" id="usernameGroup">
                 <label for="inputUsername">Tên đăng nhập <span class="required">*</span></label>
                 <input type="text" class="form-control" name="username" id="inputUsername" placeholder="VD: nguyenvan_a" autocomplete="username" required />
                 <div style="font-size:11px;color:var(--fs-muted-soft);margin-top:3px;">Chỉ chứa chữ cái, số và dấu gạch dưới</div>
             </div>
 
-            <!-- Mật khẩu (chỉ cho Quán ăn / Shipper) -->
             <div id="passwordFields" style="display:none;">
                 <div class="fs-field-group">
                     <label for="inputPwd">Mật khẩu <span class="required">*</span></label>
@@ -526,20 +550,17 @@
                 </div>
             </div>
 
-            <!-- Email -->
             <div class="fs-field-group">
                 <label for="inputEmail">Email <span class="required">*</span></label>
                 <input type="email" class="form-control" name="email" id="inputEmail" placeholder="example@gmail.com" autocomplete="email" required />
             </div>
 
-            <!-- SĐT -->
             <div class="fs-field-group">
                 <label for="inputSdt">Số điện thoại <span class="required">*</span></label>
                 <input type="tel" class="form-control" name="sdt" id="inputSdt" placeholder="0912345678" autocomplete="tel" required maxlength="11" />
                 <div style="font-size:11px;color:var(--fs-muted-soft);margin-top:3px;">10-11 số, bắt đầu bằng 0</div>
             </div>
 
-            <!-- Địa chỉ (chỉ cho Quán ăn / Shipper) -->
             <div id="addressFields" style="display:none;">
                 <div class="fs-field-group">
                     <label for="inputDistrict">Địa chỉ <span class="required">*</span></label>
@@ -559,10 +580,8 @@
                 </div>
             </div>
 
-            <!-- Error -->
             <div id="step2Error" class="alert alert-danger" role="alert" style="display:none;font-size:13px;padding:10px 12px;margin-bottom:12px;"></div>
 
-            <!-- Navigation -->
             <div class="fs-wizard-nav">
                 <button type="button" class="fs-btn-prev" onclick="goToStep(1)">← Quay lại</button>
                 <button type="button" class="fs-btn-next" onclick="validateStep2()">Tiếp theo →</button>
@@ -573,16 +592,13 @@
         <div class="fs-step" id="step3">
             <h2 style="font-size:18px;margin-bottom:12px;color:var(--fs-dark);font-weight:600;">Xác nhận thông tin</h2>
 
-            <div class="fs-summary" id="summaryContent">
-                <!-- JS sẽ điền -->
-            </div>
+            <div class="fs-summary" id="summaryContent"></div>
 
             <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--fs-dark);cursor:pointer;margin-bottom:16px;">
                 <input type="checkbox" id="agreeCheckbox" style="width:16px;height:16px;accent-color:var(--fs-green);" />
                 Tôi đồng ý với <a href="#" style="color:var(--fs-green);text-decoration:underline;">Điều khoản dịch vụ</a> của Fastship
             </label>
 
-            <!-- Error -->
             <div id="step3Error" class="alert alert-danger" role="alert" style="display:none;font-size:13px;padding:10px 12px;margin-bottom:12px;"></div>
 
             <div class="fs-wizard-nav">
@@ -601,18 +617,12 @@
 
 @section scripts {
 <script>
-// ═══════════════════════════════════════════
-// WIZARD NAVIGATION
-// ═══════════════════════════════════════════
 var selectedRole = '';
 var wizardData = { hoten: '', username: '', email: '', sdt: '', diachi: '' };
 
 function goToStep(step) {
-    // Ẩn tất cả steps
     document.querySelectorAll('.fs-step').forEach(function(el) { el.classList.remove('active'); });
     document.getElementById('step' + step).classList.add('active');
-
-    // Cập nhật progress bar
     document.querySelectorAll('.fs-wp-step').forEach(function(el, idx) {
         var s = parseInt(el.getAttribute('data-step'));
         el.classList.remove('active', 'done');
@@ -623,14 +633,9 @@ function goToStep(step) {
         var pair = el.getAttribute('data-step').split('-');
         el.classList.toggle('done', parseInt(pair[1]) <= step);
     });
-
-    // Nếu step 3, cập nhật summary
     if (step === 3) updateSummary();
 }
 
-// ═══════════════════════════════════════════
-// STEP 1: CHỌN VAI TRÒ
-// ═══════════════════════════════════════════
 function selectRole(card, roleName) {
     document.querySelectorAll('.fs-role-card').forEach(function(c) { c.classList.remove('selected'); });
     card.classList.add('selected');
@@ -638,13 +643,9 @@ function selectRole(card, roleName) {
     selectedRole = roleName;
     document.getElementById('hiddenRole').value = roleName;
     document.getElementById('step1Error').style.display = 'none';
-
-    // Cập nhật step 2 dựa trên role
     var sub = document.getElementById('step2Sub');
     var roleLabels = { 'Khách hàng': 'Khách hàng', 'Quán ăn': 'Đối tác Quán ăn', 'Shipper': 'Tài xế Shipper' };
     sub.innerHTML = '<i class="fas fa-' + (roleName === 'Quán ăn' ? 'store' : roleName === 'Shipper' ? 'motorcycle' : 'user') + ' me-1"></i>' + (roleLabels[roleName] || roleName);
-
-    // Hiện/ẩn password + address fields
     var needsPwd = roleName === 'Quán ăn' || roleName === 'Shipper';
     document.getElementById('passwordFields').style.display = needsPwd ? 'block' : 'none';
     document.getElementById('addressFields').style.display = needsPwd ? 'block' : 'none';
@@ -652,7 +653,6 @@ function selectRole(card, roleName) {
     document.getElementById('inputRepeatPwd').required = needsPwd;
 }
 
-// Tiếp theo từ step 1
 document.getElementById('step1Next').addEventListener('click', function() {
     if (!selectedRole) {
         showStepError('step1Error', 'Vui lòng chọn một vai trò để tiếp tục.');
@@ -661,17 +661,12 @@ document.getElementById('step1Next').addEventListener('click', function() {
     goToStep(2);
 });
 
-// ═══════════════════════════════════════════
-// STEP 2: VALIDATE
-// ═══════════════════════════════════════════
 function validateStep2() {
     var hoten = document.getElementById('inputHoten').value.trim();
     var username = document.getElementById('inputUsername').value.trim();
     var email = document.getElementById('inputEmail').value.trim();
     var sdt = document.getElementById('inputSdt').value.trim();
-
     clearStepError('step2Error');
-
     if (!hoten || hoten.length < 2) { showStepError('step2Error', 'Họ tên phải có ít nhất 2 ký tự'); return; }
     if (!username || username.length < 3) { showStepError('step2Error', 'Tên đăng nhập phải có ít nhất 3 ký tự'); return; }
     if (!/^[a-zA-Z0-9_]+$/.test(username)) { showStepError('step2Error', 'Tên đăng nhập chỉ được chứa chữ cái, số và dấu gạch dưới'); return; }
@@ -680,14 +675,11 @@ function validateStep2() {
     var dotIdx = email.lastIndexOf('.');
     if (atIdx < 1 || dotIdx < atIdx + 2) { showStepError('step2Error', 'Email không hợp lệ'); return; }
     if (!sdt || !/^0[1-9][0-9]{8,9}$/.test(sdt)) { showStepError('step2Error', 'Số điện thoại không hợp lệ (10-11 số, bắt đầu bằng 0)'); return; }
-
-    // Nếu là Quán ăn / Shipper, validate password + address
     if (selectedRole === 'Quán ăn' || selectedRole === 'Shipper') {
         var pwd = document.getElementById('inputPwd').value;
         var repeatPwd = document.getElementById('inputRepeatPwd').value;
         if (!pwd || pwd.length < 8) { showStepError('step2Error', 'Mật khẩu phải có ít nhất 8 ký tự'); return; }
         if (pwd !== repeatPwd) { showStepError('step2Error', 'Xác nhận mật khẩu không khớp'); return; }
-
         var district = document.getElementById('inputDistrict').value;
         var detail = document.getElementById('inputDetailAddr').value.trim();
         if (!district) { showStepError('step2Error', 'Vui lòng chọn Quận/Huyện'); return; }
@@ -695,22 +687,15 @@ function validateStep2() {
         wizardData.diachi = detail + ', ' + district + ', TP. Hồ Chí Minh';
         document.getElementById('hiddenDiachi').value = wizardData.diachi;
     } else {
-        // Khách hàng: không cần địa chỉ
         document.getElementById('hiddenDiachi').value = '';
     }
-
-    // Lưu dữ liệu
     wizardData.hoten = hoten;
     wizardData.username = username;
     wizardData.email = email;
     wizardData.sdt = sdt;
-
     goToStep(3);
 }
 
-// ═══════════════════════════════════════════
-// STEP 3: SUMMARY + SUBMIT
-// ═══════════════════════════════════════════
 function updateSummary() {
     var roleLabels = { 'Khách hàng': 'Khách hàng', 'Quán ăn': 'Đối tác Quán ăn', 'Shipper': 'Tài xế Shipper' };
     var html = '';
@@ -725,23 +710,16 @@ function updateSummary() {
     document.getElementById('summaryContent').innerHTML = html;
 }
 
-// Checkbox submit
 document.getElementById('agreeCheckbox').addEventListener('change', function() {
     document.getElementById('submitBtn').disabled = !this.checked;
 });
 
-// ═══════════════════════════════════════════
-// AJAX SUBMIT (giống login)
-// ═══════════════════════════════════════════
 document.getElementById('signupForm').addEventListener('submit', function(e) {
     e.preventDefault();
     clearStepError('step3Error');
-
     var btn = document.getElementById('submitBtn');
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang xử lý...';
-
-    // Build form data
     var formData = new FormData();
     formData.append('__RequestVerificationToken', document.querySelector('input[name="__RequestVerificationToken"]').value);
     formData.append('loaitaikhoan', selectedRole);
@@ -750,13 +728,10 @@ document.getElementById('signupForm').addEventListener('submit', function(e) {
     formData.append('email', wizardData.email);
     formData.append('sdt', wizardData.sdt);
     formData.append('diachi', wizardData.diachi || '');
-
-    // Password fields
     if (selectedRole === 'Quán ăn' || selectedRole === 'Shipper') {
         formData.append('pwd', document.getElementById('inputPwd').value);
         formData.append('repeatpw', document.getElementById('inputRepeatPwd').value);
     }
-
     $.ajax({
         url: $('#signupForm').attr('action'),
         type: 'POST',
@@ -778,7 +753,6 @@ document.getElementById('signupForm').addEventListener('submit', function(e) {
                     return;
                 }
             } catch(e) {}
-            // Fallback: redirect về login
             window.location.href = '/Home/Login';
         },
         error: function(xhr) {
@@ -794,18 +768,13 @@ document.getElementById('signupForm').addEventListener('submit', function(e) {
     });
 });
 
-// ═══════════════════════════════════════════
-// PASSWORD STRENGTH METER
-// ═══════════════════════════════════════════
 document.getElementById('inputPwd').addEventListener('input', function() {
     var pwd = this.value;
     var meter = document.getElementById('pwdStrength');
     var fill = document.getElementById('pwdBarFill');
     var label = document.getElementById('pwdLabel');
-
     if (!pwd) { meter.style.display = 'none'; return; }
     meter.style.display = 'flex';
-
     var score = 0;
     if (pwd.length >= 8) score += 25;
     if (pwd.length >= 12) score += 15;
@@ -813,20 +782,15 @@ document.getElementById('inputPwd').addEventListener('input', function() {
     if (/[A-Z]/.test(pwd)) score += 15;
     if (/[0-9]/.test(pwd)) score += 15;
     if (/[^a-zA-Z0-9]/.test(pwd)) score += 15;
-
     var colors = ['#dc3545', '#dc3545', '#ffc107', '#ffc107', '#3CB815', '#3CB815'];
     var labels = ['Quá yếu', 'Yếu', 'Trung bình', 'Khá', 'Mạnh', 'Rất mạnh'];
     var idx = Math.min(Math.floor(score / 17), 5);
-
     fill.style.width = Math.min(score, 100) + '%';
     fill.style.background = colors[idx];
     label.textContent = labels[idx];
     label.style.color = colors[idx];
 });
 
-// ═══════════════════════════════════════════
-// UTILITY
-// ═══════════════════════════════════════════
 function showStepError(id, msg) {
     var el = document.getElementById(id);
     el.innerHTML = '<i class="fas fa-exclamation-circle me-1"></i>' + msg;
@@ -841,7 +805,6 @@ function escapeHtml(str) {
     return div.innerHTML;
 }
 
-// Auto-trigger password toggle cho step 2
 document.querySelectorAll('#step2 .fs-password-toggle').forEach(function(btn) {
     btn.addEventListener('click', function() {
         var wrap = this.closest('.fs-password-wrap');

@@ -306,8 +306,6 @@ builder.Services.AddCors(options =>
 
 Log.Information("CORS configured for origins: {Origins}", string.Join(", ", allowedOrigins));
 
-
-
 // Add Authentication (Cookie + optional Google OAuth)
 var authBuilder = builder.Services.AddAuthentication(Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
@@ -496,10 +494,10 @@ app.Use(async (context, next) =>
     await next();
 });
 
-// ─── HTTPS termination (Render) — đặt sớm để xử lý X-Forwarded-Proto header ───
-// Render's reverse proxy chạy HTTPS bên ngoài, gửi HTTP vào app bên trong.
-// Middleware này đọc header X-Forwarded-Proto và set Scheme = https,
-// giúp Url.Action() sinh URL redirect OAuth dạng https:// (Google yêu cầu)
+// ─── HTTPS termination (Render) — PHẢI là middleware ĐẦU TIÊN ───
+// ponytail: Render proxy chạy HTTPS bên ngoài, gửi HTTP vào app bên trong.
+// Middleware này đọc header X-Forwarded-Proto và set Scheme = https NGAY ĐẦU PIPELINE,
+// giúp Url.Action() sinh URL redirect OAuth dạng https:// (Facebook & Google yêu cầu)
 app.Use(async (context, next) =>
 {
     var forwardedProto = context.Request.Headers["X-Forwarded-Proto"].FirstOrDefault();
@@ -510,9 +508,12 @@ app.Use(async (context, next) =>
     await next();
 });
 
-// Ép HTTPS redirect — khi request đến bằng HTTP, tự động redirect sang HTTPS
-// (đặt trước UseAuthentication để URL callback OAuth dùng https://)
-app.UseHttpsRedirection();
+// Ép HTTPS redirect — chỉ kích hoạt ở Development (Render đã xử lý SSL ở proxy)
+// Trong production, Render proxy đã terminate SSL, không cần redirect nữa
+if (app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 
 app.UseStaticFiles();
 

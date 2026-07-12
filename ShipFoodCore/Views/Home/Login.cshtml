@@ -9,7 +9,7 @@
 
 <div class="auth-card auth-container">
     <a href="~/Home" style="text-decoration:none;">
-        <h1 style="color:var(--fs-green);font-size:28px;margin-bottom:20px;font-weight:700;">
+        <h1 style="color:var(--fs-green);font-size:28px;margin-bottom:4px;font-weight:700;">
             F<span style="color:var(--fs-orange);">ast</span>ship
         </h1>
     </a>
@@ -17,59 +17,19 @@
 
     <form id="authForm" method="post" action="~/Home/Login">
         @Html.AntiForgeryToken()
-        <div class="login-social">
-            <div class="google-btn-wrapper">
-                @{
-                    var googleId = ViewContext.HttpContext.RequestServices
-                        .GetService<Microsoft.Extensions.Configuration.IConfiguration>()?
-                        ["Authentication:Google:ClientId"];
-                    bool googleEnabled = !string.IsNullOrEmpty(googleId);
 
-                    var fbAppId = ViewContext.HttpContext.RequestServices
-                        .GetService<Microsoft.Extensions.Configuration.IConfiguration>()?
-                        ["Authentication:Facebook:AppId"];
-                    bool fbEnabled = !string.IsNullOrEmpty(fbAppId);
-                }
-                @if (googleEnabled)
-                {
-                    <a href="@Url.Action("GoogleLogin","Home")" class="social-btn google-btn">
-                        <svg width="20" height="20" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" fill="#EA4335"/>
-                            <path d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" fill="#4285F4"/>
-                            <path d="M10.54 28.59A14.5 14.5 0 0 1 9.5 24c0-1.59.28-3.14.76-4.59l-7.98-6.19A23.99 23.99 0 0 0 0 24c0 3.77.87 7.35 2.56 10.59l7.98-6z" fill="#FBBC05"/>
-                            <path d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6C6.51 42.62 14.62 48 24 48z" fill="#34A853"/>
-                        </svg>
-                        <span>Đăng nhập bằng Google</span>
-                    </a>
-                }
-                @if (fbEnabled)
-                {
-                    <a href="@Url.Action("FacebookLogin","Home")" class="social-btn fb-btn">
-                        <svg width="20" height="20" viewBox="0 0 48 48" fill="none">
-                            <path d="M24 0C10.74 0 0 10.74 0 24c0 13.26 10.74 24 24 24s24-10.74 24-24C48 10.74 37.26 0 24 0zm6.22 24.08h-3.29v15.06h-6.24V24.08h-3.15v-5.34h3.15v-3.24c0-2.61 1.24-6.69 6.68-6.69l4.9.02v5.46h-3.56c-.58 0-1.4.29-1.4 1.53v2.92h5l-.09 5.34z" fill="#1877F2"/>
-                        </svg>
-                        <span>Đăng nhập bằng Facebook</span>
-                    </a>
-                }
-                @if (googleEnabled || fbEnabled)
-                {
-                    <div style="margin-top:8px;font-size:12px;color:var(--fs-muted);">
-                        <a href="@Url.Action("GooglePartnerLogin","Home")" style="color:var(--fs-muted);text-decoration:underline;text-underline-offset:2px;">
-                            <i class="fas fa-store me-1"></i>Đăng ký làm Đối tác Quán ăn / Shipper
-                        </a>
-                    </div>
-                }
-            </div>
+        <!-- Username/Phone input - capsule with icon -->
+        <div class="fs-input-wrap">
+            <i class="fas fa-user fs-input-icon"></i>
+            <input type="text" id="login-username" name="usernameOrPhone" placeholder="Tên đăng nhập hoặc số điện thoại"
+                   autocomplete="username" required class="fs-input-capsule" />
         </div>
 
-        <div class="divider">hoặc bằng tài khoản</div>
-
-        <label for="login-username" class="visually-hidden">Tên đăng nhập hoặc số điện thoại</label>
-        <input type="text" id="login-username" name="usernameOrPhone" placeholder="Tên đăng nhập hoặc số điện thoại" autocomplete="username" required />
-
-        <label for="login-pwd" class="visually-hidden">Mật khẩu</label>
-        <div class="fs-password-wrap">
-            <input type="password" id="login-pwd" name="pwd" placeholder="Mật khẩu" autocomplete="current-password" required />
+        <!-- Password input - capsule with icon + eye toggle -->
+        <div class="fs-input-wrap fs-password-wrap">
+            <i class="fas fa-lock fs-input-icon"></i>
+            <input type="password" id="login-pwd" name="pwd" placeholder="Mật khẩu"
+                   autocomplete="current-password" required class="fs-input-capsule" />
             <button type="button" class="fs-password-toggle" tabindex="-1" aria-label="Hiện/ẩn mật khẩu">
                 <i class="fas fa-eye"></i>
             </button>
@@ -82,12 +42,63 @@
             </div>
         }
 
+        <!-- Remember me + Forgot password -->
         <div class="remember-forgot">
             <label><input class="checkboxcss" type="checkbox" name="rememberMe" value="true" /> Lưu đăng nhập</label>
             <a href="~/Home/Forgot" style="margin-left:auto;color:#4285F4;text-decoration:none;font-size:13px;">Quên mật khẩu?</a>
         </div>
+
+        <!-- Green capsule submit button -->
         <button class="login-submit" type="submit">Đăng nhập</button>
     </form>
+
+    <!-- Social login: 2 circular icons -->
+    @{
+        var googleId = ViewContext.HttpContext.RequestServices
+            .GetService<Microsoft.Extensions.Configuration.IConfiguration>()?
+            ["Authentication:Google:ClientId"];
+        bool googleEnabled = !string.IsNullOrEmpty(googleId);
+
+        var fbAppId = ViewContext.HttpContext.RequestServices
+            .GetService<Microsoft.Extensions.Configuration.IConfiguration>()?
+            ["Authentication:Facebook:AppId"];
+        bool fbEnabled = !string.IsNullOrEmpty(fbAppId);
+    }
+
+    @if (googleEnabled || fbEnabled)
+    {
+        <div class="divider" style="margin:20px 0 16px;">hoặc đăng nhập bằng</div>
+        <div class="fs-social-icons">
+            @if (googleEnabled)
+            {
+                <a href="@Url.Action("GoogleLogin","Home")" class="fs-social-icon" aria-label="Đăng nhập bằng Google" title="Đăng nhập bằng Google">
+                    <svg width="22" height="22" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" fill="#EA4335"/>
+                        <path d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" fill="#4285F4"/>
+                        <path d="M10.54 28.59A14.5 14.5 0 0 1 9.5 24c0-1.59.28-3.14.76-4.59l-7.98-6.19A23.99 23.99 0 0 0 0 24c0 3.77.87 7.35 2.56 10.59l7.98-6z" fill="#FBBC05"/>
+                        <path d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6C6.51 42.62 14.62 48 24 48z" fill="#34A853"/>
+                    </svg>
+                </a>
+            }
+            @if (fbEnabled)
+            {
+                <a href="@Url.Action("FacebookLogin","Home")" class="fs-social-icon" aria-label="Đăng nhập bằng Facebook" title="Đăng nhập bằng Facebook">
+                    <svg width="22" height="22" viewBox="0 0 48 48" fill="none">
+                        <path d="M24 0C10.74 0 0 10.74 0 24c0 13.26 10.74 24 24 24s24-10.74 24-24C48 10.74 37.26 0 24 0zm6.22 24.08h-3.29v15.06h-6.24V24.08h-3.15v-5.34h3.15v-3.24c0-2.61 1.24-6.69 6.68-6.69l4.9.02v5.46h-3.56c-.58 0-1.4.29-1.4 1.53v2.92h5l-.09 5.34z" fill="#1877F2"/>
+                    </svg>
+                </a>
+            }
+        </div>
+    }
+
+    @if (googleEnabled)
+    {
+        <div style="text-align:center;margin-bottom:4px;">
+            <a href="@Url.Action("GooglePartnerLogin","Home")" style="color:#4285F4;text-decoration:none;font-size:13px;font-weight:500;">
+                <i class="fas fa-store me-1"></i>Đăng ký làm Đối tác Quán ăn / Shipper
+            </a>
+        </div>
+    }
 
     <div class="register">
         <span>Chưa có tài khoản? <a href="~/Home/Signup">Đăng ký</a></span>
@@ -108,7 +119,7 @@
         var $existing = $form.find('.fs-login-error');
         if (!$existing.length) {
             $existing = $('<div class="alert alert-danger fs-login-error" role="alert" style="font-size:13px;padding:10px 12px;margin-bottom:12px;"></div>');
-            $form.find('input[name="pwd"]').closest('.fs-password-wrap').after($existing);
+            $form.find('input[name="pwd"]').closest('.fs-input-wrap').after($existing);
         }
         $existing.html('<i class="fas fa-exclamation-circle me-1"></i>' + msg).show();
     }
@@ -185,7 +196,7 @@
     });
 })();
 
-    // Restore cart badge count from localStorage khi load trang login
+    // Restore cart badge count from localStorage
     document.addEventListener('DOMContentLoaded', function() {
         if (window.FastShipCart) {
             window.FastShipCart.updateBadge(window.FastShipCart.getCount());

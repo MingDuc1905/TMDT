@@ -102,13 +102,19 @@ function syncCartFromLocal() {
         return;
     }
 
-    // ═══ FIX#1: Kiểm tra đăng nhập bằng nhiều cách ═══
-    // Cookie auth có thể có tên khác nhau tuỳ config (.AspNetCore.Cookies, .AspNetCore.Identity.Application, v.v.)
-    var hasAuthCookie = document.cookie.indexOf('.AspNetCore.Cookies') !== -1
-        || document.querySelector('.nav-user-dropdown') !== null  // User dropdown trong navbar = đã login
-        || document.querySelector('#user-avatar') !== null;
+    // ═══ FIX#3: Kiểm tra đăng nhập bằng window._IS_LOGGED_IN (từ server-side Razor) ═══
+    // document.cookie KHÔNG đọc được HTTP-only cookie (.AspNetCore.Cookies) → dùng biến global từ layout
+    var isLoggedIn = typeof window._IS_LOGGED_IN !== 'undefined' ? window._IS_LOGGED_IN : false;
     
-    if (!hasAuthCookie) {
+    // Fallback: kiểm tra DOM selector (nếu layout chưa kịp set _IS_LOGGED_IN)
+    if (!isLoggedIn) {
+        isLoggedIn = document.querySelector('.nav-user-dropdown') !== null
+            || document.querySelector('#user-avatar') !== null
+            || document.querySelector('.fs-avatar-xs') !== null
+            || document.querySelector('[href="/Cart/LichSuDatHang"]') !== null;
+    }
+    
+    if (!isLoggedIn) {
         updateCartBadge(getCartCount());
         return; // Chưa login, chỉ hiển thị badge
     }

@@ -66,6 +66,10 @@ function toggleChip(name) {
         case 'mode':
             filterState.mode = isActive ? 'pickup' : 'delivery';
             syncSheetRadio('filterMode', filterState.mode);
+            // ═══ FIX: cập nhật chip text khi toggle mode ═══
+            chip.innerHTML = isActive
+                ? '<i class="fas fa-walking"></i> Tự đến lấy'
+                : '<i class="fas fa-motorcycle"></i> Giao hàng';
             break;
     }
 

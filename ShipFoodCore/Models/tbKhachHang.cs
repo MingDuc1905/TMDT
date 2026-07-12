@@ -14,6 +14,9 @@ public partial class tbKhachHang
     [MaxLength(50)]
     public string tenkh { get; set; } = null!;
 
+    [MaxLength(500)]
+    public string? hinhanh { get; set; }
+
     // Navigation
     public virtual tbUser tbUser { get; set; } = null!;
     public virtual ICollection<tbThongTinDatHang> tbThongTinDatHangs { get; set; } = new HashSet<tbThongTinDatHang>();

@@ -20,6 +20,9 @@ public partial class tbDanhMuc
     [MaxLength(500)]
     public string? hinhanh { get; set; }
 
+    [MaxLength(50)]
+    public string? icon { get; set; }
+
     // Navigation
     public virtual ICollection<tbMonAn> tbMonAns { get; set; } = new HashSet<tbMonAn>();
 }

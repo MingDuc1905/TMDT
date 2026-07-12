@@ -14,6 +14,9 @@ public partial class tbAdmin
     [MaxLength(50)]
     public string tenadmin { get; set; } = null!;
 
+    [MaxLength(500)]
+    public string? hinhanh { get; set; }
+
     // Navigation
     public virtual tbUser tbUser { get; set; } = null!;
 }

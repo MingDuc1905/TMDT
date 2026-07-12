@@ -1667,6 +1667,42 @@ VALUES ('test_debug', 'test123', 'Khách hàng', '0999999999', 0, 'test@debug.co
         return View();
     }
 
+    // ===== API: Lấy danh sách biến thể (size, giá) của một món ăn =====
+    [HttpGet]
+    public JsonResult GetVariants(int monId)
+    {
+        try
+        {
+            var monAn = db.tbMonAn.Find(monId);
+            if (monAn == null)
+                return Json(new { success = false, message = "Món ăn không tồn tại" });
+
+            var variants = db.tbBienTheMonAn
+                .Where(b => b.mamon == monId)
+                .Select(b => new
+                {
+                    b.id,
+                    b.size,
+                    b.giatien
+                })
+                .ToList();
+
+            return Json(new
+            {
+                success = true,
+                tenmon = monAn.tenmon,
+                hinhanh = monAn.hinhanh,
+                variants
+            });
+        }
+        catch (Exception ex)
+        {
+            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<HomeController>>();
+            logger.LogError(ex, "GetVariants failed for monId={MonId}", monId);
+            return Json(new { success = false, message = ex.Message });
+        }
+    }
+
     // ===== API: Lấy các chi tiết đơn hàng của user tại quán này (để chọn đánh giá) =====
     [HttpGet]
     public JsonResult GetReviewableItems(int quanId)

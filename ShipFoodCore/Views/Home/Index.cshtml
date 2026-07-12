@@ -215,12 +215,16 @@
                 <i class="fa fa-th-list me-1"></i> Tất cả
             </a>
             @{
-                foreach (var dm in _db.tbDanhMuc)
+                var danhMucList = ViewBag.DanhMucList as List<ShipFood.Models.tbDanhMuc>;
+                if (danhMucList != null)
                 {
-                    var isActive = idDMActive.HasValue && idDMActive.Value == dm.madanhmuc;
-                    <a href="/Home?idDM=@dm.madanhmuc" class="fs-category-pill @(isActive ? "active" : "")">
-                        @dm.tendanhmuc
-                    </a>
+                    foreach (var dm in danhMucList)
+                    {
+                        var isActive = idDMActive.HasValue && idDMActive.Value == dm.madanhmuc;
+                        <a href="/Home?idDM=@dm.madanhmuc" class="fs-category-pill @(isActive ? "active" : "")">
+                            @dm.tendanhmuc
+                        </a>
+                    }
                 }
             }
         </div>

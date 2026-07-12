@@ -90,6 +90,10 @@ public class HomeController : BaseController
         }
         ViewBag.quanAns = quanAns;
 
+        // ponytail: load danh mục ở controller thay vì query DB trực tiếp trong view (Index.cshtml line ~230)
+        // Tránh crash khi model có cột mới nhưng DB chưa có (column not found exception)
+        ViewBag.DanhMucList = db.tbDanhMuc.ToList();
+
         // ─── Apriori: Gợi ý Combo AI cho trang chủ ───
         // ponytail: try-catch để crash không ảnh hưởng đến trang chủ
         try

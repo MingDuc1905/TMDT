@@ -438,6 +438,22 @@ try
                 }
             }
         }
+
+        // ═══ Auto-migrate new columns (chạy trên MỌI startup, ko chỉ DB rỗng) ═══
+        // ponytail: thêm cột mới vào DB bằng ALTER TABLE ADD COLUMN IF NOT EXISTS.
+        // Khi thêm cột mới vào C# model, thêm ALTER ở đây để tự động migration khi deploy.
+        var alterStatements = new[]
+        {
+            @"ALTER TABLE ""tbDanhMuc"" ADD COLUMN IF NOT EXISTS ""icon"" VARCHAR(50);",
+            @"ALTER TABLE ""tbKhachHang"" ADD COLUMN IF NOT EXISTS ""hinhanh"" VARCHAR(500);",
+            @"ALTER TABLE ""tbAdmin"" ADD COLUMN IF NOT EXISTS ""hinhanh"" VARCHAR(500);",
+        };
+        foreach (var alter in alterStatements)
+        {
+            try { db.Database.ExecuteSqlRaw(alter); }
+            catch (Exception alterEx) { logger.LogWarning("ALTER TABLE skipped: {Error}", alterEx.Message); }
+        }
+        logger.LogInformation("Auto-migration: ALTER TABLE columns checked");
     }
 }
 catch (Exception ex)

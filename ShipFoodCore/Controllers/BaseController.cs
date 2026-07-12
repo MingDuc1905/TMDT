@@ -59,28 +59,27 @@ public abstract class BaseController : Controller
     /// <summary>
     /// Phục hồi session từ Cookie Auth claims.
     /// Được gọi khi session mất (restart) nhưng auth cookie còn.
+    /// ponytail: sync method, callers (CheckLogin, GetCurrentUser) không async được.
+    /// Session auto-commit ở cuối request, CommitAsync chỉ là safety.
     /// </summary>
     private void RestoreSessionFromClaims()
     {
         var userIdClaim = HttpContext.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        var usernameClaim = HttpContext.User?.FindFirst(ClaimTypes.Name)?.Value;
-        var roleClaim = HttpContext.User?.FindFirst(ClaimTypes.Role)?.Value;
-
-        if (string.IsNullOrEmpty(userIdClaim) || string.IsNullOrEmpty(usernameClaim))
+        if (string.IsNullOrEmpty(userIdClaim))
             return;
 
         if (!int.TryParse(userIdClaim, out var userId))
             return;
 
-        // Tìm user trong DB
         try
         {
             var user = db.tbUser.Find(userId);
             if (user != null && user.trangthai == 1)
             {
                 SetSessionUser(user);
+                // Session auto-commit khi response kết thúc
                 var logger = HttpContext.RequestServices.GetRequiredService<ILogger<BaseController>>();
-                logger.LogInformation("Session restored from auth cookie for user {UserId} ({Username})", userId, usernameClaim);
+                logger.LogInformation("Session restored from auth cookie for user {UserId} ({Username})", userId, user.username);
             }
         }
         catch

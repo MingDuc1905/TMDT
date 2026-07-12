@@ -30,19 +30,30 @@ public class ShipperController : BaseController
         var sh = GetCurrentUser();
         if (sh == null || !checkShipper()) return RedirectToAction("Login", "Home");
 
-        // ponytail: try-catch để FromSqlRaw không crash dashboard nếu PostgreSQL column mapping lỗi
+        // LINQ thay vì FromSqlRaw — tránh PostgreSQL column mapping lỗi
         List<DonHangDangLam> listdh;
         try
         {
-            listdh = db.DonHangDangLam.FromSqlRaw(
-                @"select dh.madh, dh.ngaydathang, tt.diachi, tt.tennguoinhan, dh.trangthai, dh.phiship, dh.tongtien, tt.userid, tt.sdt, 
-                  qa.tenquanan as tenquanan, qa.diachi as DiaChiQuan 
-                  from tbDonHang dh 
-                  Join tbThongTinDatHang tt On dh.mattdh = tt.mattdh 
-                  Join tbQuanAn qa On dh.maquan = qa.userid 
-                  Where dh.trangthai = 'Chờ shipper lấy hàng' and dh.mashipper is NULL 
-                  Order by dh.madh DESC"
-            ).ToList();
+            listdh = db.tbDonHang
+                .AsNoTracking()
+                .Where(dh => dh.trangthai == "Chờ shipper lấy hàng" && dh.mashipper == null)
+                .Join(db.tbThongTinDatHang, dh => dh.mattdh, tt => tt.mattdh, (dh, tt) => new { dh, tt })
+                .Join(db.tbQuanAn, x => x.dh.maquan, qa => qa.userid, (x, qa) => new DonHangDangLam
+                {
+                    madh = x.dh.madh,
+                    ngaydathang = x.dh.ngaydathang,
+                    diachi = x.tt.diachi ?? "",
+                    tennguoinhan = x.tt.tennguoinhan ?? "",
+                    trangthai = x.dh.trangthai ?? "",
+                    phiship = x.dh.phiship ?? 0,
+                    tongtien = x.dh.tongtien ?? 0,
+                    userid = x.tt.userid ?? 0,
+                    sdt = x.tt.sdt ?? "",
+                    tenquanan = qa.tenquanan ?? "",
+                    DiaChiQuan = qa.diachi ?? ""
+                })
+                .OrderByDescending(d => d.madh)
+                .ToList();
         }
         catch (Exception ex)
         {

@@ -36,8 +36,9 @@ public class RoleGuardMiddleware
 
     /// <summary>
     /// Phục hồi session từ auth cookie claims (dùng khi session mất do app restart).
+    /// Gọi CommitAsync để ghi ngay session xuống Redis/InMemory — tránh mất session.
     /// </summary>
-    private static void RestoreSessionFromCookie(HttpContext context, dbFoodyEntities db)
+    private static async Task RestoreSessionFromCookieAsync(HttpContext context, dbFoodyEntities db)
     {
         var userIdClaim = context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
@@ -50,13 +51,15 @@ public class RoleGuardMiddleware
             {
                 var userJson = JsonSerializer.Serialize(user);
                 context.Session.SetString("user", userJson);
+                // ═══ FIX: Commit session ngay lập tức để Redis/InMemory lưu ═══
+                // Tránh tình trạng session bị mất do chưa kịp persist
+                await context.Session.CommitAsync();
             }
         }
         catch { /* DB unavailable — không thể phục hồi */ }
     }
 
     // ═══ JSON API patterns — các endpoint trả về JSON cần tự động xử lý AJAX ═══
-    // Nếu URL khớp các pattern này, middleware tự động coi là AJAX request và trả JSON error
     private static readonly HashSet<string> JsonApiPrefixes = new(StringComparer.OrdinalIgnoreCase)
     {
         "/Admin/GetDashboardStats",
@@ -96,7 +99,7 @@ public class RoleGuardMiddleware
     {
         var path = context.Request.Path.Value?.ToLowerInvariant() ?? "";
 
-        // ═══ Bỏ qua các đường dẫn bypass (không cần kiểm tra) ═══
+        // ═══ Bỏ qua các đường dẫn bypass ═══
         foreach (var bp in BypassPaths)
         {
             if (path.StartsWith(bp, StringComparison.OrdinalIgnoreCase))
@@ -117,8 +120,6 @@ public class RoleGuardMiddleware
             }
         }
 
-        // ═══ Không cần role → cho qua (kể cả chưa đăng nhập) ═══
-        // Giúp 404, CSS/JS, static files không bị redirect về Login
         if (requiredRole == null)
         {
             await _next(context);
@@ -134,13 +135,12 @@ public class RoleGuardMiddleware
             catch { }
         }
 
-        // ═══ Chưa đăng nhập → thử phục hồi từ auth cookie, nếu vẫn null → redirect login ═══
+        // ═══ Chưa đăng nhập → thử phục hồi từ auth cookie ═══
         if (user == null)
         {
-            // Fallback: auth cookie còn (app restart mất session) → phục hồi session
             if (context.User?.Identity?.IsAuthenticated == true)
             {
-                RestoreSessionFromCookie(context, db);
+                await RestoreSessionFromCookieAsync(context, db);
                 userJson = context.Session.GetString("user");
                 if (!string.IsNullOrEmpty(userJson))
                 {
@@ -148,20 +148,18 @@ public class RoleGuardMiddleware
                     if (user != null)
                     {
                         _logger.LogInformation("RoleGuard: Session restored from auth cookie for user {UserId}", user.userid);
-                        // Không return — để code chạy tiếp xuống role check bên dưới
                     }
                 }
             }
 
-            // NẾU ĐANG Ở /Home/Login → KHÔNG redirect nữa (tránh loop)
-            if (path.StartsWith("/home/login", StringComparison.OrdinalIgnoreCase) ||
-                path.StartsWith("/home/", StringComparison.OrdinalIgnoreCase))
+            // NẾU ĐANG Ở /Home/ → KHÔNG redirect (tránh loop)
+            if (path.StartsWith("/home/", StringComparison.OrdinalIgnoreCase))
             {
                 await _next(context);
                 return;
             }
 
-            // ═══ FIX: Tự động detect JSON API endpoints qua pattern ═══
+            // ═══ Auto-detect JSON API endpoints ═══
             var isJsonApi = false;
             foreach (var prefix in JsonApiPrefixes)
             {
@@ -172,7 +170,6 @@ public class RoleGuardMiddleware
                 }
             }
 
-            // AJAX → JSON 401
             if (isJsonApi ||
                 context.Request.Headers["X-Requested-With"] == "XMLHttpRequest" ||
                 context.Request.Headers["Accept"].ToString().Contains("application/json"))
@@ -207,7 +204,6 @@ public class RoleGuardMiddleware
                 _ => "/Home/Login"
             };
 
-            // Tránh redirect loop
             if (path.StartsWith(redirectUrl.ToLowerInvariant()))
             {
                 _logger.LogWarning("RoleGuard redirect loop detected for User {UserId} — redirecting to /Home", user.userid);

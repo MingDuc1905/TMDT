@@ -24,7 +24,7 @@
   <a href="https://getbootstrap.com/"><img src="https://img.shields.io/badge/Bootstrap_5-7952B3?style=flat-square&logo=bootstrap&logoColor=white" alt="Bootstrap 5"></a>
   <a href="https://fontawesome.com/"><img src="https://img.shields.io/badge/Font_Awesome_5-528DD7?style=flat-square&logo=fontawesome&logoColor=white" alt="Font Awesome 5"></a>
   <a href="https://www.docker.com/"><img src="https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white" alt="Docker"></a>
-  <a href="https://railway.app/"><img src="https://img.shields.io/badge/Railway-0B0D0E?style=flat-square&logo=railway&logoColor=white" alt="Railway"></a>
+  <a href="https://render.com/"><img src="https://img.shields.io/badge/Render-46E3B7?style=flat-square&logo=render&logoColor=black" alt="Render"></a>
   <a href="https://www.chartjs.org/"><img src="https://img.shields.io/badge/Chart.js-FF6384?style=flat-square&logo=chartdotjs&logoColor=white" alt="Chart.js"></a>
   <a href="https://jquery.com/"><img src="https://img.shields.io/badge/jQuery_3.7-0769AD?style=flat-square&logo=jquery&logoColor=white" alt="jQuery"></a>
   <br>
@@ -116,7 +116,7 @@
       </td>
       <td align="center">
         <b>🐳 Docker</b><br>
-        <sub>Multi-stage build<br>Railway deploy</sub>
+        <sub>Multi-stage build<br>Render deploy</sub>
       </td>
     </tr>
   </table>
@@ -292,7 +292,7 @@ dotnet run
     <td><b>Maps</b></td>
     <td>Leaflet.js 1.9.4</td>
     <td><b>Hosting</b></td>
-    <td>Railway</td>
+    <td>Render</td>
   </tr>
   <tr>
     <td><b>AI</b></td>
@@ -308,7 +308,7 @@ dotnet run
     <td><b>Font</b></td>
     <td>Inter (Google Fonts)</td>
     <td><b>CI/CD</b></td>
-    <td>Railway auto-deploy</td>
+    <td>Render auto-deploy</td>
   </tr>
 </table>
 
@@ -379,7 +379,7 @@ TMDT-master/
 │   ├── wwwroot/               # 5 themes (Home, Cart, Admin, Shipper, Restaurant)
 │   └── Program.cs             # Startup configuration
 ├── Dockerfile                 # Multi-stage build
-├── railway.json               # Railway config
+├── render.yaml               # Render config
 ├── mysql_utf8.sql             # Combined seed data (categories, users, menus) + UTF-8 init
 ├── UI-UX.md                   # Design documentation
 └── Project.md                 # Technical documentation

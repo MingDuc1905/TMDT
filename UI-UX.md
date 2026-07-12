@@ -2140,7 +2140,7 @@ LOGIN ──→ DASHBOARD (with LIVE MAP)
 - [x] ✅ **Skeleton+WOW/OwlCarousel timing** (v3.5)
 - [ ] **Add `data-label` attributes to all dashboard tables**: Hiện tại stacked cards dùng CSS generic selector, nên thêm data-label cụ thể
 - [x] ✅ **Dashboard mobile optimization**: Responsive sidebar, charts, KPI cards cho Admin/Restaurant/Shipper — **đã làm trong v4.0**
-- [ ] **Google OAuth deployment test**: Kiểm tra đăng nhập Google trên Railway production
+- [ ] **Google OAuth deployment test**: Kiểm tra đăng nhập Google trên Render production
 
 ### 22.6 ✅ Completed in v4.0 — Global Design System & Theme Unification
 

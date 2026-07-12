@@ -6,7 +6,7 @@
 
 // ─── HinhAnhUrl helper (matches TinhToan.HinhAnhUrl in C#) ───
 function hinhAnhUrl(hinhanh) {
-    if (!hinhanh) return '/Source/Home/img/food-placeholder.png';
+    if (!hinhanh) return '/Source/Home/img/pizza.jpg';
     if (hinhanh.indexOf('http://') === 0 || hinhanh.indexOf('https://') === 0) return hinhanh;
     return '/Source/images/MonAn/' + hinhanh;
 }
@@ -313,7 +313,7 @@ function renderSearchResults(data) {
         html += '<a href="/Home/DetailRestaurant/' + item.maquanan + '" class="text-decoration-none">';
         html += '<div class="product-item">';
         html += '<div class="product-img-wrap">';
-        html += '<img src="' + imgSrc + '" alt="' + item.tenmon + '" loading="lazy" onerror="this.src=\'/Source/Home/img/food-placeholder.png\'">';
+        html += '<img src="' + imgSrc + '" alt="' + item.tenmon + '" loading="lazy" onerror="this.src=\'/Source/Home/img/pizza.jpg\'">';
         if (item.isPromo) html += '<div class="fs-order-count-badge" style="background:#e74c3c;">🔥 Giảm</div>';
         html += '</div>';
         html += '<div class="product-body">';

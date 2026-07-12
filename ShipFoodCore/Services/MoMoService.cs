@@ -30,7 +30,7 @@ public class MoMoService
         // ⚠️  BẢO MẬT: Toàn bộ MoMo credentials đọc từ biến môi trường
         //     Không hardcode bất kỳ key nào trong mã nguồn!
         //
-        // Các biến môi trường cần cấu hình (trên Railway hoặc .env):
+        // Các biến môi trường cần cấu hình (trên Render hoặc .env):
         //   MOMO_ENDPOINT      = https://test-payment.momo.vn/v2/gateway/api/create
         //   MOMO_PARTNER_CODE  = (PartnerCode do MoMo cấp)
         //   MOMO_ACCESS_KEY    = (AccessKey do MoMo cấp)
@@ -65,7 +65,7 @@ public class MoMoService
         }
 
         var msg = $"MoMo: Environment variable '{name}' is not set. " +
-                  $"Please configure it on Railway (Settings → Environment Variables) or locally in .env file.";
+                  $"Please configure it on Render (Settings → Environment Variables) or locally in .env file.";
         _logger.LogError(msg);
         throw new InvalidOperationException(msg);
     }

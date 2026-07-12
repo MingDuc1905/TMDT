@@ -250,7 +250,7 @@ skill gstack
 | `feat/redesign-v2` | Feature development — đang phát triển |
 
 **Quy tắc:**
-- ❌ KHÔNG tạo branch tạm thời như `fix/xxx`, `railway/*`, `deploy/*`
+- ❌ KHÔNG tạo branch tạm thời như `fix/xxx`, `deploy/*`
 - ✅ Mọi thay đổi đều làm trên nhánh hiện tại, commit trực tiếp
 - ✅ Khi cần thử nghiệm, dùng `feat/redesign-v2`
 - ✅ Xóa branch remote không cần thiết ngay sau khi dùng xong

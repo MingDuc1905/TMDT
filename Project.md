@@ -148,7 +148,7 @@ TMDT-master/
 ├── Project.md                       # This file
 ├── mysql_utf8.sql                   # Combined seed data (categories, users, menus) + UTF-8 init
 ├── Dockerfile                       # Multi-stage Docker build (SDK + runtime)
-├── railway.json                     # Railway deployment config
+├── render.yaml                     # Render deployment config
 ├── .agents/skills/                  # Codebuff skill rules
 │   └── fastship-rules.md           # FastShip development rules
 ```
@@ -365,11 +365,11 @@ TMDT-master/
 - **Healthcheck**: `/health` endpoint (200 OK)
 - **Entrypoint**: `dotnet ShipFoodCore.dll`
 
-### Railway
+### Render
 - **Builder**: Dockerfile (automatic)
 - **Replicas**: 1
 - **Restart**: ON_FAILURE, max 3 retries
-- **MySQL**: Auto-config từ Railway env vars (MYSQLHOST, MYSQLPORT, MYSQLUSER, MYSQLPASSWORD, MYSQLDATABASE)
+- **MySQL**: Auto-config từ Render env vars (MYSQLHOST, MYSQLPORT, MYSQLUSER, MYSQLPASSWORD, MYSQLDATABASE)
 
 ### Database Initialization
 - `EnsureCreated()` tự động tạo bảng khi chạy lần đầu
@@ -378,7 +378,7 @@ TMDT-master/
 
 ### Environment Variables
 ```env
-# MySQL (Railway auto)
+# MySQL (Render auto)
 MYSQLHOST=localhost
 MYSQLPORT=3306
 MYSQLUSER=root
@@ -393,7 +393,7 @@ Authentication__Google__ClientId=xxx
 Authentication__Google__ClientSecret=xxx
 
 # Gemini AI (optional) — Ưu tiên đọc từ Environment Variable trước, fallback xuống appsettings.json
-# Trên Railway: set Gemini__ApiKey=xxx (dùng __ thay : vì env var không hỗ trợ dấu hai chấm)
+# Trên Render: set Gemini__ApiKey=xxx (dùng __ thay : vì env var không hỗ trợ dấu hai chấm)
 Gemini__ApiKey=xxx
 
 # Serilog Seq (optional)
@@ -401,10 +401,10 @@ SEQ_URL=http://localhost:5341
 SEQ_API_KEY=xxx
 
 # CORS Allowed Origins
-ALLOWED_ORIGINS=https://shipfood.up.railway.app
+ALLOWED_ORIGINS=https://fastship-web.onrender.com
 
 # App Domain (for CORS fallback)
-APP_DOMAIN=https://shipfood.up.railway.app
+APP_DOMAIN=https://fastship-web.onrender.com
 ```
 
 ---
@@ -445,7 +445,7 @@ APP_DOMAIN=https://shipfood.up.railway.app
 - Contextual quick replies (dựa trên từ khóa trong message)
 - Conversation history (20 messages trong session, lưu dạng JSON)
 - Fallback: hướng dẫn dùng lệnh khi Gemini không khả dụng hoặc chưa cấu hình API key
-- **API Key**: Đọc từ `Environment.GetEnvironmentVariable("Gemini__ApiKey")` (Railway env var) trước, fallback `configuration["Gemini:ApiKey"]` (appsettings.json). KHÔNG lưu vào Session tạm.
+- **API Key**: Đọc từ `Environment.GetEnvironmentVariable("Gemini__ApiKey")` (Render env var) trước, fallback `configuration["Gemini:ApiKey"]` (appsettings.json). KHÔNG lưu vào Session tạm.
 - **HTTP 429 Handling**: Khi Gemini trả về Too Many Requests, trả về thông báo thân thiện: "⚠️ Hệ thống AI đang quá tải do lượt truy cập cao vào giờ cao điểm, vui lòng thử lại sau 1 phút." — không crash UI, không ẩn khung chat
 
 ---
@@ -464,11 +464,11 @@ APP_DOMAIN=https://shipfood.up.railway.app
 - **Charts**: Chart.js (not any commercial charting library)
 - **Real-time**: SignalR 8 (not WebSocket raw, 12 methods, 5 group types)
 - **AI**: Google Gemini gemini-3.5-flash (free tier, not any paid AI service)
-- **Deploy**: Docker + Railway (not IIS)
+- **Deploy**: Docker + Render (not IIS)
 
 ### CI/CD
 - Docker multi-stage build (SDK → Runtime)
-- Railway auto-deploy with healthcheck
+- Render auto-deploy with healthcheck
 - Environment variables for all secrets
 
 ### Tech Debt / Cần cải thiện
@@ -509,7 +509,7 @@ APP_DOMAIN=https://shipfood.up.railway.app
 - [x] ✅ **TryParseCoordinates helper**: Xử lý chuỗi toado, fallback tọa độ TP.HCM
 - [x] ✅ **MoMo Refund + momo_trans_id**: Lưu mã giao dịch MoMo, gọi API Refund khi hủy đơn
 - [x] ✅ **Data Protection keys bền vững**: PersistKeysToFileSystem + 90-day lifetime
-- [x] ✅ **FixPasswords endpoint**: Ghi đè BCrypt hash trong DB Railway → plain-text
+- [x] ✅ **FixPasswords endpoint**: Ghi đè BCrypt hash trong DB → plain-text
 - [x] ✅ **Fix 5 critical bugs**: NotMapped Include (Shipper/Admin), Find() trong LINQ, FK khuyenMai
 - [x] ✅ **Unit tests**: ShipFoodCore.Tests (HomeControllerTest, RestaurantControllerTests, RecommendationServiceTests)
 - [x] ✅ **Soft delete tbMonAn**: isDeleted + FK RESTRICT, bảo toàn lịch sử hóa đơn
@@ -613,7 +613,7 @@ docker run -p 8080:8080 -e MYSQLHOST=host.docker.internal -e MYSQLUSER=root -e M
 - **Email**: fastship@contact.com
 - **Điện thoại**: 1900 1234
 - **Địa chỉ**: 48 Cao Thắng, Quận 3, TP. Hồ Chí Minh
-- **Website**: [https://fastship.railway.app](https://fastship.railway.app)
+- **Website**: [https://fastship-web.onrender.com](https://fastship-web.onrender.com)
 
 ---
 
@@ -628,5 +628,5 @@ Dự án mã nguồn mở — phát triển bởi đội ngũ ShipFood.
 > **Kiến trúc**: ASP.NET Core MVC n-tier  
 > **Database**: MySQL 8+ (MySqlServerVersion 8.0.20)  
 > **Password**: Plain-text (không hash)  
-> **Deploy**: Docker + Railway  
+> **Deploy**: Docker + Render  
 > **Cập nhật cuối**: Tháng 7, 2026

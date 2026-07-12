@@ -93,8 +93,8 @@ public class AutoPreparingService : BackgroundService
                 _logger.LogError(ex, "AutoPreparingService error");
             }
 
-            // Poll every 10 seconds
-            await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken);
+            // Poll every 30 seconds — giảm tải DB so với 10s trước đây
+            await Task.Delay(TimeSpan.FromSeconds(30), stoppingToken);
         }
     }
 }

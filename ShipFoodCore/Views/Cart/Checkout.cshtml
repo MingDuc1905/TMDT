@@ -720,7 +720,41 @@
                     + '</div></div>'
                     + '<p style="font-size:12px;color:#888;margin-bottom:16px;"><i class="fas fa-info-circle me-1"></i>Quét mã QR bằng app ngân hàng để chuyển khoản. Đơn hàng sẽ tự động được xác nhận sau khi nhận được tiền.</p>';
                 btnHtml = '<a href="' + redirectUrl + '" class="btn btn-primary px-4" style="border-radius:8px;font-weight:600;"><i class="fas fa-eye me-1"></i>Theo dõi đơn hàng</a>';
-            } else {
+            // ═══ QR: auto-cancel timer 15 phút nếu ko thanh toán ═══
+            if (qrCodeUrl) {
+                if (window._qrCancelTimer) clearTimeout(window._qrCancelTimer);
+                window._qrCancelTimer = setTimeout(function() {
+                    // Thông báo user + chuyển hướng về trang chủ
+                    var cancelMsg = '⏰ Đã hết thời gian thanh toán (15 phút). Đơn hàng đã được hủy tự động.';
+                    if (confirm(cancelMsg + '\n\nBạn có muốn đặt lại không?')) {
+                        window.location.href = '/';
+                    }
+                }, 15 * 60 * 1000); // 15 phút
+
+                // Hi?n th? countdown trên popup
+                var countdownEl = document.createElement('div');
+                countdownEl.id = 'qr-countdown';
+                countdownEl.style.cssText = 'text-align:center;font-size:12px;color:#dc3545;margin-top:8px;';
+                var remaining = 15 * 60;
+                countdownEl.innerHTML = '⏱️ Tự động hủy sau <strong id="qr-timer">15:00</strong>';
+                // Append to popup box
+                setTimeout(function updateTimer() {
+                    remaining--;
+                    if (remaining <= 0) return;
+                    var mins = Math.floor(remaining / 60);
+                    var secs = remaining % 60;
+                    var timerEl = document.getElementById('qr-timer');
+                    if (timerEl) timerEl.textContent = mins.toString().padStart(2,'0') + ':' + secs.toString().padStart(2,'0');
+                    setTimeout(updateTimer, 1000);
+                }, 1000);
+
+                // Clean up timer khi user r?i trang
+                window.addEventListener('beforeunload', function() {
+                    if (window._qrCancelTimer) clearTimeout(window._qrCancelTimer);
+                }, {once: true});
+            }
+
+            if (!qrCodeUrl) {
                 // ═══ COD/MoMo/PayPal: success bình thường ═══
                 redirectUrl = URL_CHI_TIET_DH + '?id=' + orderId;
                 iconHtml = '<div style="width:80px;height:80px;background:linear-gradient(135deg,#28a745,#20c997);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;"><i class="fas fa-check fa-2x text-white"></i></div>';

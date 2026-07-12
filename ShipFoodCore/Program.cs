@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.DataProtection;
 using ShipFood.Models;
 using Serilog;
 using Microsoft.AspNetCore.Authentication.OAuth;
+using Microsoft.AspNetCore.HttpOverrides;
 
 // ponytail: Cho phép DateTime Local với PostgreSQL timestamptz
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
@@ -356,7 +357,23 @@ if (!string.IsNullOrEmpty(fbAppId) && !string.IsNullOrEmpty(fbAppSecret))
     });
 }
 
+// ─── HTTPS termination (Render) — ForwardedHeaders middleware ───
+// ponytail: Render proxy chạy HTTPS bên ngoài, gửi HTTP vào app bên trong.
+// Cấu hình ForwardedHeaders để đọc X-Forwarded-Proto và X-Forwarded-For headers,
+// giúp Url.Action() sinh URL redirect OAuth dạng https:// (Facebook & Google yêu cầu)
+// Clear KnownNetworks/KnownProxies vì Render proxy không có IP cố định
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor |
+                               ForwardedHeaders.XForwardedProto;
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
+
 var app = builder.Build();
+
+// ✅ UseForwardedHeaders() — phải là middleware ĐẦU TIÊN, trước mọi thứ
+app.UseForwardedHeaders();
 
 // ─── Task 1b: EF Core Migrations (replacing EnsureCreated) ───
 // Auto-create database tables on first run (PostgreSQL)
@@ -491,20 +508,6 @@ app.Use(async (context, next) =>
         }
         return Task.CompletedTask;
     });
-    await next();
-});
-
-// ─── HTTPS termination (Render) — PHẢI là middleware ĐẦU TIÊN ───
-// ponytail: Render proxy chạy HTTPS bên ngoài, gửi HTTP vào app bên trong.
-// Middleware này đọc header X-Forwarded-Proto và set Scheme = https NGAY ĐẦU PIPELINE,
-// giúp Url.Action() sinh URL redirect OAuth dạng https:// (Facebook & Google yêu cầu)
-app.Use(async (context, next) =>
-{
-    var forwardedProto = context.Request.Headers["X-Forwarded-Proto"].FirstOrDefault();
-    if (forwardedProto?.Equals("https", StringComparison.OrdinalIgnoreCase) == true)
-    {
-        context.Request.Scheme = "https";
-    }
     await next();
 });
 

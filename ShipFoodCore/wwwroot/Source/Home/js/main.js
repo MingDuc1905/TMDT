@@ -171,11 +171,11 @@
                 // easeOutQuad
                 var eased = 1 - (1 - progress) * (1 - progress);
                 var current = Math.round(eased * target);
-                el.textContent = current.toLocaleString('vi-VN') + '+';
+                el.textContent = current.toLocaleString('vi-VN');
                 if (progress < 1) {
                     requestAnimationFrame(step);
                 } else {
-                    el.textContent = target.toLocaleString('vi-VN') + '+';
+                    el.textContent = target.toLocaleString('vi-VN');
                 }
             }
             requestAnimationFrame(step);

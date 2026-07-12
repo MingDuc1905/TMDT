@@ -131,3 +131,57 @@
 
 })(jQuery);
 
+// ═══════════════════════════════════════════════════════════
+// SCROLL REVEAL — IntersectionObserver (site-wide)
+// ═══════════════════════════════════════════════════════════
+(function() {
+    'use strict';
+    var revealEls = document.querySelectorAll('.fs-reveal');
+    if (revealEls.length) {
+        var observer = new IntersectionObserver(function(entries, obs) {
+            entries.forEach(function(entry) {
+                if (!entry.isIntersecting) return;
+                entry.target.classList.add('fs-revealed');
+                obs.unobserve(entry.target);
+            });
+        }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+        revealEls.forEach(function(el) { observer.observe(el); });
+    }
+})();
+
+// ═══════════════════════════════════════════════════════════
+// COUNTER ANIMATION — số đếm khi scroll vào viewport
+// ═══════════════════════════════════════════════════════════
+(function() {
+    'use strict';
+    var counters = document.querySelectorAll('.fs-counter[data-count]');
+    if (!counters.length) return;
+
+    // Ưu tiên requestAnimationFrame cho animation mượt
+    var counterObserver = new IntersectionObserver(function(entries, obs) {
+        entries.forEach(function(entry) {
+            if (!entry.isIntersecting) return;
+            var el = entry.target;
+            var target = parseInt(el.getAttribute('data-count'), 10);
+            if (isNaN(target) || target <= 0) { obs.unobserve(el); return; }
+            var duration = Math.min(2000, target * 10); // max 2s
+            var start = performance.now();
+            function step(now) {
+                var progress = Math.min((now - start) / duration, 1);
+                // easeOutQuad
+                var eased = 1 - (1 - progress) * (1 - progress);
+                var current = Math.round(eased * target);
+                el.textContent = current.toLocaleString('vi-VN') + '+';
+                if (progress < 1) {
+                    requestAnimationFrame(step);
+                } else {
+                    el.textContent = target.toLocaleString('vi-VN') + '+';
+                }
+            }
+            requestAnimationFrame(step);
+            obs.unobserve(el);
+        });
+    }, { threshold: 0.3 });
+
+    counters.forEach(function(el) { counterObserver.observe(el); });
+})();

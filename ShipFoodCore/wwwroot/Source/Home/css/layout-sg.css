@@ -842,6 +842,43 @@ body.fs-body-padded {
     .fs-highlight-band h2 { font-size: clamp(1.4rem, 6vw, 2rem); }
 }
 
+/* ═══════════════════════════════════════════════════════════
+   SCROLL REVEAL — IntersectionObserver fade-in-up (site-wide)
+   ═══════════════════════════════════════════════════════════ */
+
+/* Ẩn trước */
+.fs-reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.55s cubic-bezier(0.215, 0.61, 0.355, 1),
+                transform 0.55s cubic-bezier(0.215, 0.61, 0.355, 1);
+}
+
+/* Hiện sau khi IntersectionObserver kích hoạt */
+.fs-reveal.fs-revealed {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Stagger delay — mỗi item cách nhau 0.05s theo --fs-i (index bắt đầu từ 1) */
+.fs-reveal[style*="--fs-i"] {
+    transition-delay: calc((var(--fs-i, 0)) * 0.05s);
+}
+
+/* Counter — inline-block để animation số chạy */
+.fs-counter {
+    display: inline-block;
+}
+
+/* Floating animation cho decorative elements */
+@keyframes fsFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+}
+.fs-float {
+    animation: fsFloat 3s ease-in-out infinite;
+}
+
 /* ── ============================================================
    HERO MOBILE — VERTICAL STACK + DOTS (v3.4)
    ============================================================ */

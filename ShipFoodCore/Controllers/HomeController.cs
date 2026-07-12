@@ -98,6 +98,44 @@ public class HomeController : BaseController
             ViewBag.AprioriCombo = new List<tbMonAn>();
         }
 
+        // ─── Home Stats: lấy dữ liệu THẬT từ DB (ko bịa) ───
+        try
+        {
+            // 1. Tổng số quán ăn đang hoạt động (tbUser.trangthai == 1)
+            var totalRestaurants = db.tbQuanAn
+                .Include(q => q.tbUser)
+                .Where(q => q.tbUser != null && q.tbUser.trangthai == 1)
+                .Count();
+
+            // 2. Tổng số đơn hàng trong 30 ngày gần nhất
+            var thirtyDaysAgo = DateTime.Now.AddDays(-30);
+            var monthlyOrders = db.tbDonHang
+                .Where(dh => dh.ngaydathang >= thirtyDaysAgo)
+                .Count();
+
+            // 3. Điểm đánh giá trung bình từ tbDanhGia
+            var avgRating = db.tbDanhGia
+                .Where(d => d.diemdanhgia.HasValue)
+                .Average(d => (double?)d.diemdanhgia) ?? 0;
+
+            // 4. Tổng số đơn hàng tất cả thời gian (để hiển thị "50K+" nếu đủ lớn)
+            var totalOrders = db.tbDonHang.Count();
+
+            ViewBag.TotalRestaurants = totalRestaurants;
+            ViewBag.MonthlyOrders = monthlyOrders;
+            ViewBag.TotalOrders = totalOrders;
+            ViewBag.AvgRating = Math.Round(avgRating, 1);
+        }
+        catch (Exception ex)
+        {
+            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<HomeController>>();
+            logger.LogWarning(ex, "HomeStats failed — fallback to defaults");
+            ViewBag.TotalRestaurants = db.tbQuanAn.Count();
+            ViewBag.MonthlyOrders = 0;
+            ViewBag.TotalOrders = db.tbDonHang.Count();
+            ViewBag.AvgRating = 0.0;
+        }
+
         return View();
     }
 

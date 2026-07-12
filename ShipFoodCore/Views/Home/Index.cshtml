@@ -83,28 +83,29 @@
     </div>
 </div>
 
-<!-- ===== STATS ROW — với FA icons ===== -->
+<!-- ===== STATS ROW — dữ liệu THẬT từ DB ===== -->
 <div class="container">
-    <div class="fs-stats-row wow fadeInUp" data-wow-delay="0.1s">                    <div class="fs-stat-item">
-                            <i class="fa fa-store fs-stat-icon" aria-hidden="true"></i>
-                            <div class="stat-num">200+</div>
-                            <div class="stat-label">Quán ăn đối tác</div>
-                        </div>
-                        <div class="fs-stat-item">
-                            <i class="fa fa-motorcycle fs-stat-icon" aria-hidden="true"></i>
-                            <div class="stat-num">30′</div>
-                            <div class="stat-label">Giao hàng trung bình</div>
-                        </div>
-                        <div class="fs-stat-item">
-                            <i class="fa fa-shopping-bag fs-stat-icon" aria-hidden="true"></i>
-                            <div class="stat-num">50K+</div>
-                            <div class="stat-label">Đơn hàng mỗi tháng</div>
-                        </div>
-                        <div class="fs-stat-item">
-                            <i class="fa fa-star fs-stat-icon" aria-hidden="true"></i>
-                            <div class="stat-num">4.8★</div>
-                            <div class="stat-label">Đánh giá trung bình</div>
-                        </div>
+    <div class="fs-stats-row wow fadeInUp" data-wow-delay="0.1s">
+        <div class="fs-stat-item">
+            <i class="fa fa-store fs-stat-icon" aria-hidden="true"></i>
+            <div class="stat-num">@(ViewBag.TotalRestaurants ?? 0)+</div>
+            <div class="stat-label">Quán ăn đối tác</div>
+        </div>
+        <div class="fs-stat-item">
+            <i class="fa fa-motorcycle fs-stat-icon" aria-hidden="true"></i>
+            <div class="stat-num">30′</div>
+            <div class="stat-label">Giao hàng trung bình</div>
+        </div>
+        <div class="fs-stat-item">
+            <i class="fa fa-shopping-bag fs-stat-icon" aria-hidden="true"></i>
+            <div class="stat-num">@(ViewBag.MonthlyOrders ?? 0)+</div>
+            <div class="stat-label">Đơn hàng trong tháng</div>
+        </div>
+        <div class="fs-stat-item">
+            <i class="fa fa-star fs-stat-icon" aria-hidden="true"></i>
+            <div class="stat-num">@((ViewBag.AvgRating ?? 0).ToString("0.0"))★</div>
+            <div class="stat-label">Đánh giá trung bình</div>
+        </div>
     </div>
 </div>
 

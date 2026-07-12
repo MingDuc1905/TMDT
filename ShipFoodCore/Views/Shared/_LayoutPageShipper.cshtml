@@ -280,28 +280,27 @@
                                 </div>
                             </li>
                             <li class="nav-item dropdown header-profile">
-                                <a class="nav-link" href="#" role="button" data-toggle="dropdown">
+                                <a class="nav-link" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                     <div class="header-info">
                                         <span>Xin chào, <strong>@(shipper != null ? shipper.tenshipper : "")</strong></span>
                                     </div>
-                                    <img src="~/Source/Shipper/images/profile/jolibe.jpg" width="20" alt="" />
+                                    <img src="~/Source/Shipper/images/profile/jolibe.jpg" width="20" height="20" alt="" style="border-radius:50%;object-fit:cover;" />
                                 </a>
-                                <div class="dropdown-menu dropdown-menu-right">
-                                    <a href="@Url.Action("CaiDat", "Shipper")" class="dropdown-item ai-icon">
-                                        <svg id="icon-user1" xmlns="http://www.w3.org/2000/svg" class="text-primary" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                                            <circle cx="12" cy="7" r="4"></circle>
-                                        </svg>
-                                        <span class="ml-2">Hồ sơ </span>
+                                <div class="dropdown-menu dropdown-menu-right shadow-sm" style="border:none;border-radius:12px;margin-top:8px;min-width:200px;">
+                                    <span class="dropdown-item-text text-muted small px-3 py-2">Xin chào, <strong>@(shipper != null ? shipper.tenshipper : "")</strong></span>
+                                    <hr class="dropdown-divider my-1" />
+                                    <a href="@Url.Action("LichSu", "Shipper")" class="dropdown-item py-2 px-3">
+                                        <i class="fa fa-history me-3 text-muted" style="width:16px;"></i>
+                                        <span>Lịch sử đơn hàng</span>
                                     </a>
-
-                                    <a href="@Url.Action("Logout","Home")" class="dropdown-item ai-icon">
-                                        <svg id="icon-logout" xmlns="http://www.w3.org/2000/svg" class="text-danger" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                                            <polyline points="16 17 21 12 16 7"></polyline>
-                                            <line x1="21" y1="12" x2="9" y2="12"></line>
-                                        </svg>
-                                        <span class="ml-2">Đăng xuất </span>
+                                    <a href="@Url.Action("CaiDat", "Shipper")" class="dropdown-item py-2 px-3">
+                                        <i class="fa fa-cog me-3 text-muted" style="width:16px;"></i>
+                                        <span>Cài đặt</span>
+                                    </a>
+                                    <hr class="dropdown-divider my-1" />
+                                    <a href="@Url.Action("Logout","Home")" class="dropdown-item py-2 px-3 text-danger fw-500">
+                                        <i class="fa fa-sign-out-alt me-3" style="width:16px;"></i>
+                                        <span>Đăng xuất</span>
                                     </a>
                                 </div>
                             </li>

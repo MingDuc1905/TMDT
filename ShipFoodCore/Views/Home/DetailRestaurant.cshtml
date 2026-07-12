@@ -390,7 +390,10 @@
                                         {
                                             giaKhuyenMai = giaGoc - (giaGoc * khuyenMai.phantramgiam / 100);
                                         }
-                                        var daMua = daMuaMonAnIds != null && daMuaMonAnIds.Contains(item.mamon);                                                    <div class="item-restaurant-row @(daMua ? "item-da-mua" : "")" style="display:block;height:84px;position:relative;width:100%;margin-bottom:20px;">
+                                        var daMua = daMuaMonAnIds != null && daMuaMonAnIds.Contains(item.mamon);
+                                        var allVariants = new List<ShipFood.Models.tbBienTheMonAn>();
+                                        try { allVariants = ((IEnumerable<ShipFood.Models.tbBienTheMonAn>)item.tbBienTheMonAns).ToList(); } catch { }
+                                        var firstVariantId = allVariants.Count > 0 ? allVariants[0].id : (int?)item.mamon;                                                    <div class="item-restaurant-row @(daMua ? "item-da-mua" : "")" style="display:block;height:84px;position:relative;width:100%;margin-bottom:20px;">
                                             <div class="row">
                                                 <div class="col-auto item-restaurant-img">
                                                     <button class="inline">
@@ -416,21 +419,43 @@
                                                 </div>
                                                 <div class="col-auto item-restaurant-more">
                                                     <div class="row">
-                                                        <div class="col-auto product-price">
+                                                        <div class="col-12 product-price">
                                                             @if (khuyenMai != null && khuyenMai.phantramgiam > 0)
                                                             {
-                                                                <div class="old-price" style="text-decoration: line-through; color: var(--fs-muted-soft);">@giaGoc?.ToString("N0")<span style="font-weight: 400; position: relative; top: -9px; font-size: 10px; right: 0;">đ</span></div>
+                                                                <div class="old-price" style="text-decoration: line-through; color: var(--fs-muted-soft);font-size:12px;">@giaGoc?.ToString("N0")<span style="font-weight: 400; position: relative; top: -9px; font-size: 10px; right: 0;">đ</span></div>
                                                             }
-                                                            <div class="current-price" style="color:@(khuyenMai != null ? "var(--fs-danger)" : "inherit");">@(khuyenMai != null ? giaKhuyenMai?.ToString("N0") : giaGoc?.ToString("N0"))<span style="font-weight: 400; position: relative; top: -9px; font-size: 10px; right: 0;">đ</span></div>
+                                                            <div class="current-price current-price-@item.mamon" style="color:@(khuyenMai != null ? "var(--fs-danger)" : "inherit");font-weight:700;">@(khuyenMai != null ? giaKhuyenMai?.ToString("N0") : item.tbBienTheMonAns?.FirstOrDefault()?.giatien?.ToString("N0"))<span style="font-weight: 400; position: relative; top: -9px; font-size: 10px; right: 0;">đ</span></div>
                                                         </div>
-                                                        <div class="col-auto adding-food-cart txt-right">
+                                                        @if (item.tbBienTheMonAns != null && item.tbBienTheMonAns.Count > 1)
+                                                    {
+                                                        <div class="col-12" style="margin:6px 0 8px;">
+                                                            <div class="fs-size-selector" data-mamon="@item.mamon" style="display:flex;gap:6px;flex-wrap:wrap;">
+                                                                @for (int vi = 0; vi < allVariants.Count; vi++)
+                                                                {
+                                                                    var variant = allVariants[vi];
+                                                                    var isFirst = vi == 0;
+                                                                    <button type="button"
+                                                                            class="fs-size-chip@(isFirst ? " active" : "")"
+                                                                            data-bientheid="@variant.id"
+                                                                            data-mamon="@item.mamon"
+                                                                            data-giatien="@variant.giatien"
+                                                                            data-size="@variant.size"
+                                                                            onclick="selectSize(this)"
+                                                                            style="padding:4px 14px;border-radius:20px;border:1.5px solid #ddd;background:@(isFirst ? "#3CB815" : "#fff");color:@(isFirst ? "#fff" : "#555");font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;">
+                                                                        @(variant.size ?? "M") - @variant.giatien?.ToString("N0")đ
+                                                                    </button>
+                                                                }
+                                                            </div>
+                                                        </div>
+                                                    }
+                                                        <div class="col-auto adding-food-cart txt-right" style="margin-top:4px;">
                                                             <form action="~/Cart/ThemMonAn" method="get" onsubmit="return validateCartForm(this)">
-                                                                <input name="soLuong" type="number" value="1" min="1" />
-                                                                <input name="maMonAn" type="hidden" value="@item.mamon" />
+                                                                <input name="soLuong" type="number" value="1" min="1" style="width:50px;padding:4px 6px;border:1px solid #ddd;border-radius:8px;font-size:13px;text-align:center;" />
+                                                                <input name="maMonAn" type="hidden" value="@firstVariantId" class="maMonAnInput-@item.mamon" />
                                                                 <button type="submit" class="btn btn-success add-to-cart-btn"
                                                                         data-mamon="@item.mamon"
                                                                         data-soluong="1"
-                                                                        onclick="return optimisticAddToCart(this, event)">Thêm</button>
+                                                                        onclick="return optimisticAddToCart(this, event)" style="padding:4px 14px;font-size:13px;">Thêm</button>
                                                             </form>
                                                         </div>
                                                     </div>
@@ -984,6 +1009,36 @@
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') closeCategorySheet();
         });
+
+        // ===== Size Selector: update price + hidden maMonAn input =====
+        function selectSize(btn) {
+            var container = btn.closest('.fs-size-selector');
+            if (!container) return;
+            container.querySelectorAll('.fs-size-chip').forEach(function(c) {
+                c.style.background = '#fff';
+                c.style.color = '#555';
+                c.style.borderColor = '#ddd';
+                c.classList.remove('active');
+            });
+            btn.style.background = '#3CB815';
+            btn.style.color = '#fff';
+            btn.style.borderColor = '#3CB815';
+            btn.classList.add('active');
+
+            var mamon = btn.getAttribute('data-mamon');
+            var giatien = btn.getAttribute('data-giatien');
+            var bientheid = btn.getAttribute('data-bientheid');
+
+            // Update price display
+            var priceEl = document.querySelector('.current-price-' + mamon);
+            if (priceEl) {
+                var num = parseFloat(giatien) || 0;
+                priceEl.innerHTML = num.toLocaleString('vi-VN') + '<span style="font-weight:400;position:relative;top:-9px;font-size:10px;right:0;">đ</span>';
+            }
+            // Update hidden maMonAn input to send variant ID
+            var hiddenInput = document.querySelector('.maMonAnInput-' + mamon);
+            if (hiddenInput) hiddenInput.value = bientheid;
+        }
 
         // ===== Sticky Category Bar with scroll shadow =====
         document.addEventListener('DOMContentLoaded', function() {

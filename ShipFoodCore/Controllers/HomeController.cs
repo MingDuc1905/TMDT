@@ -1050,6 +1050,37 @@ public class HomeController : BaseController
     }
 
     /// <summary>
+    /// Debug: thử render DetailRestaurant view và báo lỗi chi tiết
+    /// URL: GET /Home/DebugDetail/7
+    /// </summary>
+    [HttpGet]
+    public async Task<ActionResult> DebugDetail(int id)
+    {
+        try
+        {
+            var quanAn = db.tbQuanAn.Include(q => q.tbUser).Include(q => q.tbMonAns).ThenInclude(m => m.tbDanhMuc)
+                .Include(q => q.tbMonAns).ThenInclude(m => m.tbBienTheMonAns)
+                .FirstOrDefault(t => t.userid == id);
+            if (quanAn == null) return Content($"❌ Restaurant id={id} not found");
+            if (quanAn.tbUser == null) return Content($"❌ tbUser is null for restaurant id={id}");
+            if (quanAn.tbUser.trangthai != 1) return Content($"❌ Restaurant trangthai={quanAn.tbUser.trangthai}");
+
+            var danhSachMonAn = db.tbMonAn.Where(m => m.maquanan == id).Include(m => m.tbDanhMuc).Include(m => m.tbBienTheMonAns).ToList();
+            var thucDon = db.tbDanhMuc.Where(d => db.tbMonAn.Any(m => m.maquanan == id && m.madanhmuc == d.madanhmuc)).ToList();
+            var khuyenMais = db.tbMonAnKhuyenMai.Where(km => km.trangthai == "Còn hạn").Include(km => km.tbKhuyenMai).Include(km => km.tbBienTheMonAn).ToList();
+
+            var msg = $"✅ OK! Quán: {quanAn.tenquanan} | Món: {danhSachMonAn.Count} | DanhMục: {thucDon.Count} | KM: {khuyenMais.Count}";
+            foreach (var m in danhSachMonAn.Take(3))
+                msg += $"\n- {m.tenmon} (giá: {m.tbBienTheMonAns?.FirstOrDefault()?.giatien?.ToString("N0") ?? "N/A"}đ, DM: {m.tbDanhMuc?.tendanhmuc ?? "?"})";
+            return Content(msg);
+        }
+        catch (Exception ex)
+        {
+            return Content($"❌ LỖI: {ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}");
+        }
+    }
+
+    /// <summary>
     /// Debug: kiểm tra database — đếm số dòng từng bảng
     /// URL: GET /Home/DbDebug
     /// </summary>

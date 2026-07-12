@@ -27,8 +27,8 @@ Cung cấp một giải pháp hoàn chỉnh cho:
 | Tầng | Công nghệ | Phiên bản |
 |------|-----------|-----------|
 | **Backend Framework** | ASP.NET Core | 8.0 |
-| **ORM** | Entity Framework Core (Pomelo) | 8.0.11 / 8.0.2 |
-| **Database** | MySQL 8+ (MariaDB-compatible) | 8.0.20+ |
+| **ORM** | Entity Framework Core (Npgsql) | 8.0.11 |
+| **Database** | PostgreSQL 15+ (Render Managed) | 15+ |
 | **Template Engine** | Razor (Runtime Compilation) | 8.0.11 |
 | **Real-time** | SignalR (Groups-based, 12 methods) | 8.0.11 |
 | **AI Chatbot** | Google Gemini API | gemini-3.5-flash |
@@ -46,7 +46,8 @@ Cung cấp một giải pháp hoàn chỉnh cho:
 | **fastship-design-tokens.css** | **NEW v4.0** Global Design System (unified tokens, 16 component systems) |
 | **jQuery 3.7.1** | DOM manipulation + AJAX |
 | **Font Awesome 5** | **Icon system duy nhất** (đã xoá Bootstrap Icons, Flaticon, LineIcons, Line Awesome, Themify, Simple Line Icons, Material Design Iconic, Avasta, Icomoon, Font Awesome Old — chỉ còn FA5 CDN + Emojis) |
-| **WOW.js + Animate.css** | Scroll animations |
+| **WOW.js + Animate.css** | Scroll animations (legacy) |
+| **IntersectionObserver (vanilla)** | **NEW** Scroll-reveal: `fs-reveal`, stagger `--fs-i`, counter animation `data-count` |
 | **OwlCarousel 2** | Carousel/slider |
 | **DataTables** | Server-side table pagination |
 | **Perfect Scrollbar** | Custom scrollbar |
@@ -526,6 +527,11 @@ APP_DOMAIN=https://fastship-web.onrender.com
 - [x] ✅ **SanPham data ảo fix**: Lorem ipsum → mô tả thật, giá hardcode → giá DB, link rỗng → link đúng
 - [x] ✅ **Delete category confirm**: JS confirm trước khi xóa danh mục
 - [x] ✅ **Khách hàng status filter**: Dropdown lọc trạng thái + data-status numeric
+- [x] ✅ **PostgreSQL migration** (Npgsql thay Pomelo/MySQL)
+- [x] ✅ **ChiTietSanPham view rebuild** — trang chi tiết sản phẩm hoàn chỉnh (ảnh, giá, size, review)
+- [x] ✅ **Scroll-reveal animation** — IntersectionObserver + fs-reveal + stagger + counter
+- [x] ✅ **DetailRestaurant view fix** — sửa `item.giatien` → navigation đúng, null-safe `(int)(diemdanhgia ?? 0)`
+- [ ] **⚠️ Filter/Search quá phức tạp** — MenuSearch dynamic SQL + Bottom Sheet + Dual Filter Bar cần đơn giản hoá
 - [ ] Real payment (Stripe/PayPal/ZaloPay)
 
 ---
@@ -623,10 +629,10 @@ Dự án mã nguồn mở — phát triển bởi đội ngũ ShipFood.
 
 ---
 
-> **Phiên bản**: 5.4 — QR Code bank transfer, Gemini prompt fix, SanPham data fix, UI/UX revert  
+> **Phiên bản**: 5.5 — ChiTietSanPham rebuild, PostgreSQL migration, scroll-reveal animation  
 > **Ngôn ngữ**: C# 12, HTML5, CSS3, JavaScript ES6  
 > **Kiến trúc**: ASP.NET Core MVC n-tier  
-> **Database**: MySQL 8+ (MySqlServerVersion 8.0.20)  
+> **Database**: PostgreSQL 15+ (Npgsql)  
 > **Password**: Plain-text (không hash)  
 > **Deploy**: Docker + Render  
-> **Cập nhật cuối**: Tháng 7, 2026
+> **Cập nhật**: Tháng 7, 2026

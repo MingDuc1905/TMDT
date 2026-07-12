@@ -217,7 +217,7 @@ public class EDeliveryController : BaseController
             .Take(50)
             .ToListAsync();
 
-        return View(donHangs);
+        return View("~/Views/Admin/DeliveryLogs.cshtml", donHangs);
     }
 
     // ════════════════════════════════════════════════════════════════

@@ -325,7 +325,14 @@
                                     <div class="header-info d-none d-md-inline">
                                         <span>Xin chào, <strong>@adminName</strong></span>
                                     </div>
-                                    <div style="width:20px;height:20px;border-radius:50%;background:#3CB815;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;">@firstLetter</div>
+                                    @if (!string.IsNullOrEmpty(adminInfo?.hinhanh))
+                                    {
+                                        <img src="@TinhToan.HinhAnhUrl(adminInfo.hinhanh)" width="20" height="20" alt="" style="border-radius:50%;object-fit:cover;" />
+                                    }
+                                    else
+                                    {
+                                        <div style="width:20px;height:20px;border-radius:50%;background:#3CB815;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;">@firstLetter</div>
+                                    }
                                 </a>
                                 <div class="dropdown-menu dropdown-menu-right shadow-sm" style="border:none;border-radius:12px;margin-top:8px;min-width:200px;">
                                     <span class="dropdown-item-text text-muted small px-3 py-2">Xin chào, <strong>@adminName</strong></span>

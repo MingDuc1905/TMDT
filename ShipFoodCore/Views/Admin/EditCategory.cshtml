@@ -29,6 +29,11 @@
                         @Html.ValidationMessageFor(model => model.hinhanh, "", new { @class = "text-danger" })
                     </div>
                     <div class="form-group">
+                        <label>Icon (FA class, VD: fa-utensils)</label>
+                        @Html.EditorFor(model => model.icon, new { htmlAttributes = new { @class = "form-input", @placeholder = "fa-utensils" } })
+                        @Html.ValidationMessageFor(model => model.icon, "", new { @class = "text-danger" })
+                    </div>
+                    <div class="form-group">
                         <label>Nội dung</label>
                         @Html.TextAreaFor(model => model.mota, new { @class = "form-input", @rows = "3", @id = "NoiDung" })
                         @Html.ValidationMessageFor(model => model.mota, "", new { @class = "text-danger" })

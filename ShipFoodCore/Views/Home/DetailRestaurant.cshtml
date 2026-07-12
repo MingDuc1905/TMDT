@@ -768,7 +768,12 @@
         var QUAN_ID = @ViewBag.maquan;
         var URL_GET_REVIEWS = '@Url.Action("GetReviews","Home")';
         var URL_SUBMIT_REVIEW = '@Url.Action("SubmitReview","Home")';
-        var ANTIFORGERY_TOKEN = '@Html.AntiForgeryToken()'.match(/value="([^"]+)"/)?.[1] || '';
+        // ponytail: AntiForgeryToken output chứa HTML có dấu " gây SyntaxError cho JS parser
+        // Dùng match an toàn hơn: lấy token từ hidden input field
+        var ANTIFORGERY_TOKEN = (function() {
+            var el = document.querySelector('input[name="__RequestVerificationToken"]');
+            return el ? el.value : '';
+        })();
         var reviewPage = 1;
         var reviewPageSize = 6;
         var reviewTotal = 0;

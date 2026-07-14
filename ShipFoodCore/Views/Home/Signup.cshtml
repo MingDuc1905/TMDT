@@ -756,8 +756,7 @@ document.getElementById('signupForm').addEventListener('submit', function(e) {
         data: formData,
         processData: false,
         contentType: false,
-        headers: { 'X-Requested-With': 'XMLHttpRequest' },
-        success: function(response) {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },                success: function(response) {
             try {
                 var json = typeof response === 'object' ? response : JSON.parse(response);
                 if (json && json.success && json.redirectUrl) {
@@ -765,7 +764,12 @@ document.getElementById('signupForm').addEventListener('submit', function(e) {
                     return;
                 }
                 if (json && json.success === false && json.message) {
-                    showError('formError', json.message);
+                    var errMsg = json.message;
+                    // ponytail: debug field shows real exception — remove after root cause fixed
+                    if (json.debug) {
+                        errMsg += ' [' + json.debug + ']';
+                    }
+                    showError('formError', errMsg);
                     btn.disabled = false;
                     btn.innerHTML = '<i class="fas fa-rocket"></i> Tạo tài khoản';
                     return;

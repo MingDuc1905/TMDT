@@ -27,8 +27,8 @@ public class PaymentController : BaseController
         _eDelivery = eDelivery;
     }
 
-    // ─── Bank transfer config (đọc từ env vars) ───
-    private string BankId => _configuration["BANK_ID"] ?? "Vietcombank";
+    // ─── Bank transfer config (đọc từ env vars) — default BIN 970436 = Vietcombank (VietQR API cần BIN hoặc short code) ───
+    private string BankId => _configuration["BANK_ID"] ?? "970436";
     private string BankAccountNo => _configuration["BANK_ACCOUNT_NO"] ?? "1234567890";
     private string BankAccountName => _configuration["BANK_ACCOUNT_NAME"] ?? "FASTSHIP CO., LTD";
     private string BankWebhookToken => _configuration["BANK_WEBHOOK_TOKEN"] ?? "";
@@ -476,18 +476,26 @@ public class PaymentController : BaseController
     // ─── Helper: kiểm tra có phải bank transfer không ───
     private bool IsBankTransferMethod(int pttt)
     {
-        // ponytail: Check trực tiếp tên phương thức từ DB — linh hoạt với mọi seed data
+        // ponytail: Kiểm tra tên phương thức từ DB, bỏ dấu tiếng Việt để match linh hoạt
         try
         {
             var method = db.tbLoaiHinhThanhToan.Find(pttt);
             if (method == null) return false;
-            var name = (method.tenhinhthuc ?? "").ToLowerInvariant();
-            return name.Contains("chuyển khoản") || name.Contains("ngân hàng") || name.Contains("bank");
+            var name = RemoveDiacritics((method.tenhinhthuc ?? "").ToLowerInvariant());
+            return name.Contains("chuyen khoan") || name.Contains("ngan hang") || name.Contains("bank");
         }
         catch
         {
             return false;
         }
+    }
+
+    private static string RemoveDiacritics(string text)
+    {
+        if (string.IsNullOrEmpty(text)) return text;
+        var normalized = text.Normalize(System.Text.NormalizationForm.FormD);
+        var chars = normalized.Where(c => System.Globalization.CharUnicodeInfo.GetUnicodeCategory(c) != System.Globalization.UnicodeCategory.NonSpacingMark).ToArray();
+        return new string(chars).Normalize(System.Text.NormalizationForm.FormC);
     }
 
     // ─── BANK WEBHOOK: Casso/SePay/PayOS tự động gọi khi có biến động số dư ───

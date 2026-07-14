@@ -401,7 +401,8 @@
     function connectAdmin() {
         if (adminConn && adminConn.state === 'Connected') return Promise.resolve();
         if (adminConnPromise) return adminConnPromise;
-        adminConn = new signalR.HubConnectionBuilder().withUrl('/nhantin').withAutomaticReconnect().build();
+        // ponytail: pass userId để OnConnectedAsync có thể tracking connection
+        adminConn = new signalR.HubConnectionBuilder().withUrl('/nhantin?userId=' + adminUserId).withAutomaticReconnect().build();
 
         // ═══ Nh?n tin nh?n t? Admin ═══
         adminConn.on('adminMessage', function(msg, orderId, sender) {
@@ -529,28 +530,17 @@
             error: function(xhr) {
                 var errMsg = '❌ Lỗi gửi tin nhắn';
                 try { var r = JSON.parse(xhr.responseText); if (r && r.error) errMsg = '❌ ' + r.error; } catch(e){}
-                if (xhr.status === 403) errMsg = '❌ Phiên đăng nhập hết hạn. Vui lòng tải lại trang.';
+                if (xhr.status === 403) {
+                    // Token hết hạn — redirect đến login, ko refresh token (cơ chế sai)
+                    window.location.href = '@Url.Action("Login", "Home")?returnUrl=' + encodeURIComponent(window.location.pathname);
+                    return;
+                }
                 if (xhr.status === 0) errMsg = '❌ Mất kết nối mạng.';
                 addMsg('adminMsgs', errMsg, 'admin');
             },
             complete: function(){ document.getElementById('adminBtn').disabled = false; }
         });
     }
-
-    // ─── Refresh AntiForgeryToken ───
-    function refreshAntiForgeryToken() {
-        $.ajax({
-            url: '@Url.Action("RefreshToken", "Home")', type: 'GET',
-            success: function(r) {
-                if (r && r.token) {
-                    // Update token input value
-                    $('input[name="__RequestVerificationToken"]').val(r.token);
-                }
-            }
-        });
-    }
-    // Tự động refresh token mỗi 15 phút (trước khi token hết hạn ~20-30 phút)
-    setInterval(refreshAntiForgeryToken, 15 * 60 * 1000);
 
     function escHtml(str) {
         if (!str) return '';

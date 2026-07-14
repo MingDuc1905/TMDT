@@ -83,6 +83,114 @@ session_init:
 
 ---
 
+## 🔴 IRON LAW 0.5: SELF-ENFORCEMENT RITUAL — BẮT BUỘC MỖI RESPONSE
+
+### ⚠️ Tại sao cần IRON LAW này?
+
+> Rules đã có nhưng AI vẫn vi phạm. Vấn đề không phải rules — mà là cơ chế enforce.
+> IRON LAW 0.5 yêu cầu AI **CHỨNG MINH** đã scan + cân nhắc + quyết định dùng/ko dùng mọi skill/repo.
+> Nếu ko thể chứng minh → VI PHẠM. Không ngoại lệ.
+
+### 0.5.1 Mandatory Skill/Repo Inventory (phải xuất hiện trong MỖI response)
+
+SAU log format (Section 0) và TRƯỚC khi làm bất cứ điều gì khác, PHẢI chèn khối sau:
+
+```markdown
+## 🔍 SKILL/REPO INVENTORY & JUSTIFICATION
+
+**Skills scanned**: 190 skills (`.agents/skills/`) | **Repos scanned**: 13 repos (`ShipFoodCore/Skills/`) | **Icons available**: 320 (developer-icons-main)
+
+### Skills CONSIDERED for this task:
+
+| Skill | Considered? | Used? | Justification |
+|-------|-------------|-------|---------------|
+| ponytail | ✅ | ✅ | Mọi task code — over-engineering guard |
+| systematic-debugging | ✅ | ✅ | Bug fix — root cause analysis |
+| [skill name] | ✅ | ❌ | [lý do ko dùng — PHẢI có lý do hợp lý] |
+| [skill name] | ❌ | ❌ | [PHẠM — nếu skill khả dụng mà ko xét đến] |
+| ... | ... | ... | ... |
+
+### Repos CONSIDERED for this task:
+
+| Repo | Considered? | Used? | Justification |
+|------|-------------|-------|---------------|
+| developer-icons-main | ✅ | ❌ | Task ko cần icon mới |
+| gstack-main | ✅ | ❌ | Task ko phải security audit |
+| lightpanda-browser | ✅ | ❌ | Dùng browser-use thay vì Lightpanda vì... |
+| ... | ... | ... | ... |
+
+### Kết luận:
+- Số skills đã xét: X/190 🟢
+- Số repos đã xét: X/13 🟢
+- Skills đã dùng: [list] ✅
+- Skills bỏ qua có lý do: [list] ✅
+- Skills bỏ qua KHÔNG có lý do: [list] ❌ VI PHẠM
+```
+
+**Rules**:
+1. PHẢI liệt kê: (a) tất cả skills PHÙ HỢP task type + (b) tối thiểu 10 skills + (c) TẤT CẢ 13 repos (liệt kê riêng từng cái — KHÔNG gộp)
+2. Mỗi skill/repo bỏ qua PHẢI có justification: "Task X không liên quan đến skill Y (ví dụ: biomarker analysis ko liên quan đến food delivery ASP.NET)" — justification PHẢI cụ thể, ko được "ko liên quan" chung chung
+3. Nếu phát hiện skill/repo khả dụng (matching task type) mà ko xét đến → VI PHẠM IRON LAW 4
+4. Nếu quên chèn khối này → VI PHẠM IRON LAW 0.5
+5. **IRON LAW 0.5 OVERRIDES ponytail**: Dù ponytail nói "giải thích ngắn gọn", inventory này PHẢI có đầy đủ — đây là phần user yêu cầu (explanation user explicitly asked for).
+
+### 0.5.2 Cơ chế Auto-Fail
+
+```yaml
+auto_fail_triggers:
+  - "Response KHÔNG có 'SKILL/REPO INVENTORY' section"
+  - "Inventory thiếu >= 1 trong 13 repos"
+  - "Bỏ qua skill khả dụng (task type matching) mà ko có justification"
+  - "Justification là 'không liên quan' hoặc 'không cần' — không đủ"
+  - "Số skills trong inventory < 10"
+
+auto_fail_action:
+  first: "⚠️ VI PHẠM IRON LAW 0.5 — DỪNG. XÓA response. Load skill. Làm lại."
+  second: "🔴 VI PHẠM LẦN 2 — DỪNG. Session reset 10 bước. 3 responses read-only."
+  third: "🚨 VI PHẠM LẦN 3 — DỪNG HOÀN TOÀN. Yêu cầu user confirm."
+```
+
+### 0.5.3 Ví dụ Inventory ĐẦY ĐỦ (bug fix task)
+
+```markdown
+## 🔍 SKILL/REPO INVENTORY & JUSTIFICATION
+
+**Skills scanned**: 190 | **Repos scanned**: 13 | **Icons**: 320
+
+| Skill | Used | Why (used) / Why not |
+|-------|------|---------------------|
+| ponytail | ✅ | Core — mọi task code |
+| systematic-debugging | ✅ | Bug fix gate — root cause |
+| verification-before-completion | ✅ | Verification gate — build check |
+| requesting-code-review | ❌ | Task chưa xong — sẽ dùng trước commit |
+| hallmark | ❌ | Task là bug fix, ko phải UI redesign |
+| ui-ux-pro-max | ❌ | Task ko thay đổi giao diện |
+| brainstorming | ❌ | Task là bug fix, ko phải feature mới |
+| writing-plans | ❌ | Task là bug fix, ko cần plan |
+| dispatching-parallel-agents | ❌ | Có thể dùng nhưng task nhỏ, tự xử lý được |
+| browser-use | ✅ | Cần test thực tế trên production để reproduce |
+
+| Repo | Used | Why (used) / Why not |
+|------|------|---------------------|
+| developer-icons-main | ❌ | Bug fix — ko thay đổi UI icon |
+| lightpanda-browser | ❌ | Dùng browser-use (Chrome) — cần JS real-time rendering |
+| ponytail-main | ❌ | Bug fix — ko cần optimization patterns mới |
+| gstack-main | ❌ | Bug fix — ko phải bảo mật |
+| awesome-claude-design | ❌ | Bug fix — ko thiết kế design system mới |
+| public-apis-master | ❌ | Bug fix — ko tích hợp API mới |
+| agent-reach-main | ❌ | Bug fix — ko cần web research |
+| FLow/superpowers-main | ❌ | Bug fix — dùng systematic-debugging thay vì superpowers |
+| Graph/codegraph-main | ❌ | Bug fix nhỏ — ko cần phân tích codebase toàn diện |
+| prompt/whisper-flow-main | ❌ | Bug fix — ko thiết kế prompt mới |
+| scientific-agent-skills-main | ❌ | Bug fix ASP.NET food delivery — ko liên quan đến scientific computing |
+| ui-ux-pro-max-skill-main | ❌ | Bug fix — ko thay đổi UI/UX |
+| Skill/ | ❌ | Chưa có nội dung bổ sung cần dùng |
+
+✅ All 190 skills considered | ✅ All 13 repos considered | ✅ 4 skills used | ✅ No violations
+```
+
+---
+
 ## 📋 SECTION 0: LOG FORMAT — BẮT BUỘC TUYỆT ĐỐI
 
 ### Format CHUẨN — Phải xuất hiện ở 3 dòng ĐẦU mỗi response:

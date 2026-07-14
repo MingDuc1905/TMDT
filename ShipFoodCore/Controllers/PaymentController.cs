@@ -36,7 +36,7 @@ public class PaymentController : BaseController
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<JsonResult> ProcessPayment(int? mattdh, string? hoten, string? quan, string? diachicuthe,
-        string? diachiadd, string? SDT, string? note, int pttt, string testResult, int? makhuyenmai = null)
+        string? diachiadd, string? SDT, string? note, int pttt, string testResult = "success", int? makhuyenmai = null)
     {
         if (!CheckLogin())
             return Json(new { success = false, message = "Vui lòng đăng nhập để tiếp tục" });
@@ -317,7 +317,10 @@ public class PaymentController : BaseController
 
             var firstOrderId = createdOrders.FirstOrDefault();
 
-            // ─── Bank Transfer: KHÔNG xóa cart, trả về QR URL ───
+            // ─── Xóa cart SAU KHI tạo đơn (cho TẤT CẢ phương thức) ───
+            SetCart(new Cart());
+
+            // ─── Bank Transfer: trả về QR URL ───
             if (isBankTransfer)
             {
                 var memo = $"FASTSHIP{firstOrderId}";
@@ -343,9 +346,6 @@ public class PaymentController : BaseController
                     }
                 });
             }
-
-            // ─── Xóa cart sau khi tạo đơn thành công ───
-            SetCart(new Cart());
 
             _logger.LogInformation("Orders created successfully: {OrderIds}", string.Join(",", createdOrders));
 

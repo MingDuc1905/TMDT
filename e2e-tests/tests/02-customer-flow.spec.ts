@@ -411,6 +411,11 @@ test.describe('🔒 Security & Boundary Testing', () => {
         console.log(`⏳ SQLi payload timeout: "${payload}"`);
         continue;
       }
+      const pageText = await page.textContent('body').catch(() => '');
+      const is500 = pageText.includes('Internal Server Error') || pageText.includes('Exception');
+      if (is500) {
+          console.log(`⚠️ 500 error detected for payload: "${payload}" — backend bug, not SQLi success`);
+      }
       const url = page.url();
       console.log(`🔓 SQLi payload: "${payload}" -> URL: ${url}`);
       expect(url).toContain('/Home');

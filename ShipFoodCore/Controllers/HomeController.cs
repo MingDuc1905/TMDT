@@ -1612,32 +1612,41 @@ VALUES ('test_debug', 'test123', 'Khách hàng', '0999999999', 0, 'test@debug.co
     [HttpGet]
     public JsonResult SearchAutocomplete(string q)
     {
-        if (string.IsNullOrWhiteSpace(q) || q.Length < 2)
+        try
+        {
+            if (string.IsNullOrWhiteSpace(q) || q.Length < 2)
+                return Json(new object[0]);
+
+            var normalized = RemoveDiacritics(q.ToLower());
+
+            // ponytail: chỉ hiển thị quán có tbUser.trangthai == 1 (không bị khoá)
+            var results = db.tbQuanAn
+                .Include(qa => qa.tbUser)
+                .Where(qa => qa.trangthai == "Đang mở cửa" && qa.tbUser != null && qa.tbUser.trangthai == 1)
+                // Push initial filter to DB first, then client-side for diacritics
+                .Where(qa => qa.tenquanan.Contains(q) || qa.tbUser.username.Contains(q))
+                .AsEnumerable()
+                .Where(qa => RemoveDiacritics(qa.tenquanan.ToLower()).Contains(normalized)
+                          || RemoveDiacritics(qa.tbUser.username.ToLower()).Contains(normalized))
+                .Take(6)
+                .Select(qa => new
+                {
+                    id = qa.userid,
+                    name = qa.tenquanan,
+                    address = qa.diachi,
+                    rating = qa.diemdanhgia > 0 ? "⭐ " + qa.diemdanhgia?.ToString("0.0") : "",
+                    icon = "🏪"
+                })
+                .ToList();
+
+            return Json(results);
+        }
+        catch (Exception ex)
+        {
+            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<HomeController>>();
+            logger.LogWarning(ex, "SearchAutocomplete failed for q={Q}", q);
             return Json(new object[0]);
-
-        var normalized = RemoveDiacritics(q.ToLower());
-
-        // ponytail: chỉ hiển thị quán có tbUser.trangthai == 1 (không bị khoá)
-        var results = db.tbQuanAn
-            .Include(qa => qa.tbUser)
-            .Where(qa => qa.trangthai == "Đang mở cửa" && qa.tbUser != null && qa.tbUser.trangthai == 1)
-            // Push initial filter to DB first, then client-side for diacritics
-            .Where(qa => qa.tenquanan.Contains(q) || qa.tbUser.username.Contains(q))
-            .AsEnumerable()
-            .Where(qa => RemoveDiacritics(qa.tenquanan.ToLower()).Contains(normalized)
-                      || RemoveDiacritics(qa.tbUser.username.ToLower()).Contains(normalized))
-            .Take(6)
-            .Select(qa => new
-            {
-                id = qa.userid,
-                name = qa.tenquanan,
-                address = qa.diachi,
-                rating = qa.diemdanhgia > 0 ? "⭐ " + qa.diemdanhgia?.ToString("0.0") : "",
-                icon = "🏪"
-            })
-            .ToList();
-
-        return Json(results);
+        }
     }
 
     /// <summary>

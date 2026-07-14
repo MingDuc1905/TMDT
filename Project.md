@@ -75,12 +75,12 @@ Cung cấp một giải pháp hoàn chỉnh cho:
 
 ---
 
-## 📁 Cấu Trúc Dự Án
+## 📁 Cấu Trúc Dự Án Chi Tiết
 
 ```
 TMDT-master/
 ├── ShipFoodCore/                    # Main web application
-│   ├── Controllers/                 # MVC Controllers (8 files)
+│   ├── Controllers/                 # MVC Controllers (9 files)
 │   │   ├── HomeController.cs        # Landing page, login/signup, search, reviews
 │   │   ├── CartController.cs        # Cart, checkout, order history
 │   │   ├── RestaurantController.cs  # Restaurant dashboard, products, orders
@@ -91,67 +91,159 @@ TMDT-master/
 │   │   ├── PaymentController.cs     # Mock payment processing
 │   │   └── BaseController.cs        # Shared session/cart methods
 │   │
-│   ├── Models/                      # Entity Framework models (15+ files)
+│   ├── Models/                      # Entity Framework models (19 files)
 │   │   ├── DbContext.cs             # dbFoodyEntities context + Fluent API
 │   │   ├── Cart.cs                  # Cart logic (session-based)
-│   │   ├── tbUser.cs                # Users (4 roles)
-│   │   ├── tbQuanAn.cs              # Restaurants
-│   │   ├── tbMonAn.cs               # Menu items
-│   │   ├── tbDonHang.cs             # Orders
-│   │   ├── tbChiTietDonHang.cs      # Order details
-│   │   ├── tbDanhGia.cs             # Reviews
-│   │   ├── tbDanhMuc.cs             # Categories
+│   │   ├── tbUser.cs                # Users (4 roles: Khách hàng, Quán ăn, Shipper, Admin)
+│   │   ├── tbQuanAn.cs              # Restaurants (FK→tbUser.userid)
+│   │   ├── tbMonAn.cs               # Menu items (soft delete: isDeleted)
+│   │   ├── tbDonHang.cs             # Orders (FK→tbQuanAn, tbShipper, tbKhuyenMai, tbLoaiHinhThanhToan)
+│   │   ├── tbChiTietDonHang.cs      # Order details (FK→tbDonHang, tbBienTheMonAn)
+│   │   ├── tbBienTheMonAn.cs        # Product variants (size M/L/XL, each with price)
+│   │   ├── tbDanhGia.cs             # Reviews (FK→tbChiTietDonHang)
+│   │   ├── tbDanhMuc.cs             # Categories (with icon field)
 │   │   ├── tbKhuyenMai.cs           # Discounts/coupons
-│   │   ├── tbMonAnKhuyenMai.cs      # Product-discount mapping
-│   │   ├── tbShipper.cs             # Shippers
-│   │   ├── tbAdmin.cs               # Admin
-│   │   ├── tbKhachHang.cs           # Customers
+│   │   ├── tbMonAnKhuyenMai.cs      # Product-discount mapping (FK→tbBienTheMonAn)
+│   │   ├── tbShipper.cs             # Shippers (FK→tbUser.userid)
+│   │   ├── tbAdmin.cs               # Admin (FK→tbUser.userid, has hinhanh avatar)
+│   │   ├── tbKhachHang.cs           # Customers (FK→tbUser.userid, has hinhanh)
 │   │   ├── tbThongTinDatHang.cs     # Delivery addresses
-│   │   ├── tbTinNhan.cs             # Chat messages
-│   │   ├── tbLoaiHinhThanhToan.cs   # Payment methods
+│   │   ├── tbTinNhan.cs             # Chat messages (FK→tbDonHang, tbKhachHang, tbShipper)
+│   │   ├── tbLoaiHinhThanhToan.cs   # Payment methods (COD, Chuyển khoản, MoMo, ZaloPay, PayPal)
+│   │   ├── tbLichSuSuDungKhuyenMai.cs# Coupon usage history
+│   │   ├── tbEInvoice.cs            # Electronic invoice
 │   │   ├── DataAnalytic.cs          # Analytics view models
 │   │   ├── LichSuDonHang.cs         # Order history view models
-│   │   └── DonHangDangLam.cs        # Raw SQL order queries
+│   │   └── DonHangDangLam.cs        # Raw SQL order queries (FREE-PICK)
 │   │
 │   ├── Hubs/                        # SignalR hubs
-│   │   └── Chats.cs                 # /nhantin hub (12 methods, 5 groups)
+│   │   └── Chats.cs                 # /nhantin hub (12 methods, 5 groups: order_{id}, customer_{id}, restaurant_{id}, shippers)
 │   │
 │   ├── Services/                    # Business logic services
-│   │   ├── RecommendationService.cs  # ML-based recommendations (8 algorithms)
-│   │   ├── GeminiService.cs         # Gemini AI API integration
-│   │   └── AutoPreparingService.cs  # BackgroundService: 10s polling → SignalR
+│   │   ├── RecommendationService.cs  # ML-based recommendations (8 algorithms: collaborative, apriori, popular-pairs, time-based, trending, restaurant-insights, category-insights)
+│   │   ├── GeminiService.cs         # Gemini AI API integration (gemi-ni-3.5-flash, 5 req/min rate limit)
+│   │   ├── MoMoService.cs           # MoMo payment HMAC-SHA256 sandbox
+│   │   ├── VoucherService.cs        # Voucher management logic
+│   │   ├── EDeliveryService.cs      # Electronic delivery tracking
+│   │   └── AutoPreparingService.cs  # BackgroundService: 10s polling → SignalR broadcast
 │   │
 │   ├── Utils/                       # Helper utilities
-│   │   └── TinhToan.cs             # Shipping fee calculation
+│   │   └── TinhToan.cs             # Shipping fee calculation, image URL helper
 │   │
-│   ├── Views/                       # Razor views (25+ views, 5 layouts)
+│   ├── Views/                       # Razor views (50+ views, 6 layouts)
 │   │   ├── Home/                   # Customer-facing pages (11 views)
-│   │   ├── Cart/                   # Cart, checkout, history (6 views)
-│   │   ├── Restaurant/             # Restaurant dashboard (10 views)
-│   │   ├── Shipper/                # Shipper dashboard (8 views)
-│   │   ├── Admin/                  # Admin panel (11 views)
+│   │   │   ├── Index.cshtml        # Homepage: hero carousel, stats, restaurant grid, AI combos, how-it-works
+│   │   │   ├── Login.cshtml        # Login page: form + Google OAuth
+│   │   │   ├── Signup.cshtml       # Registration: form 8 fields
+│   │   │   ├── Forgot.cshtml       # Forgot password
+│   │   │   ├── SelectRoleGoogle.cshtml  # Google OAuth role selection (3 cards)
+│   │   │   ├── DetailRestaurant.cshtml  # Restaurant detail: categories sidebar + menu grid + reviews
+│   │   │   ├── ChiTietSanPham.cshtml    # Product detail: hero 2-col, size chips, add-to-cart, similar items, reviews
+│   │   │   ├── DanhMuc.cshtml      # Category listing: grid of category cards
+│   │   │   ├── SanPham.cshtml      # Products by category: grid of menu items
+│   │   │   ├── NhanTin.cshtml      # Customer messaging page
+│   │   │   ├── About.cshtml        # About page
+│   │   │   └── Contact.cshtml      # Contact page
+│   │   ├── Cart/                   # Cart, checkout, history (7 views)
+│   │   │   ├── Index.cshtml        # Cart page: items list + summary + AI suggestions
+│   │   │   ├── Checkout.cshtml     # Checkout: address 3-tabs, coupon, payment methods, order summary
+│   │   │   ├── ChiTietDonHang.cshtml    # Order detail: flat invoice + live map
+│   │   │   ├── LichSuDatHang.cshtml     # Order history: DataTable with status badges
+│   │   │   ├── OrderTracking.cshtml     # Live tracking: 7-step progress, Leaflet map, SignalR
+│   │   │   ├── SuccessView.cshtml       # Payment success
+│   │   │   ├── FailureView.cshtml       # Payment failure
+│   │   │   └── EInvoice.cshtml          # E-invoice page
+│   │   ├── Restaurant/             # Restaurant dashboard (12 views)
+│   │   │   ├── Index.cshtml        # Dashboard: KPI, apriori insights, recent orders
+│   │   │   ├── OrderList.cshtml    # Order management: DataTable + actions
+│   │   │   ├── ProductList.cshtml  # Menu items CRUD
+│   │   │   ├── ProductDetail.cshtml# Menu item detail/edit
+│   │   │   ├── AddProduct.cshtml   # Add new menu item
+│   │   │   ├── Analytics.cshtml    # Revenue analytics by category, top items
+│   │   │   ├── Discount.cshtml     # Discount/coupon management
+│   │   │   ├── Review.cshtml       # Reviews management
+│   │   │   ├── Profile.cshtml      # Restaurant profile settings
+│   │   │   ├── GeneralCustomer.cshtml# Customer list
+│   │   │   ├── Wallet.cshtml       # Wallet/earnings
+│   │   │   ├── Scanner.cshtml      # QR scanner
+│   │   │   └── NhanTin.cshtml      # Restaurant messaging
+│   │   ├── Shipper/                # Shipper dashboard (9 views)
+│   │   │   ├── Index.cshtml        # Dashboard: split-screen with orders + map + stats
+│   │   │   ├── OrderDetail.cshtml  # Order detail + Leaflet map + SignalR geolocation
+│   │   │   ├── LichSu.cshtml       # Delivery history
+│   │   │   ├── ThuNhap.cshtml      # Earnings statistics (30-day)
+│   │   │   ├── ViTien.cshtml       # Wallet balance
+│   │   │   ├── QRDelivery.cshtml   # QR delivery scan
+│   │   │   ├── CaiDat.cshtml       # Settings/profile
+│   │   │   ├── ThongBao.cshtml     # Notifications
+│   │   │   └── NhanTin.cshtml      # Shipper messaging
+│   │   ├── Admin/                  # Admin panel (14 views)
+│   │   │   ├── Dashboard.cshtml    # Dashboard: KPI cards, line/pie charts, top items, revenue tables
+│   │   │   ├── Index.cshtml        # Welcome page
+│   │   │   ├── QuanLyQuanAn.cshtml # Manage restaurants
+│   │   │   ├── QuanLyQuanTriVien.cshtml # Manage admins
+│   │   │   ├── QuanLyShipper.cshtml# Manage shippers
+│   │   │   ├── QuanLyKhachHang.cshtml# Manage customers
+│   │   │   ├── Order.cshtml        # Orders list with SignalR real-time
+│   │   │   ├── OrderDetail.cshtml  # Order detail
+│   │   │   ├── EditOrder.cshtml    # Edit order
+│   │   │   ├── Category.cshtml     # Categories CRUD
+│   │   │   ├── CreateCategory.cshtml# Create category
+│   │   │   ├── EditCategory.cshtml # Edit category
+│   │   │   ├── PostTaiKhoan.cshtml # Account management
+│   │   │   ├── VoucherManager.cshtml# Voucher/coupon management
+│   │   │   └── DeliveryLogs.cshtml # Delivery logs
 │   │   ├── AdminChat/              # Admin support chat (1 view)
-│   │   └── Shared/                 # Layouts + chat widget (6 files)
+│   │   │   └── Index.cshtml        # Real-time chat with customers (SignalR)
+│   │   ├── EDelivery/              # Electronic delivery (1 view)
+│   │   │   └── ScanResult.cshtml   # QR scan result display
+│   │   └── Shared/                 # Layouts + partials (9 files)
+│   │       ├── _LayoutPageHome.cshtml  # Customer layout: topbar + navbar + footer + chat widget
+│   │       ├── _LayoutPageAmin.cshtml  # Admin layout: sidebar + header + content
+│   │       ├── _LayoutPageRestaurant.cshtml# Restaurant layout: sidebar + header + content
+│   │       ├── _LayoutPageShipper.cshtml # Shipper layout: sidebar + header + content + Leaflet
+│   │       ├── _LayoutAuth.cshtml     # Auth layout: glassmorphism header + centered form
+│   │       ├── _Layout.cshtml         # Legacy layout (Bootstrap 3)
+│   │       ├── LayoutPageShipper.cshtml# Legacy shipper layout
+│   │       ├── _ChatWidget.cshtml     # Floating chat widget (AI + Support)
+│   │       ├── _ValidationScriptsPartial.cshtml # Validation scripts
+│   │       ├── Error.cshtml           # Error page
+│   │       ├── Components/FilterBar/Default.cshtml# Filter bar ViewComponent
+│   │       └── Web.config             # Web config
 │   │
 │   ├── wwwroot/                     # Static assets
-│   │   ├── Source/Home/            # Customer theme (CSS, JS, libs)
-│   │   ├── Source/Cart/            # Ogani cart theme
-│   │   ├── Source/Restaurant/      # Restaurant dashboard theme
-│   │   ├── Source/Shipper/         # Shipper dashboard theme
-│   │   ├── Source/Admin/           # Admin dashboard theme
-│   │   └── Content/                # Bootstrap 3 (legacy)
+│   │   ├── Source/Home/            # Customer theme (style.css, layout-sg.css, login.css, details.css, base.css)
+│   │   │   ├── css/               # style.css, bootstrap.min.css, layout-sg.css, login.css, details.css, base.css, chat.css
+│   │   │   ├── js/               # main.js
+│   │   │   ├── lib/              # owlcarousel, wow, easing, waypoints
+│   │   │   └── img/              # banners, icons, favicon
+│   │   ├── Source/Cart/           # Ogani cart theme
+│   │   ├── Source/Restaurant/     # Restaurant dashboard (style-restaurant.css)
+│   │   ├── Source/Shipper/        # Shipper dashboard (style-shiper.css)
+│   │   ├── Source/Admin/          # Admin dashboard (style-admin.css)
+│   │   ├── Source/Shared/         # Global: fastship-design-tokens.css
+│   │   ├── Content/               # Legacy Bootstrap 3
+│   │   ├── js/                   # filter.js, cart-local.js, map.js
+│   │   └── css/                  # site.css
 │   │
 │   ├── Program.cs                   # App startup (DI, middleware, config)
 │   └── appsettings.json             # Configuration (connection strings, API keys)
 │
-├── UI-UX.md                         # Comprehensive UI/UX documentation (17 sections)
-├── Architectural-Solution.md        # Architectural solution document (15 giải pháp cải thiện)
+├── UI-UX.md                         # Comprehensive UI/UX documentation (27 sections)
+├── Architectural-Solution.md        # Architectural solution document
 ├── Project.md                       # This file
 ├── mysql_utf8.sql                   # Combined seed data (categories, users, menus) + UTF-8 init
-├── Dockerfile                       # Multi-stage Docker build (SDK + runtime)
+├── Dockerfile                       # Multi-stage Docker build (SDK 8.0 → runtime)
 ├── render.yaml                     # Render deployment config
+├── seed.sql                         # Seed data SQL
 ├── .agents/skills/                  # Codebuff skill rules
 │   └── fastship-rules.md           # FastShip development rules
+├── e2e-tests/                      # Playwright E2E tests
+│   ├── tests/                     # 10 test spec files
+│   ├── pages/                     # Page Object Model (9 pages)
+│   ├── fixtures/                  # Test fixtures
+│   └── playwright.config.ts       # Playwright config
+└── .dockerignore                   # Docker ignore rules
 ```
 
 ---

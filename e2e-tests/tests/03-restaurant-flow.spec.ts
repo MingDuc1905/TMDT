@@ -58,6 +58,7 @@ async function loginAsRestaurant(page: any) {
       }
     }
   }
+  await page.waitForSelector('.deznav', { timeout: 10_000 }).catch(() => {});
 }
 
 // ─── TEST SUITE 1: Dashboard ───
@@ -432,6 +433,7 @@ test.describe('🍽️ Quản lý Món ăn — CRUD (Thêm/Sửa/Xóa)', () => {
     const sizeInputs = page.locator('input[name*="size"]');
     const inputCount = await sizeInputs.count();
     console.log(`📏 Size inputs: ${inputCount}`);
+    expect(inputCount).toBeGreaterThanOrEqual(2);
   });
 
   test('[TC-3.20] Xóa món — click nút xóa', async ({ page }) => {
@@ -459,6 +461,7 @@ test.describe('⚙️ Profile & Settings', () => {
     await loginAsRestaurant(page);
     await page.goto('/Restaurant/Profile', { waitUntil: 'domcontentloaded', timeout: 30_000 });
     await page.waitForTimeout(3000);
+    expect(page.url()).toContain('/Restaurant');
     expect(await page.locator('body').textContent()).toBeTruthy();
     console.log('✅ Profile page loaded');
   });

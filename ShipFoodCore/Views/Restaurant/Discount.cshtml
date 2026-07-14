@@ -87,7 +87,7 @@
                                                 <span class="text-danger">*</span>
                                             </label>
                                             <div class="col-lg-6">
-                                                <select class="form-control" id="val-mon" name="makm">
+                                                <select class="form-control" id="val-mon" name="makm" required>
                                                     <option value="">Chọn mã khuyến mãi</option>
                                                     @foreach (var i in maKM)
                                                     {
@@ -102,7 +102,7 @@
                                                 <span class="text-danger">*</span>
                                             </label>
                                             <div class="col-lg-6">
-                                                <select class="form-control" id="val-mon" name="mamon">
+                                                <select class="form-control" id="val-mon" name="mamon" required>
                                                     <option value="">Chọn món</option>
                                                     @foreach (var i in monAns)
                                                     {
@@ -129,7 +129,7 @@
                                                 <span class="text-danger">*</span>
                                             </label>
                                             <div class="col-lg-6">
-                                                <select class="form-control" id="val-skill" name="trangthai">
+                                                <select class="form-control" id="val-skill" name="trangthai" required>
                                                     <option value="">Chọn trạng thái</option>
                                                     <option value="Còn hạn">Còn hạn</option>
                                                     <option value="Hết hạn">Hết hạn</option>
@@ -141,10 +141,11 @@
                                                 % Khuyến mãi <span class="text-danger">*</span>
                                             </label>
                                             <div class="col-lg-6">
-                                                <input type="text"
+                                                <input type="number"
                                                        class="form-control"
-                                                       id="val-number"
+                                                       id="val-percent"
                                                        name="phantramgiam"
+                                                       min="1" max="100" required
                                                        placeholder="Nhập % khuyến mãi" />
                                             </div>
                                         </div>
@@ -153,10 +154,11 @@
                                                 Số lượng mã <span class="text-danger">*</span>
                                             </label>
                                             <div class="col-lg-6">
-                                                <input type="text"
+                                                <input type="number"
                                                        class="form-control"
-                                                       id="val-number"
+                                                       id="val-quantity"
                                                        name="soluong"
+                                                       min="1" required
                                                        placeholder="Nhập số lượng" />
                                             </div>
                                         </div>

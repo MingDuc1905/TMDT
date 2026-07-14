@@ -1,0 +1,279 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: 02-customer-flow.spec.ts >> 🛒 Vòng đời giỏ hàng (Cart Lifecycle) >> [TC-2.13] Tăng số lượng - tổng tiền thay đổi
+- Location: tests\02-customer-flow.spec.ts:275:7
+
+# Error details
+
+```
+Test timeout of 15000ms exceeded.
+```
+
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - link "Bỏ qua điều hướng, đến nội dung chính" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - banner [ref=e3]:
+    - generic [ref=e6]:
+      - generic [ref=e7]:
+        - generic [ref=e8]:
+          - generic [ref=e9]: 
+          - text: 48 Cao Thắng, Quận 3, TP. Hồ Chí Minh
+        - generic [ref=e10]:
+          - generic [ref=e11]: 
+          - text: fastship@contact.com
+      - generic [ref=e13]:
+        - generic [ref=e14]: "Theo dõi chúng tôi:"
+        - link "Facebook" [ref=e15] [cursor=pointer]:
+          - /url: https://facebook.com/fastship
+          - generic [ref=e16]: 
+        - link "Instagram" [ref=e17] [cursor=pointer]:
+          - /url: https://instagram.com/fastship
+          - generic [ref=e18]: 
+        - link "TikTok" [ref=e19] [cursor=pointer]:
+          - /url: https://tiktok.com/@fastship
+        - link "YouTube" [ref=e21] [cursor=pointer]:
+          - /url: https://youtube.com/@fastship
+          - generic [ref=e22]: 
+    - navigation "Điều hướng chính" [ref=e23]:
+      - generic [ref=e24]:
+        - link "Fastship trang chủ" [ref=e25] [cursor=pointer]:
+          - /url: /Home
+          - text: Fastship
+        - text:  
+        - search "Tìm quán ăn" [ref=e27]:
+          - combobox "Chọn danh mục" [ref=e28] [cursor=pointer]:
+            - option "Tất cả" [selected]
+            - option "Đồ ăn"
+            - option "Đồ uống"
+            - option "Đồ chay"
+            - option "Bánh kem"
+            - option "Tráng miệng"
+            - option "Homemade"
+            - option "Vỉa hè"
+            - option "Pizza/Burger"
+            - option "Món gà"
+            - option "Món lẩu"
+            - option "Sushi"
+            - option "Mì phở"
+            - option "Cơm hộp"
+          - textbox "Từ khoá tìm kiếm" [ref=e29]:
+            - /placeholder: Tìm món ăn, quán ăn...
+          - button "Tìm kiếm" [ref=e30] [cursor=pointer]:
+            - generic [ref=e31]: 
+            - text: Tìm
+        - generic [ref=e32]:
+          - text: 
+          - generic [ref=e33]:
+            - link "Trang chủ" [ref=e34] [cursor=pointer]:
+              - /url: /Home
+            - link "Menu ẩm thực" [ref=e35] [cursor=pointer]:
+              - /url: /Home/DanhMuc
+            - generic [ref=e36]:
+              - link "Đăng xuất" [ref=e37] [cursor=pointer]:
+                - /url: /Home/Logout
+                - generic [ref=e38]: 
+              - link "T tranthib " [ref=e40] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=e41]: T
+                - generic [ref=e42]: tranthib
+                - text: 
+            - text:   
+            - link "Giỏ hàng" [ref=e43] [cursor=pointer]:
+              - /url: /Cart
+              - generic [ref=e44]: 
+  - main [ref=e45]:
+    - generic [ref=e47]:
+      - generic [ref=e48]:
+        - generic [ref=e49]:
+          - img "Không tìm thấy ảnh" [ref=e51]
+          - generic [ref=e52]:
+            - navigation "breadcrumb" [ref=e53]:
+              - list [ref=e54]:
+                - listitem [ref=e55]:
+                  - link "Trang chủ" [ref=e56] [cursor=pointer]:
+                    - /url: /
+                  - text: »
+                - listitem [ref=e57]:
+                  - text: /
+                  - link "TP. Hồ Chí Minh" [ref=e58] [cursor=pointer]:
+                    - /url: /Home
+                  - text: »
+                - listitem [ref=e59]: / Koneko Pizza »
+            - generic [ref=e60]:
+              - generic [ref=e61] [cursor=pointer]:
+                - generic [ref=e62]: 
+                - text: Yêu thích
+              - generic [ref=e63]:
+                - text: Quán ăn
+                - generic [ref=e64]:
+                  - text: "-"
+                  - link "Chi nhánh" [ref=e65] [cursor=pointer]:
+                    - /url: /thuong-hieu/com-tho-thien-phuc
+            - heading "Koneko Pizza" [level=1] [ref=e66]
+            - generic [ref=e67]: K57H10/12 Bà Bang Nhãn, P. Hòa Hải, Quận Bình Thạnh, TP. Hồ Chí Minh
+            - generic [ref=e68]:
+              - generic [ref=e69]:
+                - generic [ref=e71]: 
+                - generic [ref=e73]: 
+                - generic [ref=e75]: 
+                - generic [ref=e77]: 
+                - generic [ref=e79]: 
+              - generic [ref=e80]: "75"
+              - text: đánh giá trên Fastship
+            - link "Xem thêm lượt đánh giá từ Fastship " [ref=e82] [cursor=pointer]:
+              - /url: "#reviews-section"
+              - text: Xem thêm lượt đánh giá từ Fastship
+              - generic [ref=e83]: 
+            - generic [ref=e84]:
+              - generic "Đang mở cửa" [ref=e86] [cursor=pointer]
+              - generic [ref=e87]:
+                - generic [ref=e88]: 
+                - text: 07:30 - 21:30
+            - generic [ref=e89]:
+              - generic [ref=e90]: 
+              - text: 35.000 - 75.000
+            - generic [ref=e92]:
+              - generic [ref=e93]:
+                - generic [ref=e94]: Phí dịch vụ
+                - generic [ref=e95]: 0.0% Phí phục vụ
+              - generic [ref=e96]:
+                - generic [ref=e97]: Dịch vụ bởi
+                - generic [ref=e98]: Fastship
+        - generic [ref=e100]:
+          - generic [ref=e102]: Thực đơn
+          - generic:
+            - generic:
+              - link "Tất cả" [ref=e106] [cursor=pointer]:
+                - /url: /Home/DetailRestaurant/6
+                - generic "Tất cả" [ref=e108]
+              - generic [ref=e110]:
+                - paragraph [ref=e113]:
+                  - generic [ref=e114]: 
+                  - textbox "Tìm món" [ref=e115]
+                  - button "Tìm" [ref=e116] [cursor=pointer]:
+                    - strong [ref=e117]: Tìm
+                - strong [ref=e120]: Danh sách món
+      - generic [ref=e123]:
+        - heading " Danh mục món ăn" [level=3] [ref=e124]:
+          - generic [ref=e125]: 
+          - text: Danh mục món ăn
+        - button "Đóng" [ref=e126] [cursor=pointer]: ✕
+      - generic [ref=e129]:
+        - generic [ref=e130]:
+          - generic [ref=e131]:
+            - heading "⭐ Đánh giá từ khách hàng" [level=3] [ref=e132]
+            - paragraph [ref=e133]: Nhận xét thực tế từ những người đã đặt hàng
+          - generic [ref=e135]:
+            - generic [ref=e136]: —
+            - generic [ref=e137]: ☆☆☆☆☆
+            - generic [ref=e138]: Đang tải...
+        - generic [ref=e140]:
+          - generic [ref=e141]: ⏳
+          - text: Đang tải đánh giá...
+  - contentinfo [ref=e142]:
+    - generic [ref=e145]:
+      - generic [ref=e146]:
+        - heading "Nhận ưu đãi & thực đơn mới nhất" [level=5] [ref=e147]
+        - paragraph [ref=e148]: Đăng ký để không bỏ lỡ món mới, khuyến mãi hấp dẫn.
+      - generic [ref=e151]:
+        - textbox "Email đăng ký nhận tin" [ref=e152]:
+          - /placeholder: Email của bạn...
+        - button "Đăng ký" [ref=e153] [cursor=pointer]
+    - generic [ref=e156]:
+      - generic [ref=e157]:
+        - link "Fastship" [ref=e158] [cursor=pointer]:
+          - /url: /Home
+        - paragraph [ref=e159]: Nền tảng đặt món và giao hàng nhanh tại TP. Hồ Chí Minh. Hàng trăm quán ăn ngon, giao trong 30 phút.
+        - generic [ref=e160]:
+          - link "Facebook" [ref=e161] [cursor=pointer]:
+            - /url: https://facebook.com/fastship
+            - generic [ref=e162]: 
+          - link "Instagram" [ref=e163] [cursor=pointer]:
+            - /url: https://instagram.com/fastship
+            - generic [ref=e164]: 
+          - link "TikTok" [ref=e165] [cursor=pointer]:
+            - /url: https://tiktok.com/@fastship
+          - link "YouTube" [ref=e166] [cursor=pointer]:
+            - /url: https://youtube.com/@fastship
+            - generic [ref=e167]: 
+      - generic [ref=e168]:
+        - heading "Khám phá" [level=6] [ref=e169]
+        - list [ref=e170]:
+          - listitem [ref=e171]:
+            - link "Trang chủ" [ref=e172] [cursor=pointer]:
+              - /url: /Home
+          - listitem [ref=e173]:
+            - link "Menu ẩm thực" [ref=e174] [cursor=pointer]:
+              - /url: /Home/DanhMuc
+          - listitem [ref=e175]:
+            - link "Giỏ hàng" [ref=e176] [cursor=pointer]:
+              - /url: /Cart
+          - listitem [ref=e177]:
+            - link "Lịch sử đơn" [ref=e178] [cursor=pointer]:
+              - /url: /Cart/LichSuDatHang
+      - generic [ref=e179]:
+        - heading "Tài khoản" [level=6] [ref=e180]
+        - list [ref=e181]:
+          - listitem [ref=e182]:
+            - link "Đơn hàng của tôi" [ref=e183] [cursor=pointer]:
+              - /url: /Cart/LichSuDatHang
+          - listitem [ref=e184]:
+            - link "Đăng xuất" [ref=e185] [cursor=pointer]:
+              - /url: /Home/Logout
+      - generic [ref=e186]:
+        - heading "Hỗ trợ" [level=6] [ref=e187]
+        - list [ref=e188]:
+          - listitem [ref=e189]:
+            - link "Liên hệ" [ref=e190] [cursor=pointer]:
+              - /url: /Home/Contact
+          - listitem [ref=e191]:
+            - link "Về chúng tôi" [ref=e192] [cursor=pointer]:
+              - /url: /Home/About
+          - listitem [ref=e193]:
+            - link "Chính sách bảo mật" [ref=e194] [cursor=pointer]:
+              - /url: "#"
+          - listitem [ref=e195]:
+            - link "Điều khoản sử dụng" [ref=e196] [cursor=pointer]:
+              - /url: "#"
+      - generic [ref=e197]:
+        - heading "Liên hệ" [level=6] [ref=e198]
+        - list [ref=e199]:
+          - listitem [ref=e200]:
+            - generic [ref=e201]: 
+            - text: 48 Cao Thắng, Quận 3, TP. Hồ Chí Minh
+          - listitem [ref=e202]:
+            - generic [ref=e203]: 
+            - link "1900 1234" [ref=e204] [cursor=pointer]:
+              - /url: tel:19001234
+          - listitem [ref=e205]:
+            - generic [ref=e206]: 
+            - link "fastship@contact.com" [ref=e207] [cursor=pointer]:
+              - /url: mailto:fastship@contact.com
+          - listitem [ref=e208]:
+            - generic [ref=e209]: 
+            - text: 7:00 — 23:00, Thứ 2 — Chủ nhật
+    - generic [ref=e212]:
+      - generic [ref=e213]: © 2026 Fastship. Bảo lưu mọi quyền.
+      - generic [ref=e215]:
+        - text: Được làm với
+        - generic [ref=e216]: 
+        - text: tại Sài Gòn |
+        - link "Chính sách bảo mật" [ref=e217] [cursor=pointer]:
+          - /url: "#"
+        - text: "|"
+        - link "Điều khoản" [ref=e218] [cursor=pointer]:
+          - /url: "#"
+  - text: 
+  - button "Mở chat hỗ trợ FastShip" [ref=e219] [cursor=pointer]:
+    - generic [ref=e220]: 
+  - text:   
+```

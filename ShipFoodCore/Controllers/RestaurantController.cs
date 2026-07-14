@@ -382,6 +382,7 @@ public class RestaurantController : BaseController
     {
         if (!checkLogin()) return RedirectToAction("Login", "Home");
         var quanAn = getQuanAn();
+        if (quanAn == null) return RedirectToAction("Login", "Home");
         var danhGias = new List<tbDanhGia>();
         foreach (var i in quanAn.tbMonAn)
             foreach (var j in i.tbChiTietDonHang)

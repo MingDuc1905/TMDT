@@ -642,7 +642,7 @@
             headers: { 'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() },
             success: function(r) {
                 if (r.success) {
-                    showResultPopup(true, 'Đặt hàng thành công!', r.message || '', r.orderId, r.qrCodeUrl, r.bankInfo);
+                    showResultPopup(true, 'Đặt hàng thành công!', r.message || '', r.orderId, r.qrCodeUrl, r.bankInfo, r.momoPayUrl);
                 } else {
                     showResultPopup(false, 'Thanh toán thất bại', r.message || 'Đã xảy ra lỗi. Vui lòng thử lại.');
                 }
@@ -698,11 +698,17 @@
     //   success = true  → QR code path OR COD/MoMo/PayPal path
     //   success = false → failure path
     // ════════════════════════════════════════════════════════════════
-    function showResultPopup(success, title, detail, orderId, qrCodeUrl, bankInfo) {
+    function showResultPopup(success, title, detail, orderId, qrCodeUrl, bankInfo, momoPayUrl) {
         $('#payment-popup-overlay').remove();
         var iconHtml, contentHtml, btnHtml, redirectUrl;
 
         if (success) {
+            // ═══ MoMo: redirect to MoMo payment page ═══
+            if (momoPayUrl) {
+                window.location.href = momoPayUrl;
+                return;
+            }
+
             if (qrCodeUrl) {
                 // ═══ Bank Transfer: show QR code + bank details ═══
                 bankInfo = bankInfo || {};

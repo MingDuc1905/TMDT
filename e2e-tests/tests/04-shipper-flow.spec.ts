@@ -244,6 +244,9 @@ test.describe('💰 Ví tiền & Thu nhập Shipper', () => {
     // Kiểm tra bảng lịch sử
     const tableRows = page.locator('table tbody tr');
     const rowCount = await tableRows.count().catch(() => 0);
+    if (rowCount === 0) {
+      console.log('ℹ️ Không có đơn hàng nào trong lịch sử — seed fix sẽ cải thiện');
+    }
     console.log(`📋 Lịch sử: ${rowCount} dòng`);
   });
 

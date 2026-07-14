@@ -38,11 +38,13 @@ test.describe('🔄 Cập nhật trạng thái giao hàng', () => {
 
   test('[TC-9.2] UpdateDonHang API — status transitions', async ({ page }) => {
     await loginAsShipper(page);
+    expect(page.url()).not.toContain('/Home/Login');
     // Test API với order không tồn tại
     const resp = await page.request.post('/Shipper/UpdateDonHang', {
       params: { status: 'lh', id: 99999 },
       headers: { 'X-Requested-With': 'XMLHttpRequest' }
     });
+    expect(resp.headers()['content-type']).toContain('application/json');
     const json = await resp.json();
     console.log(`📡 UpdateDonHang API: ${JSON.stringify(json)}`);
     expect(json).toBeDefined();
@@ -100,12 +102,15 @@ test.describe('⚙️ Cài đặt', () => {
   test('[TC-9.7] CaiDat — form fields + submit', async ({ page }) => {
     await loginAsShipper(page);
     await page.goto('/Shipper/CaiDat', { waitUntil: 'domcontentloaded', timeout: 30_000 }); await page.waitForTimeout(3000);
+    const settingsTab = page.locator('a[data-toggle="tab"][href="#profile-settings"], a[href="#profile-settings"]');
+    await settingsTab.click().catch(() => {});
+    await page.waitForTimeout(500);
     const inputs = page.locator('form input[type="text"], form input[type="password"]');
     const inputCount = await inputs.count();
     console.log(`📝 Settings fields: ${inputCount}`);
     const submitBtn = page.locator('button[type="submit"]').first();
     if (await submitBtn.isVisible().catch(() => false)) {
-      await submitBtn.click(); await page.waitForLoadState('networkidle'); await page.waitForTimeout(2000);
+      await submitBtn.click(); await page.waitForTimeout(2000);
       console.log(`📍 After settings save: ${page.url()}`);
     }
   });

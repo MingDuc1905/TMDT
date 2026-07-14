@@ -207,7 +207,8 @@ test.describe('💬 Chat với Shipper', () => {
   test('[TC-7.12] Chat page load — component hiển thị', async ({ page }) => {
     await loginAsCustomer(page);
     await page.goto('/Home/NhanTin', { waitUntil: 'domcontentloaded', timeout: 30_000 }); await page.waitForTimeout(3000);
-    const chatBox = page.locator('.chat-box, #chat-container, [class*="chat"]').first();
+    const chatBox = page.locator('#nhantin-chat, .chat-container').first();
+    await expect(chatBox).toBeVisible();
     console.log(`💬 Chat container: ${await chatBox.isVisible().catch(() => false)}`);
   });
 });

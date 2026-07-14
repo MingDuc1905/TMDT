@@ -1,9 +1,20 @@
 # Fastship (ShipFood) — UI/UX Documentation (Full)
 
-> **Phiên bản**: 5.4 — SanPham data fix, QR Code bank transfer, Gemini prompt fix  
+> **Phiên bản**: 5.6 — Bố cục UI/UX chi tiết: ChiTietSanPham, Restaurant/Shipper Dashboard, ChiTietDonHang  
 > **Cập nhật**: Tháng 7, 2026  
 > **Mô tả**: Tài liệu thiết kế giao diện & trải nghiệm người dùng toàn diện cho nền tảng đặt đồ ăn Fastship  
 > **Tài liệu liên quan**: Project.md — Tổng quan kiến trúc & phát triển
+
+## ⚠️ Lưu ý: Filter/Search đang quá phức tạp
+
+Hệ thống filter hiện tại (`MenuSearch` API + `FilterBar` ViewComponent + `filter.js` Bottom Sheet) có **quá nhiều tầng logic**:
+- 2-phase AND→OR fallback với scoring
+- Dynamic SQL với 7+ tham số
+- Bottom Sheet + Chip bar two-way sync
+- Cart LocalStorage persistence layer
+
+**Cần đơn giản hoá**: Giảm xuống còn 1 phase, bỏ OR fallback, gộp filter.js vào 1 file duy nhất.
+
 
 ---
 
@@ -552,11 +563,412 @@ Mỗi dashboard layout có inline `<style>` override áp dụng CSS variables t�
 **Responsive features** (@media < 768px):
 - Tables convert to stacked cards using `data-label` attributes
 - Touch targets ≥ 44px on all interactive elements
-- Sidebar collapses to hamburger overlay
+- Sidebar collapses to hamburger overlay---
+
+## 5. Home Page — Trang chủ Khách hàng (Index.cshtml)
+
+**File**: `Views/Home/Index.cshtml`  
+**Layout**: `_LayoutPageHome.cshtml`  
+**CSS**: `layout-sg.css`, `style.css`, `fastship-design-tokens.css`  
+**Route**: `/Home`  
+**Controller**: `HomeController.Index()`
+
+### 5.1 Tổng Quan Layout
+
+Trang chủ là một **single-page scroll** dài với 9 section chính, xếp theo thứ tự từ trên xuống:
+
+```
+┌─────────────────────────────────────────────────────┐
+│  0. PROMO BAND (34px, dismissible, orange/green bg)│
+├─────────────────────────────────────────────────────┤
+│  1. HERO CAROUSEL (full-viewport-width, 2 slides)  │
+│     Bootstrap carousel-fade + crossfade transition   │
+│     Caption: h1 48px, CTA buttons (primary/secondary)│
+├─────────────────────────────────────────────────────┤
+│  2. STATS ROW (4 stats, data thật từ DB)           │
+│     Icon + counter animation (IntersectionObserver)  │
+├─────────────────────────────────────────────────────┤
+│  3. RE-ORDER SECTION (chỉ hiển thị khi ĐÃ ĐĂNG NHẬP)│
+│     4 quick-link cards: đơn gần nhất, khám phá,     │
+│     giỏ hàng, lịch sử                               │
+├─────────────────────────────────────────────────────┤
+│  4. RESTAURANT LIST                                 │
+│     FilterBar ViewComponent + Category pills +      │
+│     Product cards grid (col-xl-3 col-lg-4 col-6)    │
+│     + Empty state + load more                       │
+├─────────────────────────────────────────────────────┤
+│  5. APRIORI AI COMBO (gợi ý từ AI, data ViewBag)   │
+│     Product cards mini + AI badge + "Khám phá thêm" │
+├─────────────────────────────────────────────────────┤
+│  6. HIGHLIGHT BAND (marketing callout)              │
+│     2-col: text trái + 4-grid icons phải            │
+├─────────────────────────────────────────────────────┤
+│  7. HOW IT WORKS (3-step process cards)             │
+│     Icon circle + title + description + CTA btn     │
+├─────────────────────────────────────────────────────┤
+│  FOOTER (trong _LayoutPageHome.cshtml)              │
+│  Newsletter + Links + Social + Copyright            │
+└─────────────────────────────────────────────────────┘
+```
+
+### 5.2 Hero Carousel Section
+
+**Bootstrap 5 Carousel** với 2 slides, full-width, dùng class `carousel-fade` để crossfade effect:
+
+| Element | Mô tả | Style |
+|---------|-------|-------|
+| **Container** | `.container-fluid.p-0.wow.fadeIn` | Full-width, padding 0, WOW.js animation |
+| **Carousel** | `#header-carousel.carousel.slide` | Bootstrap carousel với `carousel-fade` class |
+| **Slide 1** | Banner 1: "Ẩm thực Sài Gòn — giao tận cửa trong 30 phút" | `w-100`, alt text tiếng Việt |
+| **Slide 2** | Banner 2: "Hơn 200 quán ăn ngon — đặt trong 1 phút" | `w-100`, 2 CTA buttons |
+| **Caption** | `.carousel-caption` | Left-aligned (`row justify-content-start`), `col-lg-7 col-11` |
+| **Heading** | `h1.display-2` | 48px desktop, `fw-800`, `animated` class |
+| **CTA Buttons** | `.btn-primary.rounded-pill` (green) + `.btn-secondary.rounded-pill` (orange) | `py-2 py-sm-3 px-4 px-sm-5`, responsive |
+| **Controls** | `.carousel-control-prev/next` | Bootstrap chevron arrows |
+| **Indicators** | `.carousel-indicators.d-sm-none` | Chỉ hiển thị trên mobile (< 576px) |
+
+**Carousel Animation**:
+- Caption h1: `slideInDown` 0.7s (0.4s mobile)
+- Caption buttons: `slideInUp` 0.7s (0.4s mobile)
+- Crossfade transition: 0.6s CSS transition
+- Re-trigger sau skeleton fadeOut (callback trong `main.js`)
+
+### 5.3 Promo Band
+
+Thanh thông báo nằm **ngay trên carousel**, đầy đủ width, có thể đóng:
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│ 🏷 Mùa hè đặc biệt — Giảm 20% cho đơn đầu tiên!  [✕]      │
+│   Khám phá ngay →                                              │
+└──────────────────────────────────────────────────────────────┘
+     height: 34px (v4.2 compact); font-size: 11.5px
+     background: var(--fs-orange) hoặc var(--fs-green)
+     color: #fff; display: flex; align-items: center
+```
+
+| Component | CSS Class | Chi tiết |
+|-----------|-----------|----------|
+| **Band** | `.fs-promo-band` | `position:relative`, flex, align-items center, padding, display none khi dismiss |
+| **Dismiss button** | `.fs-promo-dismiss` | `background:none; border:none; color:#fff; cursor:pointer; margin-left:auto` |
+| **Link** | Inline `<a>` | `text-decoration:underline; font-weight:600; white-space:nowrap` |
+| **Fade-out** | `.fade-out` class | `opacity:0; transition: opacity .3s ease` (JS toggle) |
+
+**JS Interaction**: Click [✕] → add `fade-out` class → 300ms later → `display:none`
+
+### 5.4 Stats Row
+
+4 thống kê **thực tế từ database** (không phải mock data):
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│  ┌────────────┐  ┌────────────┐  ┌────────────┐  ┌────────┐ │
+│  │ 🏪         │  │ 🏍️          │  │ 🛍️          │  │ ⭐     │ │
+│  │ 150+ quán  │  │ 30′ giao   │  │ 5,000+ đơn │  │ 4.5★  │ │
+│  │  đối tác   │  │  trung bình│  │  trong tháng│  │ TB     │ │
+│  └────────────┘  └────────────┘  └────────────┘  └────────┘ │
+└──────────────────────────────────────────────────────────────┘
+     grid: 4 columns (responsive → 2 columns mobile)
+     gap: 24px; padding: 24px 0
+```
+
+| Component | CSS Class | Chi tiết |
+|-----------|-----------|----------|
+| **Container** | `.fs-stats-row` | `display:grid; grid-template-columns:repeat(4,1fr); gap:24px;` mobile: `repeat(2,1fr)` |
+| **Stat item** | `.fs-stat-item` | `text-align:center; padding:20px 16px; border-radius:var(--fs-radius); background:var(--fs-white)` |
+| **Icon** | `.fs-stat-icon` | `font-size:28px; color:var(--fs-green); margin-bottom:8px` (Font Awesome) |
+| **Number** | `.stat-num` | `font-size:32px; font-weight:800; color:var(--fs-dark)` |
+| **Counter** | `.fs-counter` | `data-count="N"` — IntersectionObserver animation từ 0→N |
+| **Label** | `.stat-label` | `font-size:14px; color:var(--fs-muted); text-transform:uppercase; letter-spacing:0.5px` |
+
+**Counter Animation**: `<span class="fs-counter" data-count="@ViewBag.TotalRestaurants">0</span>` — JS IntersectionObserver đếm từ 0 lên giá trị thật (WOW.js không dùng cho counter).
+
+**Responsive**:
+- Desktop (>768px): 4 cột grid
+- Mobile (<768px): 2 cột grid, `border-bottom` thay `border-right`
+
+### 5.5 Re-order Section (dành cho user đã login)
+
+Chỉ hiển thị khi `currentUser != null` — 4 quick-link cards dạng horizontal:
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│ 🔄 Chào mừng trở lại, <username>!       [Lịch sử đơn hàng →]│
+│ Đặt lại món yêu thích của bạn chỉ với một chạm.              │
+├──────────────────────────────────────────────────────────────┤
+│ ┌────────────┐ ┌────────────┐ ┌────────────┐ ┌────────────┐│
+│ │  🔄        │ │  🧭        │ │  🛍️        │ │  🕐         ││
+│ │ Đơn gần    │ │ Khám phá   │ │ Giỏ hàng   │ │ Lịch sử   ││
+│ │ nhất       │ │ món mới    │ │            │ │            ││
+│ │ Đặt lại    │ │ Gợi ý AI   │ │ Tiếp tục   │ │ Theo dõi  ││
+│ │ dễ dàng    │ │            │ │  đặt món   │ │  đơn hàng  ││
+│ └────────────┘ └────────────┘ └────────────┘ └────────────┘│
+└──────────────────────────────────────────────────────────────┘
+```
+
+| Component | CSS Class | Chi tiết |
+|-----------|-----------|----------|
+| **Section** | `.fs-reorder-section` | `padding:24px 0`, WOW fadeInUp |
+| **Header row** | `.row.align-items-center` | Title + subtitle bên trái, button "Lịch sử" bên phải |
+| **Card** | `.fs-reorder-item` | `display:flex; align-items:center; gap:12px; padding:12px 16px; border-radius:12px;` |
+| **Card icon** | `.reorder-img` | `width:44px; height:44px; border-radius:10px; flex-shrink:0` (bg pastel màu khác nhau) |
+| **Card info** | `.reorder-info` | `flex:1` |
+| **Card name** | `.reorder-name` | `font-size:14px; font-weight:600; color:var(--fs-dark)` |
+| **Card sub** | `.reorder-restaurant` | `font-size:12px; color:var(--fs-muted)` |
+| **Arrow** | `.reorder-btn` | `color:var(--fs-muted-soft)` |
+
+### 5.6 Restaurant List Section
+
+Phần chính của trang chủ — danh sách quán ăn với filter + grid cards:
+
+```
+┌── max-width: 1200px; margin: auto ────────────────────────────┐
+│                                                               │
+│  [Section Title] "Quán ăn nổi bật tại TP.HCM"                │
+│  [Section Subtitle] "Khám phá văn hoá ẩm thực Sài Gòn..."   │
+│  [Xem tất cả →] (hidden mobile, visible desktop)              │
+│                                                               │
+│  ┌── FilterBar ViewComponent (Dual Filter) ──────────────┐   │
+│  │  [🔍 Tìm kiếm...] [🍽 Tất cả] [⭐ Đánh giá] [💰 Giá] │   │
+│  │  Selected chips: [Đánh giá ⬆] [Giá ⬇] [✕]            │   │
+│  └────────────────────────────────────────────────────────┘   │
+│                                                               │
+│  ┌── Category Pills ─────────────────────────────────────┐   │
+│  │  [🍽 Tất cả] [🍚 Cơm] [🍜 Phở] [🥘 Lẩu] [🍝 Bún]...  │   │
+│  │  .fs-category-row: flex-wrap (desktop) / scroll ngang  │   │
+│  │  .active pill: bg green, text white                     │   │
+│  └────────────────────────────────────────────────────────┘   │
+│                                                               │
+│  ┌── Restaurant Cards Grid (row g-3 g-md-4 mt-1) ────────┐  │
+│  │  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐     │  │
+│  │  │  img    │ │  img    │ │  img    │ │  img    │     │  │
+│  │  │ 4:3 ar  │ │ 4:3 ar  │ │ 4:3 ar  │ │ 4:3 ar  │     │  │
+│  │  │ Tên quán│ │ Tên quán│ │ Tên quán│ │ Tên quán│     │  │
+│  │  │ Địa chỉ │ │ Địa chỉ │ │ Địa chỉ │ │ Địa chỉ │     │  │
+│  │  │ ⭐ 4.5  │ │ ⭐ 4.2  │ │ ⭐ 4.8  │ │ ⭐ 4.3  │     │  │
+│  │  │ 30 bl   │ │ 15 bl   │ │ 45 bl   │ │ 22 bl   │     │  │
+│  │  └─────────┘ └─────────┘ └─────────┘ └─────────┘     │  │
+│  │  grid: col-xl-3 col-lg-4 col-6                        │  │
+│  │  (4 cols desktop, 3 cols tablet, 2 cols mobile)      │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                               │
+│  [Xem tất cả] (mobile only, .d-md-none)                      │
+└───────────────────────────────────────────────────────────────┘
+```
+
+#### 5.6.1 Restaurant Card (Product Item)
+
+```
+┌── .product-item ────────────────────────────────────────────┐
+│  ┌── .product-img-wrap (aspect-ratio 4/3, overflow hidden) ┐│
+│  │  <img> loading="lazy" onerror="fallback"               ││
+│  │  hover: scale(1.08) + overlay gradient                  ││
+│  │                                                         ││
+│  │  Badge: [🔴 Đang thịnh hành] (.fs-order-count-badge)    ││
+│  │  Badge: [🤖 AI] (.fs-ai-badge, cho combo section)      ││
+│  └─────────────────────────────────────────────────────────┘│
+│  ┌── .product-body ────────────────────────────────────────┐│
+│  │  .product-title: 16px/600, line-clamp 2                ││
+│  │  .product-address: 12px, muted, map-marker icon        ││
+│  └─────────────────────────────────────────────────────────┘│
+│  ┌── .product-footer ──────────────────────────────────────┐│
+│  │  ⭐ 4.5 (left)          💬 30 bình luận (right)        ││
+│  └─────────────────────────────────────────────────────────┘│
+└─────────────────────────────────────────────────────────────┘
+     border-radius: 12px; overflow: hidden;
+     box-shadow: var(--fs-shadow-sm);
+     transition: transform .3s ease, box-shadow .3s ease;
+     hover: translateY(-6px) + box-shadow elevated
+     cursor: pointer (toàn card là link)
+```
+
+| Thành phần | CSS Class | Chi tiết |
+|-----------|-----------|----------|
+| **Card container** | `.product-item` | `background:#fff; border-radius:12px; overflow:hidden; box-shadow; hover translateY(-6px)` |
+| **Image wrapper** | `.product-img-wrap` | `overflow:hidden; aspect-ratio:4/3; position:relative` |
+| **Image** | `<img>` | `width:100%; height:100%; object-fit:cover; transition:transform .5s ease` + `hover scale(1.08)` |
+| **Trending badge** | `.fs-order-count-badge` | `position:absolute; top:12px; left:12px; bg:rgba(0,0,0,.65); color:#fff; font-size:11px; padding:4px 10px; border-radius:20px;` |
+| **Trending dot** | `.fs-trending-dot` | `display:inline-block; width:6px; height:6px; background:#ea4335; border-radius:50%; animation:pulse 1.5s infinite` |
+| **Body** | `.product-body` | `padding:16px 16px 8px` |
+| **Title** | `.product-title` | `font-size:16px; font-weight:600; color:var(--fs-dark); line-height:1.3; overflow:hidden; text-overflow:ellipsis; white-space:nowrap` |
+| **Address** | `.product-address` | `font-size:12px; color:var(--fs-muted); margin-top:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis` |
+| **Footer** | `.product-footer` | `display:flex; justify-content:space-between; align-items:center; padding:8px 16px 14px; border-top:1px solid var(--fs-border-soft)` |
+| **Star rating** | `.pf-cell .fa-star` | `color:#f39c12; font-size:13px; margin-right:4px; display:inline-flex; align-items:center; gap:4px` |
+| **Comment count** | `.pf-cell` | `font-size:12px; color:var(--fs-muted)` |
+
+#### 5.6.2 Category Pills
+
+```
+┌── .fs-category-row ──────────────────────────────────────────┐
+│  [🍽 Tất cả] [🍚 Cơm] [🍜 Phở] [🥘 Lẩu] [🍝 Bún] [🥗 Salad]│
+│  flex-wrap: wrap (desktop) → overflow-x: auto (mobile)       │
+│  gap: 10px; padding: 12px 0                                  │
+└──────────────────────────────────────────────────────────────┘
+```
+
+| State | CSS | Mô tả |
+|-------|-----|-------|
+| **Default** | `.fs-category-pill` | `padding:8px 18px; border-radius:30px; font-size:13px; font-weight:500; border:1.5px solid var(--fs-border); background:#fff; color:var(--fs-muted); transition:all .2s ease; text-decoration:none; display:inline-flex; align-items:center;` |
+| **Hover** | `&:hover` | `border-color:var(--fs-green); color:var(--fs-green); background:var(--fs-green-bg)` |
+| **Active** | `.active` | `background:var(--fs-green); color:#fff; border-color:var(--fs-green); font-weight:600` |
+
+#### 5.6.3 Empty State
+
+Khi không có quán ăn nào khớp filter:
+```
+┌──────────────────────────────────────────────┐
+│           🥄 (fa fa-utensils 48px)            │
+│    "Không tìm thấy quán ăn phù hợp"           │
+│    "Thử tìm kiếm với từ khoá khác..."          │
+│                                              │
+│    [Xem tất cả quán] (.btn-success.rounded-pill)│
+└──────────────────────────────────────────────┘
+```
+
+### 5.7 Apriori AI Combo Section
+
+Gợi ý món ăn từ thuật toán Apriori (dữ liệu từ `ViewBag.AprioriCombo`):
+
+```
+┌── Section: "🤖 Gợi ý Combo từ AI hôm nay" ──────────────────┐
+│  "Dựa trên phân tích hàng ngàn đơn hàng thực tế..."         │
+│                                                               │
+│  ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐     │
+│  │ img  │ │ img  │ │ img  │ │ img  │ │ img  │ │ img  │     │
+│  │ 🤖AI │ │ 🤖AI │ │ 🤖AI │ │ 🤖AI │ │ 🤖AI │ │ 🤖AI │     │
+│  │ Tên  │ │ Tên  │ │ Tên  │ │ Tên  │ │ Tên  │ │ Tên  │     │
+│  │ Quán │ │ Quán │ │ Quán │ │ Quán │ │ Quán │ │ Quán │     │
+│  │ Giá  │ │ Giá  │ │ Giá  │ │ Giá  │ │ Giá  │ │ Giá  │     │
+│  └──────┘ └──────┘ └──────┘ └──────┘ └──────┘ └──────┘     │
+│  grid: col-xl-2 col-lg-3 col-md-4 col-6                     │
+└──────────────────────────────────────────────────────────────┘
+```
+
+| Component | CSS | Chi tiết |
+|-----------|-----|----------|
+| **Section title** | `.fs-section-title-sm` | `18px/700`, icon robot `#f39c12` |
+| **AI Badge** | `.fs-ai-badge` | `position:absolute; top:8px; right:8px; bg:rgba(243,156,18,.9); color:#fff; font-size:10px; padding:2px 8px; border-radius:20px; font-weight:600; backdrop-filter:blur(4px)` |
+| **Price** | `.fs-price` | `font-size:13px; font-weight:600; color:var(--fs-green); margin-top:4px` |
+| **Body compact** | `.product-body-compact` | `padding:12px 14px 10px` |
+
+### 5.8 Highlight Band
+
+Band marketing full-width với nền gradient/ảnh:
+
+```
+┌── .fs-highlight-band ────────────────────────────────────────┐
+│  ┌── CỘT TRÁI (col-lg-7) ──┐ ┌── CỘT PHẢI (col-lg-5) ────┐│
+│  │ [MÙA HÈ SÀI GÒN 2026]   │ │ ┌──────┐ ┌──────┐        ││
+│  │ badge (12px, green bg)   │ │ │🍴Cơm │ │☕Trà  │        ││
+│  │                         │ │ │Bún   │ │Cà phê│        ││
+│  │ "Hôm nay có gì ngon?"    │ │ └──────┘ └──────┘        ││
+│  │ h2 text-white            │ │ ┌──────┐ ┌──────┐        ││
+│  │                         │ │ │💼Cơm  │ │🏍️30′ │        ││
+│  │ [Khám phá thực đơn →]   │ │ │VP    │ │Giao  │        ││
+│  │ btn-outline-light       │ │ └──────┘ └──────┘        ││
+│  └─────────────────────────┘ └────────────────────────────┘│
+└──────────────────────────────────────────────────────────────┘
+     max-width: 100%; padding: 60px 0;
+     background: linear-gradient(135deg, #1a1a2e, #16213e)
+```
+
+| Component | CSS Class | Chi tiết |
+|-----------|-----------|----------|
+| **Section** | `.fs-highlight-band` | `background:linear-gradient(135deg,#1a1a2e,#16213e); color:#fff; padding:60px 0` |
+| **Badge** | `.fs-section-badge` | `display:inline-block; padding:4px 14px; border-radius:20px; background:var(--fs-green); color:#fff; font-size:12px; font-weight:600; letter-spacing:1px; margin-bottom:12px` |
+| **Heading** | `h2.text-white` | `font-size:32px; font-weight:800` |
+| **Paragraph** | Inline `<p>` | `font-size:15px; opacity:.8; line-height:1.7` |
+| **Grid** | `.fs-highlight-grid` | `display:grid; grid-template-columns:1fr 1fr; gap:12px` |
+| **Grid item** | `.fs-highlight-grid-item` | `bg:rgba(255,255,255,.1); border-radius:12px; padding:20px 16px; text-align:center; backdrop-filter:blur(8px)` |
+| **Grid icon** | `.hg-icon` | `font-size:32px; margin-bottom:8px; color:var(--fs-green)` |
+| **Grid label** | `.hg-label` | `font-size:11px; font-weight:500; text-transform:uppercase; letter-spacing:0.5px; opacity:.8` |
+
+### 5.9 How It Works Section
+
+3-step process cards, giải thích quy trình đặt món:
+
+```
+┌── "Đặt món dễ như thế này" ─────────────────────────────────┐
+│  "Ba bước đơn giản để có bữa ăn ngon tại nhà"               │
+│                                                               │
+│  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐         │
+│  │    🔍        │ │    🛍️        │ │    🏍️        │         │
+│  │              │ │              │ │              │         │
+│  │ 1. Chọn quán │ │ 2. Thêm vào  │ │ 3. Nhận hàng │         │
+│  │              │ │    giỏ       │ │              │         │
+│  │ Duyệt hàng   │ │ Chọn món,   │ │ Shipper giao │         │
+│  │ trăm quán    │ │ điều chỉnh  │ │ tận tay      │         │
+│  │ tại TP.HCM   │ │ số lượng    │ │ trong 30′    │         │
+│  └──────────────┘ └──────────────┘ └──────────────┘         │
+│                                                               │
+│  [Đăng ký miễn phí →]                                         │
+└───────────────────────────────────────────────────────────────┘
+```
+
+| Component | CSS Class | Chi tiết |
+|-----------|-----------|----------|
+| **Section** | `.fs-how-section` | `padding:60px 0; background:var(--fs-light)` |
+| **Title** | `.fs-section-title` | `font-size:28px; font-weight:700; color:var(--fs-dark)` |
+| **Subtitle** | `.fs-section-sub` | `font-size:15px; color:var(--fs-muted); max-width:500px; margin:8px auto 0` |
+| **Card** | `.fs-how-card` | `text-align:center; padding:32px 24px; border-radius:var(--fs-radius); background:var(--fs-white); box-shadow:var(--fs-shadow-sm); transition:transform .3s ease; hover:translateY(-4px)` |
+| **Icon** | `.fs-how-icon` | `width:72px; height:72px; border-radius:50%; background:var(--fs-green-bg); display:flex; align-items:center; justify-content:center; margin:0 auto 16px; font-size:28px; color:var(--fs-green)` |
+| **Step title** | `h5` | `font-size:16px; font-weight:600; margin-bottom:8px` |
+| **Value prop** | `.fs-how-value` | `font-size:13px; color:var(--fs-muted); line-height:1.7` |
+| **Highlight** | `.fs-how-highlight` | `font-weight:600; color:var(--fs-dark)` |
+| **CTA** | `.btn-success.rounded-pill` | `font-size:15px; padding:12px 40px; box-shadow:var(--fs-shadow-btn)` |
+
+### 5.10 Scroll-Reveal Animations
+
+Trang chủ sử dụng **IntersectionObserver** (vanilla JS, không WOW.js) cho hiệu ứng scroll-reveal:
+
+```html
+<div class="fs-reveal" style="--fs-i:1">
+    <!-- Nội dung sẽ fade-in + slide-up khi xuất hiện trong viewport -->
+</div>
+```
+
+| Attribute | Giá trị | Hiệu ứng |
+|-----------|---------|----------|
+| `.fs-reveal` | class | `opacity:0; transform:translateY(30px); transition:all .6s cubic-bezier(.25,.46,.45,.94)` |
+| `.fs-reveal.revealed` | class (JS thêm) | `opacity:1; transform:translateY(0)` |
+| `--fs-i` | Số thứ tự (1, 2, 3...) | Stagger delay: `transition-delay: calc(var(--fs-i) * 80ms)` |
+| `.fs-counter` | `data-count="N"` | Đếm từ 0→N khi section vào viewport (IntersectionObserver) |
+
+**JS Implementation** (in `main.js` hoặc inline):
+```javascript
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.classList.add('revealed');
+            // Trigger counter animation if .fs-counter exists
+            const counter = entry.target.querySelector('.fs-counter');
+            if (counter) animateCounter(counter);
+            observer.unobserve(entry.target);
+        }
+    });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.fs-reveal').forEach(el => observer.observe(el));
+```
+
+### 5.11 Layout Flow Summary
+
+```
+DOM load → Skeleton overlay hiện (0ms)
+    │
+    ├── HTML render: Promo → Hero → Stats → Re-order → Categories → Cards → AI → Band → How
+    │
+    ├── 100ms delay → Skeleton fadeOut (250ms)
+    │   → OwlCarousel re-trigger + WOW.js init
+    │   → Carousel caption animation (slideInDown/Up)
+    │
+    └── User scroll → IntersectionObserver:
+        → .fs-reveal elements: fade-in staggered
+        → .fs-counter elements: đếm từ 0→N
+        → Header shadow: toggle .scrolled khi scroll >10px
+```
 
 ---
-
-
 
 ## 6. Trang Chi Tiết Quán Ăn (DetailRestaurant)
 
@@ -817,6 +1229,166 @@ function stripDia(s) {
 | File | Thay đổi |
 |------|----------|
 | `DetailRestaurant.cshtml` | CSS sticky bar + FAB + Bottom Sheet; HTML FAB + Bottom Sheet; JS buildCategorySheet(), open/closeCategorySheet(), getCategoryIcon() |
+
+---
+
+### 6.6 Chi Tiết Sản Phẩm (ChiTietSanPham)
+
+**File**: `Views/Home/ChiTietSanPham.cshtml`  
+**Layout**: `_LayoutPageHome.cshtml`  
+**CSS**: `details.css`, `base.css` + inline styles  
+**Route**: `/Home/ChiTietSanPham/{id}`
+
+#### 6.6.1 Layout Desktop
+
+Trang chi tiết sản phẩm (món ăn) với hero section 2 cột + similar items grid + reviews:
+
+```
+┌───────────── max-width: 1200px; margin: 100px auto 40px ──────────────┐
+│                                                                       │
+│  Breadcrumb: Trang chủ › Quán ăn › Tên món (13px, flex-wrap)         │
+│                                                                       │
+│  ┌─────────── HERO SECTION (flex, gap:40px, padding:32px) ─────────┐ │
+│  │ ┌── CỘT TRÁI (flex:0 0 420px) ──┐ ┌── CỘT PHẢI (flex:1) ────┐ │ │
+│  │ │ ┌───────────────────────────┐ │ │ [🏪 Tên quán] (link quán)  │ │ │
+│  │ │ │        IMG 4:3            │ │ │                            │ │ │
+│  │ │ │  aspect-ratio: 4/3        │ │ │ 🍕 Tên món (26px, 800)   │ │ │
+│  │ │ │  hover: scale(1.05)       │ │ │ 🏷 Danh mục (12px pill)    │ │ │
+│  │ │ │                           │ │ │                            │ │ │
+│  │ │ │  Badge: -20% (góc TL)     │ │ │ Mô tả (15px, border-left  │ │ │
+│  │ │ │  Badge: Đã mua (góc TR)   │ │ │ 4px green, bg light)      │ │ │
+│  │ │ └───────────────────────────┘ │ │                            │ │ │
+│  │ └─────────────────────────────┘ │ │ 💰 Giá: 35.000đ (32px,    │ │ │
+│  │                                 │ │     đỏ, 800)               │ │ │
+│  │                                 │ │     Giá cũ: 45.000đ (gạch │ │ │
+│  │                                 │ │     ngang)                 │ │ │
+│  │                                 │ │                            │ │ │
+│  │                                 │ │ 🎯 Size variants (chips)  │ │ │
+│  │                                 │ │ [M - 35k✓] [L - 45k]      │ │ │
+│  │                                 │ │ [XL - 55k]                 │ │ │
+│  │                                 │ │                            │ │ │
+│  │                                 │ │ 🛒 Add to cart area (bg    │ │ │
+│  │                                 │ │     light, border-radius)  │ │ │
+│  │                                 │ │ [−][1][+] [🛒 Thêm vào    │ │ │
+│  │                                 │ │          giỏ hàng]         │ │ │
+│  │                                 │ │                            │ │ │
+│  │                                 │ │ ✅ Còn hàng | 👍 100+ đã   │ │ │
+│  │                                 │ │ đặt (13px, muted)          │ │ │
+│  │                                 └──────────────────────────────┘ │ │
+│  └──────────────────────────────────────────────────────────────────┘ │
+│                                                                       │
+│  ┌── CÙNG QUÁN (similar items grid) ──────────────────────────────┐  │
+│  │  Các món khác từ <Tên quán>                                     │  │
+│  │  ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐                    │  │
+│  │  │ img140 │ │ img140 │ │ img140 │ │ img140 │                    │  │
+│  │  │ Tên món│ │ Tên món│ │ Tên món│ │ Tên món│                    │  │
+│  │  │ 35kđ   │ │ 45kđ   │ │ 50kđ   │ │ 30kđ   │                    │  │
+│  │  └────────┘ └────────┘ └────────┘ └────────┘                    │  │
+│  │  grid: repeat(auto-fill, minmax(220px, 1fr))                    │  │
+│  └──────────────────────────────────────────────────────────────────┘  │
+│                                                                       │
+│  ┌── ĐÁNH GIÁ (reviews, paginated) ──────────────────────────────┐   │
+│  │  ⭐ Đánh giá             4.5 ★★★★☆ (30 đánh giá)              │   │
+│  │  ┌────────────────────────────────────────────────────────┐   │   │
+│  │  │ [LK] Linh Ka             ★★★★★  10/07/2026              │   │   │
+│  │  │ "Pizza ngon, đóng gói cẩn thận, giao nhanh!"            │   │   │
+│  │  │ 🏷 Pizza hải sản                                        │   │   │
+│  │  └────────────────────────────────────────────────────────┘   │   │
+│  │  ┌────────────────────────────────────────────────────────┐   │   │
+│  │  │ [MT] Minh Tú             ★★★★☆  09/07/2026              │   │   │
+│  │  │ "Ngon nhưng hơi mặn"                                    │   │   │
+│  │  │ 🏷 Pizza bò băm                                         │   │   │
+│  │  └────────────────────────────────────────────────────────┘   │   │
+│  │  [Xem thêm]                                                  │   │
+│  └──────────────────────────────────────────────────────────────┘   │
+└──────────────────────────────────────────────────────────────────────┘
+```
+
+#### 6.6.2 Layout Mobile (< 900px)
+
+```
+┌────────────────────────────────┐
+│ Breadcrumb: Trang chủ › Quán…  │
+├────────────────────────────────┤
+│ ┌────────────────────────────┐ │
+│ │      IMG (16:9/4:3)       │ │
+│ │  Badge: -20% | Đã mua      │ │
+│ └────────────────────────────┘ │
+│ 🏪 Tên quán                    │
+│ 🍕 Tên món (22px/18px)        │
+│ Mô tả (14px)                   │
+│ 💰 Giá: 35.000đ (26px/22px)   │
+│                                │
+│ Size: [M] [L] [XL]            │
+│                                │
+│ [−] [1] [+]                    │
+│ [🛒 Thêm vào giỏ hàng] (full) │
+│                                │
+├════════════════════════════════┤
+│ Các món khác                   │
+│ ┌─────┐ ┌─────┐               │
+│ │ img │ │ img │               │
+│ │ Tên  │ │ Tên  │               │
+│ └─────┘ └─────┘               │
+├════════════════════════════════┤
+│ ⭐ Đánh giá (1 cột)           │
+└────────────────────────────────┘
+```
+
+#### 6.6.3 Các thành phần chính
+
+| Thành phần | CSS Class / Selector | Mô tả |
+|-----------|---------------------|-------|
+| **Breadcrumb** | `.fs-breadcrumb` | flex, gap 8px, 13px, link xanh dương |
+| **Hero section** | `.pd-hero` | flex row, gap 40px, padding 32px, shadow, border-radius 16px |
+| **Image wrapper** | `.pd-image-wrap` | flex 0 0 420px, aspect-ratio 4/3, border-radius 12px, hover scale(1.05) |
+| **Badge** | `.pd-badge` | absolute top-left, red/warning/green variants, box-shadow, 12px font |
+| **Link quán** | `.pd-restaurant-link` | inline-flex, 13px, bg light, rounded pill, hover green |
+| **Tên món** | `.pd-name` | 26px/800/font dark, line-height 1.3 |
+| **Mô tả** | `.pd-desc` | 15px, border-left 4px green, bg light, border-radius 10px |
+| **Price area** | `.pd-price-area` | flex, align-items baseline, flex-wrap |
+| **Giá hiện tại** | `.pd-current-price` | 32px/800/đỏ, .unit sub 16px/400 |
+| **Giá cũ** | `.pd-old-price` | 18px, text-decoration line-through, muted-soft |
+| **Size chip** | `.pd-variant-chip` | border 2px, border-radius 24px, padding 8px 20px, active: bg green |
+| **Add to cart area** | `.pd-cart-area` | bg light, border-radius 12px, padding 20px, flex-wrap |
+| **Quantity** | `.pd-qty` | flex, border 1.5px, border-radius 10px, button 40×40px, input 56×40px |
+| **Add button** | `.pd-btn-add` | gradient green, border-radius 10px, 15px/700, hover translateY(-1px) |
+| **Similar grid** | `.pd-similar-grid` | grid auto-fill, minmax 220px, gap 16px |
+| **Similar card** | `.pd-similar-card` | border 1.5px, border-radius 12px, hover shadow + translateY(-2px) |
+| **Review card** | (inline) | border 1.5px, border-radius 12px, padding 16px, avatar 36px circle |
+| **Load more** | `#pdLoadMoreWrap` | text-align center, button border 2px green, border-radius 30px |
+
+#### 6.6.4 JS Interactions
+
+| Function | Trigger | Mô tả |
+|----------|---------|-------|
+| `selectPdSize(btn)` | Click size chip | highlight chip active, cập nhật `#pdMaMonAn` + giá hiển thị |
+| `adjustQty(delta)` | Click −/+ | Tăng/giảm số lượng (1-99), blur validate |
+| `addToCartPd()` | Click add button | AJAX `ApiThemMonAn` hoặc `FastShipCart.addUnauth` (anonymous) |
+| `pdLoadReviews(reset)` | DOM ready, load more | AJAX `GetReviews` (page, pageSize), render review cards |
+| `pdLoadMore()` | Click "Xem thêm" | Tăng page + `pdLoadReviews(false)` append |
+
+#### 6.6.5 Flow
+
+```
+SanPham (grid)              DetailRestaurant (menu)
+     │                            │
+     └──────────┬─────────────────┘
+                ▼
+     ┌─────────────────────┐
+     │ ChiTietSanPham      │
+     │  breadcrumb ← quán  │
+     │  Ảnh + info         │
+     │  Size variant chip  │
+     │  ────────           │
+     │  Thêm giỏ hàng      │
+     │  (AJAX / local)     │
+     ├─────────────────────┤
+     │  Cùng quán (grid)   │
+     ├─────────────────────┤
+     │  Đánh giá (paginated)│
+     └─────────────────────┘
+```
 
 ---
 
@@ -1334,12 +1906,170 @@ Google OAuth Callback → Email not found in tbUser?
 
 ---
 
-## 11-12. (Restaurant & Shipper Dashboards tương tự Admin)
+## 11. Dashboard Restaurant
 
-Đã được cập nhật:
-- Font Inter cho body text
-- Responsive stacked cards CSS
-- Touch targets ≥ 44px
+**Layout**: `_LayoutPageRestaurant.cshtml`  
+**CSS**: `style-restaurant.css`, `fastship-design-tokens.css`, inline override  
+**Home view**: `Views/Restaurant/Index.cshtml`
+
+### 11.1 Layout Desktop
+
+```
+┌──────────────────────────────────────────────────────┐
+│ HEADER: ☰ Hamburger | Logo | 🔍 Search | 🔔 Bell | 👤 Avatar  │
+├──────────┬───────────────────────────────────────────┤
+│ SIDEBAR  │  MAIN CONTENT                             │
+│ (dark)   │                                           │
+│          │  ┌── Page Title ───────────────────────┐  │
+│ 🏠 Home  │  │  Thống kê (h2)                     │  │
+│ 📋 Đơn   │  │  Xin chào quản lí <Tên quán>        │  │
+│ 🍕 Món   │  └─────────────────────────────────────┘  │
+│ 📊 Báo   │                                           │
+│ cáo      │  ┌── APRIORI AI INSIGHTS ─────────────┐  │
+│ 💬 Chat  │  │  🤖 Chiến lược bán chéo từ dữ liệu │  │
+│ 👤 Hồ sơ │  │  Phân tích Apriori trên N đơn hàng │  │
+│          │  │  ┌──────┐ ┌──────┐ ┌──────┐       │  │
+│          │  │  │Cơm sườn│ │Bò né│ │Pizza │       │  │
+│          │  │  │+       │ │+     │ │+     │       │  │
+│          │  │  │Trà đá│ │Coca │ │Nước│       │  │
+│          │  │  │78%    │ │65%   │ │82%   │       │  │
+│          │  │  └──────┘ └──────┘ └──────┘       │  │
+│          │  └─────────────────────────────────────┘  │
+│          │                                           │
+│          │  ┌── KPI ROW (4 columns) ──────────────┐  │
+│          │  │  📦 Đơn hôm nay    💰 Doanh thu    │  │
+│          │  │  👥 Khách mới      ⭐ Đánh giá     │  │
+│          │  └─────────────────────────────────────┘  │
+│          │                                           │
+│          │  ┌── RECENT ORDERS TABLE ──────────────┐  │
+│          │  │  DataTable with search/sort         │  │
+│          │  │  |Mã|Khách|Món|Tổng|TT|Action|     │  │
+│          │  │  |---|-----|---|----|--|------|     │  │
+│          │  │  ...                                 │  │
+│          │  └─────────────────────────────────────┘  │
+├──────────┴───────────────────────────────────────────┤
+└──────────────────────────────────────────────────────┘
+```
+
+### 11.2 Apriori AI Insights Card
+
+Phân tích dữ liệu đơn hàng hoàn thành bằng thuật toán Apriori, hiển thị gợi ý bán chéo:
+
+| Element | Style |
+|---------|-------|
+| **Header** | Gradient xanh `#3CB815→#27a001`, text trắng, icon 🤖, badge "AI" |
+| **Card body** | Padding 20px 24px, grid `repeat(auto-fill, minmax(280px, 1fr))` |
+| **Insight item** | bg `#f8f9fa`, border-radius 12px, padding 14px, hover border green + shadow |
+| **Confidence** | Màu đỏ `#e74c3c`, bold, hiển thị % khách mua A cũng mua B |
+| **Support** | 11px, muted, hiển thị % support + số đơn pair |
+
+### 11.3 Chức năng chính
+
+| Menu Item | View | Route |
+|-----------|------|-------|
+| Dashboard | `Index.cshtml` | `/Restaurant` |
+| Quản lý đơn hàng | `OrderList.cshtml` | `/Restaurant/OrderList` |
+| Quản lý món ăn | `Product.cshtml` | `/Restaurant/Product` |
+| Thêm món ăn | `AddProduct.cshtml` | `/Restaurant/AddProduct` |
+| Báo cáo doanh thu | `Report.cshtml` | `/Restaurant/Report` |
+| Đánh giá | `Review.cshtml` | `/Restaurant/Review` |
+| Chat hỗ trợ | `NhanTin.cshtml` | `/Restaurant/NhanTin` |
+| Hồ sơ quán | `Profile.cshtml` | `/Restaurant/Profile` |
+
+### 11.4 Real-time Features
+
+| Trigger | SignalR Event | Group |
+|---------|---------------|-------|
+| Có đơn mới | `newOrder` → `restaurant_{maquan}` | Toast + reload table |
+| Nhận đơn (nhandon) | `orderStatusChanged` → `order_{id}` | Customer nghe |
+| Hủy đơn (huydon) | `orderStatusChanged` → `order_{id}` | Customer nghe |
+| Chuẩn bị xong (hoantatdon) | `orderStatusChanged` + `newPickupOrder` | Customer + Shipper |
+| Xác nhận lấy hàng (Delivery Scan) | `deliveryScanned` → `order_{id}` | Customer |
+
+---
+
+## 12. Dashboard Shipper
+
+**Layout**: `_LayoutPageShipper.cshtml`  
+**CSS**: `style-shiper.css`, `fastship-design-tokens.css`, inline override  
+**Home view**: `Views/Shipper/Index.cshtml`
+
+### 12.1 Layout Desktop — Split-screen
+
+```
+┌──── SHIPPER-SPLIT (grid: 380px 1fr, max-width: 1440px) ──────────┐
+│ ┌── LEFT PANEL (flex-col, gap:20px) ──┐ ┌── RIGHT PANEL ──────┐ │
+│ │                                      │ │                      │ │
+│ │ ┌── PROFILE CARD ─────────────────┐ │ │ 📋 Đơn hàng           │ │
+│ │ │  gradient dark bg               │ │ │                      │ │
+│ │ │  ┌────┐                         │ │ │ [FREE-PICK] [ĐƠN HÀNG]│ │
+│ │ │  │ 64 │  Nguyễn Văn A           │ │ │  (tab group)          │ │
+│ │ │  │ px │  🟢 Đang hoạt động     │ │ │                      │ │
+│ │ │  └────┘  [Bật/Tắt]              │ │ │ ┌── ORDER CARDS ──┐ │ │
+│ │ └──────────────────────────────┘ │ │ │ ┌──────────────┐ │ │
+│ │                                      │ │ │ #42 FREE-PICK │ │ │
+│ │ ┌── QUICK STATS (2×2 grid) ────┐ │ │ │ 🏪 Koneko      │ │ │
+│ │ │ 📦 Hôm nay  💰 Thu nhập     │ │ │ │ 📍 48 Cao Thắng │ │ │
+│ │ │    5 đơn     120,000đ       │ │ │ │ 💵 Thu: 120k   │ │ │
+│ │ │ 🚚 Đang giao 📋 FREE-PICK   │ │ │ │ [Nhận đơn] [👁]│ │ │
+│ │ │    2 đơn       3 đơn        │ │ │ └──────────────┘ │ │
+│ │ └──────────────────────────────┘ │ │ ┌──────────────┐ │ │
+│ │                                      │ │ #41 Đang giao  │ │ │
+│ │ ┌── MAP CARD ────────────────────┐ │ │ 🏪 Cơm 1990    │ │ │
+│ │ │  📍 Vị trí của bạn             │ │ │ 💰 Ship: 15k  │ │ │
+│ │ │  ┌────────────────────────┐   │ │ │ [Chi tiết]    │ │ │
+│ │ │  │   Leaflet Map         │   │ │ └──────────────┘ │ │ │
+│ │ │  │   260px height        │   │ │                      │ │
+│ │ │  │   marker: vị trí bạn  │   │ │ [🔄 Làm mới]         │ │
+│ │ │  └────────────────────────┘   │ │                      │ │
+│ │ └──────────────────────────────┘ │ │                      │ │
+│ └──────────────────────────────────┘ └──────────────────────┘ │
+└────────────────────────────────────────────────────────────────┘
+```
+
+### 12.2 Component Detail
+
+| Component | CSS | Mô tả |
+|-----------|-----|-------|
+| **Split layout** | `.shipper-split` | `display:grid; grid-template-columns:380px 1fr; gap:24px` |
+| **Profile card** | `.profile-card` | `background: linear-gradient(135deg, #1a1a2e, #16213e)`, border-radius 16px, padding 24px, trắng |
+| **Avatar** | `.profile-avatar` | 64×64px, border-radius 50%, border 3px trắng mờ |
+| **Status dot** | `.status-dot` | 8×8px, `.online` = green + box-shadow, `.offline` = red |
+| **Quick stats** | `.quick-stats` | `grid-template-columns: 1fr 1fr; gap: 12px` |
+| **Stat item** | `.stat-item` | bg trắng, border-radius 12px, padding 16px, border `#f0f0f0`, hover translateY(-1px) |
+| **Map card** | `.map-card` | bg trắng, border-radius 16px, overflow hidden, border `#f0f0f0` |
+| **Tab group** | `.tab-group` | bg `#f3f4f6`, border-radius 10px, padding 4px, `.tab-btn.active`: bg trắng + shadow |
+| **Order cards** | `.order-card` | bg trắng, border-radius 14px, padding 20px, border `#f0f0f0`, hover translateY(-2px) + shadow |
+| **Order grid** | `.order-grid` | `grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px` |
+| **Accept btn** | `.btn-accept` | bg `#3CB815`, trắng, hover `#34a013` |
+| **Empty state** | `.empty-state` | text-align center, padding 60px, icon 48px, muted text |
+
+### 12.3 Order Card Detail
+
+```
+┌── ORDER CARD ───────────────────────────────┐
+│ #42                              🟡 FREE-PICK│
+│                                               │
+│ 🏪 Koneko Pizza                               │
+│ 📍 Quán: 48 Cao Thắng → Giao: Nguyễn Trãi    │
+│ 💵 Thu: 120,000đ | Ship: 15,000đ              │
+│ 📅 15/07 14:30                                │
+│                                               │
+│ ┌──────────┐ ┌────┐                          │
+│ │ ✅ Nhận  │ │ 👁 │                          │
+│ │   đơn    │ │    │                          │
+│ └──────────┘ └────┘                          │
+└──────────────────────────────────────────────┘
+```
+
+### 12.4 SignalR Real-time
+
+| Event | Hành động |
+|-------|-----------|
+| `newPickupOrder` | 🔊 Phát âm thanh (triangle wave 660Hz) + reload trang sau 1s |
+| `orderAccepted` | Ẩn card đơn (opacity→0, translateX→40px) + remove sau 350ms |
+| `JoinShipperGroup` | Kết nối vào group nhận đơn FREE-PICK mới |
+| Geolocation | `navigator.geolocation.watchPosition` → `UpdateLocation` (nếu có currentOrderId) |
 
 ---
 

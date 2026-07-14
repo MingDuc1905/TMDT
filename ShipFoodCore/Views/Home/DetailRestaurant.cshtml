@@ -357,12 +357,17 @@
                             <div class="menu-restaurant-detail" style="width:78%">
                                 <div class="menu-restaurant-list">
                                     <div class="search-items">
-                                        <form action="~/Home/DetailRestaurant">
-                                            <p class="input-group">
-                                                <input type="hidden" name="id" value="@ViewBag.maquan"/>
-                                                <i class="fas fa-search"></i><input style="width:85%" type="text" name="searchKey" placeholder="Tìm món" value="@ViewBag.searchKey" />
-                                                <button type="submit" style="width:15%;color:var(--fs-white);" class="btn-secondary"><strong>Tìm</strong></button>
-                                            </p>
+                                        <form action="~/Home/DetailRestaurant" style="margin-bottom:16px;">
+                                            <input type="hidden" name="id" value="@ViewBag.maquan"/>
+                                            <div style="display:flex;align-items:center;gap:0;border:1.5px solid var(--fs-border);border-radius:10px;overflow:hidden;background:#fff;">
+                                                <span style="padding:0 0 0 12px;display:flex;align-items:center;color:var(--fs-muted-soft);font-size:13px;">
+                                                    <i class="fas fa-search"></i>
+                                                </span>
+                                                <input type="text" name="searchKey" placeholder="Tìm món..." value="@ViewBag.searchKey"
+                                                       style="flex:1;border:none;padding:9px 10px;font-size:14px;outline:none;background:transparent;" />
+                                                <button type="submit"
+                                                        style="padding:9px 20px;background:var(--fs-green);color:#fff;border:none;font-size:13px;font-weight:600;cursor:pointer;transition:background .15s;">Tìm</button>
+                                            </div>
                                         </form>
                                     </div>
                                     <div class="menu-group" id="section-group-menu--1" style="height: auto; left: 0px; position: relative; top: 0px; width: 100%; padding-bottom: 8px;">
@@ -393,71 +398,82 @@
                                         }
                                         var daMua = daMuaMonAnIds != null && daMuaMonAnIds.Contains(item.mamon);
                                         var allVariants = item.tbBienTheMonAns?.ToList() ?? new List<ShipFood.Models.tbBienTheMonAn>();
-                                        var firstVariantId = allVariants.Count > 0 ? allVariants[0].id : (int?)item.mamon;                                                    <div class="item-restaurant-row @(daMua ? "item-da-mua" : "")" style="display:block;height:84px;position:relative;width:100%;margin-bottom:20px;">
-                                            <div class="row">
-                                                <div class="col-auto item-restaurant-img">
-                                                    <button class="inline">
-                                                        <img src="@TinhToan.HinhAnhUrl(item.hinhanh)" alt="Không tìm thấy ảnh" width="60" height="60" onerror="this.src='/Source/Home/img/pizza.jpg'" />
+                                        var firstVariantId = allVariants.Count > 0 ? allVariants[0].id : (int?)item.mamon;
+                                        // ponytail: item row keys for consistent flex layout
+                                        var rowItemId = "item-" + item.mamon;
+                                        <div class="item-restaurant-row @(daMua ? "item-da-mua" : "")" id="@rowItemId" style="display:block;position:relative;width:100%;margin-bottom:20px;">
+                                            <div class="row" style="flex-wrap:nowrap;align-items:flex-start;gap:0;">
+                                                <!-- Column 1: Image + badge -->
+                                                <div class="col-auto item-restaurant-img" style="position:relative;flex-shrink:0;padding-right:0;">
+                                                    <button class="inline" style="padding:0;border:none;background:none;">
+                                                        <img src="@TinhToan.HinhAnhUrl(item.hinhanh)" alt="@item.tenmon"
+                                                             style="width:72px;height:72px;border-radius:10px;object-fit:cover;display:block;"
+                                                             onerror="this.src='/Source/Home/img/pizza.jpg'" />
                                                     </button>
                                                     @if (khuyenMai != null)
                                                     {
-                                                        <span style="position:absolute;top:0;left:0;background:var(--fs-danger);color:var(--fs-white);padding:4px 8px;font-size:11px;font-weight:700;border-radius:0 0 8px 0;box-shadow:0 2px 4px rgba(231,76,60,.3);display:flex;align-items:center;gap:3px;">
-                                                            <i class="fa fa-fire"></i> -@khuyenMai.phantramgiam%
+                                                        <span style="position:absolute;top:-2px;left:-2px;background:var(--fs-danger);color:var(--fs-white);padding:3px 8px;font-size:10px;font-weight:700;border-radius:10px 0 10px 0;box-shadow:0 2px 6px rgba(231,76,60,.4);display:flex;align-items:center;gap:3px;">
+                                                            <i class="fa fa-fire" style="font-size:9px;"></i>-@khuyenMai.phantramgiam%
                                                         </span>
                                                     }
                                                 </div>
-                                                <div class="col item-restaurant-info">
-                                                    <h2 class="item-restaurant-name">
-                                                        @item.tenmon
+                                                <!-- Column 2: Info (flex-shrink) -->
+                                                <div class="col item-restaurant-info" style="min-width:0;flex:1;padding-left:14px;padding-right:12px;">
+                                                    <h2 class="item-restaurant-name" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                                                        <span style="font-size:15px;font-weight:700;color:var(--fs-dark);">@item.tenmon</span>
                                                         @if (daMua)
                                                         {
-                                                            <span style="font-size:11px;background:var(--fs-danger);color:var(--fs-white);padding:1px 6px;border-radius:3px;margin-left:6px;">Đã mua</span>
+                                                            <span style="font-size:10px;background:var(--fs-danger);color:var(--fs-white);padding:1px 7px;border-radius:4px;font-weight:600;white-space:nowrap;">Đã mua</span>
                                                         }
                                                     </h2>
-                                                    <div class="item-restaurant-desc">@item.mota</div>
-                                                    <div class="item-restaurant-total">Đã được đặt<span class="txt-bold">&nbsp;100+&nbsp;</span>lần&nbsp;&nbsp;|&nbsp;&nbsp;<i class="fa fa-thumbs-up" aria-hidden="true"></i>&nbsp;&nbsp;3</div>
+                                                    <div class="item-restaurant-desc" style="font-size:13px;color:var(--fs-muted);margin:2px 0 4px;line-height:1.4;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">@item.mota</div>
+                                                    <div class="item-restaurant-total" style="font-size:11px;color:var(--fs-muted-soft);">Đã được đặt <strong>100+</strong> lần&nbsp;|&nbsp;<i class="fa fa-thumbs-up" style="color:var(--fs-green);"></i>&nbsp;3</div>
                                                 </div>
-                                                <div class="col-auto item-restaurant-more">
-                                                    <div class="row">
-                                                        <div class="col-12 product-price">
-                                                            @if (khuyenMai != null && khuyenMai.phantramgiam > 0)
-                                                            {
-                                                                <div class="old-price" style="text-decoration: line-through; color: var(--fs-muted-soft);font-size:12px;">@giaGoc?.ToString("N0")<span style="font-weight: 400; position: relative; top: -9px; font-size: 10px; right: 0;">đ</span></div>
-                                                            }
-                                                            <div class="current-price current-price-@item.mamon" style="color:@(khuyenMai != null ? "var(--fs-danger)" : "inherit");font-weight:700;">@(khuyenMai != null ? giaKhuyenMai?.ToString("N0") : item.tbBienTheMonAns?.FirstOrDefault()?.giatien?.ToString("N0"))<span style="font-weight: 400; position: relative; top: -9px; font-size: 10px; right: 0;">đ</span></div>
+                                                <!-- Column 3: Price + Size + Add-to-cart (right-aligned block) -->
+                                                <div class="col-auto item-restaurant-more" style="flex-shrink:0;display:flex;flex-direction:column;align-items:flex-end;gap:8px;padding-left:0;min-width:140px;">
+                                                    <!-- Price -->
+                                                    <div class="product-price" style="text-align:right;line-height:1.1;">
+                                                        @if (khuyenMai != null && khuyenMai.phantramgiam > 0)
+                                                        {
+                                                            <div class="old-price" style="text-decoration:line-through;color:var(--fs-muted-soft);font-size:12px;">@giaGoc?.ToString("N0")<sup style="font-size:9px;top:-0.3em;">đ</sup></div>
+                                                        }
+                                                        <div class="current-price current-price-@item.mamon" style="color:@(khuyenMai != null ? "var(--fs-danger)" : "var(--fs-dark)");font-size:17px;font-weight:700;">
+                                                            @(khuyenMai != null ? giaKhuyenMai?.ToString("N0") : item.tbBienTheMonAns?.FirstOrDefault()?.giatien?.ToString("N0"))<sup style="font-size:11px;top:-0.4em;">đ</sup>
                                                         </div>
-                                                        @if (item.tbBienTheMonAns != null && item.tbBienTheMonAns.Count > 1)
+                                                    </div>
+                                                    <!-- Size chips (multi-variant) -->
+                                                    @if (item.tbBienTheMonAns != null && item.tbBienTheMonAns.Count > 1)
                                                     {
-                                                        <div class="col-12" style="margin:6px 0 8px;">
-                                                            <div class="fs-size-selector" data-mamon="@item.mamon" style="display:flex;gap:6px;flex-wrap:wrap;">
-                                                                @for (int vi = 0; vi < allVariants.Count; vi++)
-                                                                {
-                                                                    var variant = allVariants[vi];
-                                                                    var isFirst = vi == 0;
-                                                                    <button type="button"
-                                                                            class="fs-size-chip@(isFirst ? " active" : "")"
-                                                                            data-bientheid="@variant.id"
-                                                                            data-mamon="@item.mamon"
-                                                                            data-giatien="@variant.giatien"
-                                                                            data-size="@variant.size"
-                                                                            onclick="selectSize(this)"
-                                                                            style="padding:4px 14px;border-radius:20px;border:1.5px solid #ddd;background:@(isFirst ? "#3CB815" : "#fff");color:@(isFirst ? "#fff" : "#555");font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;">
-                                                                        @(variant.size ?? "M") - @variant.giatien?.ToString("N0")đ
-                                                                    </button>
-                                                                }
-                                                            </div>
+                                                        <div class="fs-size-selector" data-mamon="@item.mamon" style="display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end;">
+                                                            @for (int vi = 0; vi < allVariants.Count; vi++)
+                                                            {
+                                                                var variant = allVariants[vi];
+                                                                var isFirst = vi == 0;
+                                                                <button type="button"
+                                                                        class="fs-size-chip@(isFirst ? " active" : "")"
+                                                                        data-bientheid="@variant.id"
+                                                                        data-mamon="@item.mamon"
+                                                                        data-giatien="@variant.giatien"
+                                                                        data-size="@variant.size"
+                                                                        onclick="selectSize(this)"
+                                                                        style="padding:5px 12px;border-radius:16px;border:1.5px solid @(isFirst ? "#3CB815" : "var(--fs-border)");background:@(isFirst ? "#3CB815" : "#fff");color:@(isFirst ? "#fff" : "#555");font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap;">
+                                                                    @(variant.size ?? "M") @variant.giatien?.ToString("N0")<sup style="font-size:9px;top:-0.2em;">đ</sup>
+                                                                </button>
+                                                            }
                                                         </div>
                                                     }
-                                                        <div class="col-auto adding-food-cart txt-right" style="margin-top:4px;">
-                                                            <form action="~/Cart/ThemMonAn" method="get" onsubmit="return validateCartForm(this)">
-                                                                <input name="soLuong" type="number" value="1" min="1" style="width:50px;padding:4px 6px;border:1px solid #ddd;border-radius:8px;font-size:13px;text-align:center;" />
-                                                                <input name="maMonAn" type="hidden" value="@firstVariantId" class="maMonAnInput-@item.mamon" />
-                                                                <button type="submit" class="btn btn-success add-to-cart-btn"
-                                                                        data-mamon="@item.mamon"
-                                                                        data-soluong="1"
-                                                                        onclick="return optimisticAddToCart(this, event)" style="padding:4px 14px;font-size:13px;">Thêm</button>
-                                                            </form>
-                                                        </div>
+                                                    <!-- Quantity + Add to cart -->
+                                                    <div class="adding-food-cart" style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+                                                        <form action="~/Cart/ThemMonAn" method="get" onsubmit="return validateCartForm(this)" style="display:flex;align-items:center;gap:6px;margin:0;">
+                                                            <input name="soLuong" type="number" value="1" min="1"
+                                                                   style="width:48px;height:32px;padding:2px 4px;border:1.5px solid var(--fs-border);border-radius:8px;font-size:13px;font-weight:600;text-align:center;" />
+                                                            <input name="maMonAn" type="hidden" value="@firstVariantId" class="maMonAnInput-@item.mamon" />
+                                                            <button type="submit" class="btn btn-success add-to-cart-btn"
+                                                                    data-mamon="@item.mamon"
+                                                                    data-soluong="1"
+                                                                    onclick="return optimisticAddToCart(this, event)"
+                                                                    style="height:32px;padding:4px 16px;font-size:13px;font-weight:600;border-radius:8px;white-space:nowrap;">Thêm</button>
+                                                        </form>
                                                     </div>
                                                 </div>
                                             </div>
@@ -708,6 +724,17 @@
                     if (res.success) {
                         $btn.html('<i class="fas fa-check"></i> ✅').removeClass('btn-secondary').addClass('btn-success');
                         showCartToast('✅ Đã thêm vào giỏ hàng');
+                        // Update cart badge
+                        var badge = document.getElementById('navCartBadge');
+                        if (badge && res.cartCount !== undefined) {
+                            badge.textContent = res.cartCount;
+                            badge.style.display = res.cartCount > 0 ? 'flex' : 'none';
+                        }
+                        var badgeMobile = document.getElementById('navCartBadgeMobile');
+                        if (badgeMobile && res.cartCount !== undefined) {
+                            badgeMobile.textContent = res.cartCount;
+                            badgeMobile.style.display = res.cartCount > 0 ? 'flex' : 'none';
+                        }
                     } else if (res.conflict) {
                         $btn.html(origHtml).prop('disabled', false).removeClass('btn-secondary').addClass('btn-success');
                         if (confirm('Giỏ hàng đang có món từ ' + res.currentRestaurant + '. Bạn muốn chuyển sang ' + res.newRestaurant + ' không?')) {
@@ -1040,7 +1067,7 @@
             var priceEl = document.querySelector('.current-price-' + mamon);
             if (priceEl) {
                 var num = parseFloat(giatien) || 0;
-                priceEl.innerHTML = num.toLocaleString('vi-VN') + '<span style="font-weight:400;position:relative;top:-9px;font-size:10px;right:0;">đ</span>';
+                priceEl.innerHTML = num.toLocaleString('vi-VN') + '<sup style="font-size:11px;top:-0.4em;">đ</sup>';
             }
             // Update hidden maMonAn input to send variant ID
             var hiddenInput = document.querySelector('.maMonAnInput-' + mamon);

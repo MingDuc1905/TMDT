@@ -1,7 +1,7 @@
 {
   "name": "fastship-e2e-tests",
-  "version": "1.0.0",
-  "description": "Fastship E2E Playwright Test Suite",
+  "version": "1.1.0",
+  "description": "Fastship E2E Playwright Test Suite + Lightpanda Browser Integration",
   "scripts": {
     "test": "npx playwright test",
     "test:headed": "npx playwright test --headed",
@@ -15,9 +15,17 @@
     "test:fast": "npx playwright test --project='Desktop Chromium' --retries=0 --workers=1 --timeout=30000",
     "test:warm": "curl -s -o /dev/null https://fastship-web.onrender.com && curl -s -o /dev/null https://fastship-web.onrender.com/Home/DbDebug && npx playwright test --project='Desktop Chromium' --retries=0 --workers=1 --timeout=60000",
     "test:local": "set BASE_URL=http://localhost:5000 && npx playwright test --project='Desktop Chromium' --retries=0 --workers=1 --timeout=15000",
-    "tsc": "npx tsc --noEmit"
+    "tsc": "npx tsc --noEmit",
+    "lightpanda:up": "docker compose up -d",
+    "lightpanda:down": "docker compose down",
+    "lightpanda:logs": "docker compose logs -f lightpanda",
+    "lightpanda:status": "curl -s http://127.0.0.1:9222/json/version | head -1",
+    "test:lightpanda": "npx playwright test --config=lightpanda.config.ts",
+    "test:lightpanda:smoke": "npx playwright test --config=lightpanda.config.ts examples/lightpanda-smoke.spec.ts",
+    "test:lightpanda:all": "npm run lightpanda:up && npx playwright test --config=lightpanda.config.ts && npm run lightpanda:down",
+    "test:lightpanda:report": "npx playwright show-report playwright-report-lightpanda"
   },
-  "keywords": ["fastship", "e2e", "playwright"],
+  "keywords": ["fastship", "e2e", "playwright", "lightpanda", "headless"],
   "author": "Fastship QA Team",
   "license": "MIT",
   "type": "commonjs",

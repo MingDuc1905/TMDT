@@ -28,7 +28,7 @@
                             </div>
                             <div class="profile-details">
                                 <div class="profile-name px-3 pt-2">
-                                    <h4 class="text-primary mb-0">@Model.tbShipper.tenshipper</h4>
+                                    <h4 class="text-primary mb-0">@Model.tbShipper?.tenshipper</h4>
                                     <p>Shiper</p>
                                 </div>
                                 <div class="profile-email px-2 pt-2">
@@ -43,11 +43,11 @@
         </div>
         <div class="row">
             <div class="col">
-                <h3 class="m-b-0">@Model.tbShipper.diemdanhgia</h3>
+                <h3 class="m-b-0">@Model.tbShipper?.diemdanhgia</h3>
                 <span>Điểm đánh giá</span>
             </div>
             <div class="col">
-                <h3 class="m-b-0">@Model.tbShipper.soluotdanhgia</h3>
+                <h3 class="m-b-0">@Model.tbShipper?.soluotdanhgia</h3>
                 <span>Số lượt đánh giá</span>
             </div>
             <div class="col">
@@ -98,7 +98,7 @@
                                                 </div>
                                                 <div class="form-group">
                                                     <label>Địa chỉ</label>
-                                                    <input class="form-control" value="@Model.tbShipper.diachi" name="diachi" />
+                                                    <input class="form-control" value="@Model.tbShipper?.diachi" name="diachi" />
                                                     @Html.ValidationMessageFor(model => model.tbShipper.diachi, "", new { @class = "text-danger" })
                                                 </div>
                                              

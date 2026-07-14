@@ -326,6 +326,7 @@ public class CartController : BaseController
             success = true,
             conflict = false,
             soLuong = FindCartItemByMamon(cart, maMonAn)?.soLuong ?? soLuong,
+            cartCount = cart.items.Sum(i => i.soLuong),
             cartTotal = cart.tongTien?.ToString("N0") + " đ",
             cartGrandTotal = (cart.tongTien + 15000)?.ToString("N0") + " đ",
             redirect = Url.Action("Index", "Cart")

@@ -1,0 +1,40 @@
+# ====================================================================
+# FastShip + Lightpanda Browser — Docker Compose
+# ====================================================================
+# Lightpanda: Headless browser built from scratch for AI & automation
+# Written in Zig — 9x faster, 16x less memory vs headless Chrome
+# https://github.com/lightpanda-io/browser
+# ====================================================================
+#
+# Usage:
+#   docker compose up -d              # Start Lightpanda CDP server
+#   docker compose down               # Stop Lightpanda
+#   docker compose logs -f lightpanda # Watch logs
+#
+# Lightpanda CDP WebSocket: ws://localhost:9222
+# Playwright connects via: chromium.connectOverCDP('http://localhost:9222')
+# ====================================================================
+
+version: '3.8'
+
+services:
+  lightpanda:
+    image: lightpanda/browser:nightly
+    container_name: fastship-lightpanda
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:9222:9222'
+    command: lightpanda serve --host 0.0.0.0 --port 9222 --obey-robots
+    environment:
+      # Disable telemetry
+      - LIGHTPANDA_DISABLE_TELEMETRY=true
+      # Disable core dumps
+      - LIGHTPANDA_DISABLE_CORE_DUMP=true
+    # Healthcheck: verify Lightpanda process is running
+    # Note: Lightpanda image may not include curl, so we check process
+    healthcheck:
+      test: ["CMD-SHELL", "pidof lightpanda || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s

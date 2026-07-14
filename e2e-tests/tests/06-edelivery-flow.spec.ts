@@ -127,7 +127,7 @@ test.describe('🏪 Merchant — QR Scanner', () => {
 
   test('[TC-6.4] Merchant scan page — html5-qrcode library load', async ({ page }) => {
     await loginAs(page, RESTAURANT);
-    await page.goto('/edelivery/merchant-scan', { waitUntil: 'domcontentloaded', timeout: 30_000 });
+    await page.goto('/EDelivery/MerchantScan', { waitUntil: 'domcontentloaded', timeout: 30_000 });
     await page.waitForTimeout(3000);
 
     // Kiểm tra scanner container
@@ -152,11 +152,11 @@ test.describe('🏪 Merchant — QR Scanner', () => {
 
   test('[TC-6.5] Merchant scan page — API call khi scan thành công', async ({ page }) => {
     await loginAs(page, RESTAURANT);
-    await page.goto('/edelivery/merchant-scan', { waitUntil: 'domcontentloaded', timeout: 30_000 });
+    await page.goto('/EDelivery/MerchantScan', { waitUntil: 'domcontentloaded', timeout: 30_000 });
     await page.waitForTimeout(2000);
 
     // Verify API endpoint tồn tại
-    const apiResponse = await page.request.post('/edelivery/confirm-scan', {
+    const apiResponse = await page.request.post('/EDelivery/ConfirmScan', {
       data: { token: 'invalid-token-test' },
       headers: { 'X-Requested-With': 'XMLHttpRequest' }
     });
@@ -168,7 +168,7 @@ test.describe('🏪 Merchant — QR Scanner', () => {
 
   test('[TC-6.6] Scan history — localStorage lưu và hiển thị', async ({ page }) => {
     await loginAs(page, RESTAURANT);
-    await page.goto('/edelivery/merchant-scan', { waitUntil: 'domcontentloaded', timeout: 30_000 });
+    await page.goto('/EDelivery/MerchantScan', { waitUntil: 'domcontentloaded', timeout: 30_000 });
     await page.waitForTimeout(2000);
 
     // Kiểm tra localStorage
@@ -187,7 +187,7 @@ test.describe('📱 Customer — Real-time QR Scan Notification', () => {
 
   test('[TC-6.7] ScanQR landing page — hiển thị thông tin đơn hàng', async ({ page }) => {
     // Test với token không hợp lệ trước
-    await page.goto('/edelivery/scan/invalid-token-test', { waitUntil: 'domcontentloaded', timeout: 30_000 });
+    await page.goto('/EDelivery/ScanQR/invalid-token-test', { waitUntil: 'domcontentloaded', timeout: 30_000 });
     await page.waitForTimeout(2000);
 
     const bodyText = await page.locator('body').textContent() || '';
@@ -343,9 +343,11 @@ test.describe('👑 Admin — Delivery Logs Matrix & Bypass', () => {
 
   test('[TC-6.12] Bypass API call — validate request/response', async ({ page }) => {
     await loginAs(page, ADMIN);
+    await page.goto('/Admin', { waitUntil: 'networkidle', timeout: 30_000 });
+    await page.waitForTimeout(1000);
 
     // Test bypass với order không tồn tại
-    const response = await page.request.post('/edelivery/bypass', {
+    const response = await page.request.post('/EDelivery/Bypass', {
       data: { orderId: 99999, targetStatus: 'Đã lấy' },
       headers: { 'X-Requested-With': 'XMLHttpRequest' }
     });

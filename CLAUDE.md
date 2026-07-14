@@ -205,8 +205,10 @@ docker_build_errors:
 | **codegraph-main** | CodeGraph retrieval & indexing | `ShipFoodCore/Skills/Graph/codegraph-main/` | Phân tích codebase |
 | **superpowers-main** | Superpowers workflow tools | `ShipFoodCore/Skills/FLow/superpowers-main/` | Quản lý workflow |
 | **whisper-flow-main** | Prompt engineering | `ShipFoodCore/Skills/prompt/whisper-flow-main/` | Thiết kế prompt |
-| **ui-ux-pro-max** | UI/UX design (161 rules, 67 styles) | `ShipFoodCore/Skills/UI UX/ui-ux-pro-max-skill-main/` | Thiết kế giao diện |
-| **public-apis-master** | Public APIs collection | `ShipFoodCore/Skills/public-apis-master/` | Tìm kiếm APIs |
+| **ui-ux-pro-max** | UI/UX design (161 rules, 67 styles, 161 color palettes, 57 font pairings) | `ShipFoodCore/Skills/UI UX/ui-ux-pro-max-skill-main/` | Thiết kế giao diện, chọn màu, font, style |
+| **awesome-claude-design** | 68 DESIGN.md patterns (design tokens, layout, components, responsive, accessibility) | `ShipFoodCore/Skills/awesome-claude-design/` | Thiết kế UI mới — đảm bảo design system nhất quán |
+| **UI UX data** | Color palettes (161 CSV), typography specs, brand guidelines, logo colors | `ShipFoodCore/Skills/UI UX/` | Tra cứu màu sắc, font pairings, style guide |
+| **public-apis-master** | Public APIs collection | `ShipFoodCore/Skills/public-apis-master/` | Tìm kiếm APIs, tham khảo tích hợp dịch vụ |
 | **scientific-agent-skills-main** | 400+ scientific skill packages | `ShipFoodCore/Skills/scientific-agent-skills-main/` | Data analysis, ML |
 
 ### Cách load repo skill:
@@ -222,7 +224,9 @@ skill ui-ux-pro-max
 skill gstack
 
 # Developer Icons — dùng trực tiếp từ thư mục
-# Copy icon cần dùng từ ShipFoodCore/Skills/developer-icons-main/icons/
+# Copy icon SVG cần dùng từ ShipFoodCore/Skills/developer-icons-main/icons/ vào wwwroot/Source/icons/
+# Tra cứu icon technology theo tên: c-sharp.svg, bootstrap5.svg, react.svg, v.v.
+# Dùng `ls ShipFoodCore/Skills/developer-icons-main/icons/ | grep <từ khóa>` để tìm icon nhanh
 ```
 
 ## 6. 🖼️ Nguồn Ảnh & Tài Nguyên Media
@@ -239,6 +243,14 @@ skill gstack
 - ✅ Tải ảnh về local: `/Source/images/MonAn/` (món ăn), `/Source/Home/img/` (rest, icons)
 - ✅ Fallback khi ảnh lỗi: `onerror="this.src='/Source/Home/img/pizza.jpg'"`
 - ✅ Đặt ảnh trong wwwroot để ASP.NET Core serve trực tiếp
+
+**Quy tắc sử dụng SVG icons từ developer-icons-main:**
+- ✅ Dùng SVG icons thay Font Awesome khi có thể (tránh bị AdBlock chặn)
+- ✅ Copy file `.svg` cần dùng: `cp ShipFoodCore/Skills/developer-icons-main/icons/<icon>.svg ShipFoodCore/wwwroot/Source/icons/`
+- ✅ Dùng inline SVG hoặc `<img src="~/Source/icons/<icon>.svg">`
+- ✅ Đổi màu SVG: dùng `fill="currentColor"` + CSS `color:` để theme-friendly
+- ❌ KHÔNG dùng emoji làm icon cho navigation, buttons, system controls
+- ❌ KHÔNG dùng Font Awesome cho logo thương hiệu (dùng SVG để sharp hơn)
 
 ## 7. 🌿 Git Branch Management
 

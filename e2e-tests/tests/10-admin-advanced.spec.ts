@@ -68,7 +68,9 @@ test.describe('📊 Dashboard APIs', () => {
   test('[TC-10.5] GetDashboardStats — JSON response', async ({ page }) => {
     await loginAsAdmin(page);
     const resp = await page.request.get('/Admin/GetDashboardStats', { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+    expect(resp.status()).toBe(200);
     const json = await resp.json();
+    if (json.error) { expect.fail(`Auth failed: ${json.error}`); }
     console.log(`📊 Dashboard stats: tongDoanhThu=${json.tongDoanhThu}, tongSoDon=${json.tongSoDon}`);
     expect(json).toBeDefined();
     expect(json.tongSoDon).toBeGreaterThanOrEqual(0);
@@ -86,6 +88,8 @@ test.describe('📊 Dashboard APIs', () => {
     await loginAsAdmin(page);
     const resp = await page.request.get('/Admin/GetTopRestaurants', { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
     const json = await resp.json();
+    if (json.error) { expect.fail(`Auth failed: ${json.error}`); }
+    expect(Array.isArray(json)).toBe(true);
     console.log(`🏪 Top restaurants: ${json.length}`);
     if (json.length > 0) console.log(`  #1: ${json[0].tenQuan} - ${json[0].doanhThu}`);
   });
@@ -94,6 +98,7 @@ test.describe('📊 Dashboard APIs', () => {
     await loginAsAdmin(page);
     const resp = await page.request.get('/Admin/GetOrderStatusPie', { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
     const json = await resp.json();
+    if (json.error) { expect.fail(`Auth failed: ${json.error}`); }
     console.log(`🥧 Status pie: ${json.labels?.join(', ')}`);
     expect(json.labels).toBeDefined();
   });
@@ -103,8 +108,10 @@ test.describe('📊 Dashboard APIs', () => {
     const downloadPromise = page.waitForEvent('download', { timeout: 10_000 }).catch(() => null);
     await page.goto('/Admin/ExportExcel', { waitUntil: 'domcontentloaded', timeout: 30_000 });
     const download = await downloadPromise;
+    expect(download).not.toBeNull();
+    const filename = download.suggestedFilename();
+    expect(filename).toMatch(/\.csv/);
     if (download) console.log(`📥 Downloaded: ${download.suggestedFilename()}`);
-    else console.log('ℹ️ File download inline (not triggered)');
   });
 });
 

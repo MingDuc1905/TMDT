@@ -294,7 +294,9 @@ mandatory_scan:
 | **`what-if-oracle`** | 🧠 Thinking | Scenario analysis, contingency | Thiếu planning cho rủi ro |
 | **`markdown-mermaid-writing`** | 📝 Docs | Tài liệu, diagrams, reports | Tài liệu thiếu diagrams |
 
-### 📚 TOÀN BỘ 120+ SKILLS THEO NHÓM
+### 📚 ĐA PHẦN SKILLS THEO NHÓM (không đầy đủ tuyệt đối — PHẢI luôn chạy `ls .agents/skills/` trước mỗi task)
+
+> ⚠️ **Lưu ý**: Danh sách này CHỈ MANG TÍNH THAM KHẢO, có thể thiếu sót. **BẮT BUỘC** phải chạy `ls .agents/skills/` để scan toàn bộ skills trước mỗi task.
 
 #### ⭐ Core — Dùng MỌI LÚC
 ```
@@ -358,8 +360,8 @@ diffdock, esm, molecular-dynamics, glycoengineering
 ```
 biopython, bioservices, pysam, pyopenms, matchms,
 flowio, geniml, gtars, pydeseq2, pathway-enrichment,
-scikit-bio, cobrapy, ete-toolkit, deeptools, cellxgene-census,
-onekgpd, primekg, pydicom, histolab, pathml
+scikit-bio, cobrapy, etetoolkit, deeptools, cellxgene-census,
+onekgpd, primekg, pydicom, histolab, pathml,
 nextflow, pacsomatic, tiledbvcf, lamindb
 ```
 
@@ -367,7 +369,7 @@ nextflow, pacsomatic, tiledbvcf, lamindb
 ```
 opentrons-integration, pylabrobot, protocolsio-integration,
 labarchive-integration, ginkgo-cloud-lab, benchling-integration,
-omeroh-integration, latchbio-integration, dnanexus-integration
+omero-integration, latchbio-integration, dnanexus-integration
 ```
 
 #### ⚛️ Physics/Engineering
@@ -389,10 +391,8 @@ agent-eval, autoskill
 
 #### 📄 Other Utilities
 ```
-generate-image, generate-image, modality,
-pi-agent, stable-baselines3, pufferlib, timesfm-forecasting,
-simpy, neurokit2, neuropixels-analysis, getting-started,
-reducing-agents
+generate-image, pi-agent, stable-baselines3, pufferlib,
+timesfm-forecasting, simpy, neurokit2, neuropixels-analysis
 ```
 
 ### 📦 TOÀN BỘ 13 REPOS TRONG ShipFoodCore/Skills/

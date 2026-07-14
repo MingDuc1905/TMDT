@@ -256,12 +256,17 @@ public class HomeController : BaseController
             return View();
         }
 
-        // Tự động nhận diện: nếu nhập số (bắt đầu bằng 0, 10-11 số) → tìm theo SĐT, ngược lại → tìm theo username
+        // Tự động nhận diện: nếu nhập số (bắt đầu bằng 0, 10-11 số) → tìm theo SĐT
+        // Nếu chứa @ → tìm theo email
+        // Ngược lại → tìm theo username
         bool isPhone = Regex.IsMatch(usernameOrPhone, @"^0[1-9][0-9]{8,9}$");
+        bool isEmail = usernameOrPhone.Contains("@");
 
         IQueryable<tbUser> query = db.tbUser.AsQueryable();
         if (isPhone)
             query = query.Where(u => u.sdt == usernameOrPhone);
+        else if (isEmail)
+            query = query.Where(u => u.email == usernameOrPhone);
         else
             query = query.Where(u => u.username == usernameOrPhone);
 
@@ -933,7 +938,7 @@ public class HomeController : BaseController
             else if (user.loaitaikhoan.Equals("Shipper"))
             {
                 user.vitien = 0;
-                user.trangthai = 1;
+                user.trangthai = 0; // Chờ duyệt — admin phải duyệt mới active
                 db.tbUser.Add(user);
                 db.SaveChanges();
 

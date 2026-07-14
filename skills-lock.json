@@ -187,6 +187,12 @@
       "skillPath": "skills/deeptools/SKILL.md",
       "computedHash": "cad910cf6004d652cafc1b0eff8f1e6648a8614fcac2055ddec76d499d7a81b6"
     },
+    "defuddle": {
+      "source": "kepano/obsidian-skills",
+      "sourceType": "github",
+      "skillPath": "skills/defuddle/SKILL.md",
+      "computedHash": "ad2cf050eced5f0d9057d534bf6e084bd8d6e521529b5b783940b20fd835c4df"
+    },
     "depmap": {
       "source": "K-Dense-AI/scientific-agent-skills",
       "sourceType": "github",
@@ -349,6 +355,12 @@
       "skillPath": "skills/gtars/SKILL.md",
       "computedHash": "21ab1dba9f85e208beec27ba5fa93536a9149e300119b5ee9282db1dd6b5a4ff"
     },
+    "hallmark": {
+      "source": "nutlope/hallmark",
+      "sourceType": "github",
+      "skillPath": "skills/hallmark/SKILL.md",
+      "computedHash": "d3a20aae61e43793d74932c92b63bcad5882e73ec1c8545b858910fd95b25136"
+    },
     "histolab": {
       "source": "K-Dense-AI/scientific-agent-skills",
       "sourceType": "github",
@@ -390,6 +402,12 @@
       "sourceType": "github",
       "skillPath": "skills/iso-13485-certification/SKILL.md",
       "computedHash": "aac44a9b573234608fb088a691956c75eb6cce227c6aa25b137bbf620bfd6a8f"
+    },
+    "json-canvas": {
+      "source": "kepano/obsidian-skills",
+      "sourceType": "github",
+      "skillPath": "skills/json-canvas/SKILL.md",
+      "computedHash": "bb7aa4f03414d50d91736f824bc5f79122b38a895deb03c0260700842a338580"
     },
     "labarchive-integration": {
       "source": "K-Dense-AI/scientific-agent-skills",
@@ -510,6 +528,24 @@
       "sourceType": "github",
       "skillPath": "skills/nextflow/SKILL.md",
       "computedHash": "1e4610b8a48bbd231b035e35a24fa62725ea445b9178660fc1d5e515b8a64c66"
+    },
+    "obsidian-bases": {
+      "source": "kepano/obsidian-skills",
+      "sourceType": "github",
+      "skillPath": "skills/obsidian-bases/SKILL.md",
+      "computedHash": "0d9958e07672384650f404bda4fc9268e1720e9234d42eeca29fc356b1e2a277"
+    },
+    "obsidian-cli": {
+      "source": "kepano/obsidian-skills",
+      "sourceType": "github",
+      "skillPath": "skills/obsidian-cli/SKILL.md",
+      "computedHash": "89ded0eb1499286d5c95217df0ff7015aa46b7efe4646fafaba38cbac3289392"
+    },
+    "obsidian-markdown": {
+      "source": "kepano/obsidian-skills",
+      "sourceType": "github",
+      "skillPath": "skills/obsidian-markdown/SKILL.md",
+      "computedHash": "d65bfcd6012560c61da9c88c79679a9a8218ac6b4928df9b55ae451949a1618a"
     },
     "omero-integration": {
       "source": "K-Dense-AI/scientific-agent-skills",

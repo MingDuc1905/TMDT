@@ -26,13 +26,17 @@ var filterState = {
 
 // ─── Bottom Sheet ───
 function openFilterSheet() {
-    document.getElementById('filterSheetOverlay').classList.add('open');
+    var sheet = document.getElementById('filterSheetOverlay');
+    if (!sheet) return;
+    sheet.classList.add('open');
     document.body.style.overflow = 'hidden';
 }
 
 function closeFilterSheet(e) {
     if (e && e.target !== e.currentTarget) return;
-    document.getElementById('filterSheetOverlay').classList.remove('open');
+    var sheet = document.getElementById('filterSheetOverlay');
+    if (!sheet) return;
+    sheet.classList.remove('open');
     document.body.style.overflow = '';
 }
 // ponytail: safety net — always restore scroll if overlay not open
@@ -45,6 +49,9 @@ window.addEventListener('beforeunload', ensureScrollRestored);
 
 // ─── Chips ───
 function toggleChip(name) {
+    // Safety: skip if chip not found (e.g., FilterBar not rendered on this page)
+    if (!document.querySelector('.fs-chip[data-filter="' + name + '"]')) return;
+
     var chip = document.querySelector('.fs-chip[data-filter="' + name + '"]');
     if (!chip) return;
 
@@ -68,12 +75,12 @@ function toggleChip(name) {
             // Quick filter: just a chip, no special state
             break;
         case 'rated':
-            // Toggle rating filter
+            filterState.isBestSeller = isActive; // rated = bestseller toggle
+            syncSheetCheckbox('bestseller', isActive);
             break;
         case 'mode':
             filterState.mode = isActive ? 'pickup' : 'delivery';
             syncSheetRadio('filterMode', filterState.mode);
-            // ═══ FIX: cập nhật chip text khi toggle mode ═══
             chip.innerHTML = isActive
                 ? '<i class="fas fa-walking"></i> Tự đến lấy'
                 : '<i class="fas fa-motorcycle"></i> Giao hàng';
@@ -255,7 +262,7 @@ function triggerSearch() {
     });
 }
 
-// ─── Sync filter chips with bottom sheet state ───
+// ─── Sync filter chips with bottom sheet state (with safety checks) ───
 function syncChipsFromSheet() {
     // Sync mode radio
     var modeRadio = document.querySelector('input[name="filterMode"]:checked');
@@ -368,7 +375,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
             var sheet = document.getElementById('filterSheetOverlay');
-            if (sheet.classList.contains('open')) closeFilterSheet();
+            if (sheet && sheet.classList.contains('open')) closeFilterSheet();
         }
     });
 
@@ -385,4 +392,27 @@ document.addEventListener('DOMContentLoaded', function() {
     if (urlParams.get('isPromo') === 'true') filterState.isPromo = true;
     if (urlParams.get('isBestSeller') === 'true') filterState.isBestSeller = true;
     if (urlParams.get('categoryId')) filterState.categoryId = parseInt(urlParams.get('categoryId'));
+
+    // ═══ FIX: Ensure the "rated" chip syncs with "isBestSeller" state ═══
+    var ratedChip = document.querySelector('.fs-chip[data-filter="rated"]');
+    if (ratedChip && filterState.isBestSeller) {
+        ratedChip.classList.add('active');
+    }
+
+    // ═══ FIX: Đảm bảo các nút filter hoạt động — skip elements with inline onclick ═══
+    // Chỉ xử lý các chip KHÔNG có inline onclick (tránh gọi 2 lần)
+    document.addEventListener('click', function(e) {
+        var chip = e.target.closest('.fs-chip');
+        if (!chip || chip.hasAttribute('onclick')) return;  // skip inline onclick elements
+        var filterName = chip.getAttribute('data-filter');
+        if (filterName) toggleChip(filterName);
+    });
+
+    // Bind click handler for filterDetailBtn (chỉ bind nếu chưa có onclick)
+    var filterDetailBtn = document.getElementById('btnOpenFilterSheet') || document.querySelector('.fs-filter-detail-btn');
+    if (filterDetailBtn && !filterDetailBtn.hasAttribute('onclick')) {
+        filterDetailBtn.addEventListener('click', function(e) {
+            openFilterSheet();
+        });
+    }
 });

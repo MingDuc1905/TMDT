@@ -132,6 +132,7 @@ public class AdminChatController : BaseController
             bool isShipper = user.loaitaikhoan.Equals("Shipper");
             bool isCustomer = user.loaitaikhoan.Equals("Khách hàng");
             bool isAdmin = user.loaitaikhoan.Equals("Admin");
+            bool isRestaurant = user.loaitaikhoan.Equals("Quán ăn");
 
             // Xác ??nh customerId: t? tham s? targetUserId ho?c t? user hi?n t?i
             int? customerId = isCustomer ? user.userid : targetUserId;
@@ -163,6 +164,15 @@ public class AdminChatController : BaseController
                 await _hubContext.Clients.Group("admins").SendAsync("shipperMessage", message, orderId, senderName, user.userid);
                 if (orderId > 0)
                     await _hubContext.Clients.Group($"order_{orderId}").SendAsync("shipperMessage", message, orderId, senderName, user.userid);
+            }
+            else if (isRestaurant && customerId.HasValue)
+            {
+                // Quán ăn g?i → broadcast ??n customer + admin
+                var senderName = user.username ?? "Quán ăn";
+                await _hubContext.Clients.Group($"customer_{customerId}").SendAsync("directMessage", message, senderName, "Quán ăn");
+                await _hubContext.Clients.Group("admins").SendAsync("restaurantMessage", message, orderId, senderName, user.userid);
+                if (orderId > 0)
+                    await _hubContext.Clients.Group($"order_{orderId}").SendAsync("orderMessage", message, orderId, senderName, "Quán ăn", "");
             }
             else if (isAdmin && customerId.HasValue)
             {

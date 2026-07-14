@@ -223,12 +223,32 @@
                                 <strong id="stat-tongShipper">...</strong>
                             </div>
                             <div class="d-flex justify-content-between py-2 border-bottom">
+                                <span class="text-muted">Shipper chờ duyệt</span>
+                                <strong id="stat-shipperChoDuyet" class="text-warning">...</strong>
+                            </div>
+                            <div class="d-flex justify-content-between py-2 border-bottom">
                                 <span class="text-muted">Tổng số khách hàng</span>
                                 <strong id="stat-tongKhach">...</strong>
                             </div>
                             <div class="d-flex justify-content-between py-2 border-bottom">
                                 <span class="text-muted">Tổng số món ăn</span>
                                 <strong id="stat-tongMon">...</strong>
+                            </div>
+                            <div class="d-flex justify-content-between py-2 border-bottom">
+                                <span class="text-muted">Đơn hôm nay</span>
+                                <strong id="stat-donHomNay" class="text-info">...</strong>
+                            </div>
+                            <div class="d-flex justify-content-between py-2 border-bottom">
+                                <span class="text-muted">Đơn tháng này</span>
+                                <strong id="stat-donThangNay">...</strong>
+                            </div>
+                            <div class="d-flex justify-content-between py-2 border-bottom">
+                                <span class="text-muted">Doanh thu hôm nay</span>
+                                <strong id="stat-doanhThuHomNay" class="text-success">...</strong>
+                            </div>
+                            <div class="d-flex justify-content-between py-2 border-bottom">
+                                <span class="text-muted">Doanh thu tháng này</span>
+                                <strong id="stat-doanhThuThangNay" class="text-success">...</strong>
                             </div>
                             <div class="d-flex justify-content-between py-2">
                                 <span class="text-muted">Tổng số đơn hàng (all time)</span>
@@ -512,9 +532,121 @@
                 if (data.error) return;
                 $('#stat-tongQuan').text(data.tongQuan);
                 $('#stat-tongShipper').text(data.tongShipper);
+                $('#stat-shipperChoDuyet').text(data.shipperChoDuyet || 0);
                 $('#stat-tongKhach').text(data.tongKhach);
                 $('#stat-tongMon').text(data.tongMon);
                 $('#stat-tongDonAll').text(data.tongDonAll);
+                $('#stat-donHomNay').text(data.donHomNay || 0);
+                $('#stat-donThangNay').text(data.donThangNay || 0);
+                $('#stat-doanhThuHomNay').text((data.doanhThuHomNay || 0).toLocaleString('vi-VN') + ' VNĐ');
+                $('#stat-doanhThuThangNay').text((data.doanhThuThangNay || 0).toLocaleString('vi-VN') + ' VNĐ');
+            });
+
+            // 7b. Load category stats
+            $.getJSON('@Url.Action("GetCategoryStats", "Admin")', function (data) {
+                if (!data || data.length === 0) return;
+                var catLabels = data.map(function(d) { return d.tenDanhMuc; });
+                var catRevenue = data.map(function(d) { return d.doanhThu; });
+                var catSold = data.map(function(d) { return d.soLuong; });
+
+                // Add category chart after system stats
+                var catChartRow = $('#categoryChartRow');
+                if (!catChartRow.length) {
+                    // Create row dynamically
+                    $('#couponTable').closest('.col-md-6').after(
+                        '<div class="col-12 mb-4" id="categoryChartRow">'
+                        + '<div class="card chart-container shadow-sm">'
+                        + '<div class="card-header"><h4><i class="fas fa-chart-bar text-info me-2"></i>Doanh thu theo danh mục</h4></div>'
+                        + '<div class="card-body"><canvas id="categoryChart" height="220"></canvas></div>'
+                        + '</div></div>'
+                    );
+
+                    var catCtx = document.getElementById('categoryChart').getContext('2d');
+                    new Chart(catCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: catLabels,
+                            datasets: [{
+                                label: 'Doanh thu (VNĐ)',
+                                data: catRevenue,
+                                backgroundColor: 'rgba(23, 162, 184, 0.7)',
+                                borderColor: '#17a2b8',
+                                borderWidth: 1
+                            }, {
+                                label: 'Số lượng bán',
+                                data: catSold,
+                                backgroundColor: 'rgba(255, 193, 7, 0.7)',
+                                borderColor: '#ffc107',
+                                borderWidth: 1,
+                                yAxisID: 'y1'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: { legend: { position: 'top' } },
+                            scales: {
+                                y: { beginAtZero: true, ticks: { callback: function(v) { return v.toLocaleString('vi-VN'); } } },
+                                y1: { beginAtZero: true, position: 'right', grid: { drawOnChartArea: false } }
+                            }
+                        }
+                    });
+                } else {
+                    // Update existing chart
+                    if (window._categoryChart) window._categoryChart.destroy();
+                    var catCtx = document.getElementById('categoryChart').getContext('2d');
+                    window._categoryChart = new Chart(catCtx, { /* same config */ });
+                }
+            });
+
+            // 7c. Load hourly order stats
+            $.getJSON('@Url.Action("GetHourlyOrderStats", "Admin")', function (data) {
+                if (!data || data.length === 0) return;
+                var hours = data.map(function(d) { return d.gio + 'h'; });
+                var orders = data.map(function(d) { return d.soDon; });
+                var revenue = data.map(function(d) { return d.doanhThu; });
+
+                var hourlyRow = $('#hourlyChartRow');
+                if (!hourlyRow.length) {
+                    $('.row:has(#categoryChartRow)').after(
+                        '<div class="row" id="hourlyChartRow"><div class="col-12 mb-4">'
+                        + '<div class="card chart-container shadow-sm">'
+                        + '<div class="card-header"><h4><i class="fas fa-clock text-warning me-2"></i>Đơn hàng theo giờ (hôm nay)</h4></div>'
+                        + '<div class="card-body"><canvas id="hourlyChart" height="200"></canvas></div>'
+                        + '</div></div></div>'
+                    );
+
+                    var hourCtx = document.getElementById('hourlyChart').getContext('2d');
+                    new Chart(hourCtx, {
+                        type: 'line',
+                        data: {
+                            labels: hours,
+                            datasets: [{
+                                label: 'Số đơn',
+                                data: orders,
+                                borderColor: '#ffc107',
+                                backgroundColor: 'rgba(255, 193, 7, 0.1)',
+                                fill: true,
+                                tension: 0.4
+                            }, {
+                                label: 'Doanh thu',
+                                data: revenue,
+                                borderColor: '#17a2b8',
+                                backgroundColor: 'rgba(23, 162, 184, 0.1)',
+                                fill: true,
+                                tension: 0.4,
+                                yAxisID: 'y1'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: { legend: { position: 'top' } },
+                            scales: {
+                                y: { beginAtZero: true },
+                                y1: { beginAtZero: true, position: 'right', grid: { drawOnChartArea: false } }
+                            }
+                        }
+                    });
+                }
             });
 
             // 8. Load active coupons

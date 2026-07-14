@@ -206,20 +206,12 @@
                         <a href="/Home/DanhMuc" class="nav-item nav-link">Menu ẩm thực</a>
 
                         @if (user != null)
-                        {
-                            <!-- ═══ DESKTOP: quick logout icon + avatar dropdown (visible >=992px) ═══ -->
+                        {                        <!-- ═══ DESKTOP: Avatar dropdown (visible >=992px) — logout nằm TRONG dropdown ═══ -->
                             <div class="d-none d-lg-flex align-items-center gap-1">
-                                <!-- Quick logout 1-click -->
-                                <a href="/Home/Logout" class="nav-link d-flex align-items-center justify-content-center" title="Đăng xuất" aria-label="Đăng xuất"
-                                   style="width:36px;height:36px;border-radius:50%;color:#dc3545;border:1.5px solid rgba(220,53,69,.2);transition:all .15s;padding:0;"
-                                   onmouseenter="this.style.background='#fef2f2';this.style.borderColor='#dc3545'"
-                                   onmouseleave="this.style.background='transparent';this.style.borderColor='rgba(220,53,69,.2)'">
-                                    <i class="fa fa-sign-out-alt" style="font-size:14px;"></i>
-                                </a>
-                                <!-- Avatar dropdown -->
+                                <!-- Avatar dropdown (chứa cả logout) -->
                                 <div class="nav-item dropdown">
                                     <a class="nav-link dropdown-toggle d-flex align-items-center gap-1" href="#" data-bs-toggle="dropdown" aria-expanded="false" style="cursor:pointer;">
-                                        <span class="fs-avatar-xs" style="width:30px;height:30px;border-radius:50%;background:var(--fs-green);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;">@user.username.Substring(0,1).ToUpper()</span>
+                                        <span class="fs-avatar-xs" style="width:32px;height:32px;border-radius:50%;background:var(--fs-green);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;">@user.username.Substring(0,1).ToUpper()</span>
                                         <span class="d-none d-lg-inline fs-14 fw-500">@user.username</span>
                                     </a>
                                     <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="border:none;border-radius:12px;margin-top:10px;min-width:200px;">
@@ -230,9 +222,19 @@
                                         {
                                             <li><a class="dropdown-item py-2 px-3" href="/Restaurant"><i class="fa fa-store me-3 text-muted" style="width:16px;"></i>Quản lý quán</a></li>
                                         }
+                                        @if (user.loaitaikhoan.Equals("Shipper"))
+                                        {
+                                            <li><a class="dropdown-item py-2 px-3" href="/Shipper"><i class="fa fa-truck me-3 text-muted" style="width:16px;"></i>Bảng điều khiển</a></li>
+                                        }
+                                        @if (user.loaitaikhoan.Equals("Admin"))
+                                        {
+                                            <li><a class="dropdown-item py-2 px-3" href="/Admin"><i class="fa fa-shield-alt me-3 text-muted" style="width:16px;"></i>Quản trị</a></li>
+                                        }
                                         <li><hr class="dropdown-divider my-1" /></li>
                                         <li><a class="dropdown-item py-2 px-3 text-danger fw-500" href="/Home/Logout"><i class="fa fa-sign-out-alt me-3" style="width:16px;"></i>Đăng xuất</a></li>
-                                    </ul>                                </div>                            </div>
+                                    </ul>
+                                </div>
+                            </div>
                             <!-- ═══ MOBILE: direct links (visible <992px) — KO cần scroll ═══ -->
                             <div class="d-lg-none border-top mt-2 pt-2 px-2">
                                 <div class="text-muted small mb-2 px-2">
@@ -281,7 +283,7 @@
 
                         <a class="fs-cart-btn d-none d-lg-flex ms-2" href="/Cart" aria-label="Giỏ hàng" id="navCartBtn">
                             <i class="fa fa-shopping-bag"></i>
-                            <span class="fs-cart-badge" id="navCartBadge" style="display:none;position:absolute;top:-6px;right:-6px;background:#dc3545;color:#fff;width:20px;height:20px;border-radius:50%;font-size:11px;align-items:center;justify-content:center;font-weight:700;">0</span>
+                            <span class="fs-cart-badge" id="navCartBadge" style="display:none;position:absolute;top:-8px;right:-8px;background:#dc3545;color:#fff;width:22px;height:22px;border-radius:50%;font-size:11px;align-items:center;justify-content:center;font-weight:700;box-shadow:0 2px 6px rgba(220,53,69,.4);border:2px solid #fff;">0</span>
                         </a>
                     </div>
                 </div>

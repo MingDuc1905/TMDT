@@ -702,14 +702,85 @@ public class AdminController : BaseController
         if (!checkLogin())
             return Json(new { error = "Unauthorized" });
 
+        var now = DateTime.Now;
+        var todayStart = now.Date;
+        var thisMonthStart = new DateTime(now.Year, now.Month, 1);
+
         return Json(new
         {
             tongQuan = db.tbQuanAn.Count(qa => qa.tbUser != null && qa.tbUser.trangthai == 1),
             tongShipper = db.tbShipper.Count(s => s.tbUser != null && s.tbUser.trangthai == 1),
+            shipperChoDuyet = db.tbUser.Count(u => u.loaitaikhoan == "Shipper" && u.trangthai == 0),
             tongKhach = db.tbUser.Count(u => u.loaitaikhoan == "Khách hàng" && u.trangthai == 1),
             tongMon = db.tbMonAn.Count(),
-            tongDonAll = db.tbDonHang.Count()
+            tongDonAll = db.tbDonHang.Count(),
+            donHomNay = db.tbDonHang.Count(d => d.ngaydathang >= todayStart),
+            donThangNay = db.tbDonHang.Count(d => d.ngaydathang >= thisMonthStart),
+            doanhThuHomNay = db.tbDonHang
+                .Where(d => d.trangthai == "Hoàn thành" && d.ngaydathang >= todayStart)
+                .Sum(d => (decimal?)d.tongtien) ?? 0,
+            doanhThuThangNay = db.tbDonHang
+                .Where(d => d.trangthai == "Hoàn thành" && d.ngaydathang >= thisMonthStart)
+                .Sum(d => (decimal?)d.tongtien) ?? 0
         });
+    }
+
+    [HttpGet]
+    public JsonResult GetCategoryStats()
+    {
+        if (!checkLogin())
+            return Json(new { error = "Unauthorized" });
+
+        // Thống kê danh mục theo doanh thu
+        var stats = db.tbChiTietDonHang
+            .Where(ct => ct.tbBienTheMonAn != null && ct.tbBienTheMonAn.tbMonAn != null
+                && ct.tbBienTheMonAn.tbMonAn.tbDanhMuc != null
+                && ct.tbDonHang != null && ct.tbDonHang.trangthai == "Hoàn thành")
+            .GroupBy(ct => ct.tbBienTheMonAn.tbMonAn.tbDanhMuc.tendanhmuc)
+            .Select(g => new
+            {
+                tenDanhMuc = g.Key,
+                doanhThu = g.Sum(ct => (ct.dongia ?? 0) * (ct.soluong ?? 0)),
+                soLuong = g.Sum(ct => (int?)ct.soluong ?? 0),
+                soDon = g.Select(ct => ct.madh).Distinct().Count()
+            })
+            .OrderByDescending(g => g.doanhThu)
+            .ToList();
+
+        return Json(stats);
+    }
+
+    [HttpGet]
+    public JsonResult GetHourlyOrderStats()
+    {
+        if (!checkLogin())
+            return Json(new { error = "Unauthorized" });
+
+        var todayStart = DateTime.Now.Date;
+        var todayEnd = todayStart.AddDays(1);
+
+        var hourlyData = db.tbDonHang
+            .Where(d => d.ngaydathang >= todayStart && d.ngaydathang < todayEnd)
+            .AsEnumerable()
+            .GroupBy(d => d.ngaydathang!.Value.Hour)
+            .Select(g => new
+            {
+                gio = g.Key,
+                soDon = g.Count(),
+                doanhThu = g.Sum(d => d.tongtien ?? 0)
+            })
+            .OrderBy(g => g.gio)
+            .ToList();
+
+        // Fill gaps (giờ nào không có đơn thì data = 0)
+        var fullHourly = Enumerable.Range(0, 24).Select(h => new
+        {
+            gio = h,
+            soDon = hourlyData.FirstOrDefault(d => d.gio == h)?.soDon ?? 0,
+            doanhThu = hourlyData.FirstOrDefault(d => d.gio == h)?.doanhThu ?? 0
+        }).ToList();
+
+        return Json(fullHourly);
     }
 
     // ─── Task: Admin quản lý khuyến mãi tùy chỉnh ───

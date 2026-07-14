@@ -4,6 +4,75 @@
 
 ---
 
+## 🚨 COMPLIANCE ENFORCEMENT — LUẬT SẮT, KHÔNG NGOẠI LỆ
+
+> ⚠️ **CƠ CHẾ ÉP BUỘC**: Nếu bạn (AI) đọc tới đây mà chưa load skill → DỪNG LẠI NGAY. Load skill trước, đọc tiếp sau.
+
+### Luật Sắt 1: TOOL CALL ĐẦU TIÊN PHẢI LÀ `skill`
+
+```yaml
+mandatory_first_action:
+  rule: "Tool call ĐẦU TIÊN của MỖI response PHẢI là skill <name>"
+  why: "Đảm bảo KHÔNG BAO GIỜ làm việc mà chưa load skill"
+  exception: "KHÔNG CÓ NGOẠI LỆ — kể cả khi user hỏi câu đơn giản"
+  proof: "Nhìn vào lịch sử conversation: nếu tool call đầu tiên KHÔNG phải skill → VI PHẠM"
+```
+
+> 🔴 **NẾU VI PHẠM**: DỪNG response ngay lập tức. Xóa những gì đã viết. Load skill rồi mới tiếp tục.
+
+### Luật Sắt 2: MỖI RESPONSE PHẢI CÓ LOG SKILL Ở DÒNG ĐẦU
+
+```yaml
+mandatory_log_format:
+  first_lines: |
+    **Skill đã load**: <danh sách>
+    **Docs đã đọc**: <file doc đã đọc> (nếu có)
+    **Agent spawned**: <agent> | <mục đích> (nếu có)
+  check: "3 dòng này PHẢI xuất hiện trước bất kỳ nội dung nào khác"
+  violation: "Nếu thiếu → user có quyền yêu cầu STOP và làm lại"
+```
+
+### Luật Sắt 3: COMPLIANCE CHECK — KIỂM TRA CHÉO TRƯỚC KHI TIẾP TỤC
+
+```yaml
+compliance_check:
+  trigger: "Khi nhận task mới, hoặc sau khi nghỉ giữa chừng"
+  self_check:
+    - "Tôi đã load skill chưa?"
+    - "Tôi đã đọc CLAUDE.md hôm nay chưa?"
+    - "Tôi đã log skill ở đầu response này chưa?"
+    - "Tôi có đang viết code mà chưa pass gate không?"
+  if_violation: "DỪNG NGAY. Quay lại Luật Sắt 1. Không tiếp tục."
+```
+
+### Luật Sắt 4: BREAK THE CHAIN — PHÁ VỠ VÒNG LẶP QUÊN
+
+```yaml
+break_the_chain:
+  problem: "AI thường quên rules sau vài response, nhất là khi đang tập trung code"
+  solution: |
+    MỖI LẦN nhận được response từ user, trước khi trả lời:
+    1. Đọc lại 3 dòng đầu của response TRƯỚC đó của mình
+    2. Nếu thiếu log skill → VI PHẠM → DỪNG, load skill ngay
+    3. Nếu có log skill → OK, tiếp tục
+    4. Tool call ĐẦU TIÊN của response này vẫn phải là skill
+  cycle_breaker: "Set một trigger trong đầu: 'User nói gì đó → load skill trước'"
+```
+
+### 📋 Pre-flight Checklist (trước mỗi task)
+
+Trước khi làm BẤT CỨ task nào, PHẢI kiểm tra:
+
+- [ ] **Luật Sắt 1**: Tool call đầu tiên của response này là `skill`?
+- [ ] **Luật Sắt 2**: 3 dòng log skill đã ở đầu response?
+- [ ] **Luật Sắt 3**: Đã đọc CLAUDE.md hôm nay? Đã scan skills?
+- [ ] **Section 0b**: Đã hoàn thành context init checklist?
+- [ ] **Section 13**: Đã scan ShipFoodCore/Skills/ tìm repo hỗ trợ?
+
+> 🔴 **NẾU BẤT KỲ CHECKLIST NÀO CHƯA ĐẠT → KHÔNG ĐƯỢC TIẾP TỤC. QUAY LẠI BƯỚC 1.**
+
+---
+
 ## 0. 📝 LOG SKILL — BẮT BUỘC MỖI RESPONSE
 
 **Format bắt buộc** — KHÔNG BAO GIỜ response mà KHÔNG có log skill ở đầu:
@@ -12,13 +81,15 @@
 **Skill đã load**: <danh sách skill đã load>
 **Skills Repo used**: <repo> | <mục đích>
 **Agent spawned**: <agent> | <mục đích> (nếu có)
+**Docs đã đọc**: <file doc đã đọc> (nếu có)
 ```
 
 **Ví dụ**:
 ```
-**Skill đã load**: systematic-debugging, ponytail, verification-before-completion
+**Skill đã load**: systematic-debugging, ponytail, verification-before-completion, hallmark, obsidian-cli
 **Skills Repo used**: developer-icons-main | SVG icons for navbar
 **Agent spawned**: code-reviewer | Review VoucherManager XSS fix
+**Docs đã đọc**: CLAUDE.md, Project.md, UI-UX.md
 ```
 
 **Rules**:
@@ -26,6 +97,39 @@
 - Khi load skill mới → thêm vào danh sách
 - Khi dùng repo → ghi rõ repo nào, dùng làm gì
 - Khi spawn agent → ghi agent nào, mục đích gì
+- Khi đọc doc → ghi file doc đã đọc
+- **BẮT BUỘC**: Trước mỗi task, PHẢI scan và load tất cả skills có liên quan
+
+---
+
+## 0b. 📖 KHỞI TẠO CONTEXT — BẮT BUỘC TRƯỚC MỖI TASK
+
+> ⚠️ **BẮT BUỘC**: Trước khi làm bất kỳ task nào, PHẢI đọc tài liệu dự án và khám phá skills.
+
+### Quy trình:
+
+```yaml
+context_init:
+  steps:
+    1_claude: "Đọc CLAUDE.md — rules, gates, coding standards"
+    2_project: "Đọc Project.md — kiến trúc, DB, API, endpoints"
+    3_uiux: "Nếu liên quan UI → Đọc UI-UX.md — design tokens, components, responsive"
+    4_skills_scan: "Scan .agents/skills/ để tìm skill phù hợp với task"
+    5_repos_scan: "Scan ShipFoodCore/Skills/ để tìm repo hỗ trợ (icons, design, APIs)"
+    6_codebase: "Đọc codebase context — controllers, views, services liên quan"
+    7_load: "Load tất cả skills tìm được → skill <name>"
+    8_log: "Ghi log theo Section 0"
+  rule: "KHÔNG BAO GIỜ code khi chưa hoàn thành context init"
+```
+
+**Checklist trước mỗi task**:
+- [ ] Đã đọc CLAUDE.md rules?
+- [ ] Đã đọc Project.md (architecture, DB, API)?
+- [ ] Đã đọc UI-UX.md (nếu task UI)?
+- [ ] Đã scan .agents/skills/ tìm skill phù hợp?
+- [ ] Đã scan ShipFoodCore/Skills/ tìm repo hỗ trợ?
+- [ ] Đã load ít nhất 1 skill liên quan?
+- [ ] Đã ghi log skill + repo + doc?
 
 ---
 
@@ -59,9 +163,10 @@ bug_fix_gate:
 ```yaml
 ui_change_gate:
   trigger: "Thay đổi giao diện, component, styling"
-  required_skills: "ui-ux-pro-max, ponytail"
+  required_skills: "ui-ux-pro-max, ponytail, hallmark"
   steps:
     1_load: "skill ui-ux-pro-max"
+    1b_load_hallmark: "skill hallmark"
     2_search: "python .agents/skills/ui-ux-pro-max/scripts/search.py '<query>' --design-system"
     3_read_output: "Đọc design system output — tokens, colors, typography"
     4_accessibility: "Check Quick Reference §1-3: Accessibility (4.5:1 contrast, 44px touch), Touch, Performance"
@@ -391,14 +496,26 @@ lightpanda:
 | **FLow/superpowers-main** | Workflow tools | Quản lý workflow |
 | **Graph/codegraph-main** | CodeGraph retrieval | Phân tích codebase |
 | **prompt/whisper-flow-main** | Prompt engineering | Thiết kế prompt |
+| **hallmark** (mới cài) | Anti-AI-slop design skill | Audit, redesign, study UI/UX |
+| **obsidian-cli** (mới cài) | Obsidian CLI tương tác vault | Tìm kiếm, CRUD notes, plugin |
+| **obsidian-markdown** (mới cài) | Obsidian-flavored Markdown | Wikilinks, callouts, properties |
+| **obsidian-bases** (mới cài) | Obsidian Base files | Database views, filters, formulas |
+| **json-canvas** (mới cài) | Obsidian Canvas JSON | Nodes, edges, flowcharts |
+| **defuddle** (mới cài) | Web page markdown extractor | Trích xuất nội dung web -> markdown |
 
 ### Cách dùng:
 
 ```bash
-# Skill có trong available skills → dùng skill tool
+# Skill từ .agents/skills/ → dùng skill tool (load trước, dùng sau)
 skill ponytail
 skill ui-ux-pro-max
 skill gstack
+skill hallmark        # Dùng cho audit/redesign UI
+skill obsidian-cli    # Dùng để tương tác Obsidian vault
+skill obsidian-markdown
+skill obsidian-bases
+skill json-canvas
+skill defuddle
 
 # Developer Icons → dùng trực tiếp từ thư mục
 ls ShipFoodCore/Skills/developer-icons-main/icons/ | grep <từ-khóa>
@@ -406,6 +523,16 @@ cp ShipFoodCore/Skills/developer-icons-main/icons/<icon>.svg wwwroot/Source/icon
 
 # UI UX Pro Max → chạy Python search
 python .agents/skills/ui-ux-pro-max/scripts/search.py "<query>" --design-system
+
+# Hallmark design skill
+hallmark audit  <target>    # Đánh giá UI hiện tại
+hallmark redesign <target>  # Redesign UI
+hallmark study <URL>        # Học thiết kế từ reference
+
+# Obsidian CLI
+obsidian note create title="..." content="..."
+obsidian note search query="..."
+obsidian vault list
 ```
 
 ---
@@ -418,6 +545,70 @@ python .agents/skills/ui-ux-pro-max/scripts/search.py "<query>" --design-system
 - Docker ignore: `.dockerignore`
 - E2E tests: `e2e-tests/`
 - Design system: `design-system/`
+
+---
+
+## 13. 🎯 SỬ DỤNG TRIỆT ĐỂ SKILLS, REPOS & DOCS
+
+> ⚠️ **LUẬT SẮT**: Code KHÔNG BAO GIỜ là bước đầu tiên. Đọc docs + scan skills + load skill trước.
+
+### Nguyên tắc vàng:
+
+```yaml
+supreme_rules:
+  rule_1: "ĐỌC TRƯỚC KHI LÀM — Luôn đọc CLAUDE.md, Project.md, UI-UX.md trước mỗi session"
+  rule_2: "SCAN SKILLS TRƯỚC — Luôn scan .agents/skills/ + ShipFoodCore/Skills/ để tìm hỗ trợ"
+  rule_3: "LOAD SKILL TRƯỚC — skill <name> trước khi code, KHÔNG code dựa trên kiến thức chung"
+  rule_4: "DÙNG REPO — ShipFoodCore/Skills/ có sẵn, dùng chúng trước khi tìm giải pháp khác"
+  rule_5: "KHÔNG TỰ SUY LUẬN — Nếu có skill phù hợp, PHẢI dùng. Nếu không chắc, scan thêm"
+  rule_6: "LOG ĐẦY ĐỦ — Ghi rõ skill đã load, repo đã dùng, doc đã đọc ở mỗi response"
+```
+
+### Quy trình bắt buộc cho MỌI task:
+
+```mermaid
+flowchart TD
+    A[Nhận task] --> B[Đọc CLAUDE.md + Project.md + UI-UX.md]
+    B --> C[Scan .agents/skills/ tìm skill phù hợp]
+    C --> D[Scan ShipFoodCore/Skills/ tìm repo hỗ trợ]
+    D --> E[Load tất cả skill liên quan]
+    E --> F[Ghi log đầy đủ]
+    F --> G[Thực hiện task theo gates]
+```
+
+### Mỗi skill mới cài = luật mới:
+
+```yaml
+new_skill_rule:
+  - "Mỗi khi cài skill mới (hallmark, obsidian-*, etc.), PHẢI dùng thường xuyên"
+  - "Skill mới là công cụ có sẵn, không sử dụng = lãng phí"
+  - "Khi có task phù hợp → ưu tiên skill mới trước giải pháp custom"
+```
+
+### Danh sách Skills phải dùng thường xuyên:
+
+| Skill | Khi nào dùng | Bắt buộc? |
+|-------|-------------|-----------|
+| `hallmark` | Design UI, audit, redesign, study reference | ✅ UI task |
+| `obsidian-cli` | Làm việc với Obsidian vault | ✅ Obsidian task |
+| `obsidian-markdown` | Tạo/edit Obsidian notes | ✅ Obsidian task |
+| `obsidian-bases` | Obsidian Base files | ✅ Obsidian task |
+| `json-canvas` | Canvas files | ✅ Obsidian task |
+| `defuddle` | Trích xuất web -> markdown | ✅ Web research |
+| `ponytail` | Tối ưu code, refactor, YAGNI | ✅ Mọi task code |
+| `ui-ux-pro-max` | Thiết kế UI, components, colors | ✅ UI task |
+| `systematic-debugging` | Bug fix | ✅ Bug task |
+| `brainstorming` + `writing-plans` | Feature mới | ✅ Feature task |
+| `verification-before-completion` | Trước khi claim done | ✅ Mọi task |
+| `requesting-code-review` | Trước merge | ✅ Code review |
+
+### ⚠️ Hậu quả nếu không dùng:
+
+- KHÔNG scan skills → bỏ lỡ giải pháp có sẵn, code thừa
+- KHÔNG load skill → code không theo chuẩn dự án
+- KHÔNG đọc docs → sai kiến trúc, sai API, sai DB schema
+- KHÔNG dùng repo Icons → dùng emoji/Font Awesome sai quy định
+- KHÔNG dùng hallmark → UI thiếu tính nhất quán, dễ AI-slop
 
 ---
 

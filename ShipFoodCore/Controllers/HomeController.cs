@@ -964,9 +964,12 @@ public class HomeController : BaseController
         catch (Exception ex)
         {
             var logger = HttpContext.RequestServices.GetRequiredService<ILogger<HomeController>>();
-            logger.LogError(ex, "Signup failed for user {Username}", user.username);
-            if (IsAjaxRequest()) return Json(new { success = false, message = "Lỗi tạo tài khoản. Vui lòng thử lại." });
-            ViewBag.err = "Lỗi tạo tài khoản. Vui lòng thử lại.";
+            var innerMsg = ex.InnerException?.Message ?? ex.Message;
+            logger.LogError(ex, "Signup failed for user {Username}: {Error}", user.username, innerMsg);
+            var userMsg = "Lỗi tạo tài khoản. Vui lòng thử lại.";
+            // ponytail: debug field exposes inner exception — remove after root cause is fixed
+            if (IsAjaxRequest()) return Json(new { success = false, message = userMsg, debug = innerMsg });
+            ViewBag.err = userMsg;
             return View();
         }
     }

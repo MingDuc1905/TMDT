@@ -253,45 +253,194 @@ code_review_gate:
 
 ---
 
-## 🔴 IRON LAW 4: SKILL & REPO ENFORCEMENT
+## 🔴 IRON LAW 4: SKILL & REPO ENFORCEMENT — BẮT BUỘC SCAN TOÀN BỘ
 
-### Mỗi skill trong dự án — khi nào PHẢI dùng:
+### ⚠️ LUẬT SẮT: TRƯỚC MỖI TASK, PHẢI SCAN TẤT CẢ SKILLS VÀ REPOS
 
-| Skill | Trigger | Hậu quả nếu ko dùng |
-|-------|---------|---------------------|
-| **`ponytail`** | MỌI task code | Over-engineering, code bloat |
-| **`systematic-debugging`** | Bug fix | Fix sai root cause, mất thời gian |
-| **`ui-ux-pro-max`** | UI change | Thiết kế thiếu nhất quán, màu sắc lệch |
-| **`hallmark`** | UI change | AI-slop UI, thiếu inspiration |
-| **`brainstorming`** | Feature mới | Thiếu design thinking, làm ẩu |
-| **`writing-plans`** | Feature mới | Code mà ko có plan, lạc hướng |
-| **`verification-before-completion`** | Trước commit | Claim sai, bug ra production |
-| **`requesting-code-review`** | Trước merge | Bug lọt vào master |
+```yaml
+mandatory_scan:
+  rule: "Trước mỗi task, PHẢI chạy: ls .agents/skills/ && ls ShipFoodCore/Skills/*/ để tìm skills/repos phù hợp"
+  scan_depth: "PHẢI đọc tên TẤT CẢ skills (không lướt). Nếu thấy skill khả dụng → load ngay."
+  penalty: "Bỏ sót skill khả dụng → VI PHẠM. XÓA response. Load skill. Làm lại."
+  proof: "Trong log response, PHẢI ghi: 'Đã scan 120 skills, tìm thấy X skills phù hợp: [list]'"
+```
 
-### Mỗi repo trong ShipFoodCore/Skills/ — khi nào PHẢI dùng:
+### 🎯 TOP 25 SKILLS QUAN TRỌNG NHẤT (dùng thường xuyên)
 
-| Repo | Trigger | Cách dùng |
-|------|---------|-----------|
-| **`developer-icons-main`** (320 SVG icons) | Tạo icon, logo, UI icons | `cp ShipFoodCore/Skills/developer-icons-main/icons/<icon>.svg wwwroot/Source/icons/` hoặc inline SVG. Chỉ dùng emoji cho content (rating, category pills, status) — KHÔNG cho navigation/buttons/system controls. |
-| **`ponytail-main`** | Refactor, tối ưu code | Áp dụng Ponytail optimization |
-| **`gstack-main`** | Security audit, QA | Audit bảo mật, penetration test |
-| **`ui-ux-pro-max-skill-main`** | Design UI | `python .agents/skills/ui-ux-pro-max/scripts/search.py <query>` |
-| **`awesome-claude-design`** | Design system | 68 DESIGN.md patterns — đọc trước khi design |
-| **`public-apis-master`** | Tích hợp API | Tìm public APIs thay vì tự xây |
-| **`lightpanda-browser`** | E2E test | Lightpanda headless browser (nhanh hơn Chrome 9x) |
-| **`agent-reach-main`** | Web research | Tương tác Twitter, Reddit, web |
-| **`FLow/superpowers-main`** | Workflow | Quản lý workflow, todo tracking |
+| Skill | Nhóm | Trigger | Hậu quả nếu ko dùng |
+|-------|------|---------|---------------------|
+| **`ponytail`** | ⭐ Core | MỌI task code | Over-engineering, code bloat |
+| **`systematic-debugging`** | ⭐ Core | Bug fix | Fix sai root cause, mất thời gian |
+| **`verification-before-completion`** | ⭐ Core | Trước commit | Claim sai, bug ra production |
+| **`requesting-code-review`** | ⭐ Core | Trước merge | Bug lọt vào master |
+| **`receiving-code-review`** | ⭐ Core | Nhận review feedback | Blind-commit feedback sai |
+| **`ui-ux-pro-max`** | 🎨 UI | Thiết kế giao diện, màu sắc | Thiết kế thiếu nhất quán |
+| **`hallmark`** | 🎨 UI | Thiết kế UI, audit, redesign | AI-slop UI, thiếu inspiration |
+| **`ui-styling`** | 🎨 UI | Components, Tailwind, CSS | Style thiếu consistency |
+| **`brand`** | 🎨 UI | Brand identity, logo | Brand inconsistency |
+| **`design`** | 🎨 UI | Logo, CIP, banner, social media | Thiếu visual assets |
+| **`design-system`** | 🎨 UI | Design tokens, component specs | Thiếu hệ thống tokens |
+| **`banner-design`** | 🎨 UI | Social media ads, website hero | Banner kém chất lượng |
+| **`brainstorming`** | 📋 Plan | Feature mới, creative work | Thiếu design thinking, làm ẩu |
+| **`writing-plans`** | 📋 Plan | Multi-step task | Code mà ko có plan, lạc hướng |
+| **`spec-kit`** | 📋 Plan | Spec-driven development | Thiếu spec trước khi code |
+| **`subagent-driven-development`** | 📋 Plan | Implement plan với subagents | Không tận dụng parallelism |
+| **`dispatching-parallel-agents`** | 📋 Plan | 2+ tasks độc lập | Tuần tự hoá không cần thiết |
+| **`executing-plans`** | 📋 Plan | Execute có sẵn plan | Lạc hướng khi implement |
+| **`finishing-a-development-branch`** | 📋 Plan | Hoàn thành branch | Quyết định merge sai |
+| **`using-git-worktrees`** | 📋 Plan | Feature work isolation | Làm việc chồng chéo |
+| **`gstack`** | 🔒 Security | Audit bảo mật, QA, penetration test | Lỗ hổng bảo mật |
+| **`consciousness-council`** | 🧠 Thinking | Decision, dilemma, multi-perspective | Quyết định thiếu góc nhìn |
+| **`what-if-oracle`** | 🧠 Thinking | Scenario analysis, contingency | Thiếu planning cho rủi ro |
+| **`markdown-mermaid-writing`** | 📝 Docs | Tài liệu, diagrams, reports | Tài liệu thiếu diagrams |
 
-### Mỗi file doc — BẮT BUỘC đọc trước task:
+### 📚 TOÀN BỘ 120+ SKILLS THEO NHÓM
 
-| Doc | Khi nào đọc | Nội dung chính |
-|-----|-------------|----------------|
-| **CLAUDE.md** | Mỗi session | Rules, gates, enforcement (file này) |
-| **Project.md** | Mỗi task mới | Architecture, DB schema, API endpoints, roles |
-| **UI-UX.md** | UI task | Design tokens, components, responsive breakpoints, micro-interactions |
-| **`fastship-design-tokens.css`** | UI task | CSS variables: `--fs-green`, `--fs-radius`, `--fs-shadow`, etc. |
-| **`layout-sg.css`** | UI task (customer) | Layout classes, scrollbar handling, skeleton loading |
-| **`compliance-check.sh`** | Mỗi đầu response | Script chạy compliance check — PHẢI chạy sau skill load |
+#### ⭐ Core — Dùng MỌI LÚC
+```
+ponytail, systematic-debugging, verification-before-completion,
+requesting-code-review, receiving-code-review, ponytail-audit,
+ponytail-debt, ponytail-gain, ponytail-help, ponytail-review
+```
+
+#### 🎨 UI/Design — Dùng khi làm giao diện
+```
+ui-ux-pro-max, hallmark, ui-styling, brand, design,
+design-system, banner-design, infographics
+```
+
+#### 📋 Planning & Workflow — Dùng trước khi code feature
+```
+brainstorming, writing-plans, spec-kit, spec-kit-main,
+subagent-driven-development, dispatching-parallel-agents,
+executing-plans, finishing-a-development-branch,
+using-git-worktrees, using-superpowers
+```
+
+#### 🧠 Thinking/Strategy — Dùng cho decision & analysis
+```
+consciousness-council, what-if-oracle, dhdna-profiler
+```
+
+#### 🔒 Security/QA — Dùng cho audit
+```
+gstack, systematic-debugging, test-driven-development
+```
+
+#### 📝 Docs/Presentations — Dùng khi tạo tài liệu
+```
+markdown-mermaid-writing, docx, pdf, pptx, pptx-posters,
+slides, scientific-writing, scientific-slides,
+scientific-schematics, latex-posters, xlsx
+```
+
+#### 🌐 Web/Research — Dùng khi cần tra cứu
+```
+agent-reach, defuddle, exa-search, mcp-playwright,
+parallel-web, liteparse, markitdown, paper-lookup,
+paperzilla, research-lookup, database-lookup,
+bgpt-paper-search, literature-review
+```
+
+#### 📊 Data/ML/AI — Dùng cho data analysis & ML
+```
+anndata, scanpy, scvi-tools, scvelo, polars, polars-bio,
+pytorch-lightning, torch-geometric, torchdrug,
+transformers, scikit-learn, scikit-survival, seaborn,
+matplotlib, scientific-visualization, exploratory-data-analysis,
+statistical-analysis, statistical-power, statsmodels,
+pymc, pymoo, shap, umap-learn, vaex, dask, networkx
+datamol, rdkit, molfeat, deepchem, medchem, pytdc,
+diffdock, esm, molecular-dynamics, glycoengineering
+```
+
+#### 🧬 Bioinformatics/Science
+```
+biopython, bioservices, pysam, pyopenms, matchms,
+flowio, geniml, gtars, pydeseq2, pathway-enrichment,
+scikit-bio, cobrapy, ete-toolkit, deeptools, cellxgene-census,
+onekgpd, primekg, pydicom, histolab, pathml
+nextflow, pacsomatic, tiledbvcf, lamindb
+```
+
+#### 🧪 Lab/Automation
+```
+opentrons-integration, pylabrobot, protocolsio-integration,
+labarchive-integration, ginkgo-cloud-lab, benchling-integration,
+omeroh-integration, latchbio-integration, dnanexus-integration
+```
+
+#### ⚛️ Physics/Engineering
+```
+qiskit, cirq, pennylane, qutip, astropy, fluidsim,
+sympy, matlab, geomaster, geopandas, optimize-for-gpu
+```
+
+#### 📓 Obsidian/Note-taking
+```
+obsidian-cli, obsidian-markdown, obsidian-bases, json-canvas
+```
+
+#### 🧪 TDD/Skills Dev
+```
+test-driven-development, writing-skills, add-lang,
+agent-eval, autoskill
+```
+
+#### 📄 Other Utilities
+```
+generate-image, generate-image, modality,
+pi-agent, stable-baselines3, pufferlib, timesfm-forecasting,
+simpy, neurokit2, neuropixels-analysis, getting-started,
+reducing-agents
+```
+
+### 📦 TOÀN BỘ 13 REPOS TRONG ShipFoodCore/Skills/
+
+| STT | Repo | Mô tả | Dùng khi nào | Cách dùng |
+|-----|------|-------|-------------|-----------|
+| 1 | **developer-icons-main** | 320 SVG tech icons | Tạo icon, logo, UI | `cp icons/<icon>.svg wwwroot/Source/icons/` hoặc inline SVG |
+| 2 | **ponytail-main** | Ponytail optimization suite | Mọi task code | Xem tests/ để biết patterns |
+| 3 | **gstack-main** | Security router suite + QA | Audit bảo mật, penetration test | Chạy agents/ + benchmark/ |
+| 4 | **ui-ux-pro-max-skill-main** (trong UI UX/) | UI/UX design (161 rules) | Thiết kế UI | `python scripts/search.py <query> --design-system` |
+| 5 | **awesome-claude-design** | 68 DESIGN.md patterns | Design system | Đọc README.md + LICENSE |
+| 6 | **public-apis-master** | Public APIs collection | Tích hợp API | Tìm API thay vì tự xây |
+| 7 | **lightpanda-browser** | Headless browser (nhanh 9x Chrome) | E2E test | `npx playwright test --config=lightpanda.config.ts` |
+| 8 | **agent-reach-main** | Agent tương tác 13+ platforms | Web research, Twitter, Reddit, v.v. | Dùng khi cần tra cứu online |
+| 9 | **FLow/superpowers-main** | Workflow tools | Quản lý workflow, todo | Dùng khi có multi-step task |
+| 10 | **Graph/codegraph-main** | CodeGraph retrieval | Phân tích codebase, refactor large | Dùng khi refactor lớn |
+| 11 | **prompt/whisper-flow-main** | Prompt engineering | Thiết kế prompt, system message | Dùng khi cần prompt tối ưu |
+| 12 | **scientific-agent-skills-main** | Scientific agent skills | Kho tổng hợp scientific skills | Dùng khi cần scientific skills |
+| 13 | **Skill/** | Thư mục skills cài thêm | Skills bổ sung | Kiểm tra nội dung bên trong |
+
+### 📖 TOÀN BỘ DOCS PHẢI ĐỌC
+
+| Doc | Vị trí | Khi nào | Nội dung |
+|-----|--------|---------|----------|
+| **CLAUDE.md** | `/CLAUDE.md` | Mỗi session | Rules, gates, enforcement (file này) |
+| **Project.md** | `/Project.md` | Mỗi task mới | Architecture, DB schema, API endpoints, roles |
+| **UI-UX.md** | `/UI-UX.md` | UI task | Design tokens, components, responsive, micro-interactions |
+| **fastship-design-tokens.css** | `wwwroot/Source/Shared/css/` | UI task | CSS variables: `--fs-green`, `--fs-radius`, `--fs-shadow` |
+| **layout-sg.css** | `wwwroot/Source/Home/css/` | UI customer | Layout classes, scrollbar, skeleton |
+| **compliance-check.sh** | `/compliance-check.sh` | Mỗi đầu response | Script chạy compliance check |
+| **fastship-rules.md** | `.agents/skills/fastship-rules.md` | Mỗi session | FastShip-specific dev rules |
+
+### 🔄 QUY TRÌNH BẮT BUỘC: SCAN + LOAD SKILLS
+
+```yaml
+skill_scan_process:
+  step_1: "ls .agents/skills/ — đọc TÊN tất cả 120+ skills, tìm skill phù hợp"
+  step_2: "ls ShipFoodCore/Skills/*/ — đọc tên tất cả 13 repos"
+  step_3: "NẾU task = UI → load: ponytail + ui-ux-pro-max + hallmark + ui-styling"
+  step_4: "NẾU task = Bug → load: systematic-debugging + verification-before-completion"
+  step_5: "NẾU task = Feature → load: brainstorming + writing-plans + spec-kit"
+  step_6: "NẾU cần icon → kiểm tra developer-icons-main (320 SVG icons)"
+  step_7: "NẾU cần E2E → lightpanda-browser"
+  step_8: "NẾU cần security → gstack-main"
+  step_9: "NẾU cần design system → awesome-claude-design + ui-ux-pro-max-skill-main"
+  step_10: "Load TẤT CẢ skills tìm được → ghi log đầy đủ"
+  penalty: "Bỏ qua bước scan → VI PHẠM IRON LAW 4 → reset session"
+```
 
 ---
 
@@ -493,43 +642,7 @@ git_rules:
 
 ---
 
-## 💎 REFERENCE: TOÀN BỘ SKILLS & REPOS
 
-### Skills (.agents/skills/) — PHẢI SCAN KHI CÓ TASK PHÙ HỢP:
-
-```bash
-# Liệt kê tất cả skills
-ls .agents/skills/
-
-# Skills QUAN TRỌNG NHẤT (dùng thường xuyên):
-# ponytail, systematic-debugging, verification-before-completion,
-# requesting-code-review, brainstorming, writing-plans,
-# ui-ux-pro-max, hallmark, gstack
-```
-
-### Repos (ShipFoodCore/Skills/) — PHẢI SCAN KHI CẦN:
-
-```bash
-# Liệt kê tất cả repos
-ls ShipFoodCore/Skills/*/
-
-# ICONS — 320 SVG icons có sẵn
-ls ShipFoodCore/Skills/developer-icons-main/icons/ | head -30
-# → Dùng: cp ShipFoodCore/Skills/developer-icons-main/icons/<icon>.svg wwwroot/Source/icons/
-
-# Design system patterns
-ls ShipFoodCore/Skills/awesome-claude-design/
-
-# Security audit
-ls ShipFoodCore/Skills/gstack-main/
-```
-
-### Docs — PHẢI ĐỌC TRƯỚC KHI LÀM:
-
-```bash
-# Bắt buộc: đọc Project.md + UI-UX.md mỗi session
-# Tham khảo: fastship-design-tokens.css, layout-sg.css
-```
 
 ---
 

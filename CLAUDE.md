@@ -130,8 +130,8 @@ mandatory_pre_flight:
   script: |
     if [ -f /tmp/.compliance_passed ]; then
       echo "✅ Compliance passed earlier today — $(date)"
-      # Kiểm tra file không quá cũ (quá 30 phút)
-      AGE=$(($(date +%s) - $(stat -c %Y /tmp/.compliance_passed)))
+      # Kiểm tra file không quá cũ (quá 30 phút) — dùng date -r (Windows/Linux compatible)
+      AGE=$(($(date +%s) - $(date -r /tmp/.compliance_passed +%s 2>/dev/null)))
       if [ $AGE -gt 1800 ]; then
         echo "⚠️ File quá cũ (>30 phút) — cần chạy lại"
         rm -f /tmp/.compliance_passed
@@ -272,7 +272,7 @@ code_review_gate:
 
 | Repo | Trigger | Cách dùng |
 |------|---------|-----------|
-| **`developer-icons-main`** (320 SVG icons) | Tạo icon, logo, UI icons | `cp ShipFoodCore/Skills/developer-icons-main/icons/<icon>.svg wwwroot/Source/icons/` hoặc inline SVG. KHÔNG dùng emoji làm icon hệ thống. |
+| **`developer-icons-main`** (320 SVG icons) | Tạo icon, logo, UI icons | `cp ShipFoodCore/Skills/developer-icons-main/icons/<icon>.svg wwwroot/Source/icons/` hoặc inline SVG. Chỉ dùng emoji cho content (rating, category pills, status) — KHÔNG cho navigation/buttons/system controls. |
 | **`ponytail-main`** | Refactor, tối ưu code | Áp dụng Ponytail optimization |
 | **`gstack-main`** | Security audit, QA | Audit bảo mật, penetration test |
 | **`ui-ux-pro-max-skill-main`** | Design UI | `python .agents/skills/ui-ux-pro-max/scripts/search.py <query>` |
@@ -291,6 +291,7 @@ code_review_gate:
 | **UI-UX.md** | UI task | Design tokens, components, responsive breakpoints, micro-interactions |
 | **`fastship-design-tokens.css`** | UI task | CSS variables: `--fs-green`, `--fs-radius`, `--fs-shadow`, etc. |
 | **`layout-sg.css`** | UI task (customer) | Layout classes, scrollbar handling, skeleton loading |
+| **`compliance-check.sh`** | Mỗi đầu response | Script chạy compliance check — PHẢI chạy sau skill load |
 
 ---
 
@@ -392,9 +393,16 @@ image_rules:
   allowed_sources:
     - "Pexels Videos: https://www.pexels.com/videos/"
     - "Local images: /Source/images/MonAn/, /Source/Home/img/"
+  emoji_allowed_for:
+    - "Content icons (ratings ★★★★★, category pills 🍚🍜🥘, food items)"
+    - "UI-UX.md category icon mapping (getCategoryIcon function)"
+    - "Status indicators (✅ ⚠️ 🔴)"
+  emoji_forbidden_always:
+    - "Navigation buttons (navbar, sidebar links)"
+    - "System controls (submit, delete, edit, close, menu buttons)"
+    - "Form controls (radio, checkbox custom styling)"
   forbidden:
     - "Unsplash links trực tiếp (403 forbidden)"
-    - "Emoji làm icon navigation, buttons, system controls"
     - "Font Awesome cho logo thương hiệu"
   icon_priority:
     1: "developer-icons-main (320 SVG icons) — ưu tiên SỐ 1"

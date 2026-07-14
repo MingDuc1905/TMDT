@@ -537,6 +537,21 @@
         });
     }
 
+    // ─── Refresh AntiForgeryToken ───
+    function refreshAntiForgeryToken() {
+        $.ajax({
+            url: '@Url.Action("RefreshToken", "Home")', type: 'GET',
+            success: function(r) {
+                if (r && r.token) {
+                    // Update token input value
+                    $('input[name="__RequestVerificationToken"]').val(r.token);
+                }
+            }
+        });
+    }
+    // Tự động refresh token mỗi 15 phút (trước khi token hết hạn ~20-30 phút)
+    setInterval(refreshAntiForgeryToken, 15 * 60 * 1000);
+
     function escHtml(str) {
         if (!str) return '';
         var d = document.createElement('div'); d.textContent = str; return d.innerHTML;

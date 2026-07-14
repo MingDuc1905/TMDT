@@ -1738,6 +1738,25 @@ VALUES ('test_debug', 'test123', 'Khách hàng', '0999999999', 0, 'test@debug.co
         }
     }
 
+    /// <summary>
+    /// Refresh AntiForgeryToken — gọi từ client để refresh token trước khi hết hạn
+    /// </summary>
+    [HttpGet]
+    public JsonResult RefreshToken()
+    {
+        return Json(new { token = GetAntiForgeryToken() });
+    }
+
+    /// <summary>
+    /// Lấy AntiForgeryToken dạng string
+    /// </summary>
+    private string GetAntiForgeryToken()
+    {
+        var antiforgery = HttpContext.RequestServices.GetRequiredService<Microsoft.AspNetCore.Antiforgery.IAntiforgery>();
+        var tokens = antiforgery.GetAndStoreTokens(HttpContext);
+        return tokens.RequestToken ?? "";
+    }
+
     // ===== API: Lấy các chi tiết đơn hàng của user tại quán này (để chọn đánh giá) =====
     [HttpGet]
     public JsonResult GetReviewableItems(int quanId)
@@ -1843,8 +1862,8 @@ VALUES ('test_debug', 'test123', 'Khách hàng', '0999999999', 0, 'test@debug.co
         if (existing != null)
             return Json(new { success = false, message = "Bạn đã đánh giá món này rồi" });
 
-        // Chỉ cho phép đánh giá đơn đã hoàn thành
-        if (chiTiet.tbDonHang?.trangthai != "Hoàn thành" && chiTiet.tbDonHang?.trangthai != "Đang xử lý")
+        // ponytail: chỉ chặn đánh giá đơn đã hủy — cho phể́p cả đơn đang xử lý và chờ thanh toán (user đã chuyển khoản)
+        if (chiTiet.tbDonHang?.trangthai == "Đã hủy")
             return Json(new { success = false, message = "Chỉ có thể đánh giá đơn hàng đã hoàn thành" });
 
         var danhGia = new tbDanhGia

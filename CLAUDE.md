@@ -9,52 +9,13 @@
 
 ### 0.1 Pre-Flight Script — PHẢI CHẠY TRƯỚC MỌI RESPONSE
 
-Trước khi làm BẤT CỨ điều gì (kể cả trả lời câu hỏi đơn giản), spawn 1 basher chạy script sau:
+Trước khi làm BẤT CỨ điều gì (kể cả trả lời câu hỏi đơn giản), spawn 1 basher chạy:
 
 ```bash
-# compliance-check.sh — TỰ ĐỘNG KIỂM TRA COMPLIANCE
-# Đặt ở thư mục gốc dự án
-
-echo "=== 🚨 COMPLIANCE PRE-FLIGHT CHECK ==="
-
-# 1. Kiểm tra response count trong session — nếu >3 response chưa đọc lại CLAUDE.md → CẢNH BÁO
-echo "[1/5] Checking CLAUDE.md read status..."
-if [ ! -f /tmp/.claude_read_today ]; then
-    echo "❌ CHƯA ĐỌC CLAUDE.md hôm nay!"
-    echo "   → PHẢI đọc lại CLAUDE.md trước khi tiếp tục"
-    exit 1
-fi
-
-# 2. Kiểm tra đã load skill chưa (kiểm tra log file)
-echo "[2/5] Checking skill load status..."
-if [ ! -f /tmp/.skill_loaded ]; then
-    echo "❌ CHƯA LOAD SKILL!"
-    echo "   → Tool call đầu tiên phải là skill <name>"
-    exit 1
-fi
-
-# 3. Kiểm tra docs đã đọc
-echo "[3/5] Checking docs..."
-if [ ! -f /tmp/.project_md_read ]; then
-    echo "❌ CHƯA ĐỌC Project.md!"
-    exit 1
-fi
-if [ ! -f /tmp/.uiux_md_read ]; then
-    echo "❌ CHƯA ĐỌC UI-UX.md!"
-    exit 1
-fi
-
-# 4. Kiểm tra skills scan
-echo "[4/5] Checking skills scan..."
-SKILL_COUNT=$(ls .agents/skills/ 2>/dev/null | wc -l)
-REPO_COUNT=$(ls ShipFoodCore/Skills/*/ 2>/dev/null | wc -l)
-echo "   Skills: $SKILL_COUNT | Repos: $REPO_COUNT"
-
-# 5. Ghi timestamp
-echo "[5/5] PASSED ✅ — $(date)"
-touch /tmp/.compliance_passed
-exit 0
+bash compliance-check.sh
 ```
+
+Script thật ở: `/compliance-check.sh` (chi tiết check: CLAUDE.md, Project.md, UI-UX.md, skill loaded, timestamp)
 
 **CƠ CHẾ ÉP BUỘC**:
 - Nếu script exit code ≠ 0 → **KHÔNG ĐƯỢC TIẾP TỤC**. DỪNG response.

@@ -103,7 +103,7 @@
         @if (!Model.Any())
         {
             <div style="text-align:center;padding:60px 20px;color:#9ca3af;">
-                <div style="font-size:48px;margin-bottom:12px;">📦</div>
+                <div style="font-size:48px;margin-bottom:12px;"><i class="fas fa-box" style="color:#9ca3af;"></i></div>
                 <p>Chưa có đơn hàng nào</p>
             </div>
         }
@@ -119,7 +119,7 @@ $(document).ready(function() {
 
     conn.on('newOrder', function(data) {
         var toast = $('<div style="position:fixed;top:80px;right:20px;z-index:9999;background:#3CB815;color:#fff;padding:14px 20px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.2);font-size:13px;max-width:380px;">'
-            + '<strong>📦 Đơn hàng mới!</strong><br>'
+            + '<strong><i class="fas fa-box" style="margin-right:6px;"></i>Đơn hàng mới!</strong><br>'
             + 'Mã ĐH: #' + data.orderId + ' — ' + (data.customerName || 'Khách') + '<br>'
             + '<small>' + (data.totalAmount || 0).toLocaleString('vi-VN') + ' đ</small>'
             + '</div>');

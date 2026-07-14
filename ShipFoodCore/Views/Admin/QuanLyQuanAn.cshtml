@@ -18,7 +18,7 @@
         <div class="page-header">
             <h2><i class="fas fa-store" style="color:#3CB815;margin-right:8px;"></i>Quản lý Quán ăn</h2>
             <div class="toolbar">
-                <input type="text" id="search-qa" class="form-control" placeholder="🔍 Tìm kiếm quán ăn..." style="width:260px;" onkeyup="filterTable('qa')" />
+                <input type="text" id="search-qa" class="form-control" placeholder="Tìm kiếm quán ăn..." style="width:260px;" onkeyup="filterTable('qa')" />
             </div>
         </div>
 
@@ -39,14 +39,14 @@
                             @foreach (var i in datas)
                             {
                                 var statusClass = i.tbUser.trangthai == 2 ? "locked" : (i.tbUser.trangthai == 1 ? "active" : "pending");
-                                var statusText = i.tbUser.trangthai == 2 ? "🔒 Đã khóa" : (i.tbUser.trangthai == 1 ? "✅ Hoạt động" : "⏳ Chờ duyệt");
+                                var statusText = i.tbUser.trangthai == 2 ? "Đã khóa" : (i.tbUser.trangthai == 1 ? "Hoạt động" : "Chờ duyệt");
                                 <tr>
                                     <td data-label="ID" style="font-weight:600;color:#1a1a2e;">#@i.userid</td>
                                     <td data-label="Tên quán">@i.tenquanan</td>
                                     <td data-label="Username">@i.tbUser.username</td>
-                                    <td data-label="Trạng thái"><span class="badge-status @statusClass">@statusText</span></td>
+                                    <td data-label="Trạng thái"><span class="badge-status @statusClass"><i class="fas @(i.tbUser.trangthai == 2 ? "fa-lock" : (i.tbUser.trangthai == 1 ? "fa-check-circle" : "fa-hourglass-half"))" style="margin-right:4px;"></i>@statusText</span></td>
                                     <td data-label="Thao tác">
-                                        <a href="~/Admin/PostTaiKhoan?id=@i.userid" class="btn btn-info btn-sm">✏️ Sửa</a>
+                                        <a href="~/Admin/PostTaiKhoan?id=@i.userid" class="btn btn-info btn-sm"><i class="fas fa-edit"></i> Sửa</a>
                                         @if (i.tbUser.trangthai == 0)
                                         {
                                             <a href="~/Admin/Duyet?id=@i.userid" class="btn btn-success btn-sm">Duyệt</a>
@@ -54,11 +54,11 @@
                                         }
                                         @if (i.tbUser.trangthai == 1)
                                         {
-                                            <a href="~/Admin/LockOrUnLock?id=@i.userid" class="btn btn-danger btn-sm">🔒 Khóa</a>
+                                            <a href="~/Admin/LockOrUnLock?id=@i.userid" class="btn btn-danger btn-sm"><i class="fas fa-lock"></i> Khóa</a>
                                         }
                                         @if (i.tbUser.trangthai == 2)
                                         {
-                                            <a href="~/Admin/LockOrUnLock?id=@i.userid" class="btn btn-success btn-sm">🔓 Mở khóa</a>
+                                            <a href="~/Admin/LockOrUnLock?id=@i.userid" class="btn btn-success btn-sm"><i class="fas fa-lock-open"></i> Mở khóa</a>
                                         }
                                     </td>
                                 </tr>
@@ -71,7 +71,7 @@
         @if (!datas.Any())
         {
             <div style="text-align:center;padding:60px 20px;color:#9ca3af;">
-                <div style="font-size:48px;margin-bottom:12px;">📭</div>
+                <div style="font-size:48px;margin-bottom:12px;"><i class="fas fa-inbox" style="color:#9ca3af;"></i></div>
                 <p>Chưa có quán ăn nào</p>
             </div>
         }

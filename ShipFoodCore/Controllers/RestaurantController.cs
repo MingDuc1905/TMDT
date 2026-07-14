@@ -67,7 +67,8 @@ public class RestaurantController : BaseController
     {
         if (!checkLogin()) return RedirectToAction("Login", "Home");
         var QuanAn = getQuanAn();
-        var donHangs = QuanAn.tbDonHang.ToList();
+        // ponytail: Loại đơn "Đã hủy" khỏi tính doanh thu + hiển thị
+        var donHangs = QuanAn.tbDonHang.Where(dh => dh.trangthai != "Đã hủy").ToList();
         ViewBag.donHangs = donHangs;
         ViewBag.soDu = Math.Round((double?)donHangs.Sum(dh => dh.tongtien) ?? 0, 1);
         return View();

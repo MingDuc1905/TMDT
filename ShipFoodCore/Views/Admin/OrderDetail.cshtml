@@ -40,7 +40,7 @@
     <!-- Header -->
     <div class="page-header">
         <div>
-            <h2>📋 Đơn hàng #@Model.madh</h2>
+            <h2><i class="fas fa-clipboard-list" style="color:#3CB815;margin-right:8px;"></i>Đơn hàng #@Model.madh</h2>
             <div class="breadcrumb">
                 <a href="@Url.Action("Order","Admin")">Đơn hàng</a>
                 <span style="margin:0 8px;color:#9ca3af;">/</span>
@@ -64,14 +64,14 @@
             @if (!string.IsNullOrEmpty(Model.ghichu))
             {
                 <div class="info-card mt-3">
-                    <p class="label">📝 Ghi chú</p>
+                    <p class="label"><i class="fas fa-edit" style="margin-right:4px;color:#6b7280;"></i>Ghi chú</p>
                     <p class="value" style="font-weight:400;">@Model.ghichu</p>
                 </div>
             }
 
             <!-- Contact Info -->
             <div class="info-card mt-3">
-                <p class="label">📞 Liên hệ</p>
+                <p class="label"><i class="fas fa-phone" style="margin-right:4px;color:#6b7280;"></i>Liên hệ</p>
                 @if (Model.tbThongTinDatHang != null)
                 {
                     <div class="d-flex align-items-center gap-2 mb-2">

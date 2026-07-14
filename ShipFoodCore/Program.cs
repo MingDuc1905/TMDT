@@ -107,6 +107,8 @@ builder.Services.AddSession(options =>
     options.IdleTimeout = TimeSpan.FromDays(1);
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
+    options.Cookie.SameSite = SameSiteMode.Lax;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
 });
 
 // ─── Task 1c: API Rate Limiting ───
@@ -557,10 +559,12 @@ app.UseRateLimiter();
 // Session phải đặt TRƯỚC Authentication để cookie session hoạt động đúng với Google OAuth
 app.UseSession();
 
-// ─── Phase 3: RoleGuard Middleware (must be AFTER UseSession) ───
-app.UseMiddleware<ShipFood.Middleware.RoleGuardMiddleware>();
-
+// ─── Authentication TRƯỚC RoleGuard — RoleGuard cần context.User.IsAuthenticated ───
+// Nếu RoleGuard chạy trước Authentication → context.User luôn unauthenticated → 401 cho mọi AJAX
 app.UseAuthentication();
+
+// ─── Phase 3: RoleGuard Middleware (must be AFTER UseSession + UseAuthentication) ───
+app.UseMiddleware<ShipFood.Middleware.RoleGuardMiddleware>();
 
 app.UseAuthorization();
 

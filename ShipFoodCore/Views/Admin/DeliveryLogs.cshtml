@@ -137,11 +137,11 @@
         var pendingScan = Model.Count(o => o.trangthai == "Đã xác nhận" || o.trangthai == "Chờ shipper lấy hàng");
     }
     <div class="delivery-stats">
-        <div class="stat-card"><div class="stat-icon">📋</div><p class="stat-value">@totalOrders</p><p class="stat-label">Tổng đơn</p></div>
-        <div class="stat-card"><div class="stat-icon">📸</div><p class="stat-value">@scannedOrders</p><p class="stat-label">Đã quét</p></div>
-        <div class="stat-card"><div class="stat-icon">🚚</div><p class="stat-value">@deliveringOrders</p><p class="stat-label">Đang giao</p></div>
-        <div class="stat-card"><div class="stat-icon">✅</div><p class="stat-value">@completedOrders</p><p class="stat-label">Hoàn thành</p></div>
-        <div class="stat-card" style="border-color:#f59e0b;"><div class="stat-icon">⏳</div><p class="stat-value">@pendingScan</p><p class="stat-label">Chờ quét</p></div>
+        <div class="stat-card"><div class="stat-icon"><i class="fas fa-clipboard-list"></i></div><p class="stat-value">@totalOrders</p><p class="stat-label">Tổng đơn</p></div>
+        <div class="stat-card"><div class="stat-icon"><i class="fas fa-camera"></i></div><p class="stat-value">@scannedOrders</p><p class="stat-label">Đã quét</p></div>
+        <div class="stat-card"><div class="stat-icon"><i class="fas fa-truck"></i></div><p class="stat-value">@deliveringOrders</p><p class="stat-label">Đang giao</p></div>
+        <div class="stat-card"><div class="stat-icon"><i class="fas fa-check-circle"></i></div><p class="stat-value">@completedOrders</p><p class="stat-label">Hoàn thành</p></div>
+        <div class="stat-card" style="border-color:#f59e0b;"><div class="stat-icon"><i class="fas fa-hourglass-half"></i></div><p class="stat-value">@pendingScan</p><p class="stat-label">Chờ quét</p></div>
     </div>
 
     <!-- Delivery Logs Table -->
@@ -179,11 +179,11 @@
                                 <td data-label="Shipper">@(item.tbShipper?.tenshipper ?? "—")</td>
                                 <td data-label="Trạng thái">
                                     <span class="pastel-badge @badgeClass">
-                                        @if (item.trangthai == "Đã lấy") { <text>📸 @item.trangthai</text> }
-                                        else if (item.trangthai == "Hoàn thành") { <text>✅ @item.trangthai</text> }
-                                        else if (item.trangthai == "Đã hủy") { <text>❌ @item.trangthai</text> }
-                                        else if (item.trangthai == "Đang giao") { <text>🚚 @item.trangthai</text> }
-                                        else { <text>⏳ @item.trangthai</text> }
+                                        @if (item.trangthai == "Đã lấy") { <text><i class="fas fa-camera" style="margin-right:4px;"></i>@item.trangthai</text> }
+                                        else if (item.trangthai == "Hoàn thành") { <text><i class="fas fa-check-circle" style="margin-right:4px;"></i>@item.trangthai</text> }
+                                        else if (item.trangthai == "Đã hủy") { <text><i class="fas fa-times-circle" style="margin-right:4px;"></i>@item.trangthai</text> }
+                                        else if (item.trangthai == "Đang giao") { <text><i class="fas fa-truck" style="margin-right:4px;"></i>@item.trangthai</text> }
+                                        else { <text><i class="fas fa-hourglass-half" style="margin-right:4px;"></i>@item.trangthai</text> }
                                     </span>
                                 </td>
                                 <td data-label="Ngày" style="color:#6b7280;font-size:12px;">@item.ngaydathang?.ToString("dd/MM HH:mm")</td>
@@ -215,7 +215,7 @@
     @if (!Model.Any())
     {
         <div style="text-align:center;padding:60px 20px;color:#9ca3af;">
-            <div style="font-size:48px;margin-bottom:12px;">📭</div>
+            <div style="font-size:48px;margin-bottom:12px;"><i class="fas fa-inbox" style="color:#9ca3af;"></i></div>
             <p>Chưa có đơn hàng nào</p>
         </div>
     }
@@ -232,10 +232,10 @@
 
         <label style="font-size:12px;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">Chuyển sang trạng thái:</label>
         <select class="status-select" id="bypassStatusSelect">
-            <option value="Đã lấy">📸 Đã lấy hàng (scan)</option>
-            <option value="Đang giao">🚚 Đang giao</option>
-            <option value="Hoàn thành">✅ Hoàn thành</option>
-            <option value="Đã hủy">❌ Đã hủy</option>
+            <option value="Đã lấy"><i class="fas fa-camera"></i> Đã lấy hàng (scan)</option>
+            <option value="Đang giao"><i class="fas fa-truck"></i> Đang giao</option>
+            <option value="Hoàn thành"><i class="fas fa-check-circle"></i> Hoàn thành</option>
+            <option value="Đã hủy"><i class="fas fa-times-circle"></i> Đã hủy</option>
         </select>
 
         <div id="bypassResult" style="margin-bottom:12px;font-size:13px;display:none;padding:10px;border-radius:8px;"></div>
@@ -286,7 +286,7 @@
             success: function(res) {
                 if (res.success) {
                     resultDiv.style.display = 'block';
-                    resultDiv.innerHTML = '<span style="color:#16a34a;">✅ ' + res.message + '</span>';
+                    resultDiv.innerHTML = '<span style="color:#16a34a;"><i class="fas fa-check-circle" style="margin-right:4px;"></i>' + res.message + '</span>';
                     resultDiv.style.background = '#f0fdf4';
 
                     // Update the row
@@ -302,7 +302,7 @@
                         // Disable bypass button
                         var actionCell = row.querySelector('td[data-label="Thao tác"]');
                         if (actionCell) {
-                            actionCell.innerHTML = '<span style="color:#9ca3af;font-size:11px;">✅ Đã xử lý</span>';
+                            actionCell.innerHTML = '<span style="color:#9ca3af;font-size:11px;"><i class="fas fa-check-circle" style="margin-right:4px;"></i>Đã xử lý</span>';
                         }
                     }
 
@@ -310,7 +310,7 @@
                     setTimeout(closeBypassModal, 1500);
                 } else {
                     resultDiv.style.display = 'block';
-                    resultDiv.innerHTML = '<span style="color:#dc2626;">❌ ' + res.message + '</span>';
+                    resultDiv.innerHTML = '<span style="color:#dc2626;"><i class="fas fa-times-circle" style="margin-right:4px;"></i>' + res.message + '</span>';
                     resultDiv.style.background = '#fef2f2';
                     btn.disabled = false;
                     btn.innerHTML = '<i class="fas fa-check"></i> Xác nhận';
@@ -318,7 +318,7 @@
             },
             error: function() {
                 resultDiv.style.display = 'block';
-                resultDiv.innerHTML = '<span style="color:#dc2626;">❌ Lỗi kết nối máy chủ</span>';
+                resultDiv.innerHTML = '<span style="color:#dc2626;"><i class="fas fa-times-circle" style="margin-right:4px;"></i>Lỗi kết nối máy chủ</span>';
                 resultDiv.style.background = '#fef2f2';
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-check"></i> Xác nhận';
@@ -346,7 +346,7 @@
             // Show toast
             var toast = $(
                 '<div style="position:fixed;top:80px;right:20px;z-index:9999;background:#7c3aed;color:#fff;padding:14px 20px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.15);font-size:13px;max-width:380px;animation:slideIn .3s ease;">'
-                + '<div><strong>📸 QR Scan!</strong></div>'
+                + '<div><strong><i class="fas fa-camera" style="margin-right:4px;"></i>QR Scan!</strong></div>'
                 + '<div>Đơn #' + data.orderId + ' — ' + (data.restaurantName || '') + '</div>'
                 + '<div style="font-size:11px;opacity:.8;">Shipper: ' + (data.shipperName || 'N/A') + '</div>'
                 + '</div>'

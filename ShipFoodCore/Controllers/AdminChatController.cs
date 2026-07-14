@@ -117,7 +117,6 @@ public class AdminChatController : BaseController
     /// targetUserId: (optional) dùng cho shipper g?i tr?c ti?p cho customer
     /// </summary>
     [HttpPost]
-    [ValidateAntiForgeryToken]
     public async Task<JsonResult> CustomerSendMessage(int orderId, string message, int? targetUserId = null)
     {
         var user = GetCurrentUser();

@@ -325,7 +325,13 @@
             url: '@Url.Action("SendMessage", "Chatbot")', type: 'POST', data: { message: msg },
             headers: { 'RequestVerificationToken': getToken() },
             success: function(r) { hideTyping(); addBotMsg(r.reply, r.quickReplies); },
-            error: function() { hideTyping(); addMsg('aiMsgs', '❌ Lỗi, vui lòng thử lại.', 'bot'); },
+            error: function(xhr) {
+                hideTyping();
+                var errMsg = '❌ Lỗi kết nối. Vui lòng thử lại.';
+                try { var r = JSON.parse(xhr.responseText); if (r && (r.message || r.error)) errMsg = '❌ ' + (r.message || r.error); } catch(e){}
+                if (xhr.status === 401) { errMsg = '❌ Phiên đăng nhập hết hạn. Vui lòng tải lại trang.'; }
+                addMsg('aiMsgs', errMsg, 'bot');
+            },
             complete: function() { document.getElementById('aiBtn').disabled = false; }
         });
     }
@@ -548,14 +554,23 @@
             success: function(r) {
                 if (r && r.success === false) {
                     addMsg('adminMsgs', '⚠️ ' + (r.error || 'Không gửi được tin nhắn'), 'admin');
+                    // N?u l?i login — redirect v? login sau 2 giây
+                    if (r.error && r.error.includes('đăng nhập')) {
+                        setTimeout(function() {
+                            window.location.href = '@Url.Action("Login", "Home")?returnUrl=' + encodeURIComponent(window.location.pathname);
+                        }, 2000);
+                    }
                 }
             },
             error: function(xhr) {
                 var errMsg = '❌ Lỗi gửi tin nhắn';
-                try { var r = JSON.parse(xhr.responseText); if (r && r.error) errMsg = '❌ ' + r.error; } catch(e){}
-                if (xhr.status === 403) {
-                    // Token hết hạn — redirect đến login, ko refresh token (cơ chế sai)
-                    window.location.href = '@Url.Action("Login", "Home")?returnUrl=' + encodeURIComponent(window.location.pathname);
+                try { var r = JSON.parse(xhr.responseText); if (r && (r.error || r.message)) errMsg = '❌ ' + (r.error || r.message); } catch(e){}
+                if (xhr.status === 403 || xhr.status === 401) {
+                    errMsg = '❌ Phiên đăng nhập hết hạn. Đang chuyển hướng...';
+                    addMsg('adminMsgs', errMsg, 'admin');
+                    setTimeout(function() {
+                        window.location.href = '@Url.Action("Login", "Home")?returnUrl=' + encodeURIComponent(window.location.pathname);
+                    }, 1500);
                     return;
                 }
                 if (xhr.status === 0) errMsg = '❌ Mất kết nối mạng.';

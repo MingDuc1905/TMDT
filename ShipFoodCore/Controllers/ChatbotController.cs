@@ -23,7 +23,6 @@ public class ChatbotController : BaseController
     }
 
     [HttpPost]
-    [ValidateAntiForgeryToken]
     public async Task<JsonResult> SendMessage(string message)
     {
         if (string.IsNullOrWhiteSpace(message))

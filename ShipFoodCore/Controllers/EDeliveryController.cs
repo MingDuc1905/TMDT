@@ -209,6 +209,8 @@ public class EDeliveryController : BaseController
         if (user == null || user.loaitaikhoan != "Admin")
             return RedirectToAction("Login", "Home");
 
+        ViewBag.AdminUserId = user.userid;
+
         var donHangs = await db.tbDonHang
             .Include(d => d.tbQuanAn)
             .Include(d => d.tbThongTinDatHang)

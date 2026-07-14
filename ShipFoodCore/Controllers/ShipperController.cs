@@ -65,6 +65,7 @@ public class ShipperController : BaseController
         // Data for redesigned view
         var shipperInfo = db.tbShipper.Find(sh.userid);
         ViewBag.ShipperInfo = shipperInfo;
+        ViewBag.ShipperUserId = sh.userid;
 
         // ─── Load thêm các orders của shipper này (không chỉ FREE-PICK) ───
         var todayStart = DateTime.Now.Date;

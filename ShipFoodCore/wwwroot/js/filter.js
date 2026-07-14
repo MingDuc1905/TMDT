@@ -35,6 +35,13 @@ function closeFilterSheet(e) {
     document.getElementById('filterSheetOverlay').classList.remove('open');
     document.body.style.overflow = '';
 }
+// ponytail: safety net — always restore scroll if overlay not open
+function ensureScrollRestored() {
+    if (!document.getElementById('filterSheetOverlay').classList.contains('open')) {
+        document.body.style.overflow = '';
+    }
+}
+window.addEventListener('beforeunload', ensureScrollRestored);
 
 // ─── Chips ───
 function toggleChip(name) {
@@ -128,6 +135,7 @@ function toggleSheetCheckbox(name, el) {
     // Update state
     if (name === 'promo') filterState.isPromo = el.checked;
     if (name === 'bestseller') filterState.isBestSeller = el.checked;
+    if (name === 'vegetarian') filterState.maxDiet = el.checked ? 'vegetarian' : '';
 }
 
 // ─── Price Level ───
@@ -278,6 +286,9 @@ function syncChipsFromSheet() {
             filterState.isBestSeller = cb.checked;
             var best = document.querySelector('.fs-chip[data-filter="bestseller"]');
             if (best) { if (cb.checked) best.classList.add('active'); else best.classList.remove('active'); }
+        }
+        if (text.includes('chay')) {
+            filterState.maxDiet = cb.checked ? 'vegetarian' : '';
         }
     });
 

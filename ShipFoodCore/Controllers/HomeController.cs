@@ -894,62 +894,72 @@ public class HomeController : BaseController
             return View();
         }
 
-        if (user.loaitaikhoan.Equals("Khách hàng"))
+        try
         {
-            user.vitien = 0;
-            user.trangthai = 1;
-            db.tbUser.Add(user);
-            db.SaveChanges();
-
-            db.tbKhachHang.Add(new tbKhachHang { userid = user.userid, tenkh = hoten });
-            db.SaveChanges();
-        }
-        else if (user.loaitaikhoan.Equals("Quán ăn"))
-        {
-            user.vitien = 0;
-            user.trangthai = 1;
-            db.tbUser.Add(user);
-            db.SaveChanges();
-
-            db.tbQuanAn.Add(new tbQuanAn
+            if (user.loaitaikhoan.Equals("Khách hàng"))
             {
-                userid = user.userid,
-                tenquanan = hoten,
-                diachi = diachi,
-                soluotdanhgia = 0,
-                diemdanhgia = 0,
-                trangthai = "Đóng cửa"
-            });
-            db.SaveChanges();
+                user.vitien = 0;
+                user.trangthai = 1;
+                db.tbUser.Add(user);
+                db.SaveChanges();
 
-            // ponytail: đăng ký quán xong → set session + redirect dashboard để thêm món
-            var cart = new Cart { userid = user.userid };
-            SetCart(cart);
-            SetSessionUser(user);
-            if (IsAjaxRequest()) return Json(new { success = true, redirectUrl = Url.Action("Index", "Restaurant") });
-            return RedirectToAction("Index", "Restaurant");
-        }
-        else if (user.loaitaikhoan.Equals("Shipper"))
-        {
-            user.vitien = 0;
-            user.trangthai = 1;
-            db.tbUser.Add(user);
-            db.SaveChanges();
-
-            db.tbShipper.Add(new tbShipper
+                db.tbKhachHang.Add(new tbKhachHang { userid = user.userid, tenkh = hoten });
+                db.SaveChanges();
+            }
+            else if (user.loaitaikhoan.Equals("Quán ăn"))
             {
-                userid = user.userid,
-                tenshipper = hoten,
-                diachi = diachi,
-                soluotdanhgia = 0,
-                diemdanhgia = 0,
-                trangthai = "Không hoạt động"
-            });
-            db.SaveChanges();
-        }
+                user.vitien = 0;
+                user.trangthai = 1;
+                db.tbUser.Add(user);
+                db.SaveChanges();
 
-        if (IsAjaxRequest()) return Json(new { success = true, redirectUrl = Url.Action("Login", "Home") });
-        return RedirectToAction("Login");
+                db.tbQuanAn.Add(new tbQuanAn
+                {
+                    userid = user.userid,
+                    tenquanan = hoten,
+                    diachi = diachi,
+                    soluotdanhgia = 0,
+                    diemdanhgia = 0,
+                    trangthai = "Đóng cửa"
+                });
+                db.SaveChanges();
+
+                var cart = new Cart { userid = user.userid };
+                SetCart(cart);
+                SetSessionUser(user);
+                if (IsAjaxRequest()) return Json(new { success = true, redirectUrl = Url.Action("Index", "Restaurant") });
+                return RedirectToAction("Index", "Restaurant");
+            }
+            else if (user.loaitaikhoan.Equals("Shipper"))
+            {
+                user.vitien = 0;
+                user.trangthai = 1;
+                db.tbUser.Add(user);
+                db.SaveChanges();
+
+                db.tbShipper.Add(new tbShipper
+                {
+                    userid = user.userid,
+                    tenshipper = hoten,
+                    diachi = diachi,
+                    soluotdanhgia = 0,
+                    diemdanhgia = 0,
+                    trangthai = "Không hoạt động"
+                });
+                db.SaveChanges();
+            }
+
+            if (IsAjaxRequest()) return Json(new { success = true, redirectUrl = Url.Action("Login", "Home") });
+            return RedirectToAction("Login");
+        }
+        catch (Exception ex)
+        {
+            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<HomeController>>();
+            logger.LogError(ex, "Signup failed for user {Username}", user.username);
+            if (IsAjaxRequest()) return Json(new { success = false, message = "Lỗi tạo tài khoản. Vui lòng thử lại." });
+            ViewBag.err = "Lỗi tạo tài khoản. Vui lòng thử lại.";
+            return View();
+        }
     }
 
     /// <summary>

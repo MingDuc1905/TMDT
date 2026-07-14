@@ -363,6 +363,11 @@
             }
         });
 
-        conn.start().catch(function(err) { console.error('SignalR:', err); });
+        conn.start().then(function() {
+            var userId = @(ViewBag.AdminUserId ?? 0);
+            if (userId > 0) {
+                conn.invoke('JoinAdminGroup', userId).catch(function(){});
+            }
+        }).catch(function(err) { console.error('SignalR:', err); });
     });
 </script>

@@ -419,8 +419,8 @@
                 }
             });
 
-            conn.onreconnected(function() { conn.invoke('JoinShipperGroup').catch(function(){}); });
-            conn.start().then(function() { conn.invoke('JoinShipperGroup').catch(function(){}); }).catch(function(err) {
+            conn.onreconnected(function() { conn.invoke('JoinShipperGroup', @(ViewBag.ShipperUserId ?? 0)).catch(function(){}); });
+            conn.start().then(function() { conn.invoke('JoinShipperGroup', @(ViewBag.ShipperUserId ?? 0)).catch(function(){}); }).catch(function(err) {
                 console.error('SignalR:', err);
             });
             window.shipperConn = conn;

@@ -315,6 +315,8 @@ var authBuilder = builder.Services.AddAuthentication(Microsoft.AspNetCore.Authen
         options.LogoutPath = "/Home/Logout";
         options.ExpireTimeSpan = TimeSpan.FromDays(30);
         options.SlidingExpiration = true;
+        options.Cookie.SameSite = SameSiteMode.Lax;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
     });
 
 // Only add Google OAuth if credentials are configured (prevents crash when not set)

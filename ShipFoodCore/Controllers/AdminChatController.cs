@@ -26,6 +26,9 @@ public class AdminChatController : BaseController
 
         try
         {
+            var user = GetCurrentUser();
+            ViewBag.AdminUserId = user?.userid ?? 0;
+
             // Lấy danh sách đơn hàng gần đây (có thể chat)
             var donHangs = db.tbDonHang
                 .Include(d => d.tbQuanAn)

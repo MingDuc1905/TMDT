@@ -56,6 +56,15 @@ try
 
 var builder = WebApplication.CreateBuilder(args);
 
+// ─── FIX: Disable config file watching (inotify) to avoid Render free tier limit (128) ───
+builder.Configuration.Sources.Clear();
+var envName = builder.Environment.EnvironmentName;
+builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: false);
+builder.Configuration.AddJsonFile($"appsettings.{envName}.json", optional: true, reloadOnChange: false);
+builder.Configuration.AddEnvironmentVariables();
+if (args.Length > 0)
+    builder.Configuration.AddCommandLine(args);
+
 // Use Serilog as the logging provider
 builder.Host.UseSerilog();
 

@@ -128,7 +128,24 @@
         </a>
     </div>
 
-    <!-- Stats Overview -->
+    <!-- Filter + Search -->
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
+        <input type="text" id="searchInput" placeholder="🔍 Tìm đơn hàng, quán, khách hàng..."
+               style="flex:1;min-width:200px;padding:10px 14px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:13px;"
+               onkeyup="filterTable()" />
+        <select id="statusFilter" onchange="filterTable()"
+                style="padding:10px 14px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:13px;background:#fff;">
+            <option value="">📋 Tất cả trạng thái</option>
+            <option value="Đã xác nhận">✅ Đã xác nhận</option>
+            <option value="Chờ shipper lấy hàng">🕐 Chờ lấy</option>
+            <option value="Đã lấy">📦 Đã lấy</option>
+            <option value="Đang giao">🚚 Đang giao</option>
+            <option value="Hoàn thành">✅ Hoàn thành</option>
+            <option value="Đã hủy">❌ Đã hủy</option>
+        </select>
+    </div>
+
+    <!-- Stats Overview — live update via SignalR -->
     @{
         var totalOrders = Model.Count;
         var scannedOrders = Model.Count(o => o.trangthai == "Đã lấy");
@@ -136,12 +153,12 @@
         var completedOrders = Model.Count(o => o.trangthai == "Hoàn thành");
         var pendingScan = Model.Count(o => o.trangthai == "Đã xác nhận" || o.trangthai == "Chờ shipper lấy hàng");
     }
-    <div class="delivery-stats">
-        <div class="stat-card"><div class="stat-icon"><i class="fas fa-clipboard-list"></i></div><p class="stat-value">@totalOrders</p><p class="stat-label">Tổng đơn</p></div>
-        <div class="stat-card"><div class="stat-icon"><i class="fas fa-camera"></i></div><p class="stat-value">@scannedOrders</p><p class="stat-label">Đã quét</p></div>
-        <div class="stat-card"><div class="stat-icon"><i class="fas fa-truck"></i></div><p class="stat-value">@deliveringOrders</p><p class="stat-label">Đang giao</p></div>
-        <div class="stat-card"><div class="stat-icon"><i class="fas fa-check-circle"></i></div><p class="stat-value">@completedOrders</p><p class="stat-label">Hoàn thành</p></div>
-        <div class="stat-card" style="border-color:#f59e0b;"><div class="stat-icon"><i class="fas fa-hourglass-half"></i></div><p class="stat-value">@pendingScan</p><p class="stat-label">Chờ quét</p></div>
+    <div class="delivery-stats" id="deliveryStats">
+        <div class="stat-card" id="stat-total"><div class="stat-icon"><i class="fas fa-clipboard-list"></i></div><p class="stat-value">@totalOrders</p><p class="stat-label">Tổng đơn</p></div>
+        <div class="stat-card" id="stat-scanned"><div class="stat-icon"><i class="fas fa-camera"></i></div><p class="stat-value">@scannedOrders</p><p class="stat-label">Đã quét</p></div>
+        <div class="stat-card" id="stat-delivering"><div class="stat-icon"><i class="fas fa-truck"></i></div><p class="stat-value">@deliveringOrders</p><p class="stat-label">Đang giao</p></div>
+        <div class="stat-card" id="stat-completed"><div class="stat-icon"><i class="fas fa-check-circle"></i></div><p class="stat-value">@completedOrders</p><p class="stat-label">Hoàn thành</p></div>
+        <div class="stat-card" id="stat-pending" style="border-color:#f59e0b;"><div class="stat-icon"><i class="fas fa-hourglass-half"></i></div><p class="stat-value">@pendingScan</p><p class="stat-label">Chờ quét</p></div>
     </div>
 
     <!-- Delivery Logs Table -->
@@ -326,6 +343,34 @@
         });
     }
 
+    // ── Filter + Search ──
+    function filterTable() {
+        var q = document.getElementById('searchInput').value.toLowerCase();
+        var s = document.getElementById('statusFilter').value;
+        document.querySelectorAll('.delivery-table tbody tr').forEach(function(row) {
+            var text = row.textContent.toLowerCase();
+            var statusCell = row.querySelector('td[data-label="Trạng thái"]');
+            var matchStatus = !s || (statusCell && statusCell.textContent.includes(s));
+            var matchSearch = !q || text.includes(q);
+            row.style.display = matchStatus && matchSearch ? '' : 'none';
+        });
+    }
+
+    // ── Play notification sound ──
+    function playNotificationSound() {
+        try {
+            var ctx = new (window.AudioContext || window.webkitAudioContext)();
+            var osc = ctx.createOscillator();
+            var gain = ctx.createGain();
+            osc.connect(gain); gain.connect(ctx.destination);
+            osc.frequency.setValueAtTime(660, ctx.currentTime);
+            osc.frequency.setValueAtTime(880, ctx.currentTime + 0.1);
+            gain.gain.setValueAtTime(0.2, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+            osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.3);
+        } catch(e) {}
+    }
+
     // Close modal on backdrop click
     document.getElementById('bypassModal').addEventListener('click', function(e) {
         if (e.target === this) closeBypassModal();
@@ -337,6 +382,8 @@
             .withUrl('/nhantin').withAutomaticReconnect().build();
 
         conn.on('deliveryScanEvent', function(data) {
+            // Play notification sound
+            playNotificationSound();
             // Animate the row
             var row = document.getElementById('order-row-' + data.orderId);
             if (row) {

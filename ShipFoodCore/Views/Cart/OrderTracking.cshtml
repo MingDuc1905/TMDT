@@ -5,6 +5,29 @@
     tbDonHang donHang = ViewBag.DonHang;
     var userJson = Context.Session.GetString("user");
     tbUser? user = userJson != null ? JsonSerializer.Deserialize<tbUser>(userJson) : null;
+
+    // ─── Parse coordinates from DB for map center ───
+    var quanToado = donHang.tbQuanAn?.toado ?? "";
+    var khToado = donHang.tbThongTinDatHang?.toado ?? "";
+    var mapCenterLat = 10.8231;
+    var mapCenterLng = 106.6297;
+    var qLat = 0.0; var qLng = 0.0;
+    var kLat = 0.0; var kLng = 0.0;
+
+    if (!string.IsNullOrEmpty(khToado) && khToado.Split(',').Length == 2)
+    {
+        var parts = khToado.Split(',');
+        double.TryParse(parts[0], out kLng);
+        double.TryParse(parts[1], out kLat);
+    }
+    if (!string.IsNullOrEmpty(quanToado) && quanToado.Split(',').Length == 2)
+    {
+        var parts = quanToado.Split(',');
+        double.TryParse(parts[0], out qLng);
+        double.TryParse(parts[1], out qLat);
+    }
+    if (kLat != 0 && kLng != 0) { mapCenterLat = kLat; mapCenterLng = kLng; }
+    else if (qLat != 0 && qLng != 0) { mapCenterLat = qLat; mapCenterLng = qLng; }
 }
 
 @section styles {
@@ -87,7 +110,7 @@
                     </div>
                     <div id="trackingMap"></div>
                     <div style="margin-top:8px;text-align:right;">
-                        <a href="https://www.google.com/maps/dir/?api=1&destination=10.8231,106.6297" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-secondary" style="border-radius:8px;font-size:12px;">
+                        <a href="https://www.google.com/maps/dir/?api=1&destination=@mapCenterLat,@mapCenterLng" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-secondary" style="border-radius:8px;font-size:12px;">
                             <i class="fab fa-google me-1"></i>Mở Google Maps
                         </a>
                     </div>
@@ -239,11 +262,21 @@
 <script src="~/js/map.js"></script>
 <script>
 $(document).ready(function() {
-    // ── Initialize Map ──
-    var map = FastShipTracking.initMap('trackingMap', 10.8231, 106.6297, 13);
+    // ── Initialize Map with real coordinates from DB ──
+    var map = FastShipTracking.initMap('trackingMap', @mapCenterLat, @mapCenterLng, 13);
 
-    // Add restaurant marker (default HCM location for demo)
-    FastShipTracking.addRestaurantMarker(map, 10.8231, 106.6297, '@(donHang.tbQuanAn?.tenquanan ?? "Quán ăn")');
+    @if (qLat != 0 && qLng != 0)
+    {
+        <text>
+        FastShipTracking.addRestaurantMarker(map, @qLat, @qLng, '@Html.Raw(donHang.tbQuanAn?.tenquanan ?? "Quán ăn")');
+        </text>
+    }
+    @if (kLat != 0 && kLng != 0)
+    {
+        <text>
+        FastShipTracking.addCustomerMarker(map, @kLat, @kLng, '@Html.Raw(donHang.tbThongTinDatHang?.tennguoinhan ?? "Khách")');
+        </text>
+    }
 
     // ── Render Progress Bar ──
     FastShipTracking.renderProgressBar('trackingProgress', '@donHang.trangthai');

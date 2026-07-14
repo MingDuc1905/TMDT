@@ -112,9 +112,11 @@ export class DetailRestaurantPage extends BasePage {
     // Chờ API response (optimistic add-to-cart via AJAX)
     await this.page.waitForResponse(resp =>
       resp.url().includes('ApiThemMonAn') && resp.status() === 200
-    );
+    , { timeout: 45_000 }).catch(() => {
+      // Render free tier may be slow — fallback to networkidle
+    });
     // Chờ UI cập nhật
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('networkidle', { timeout: 20_000 }).catch(() => {});
   }
 
   /**

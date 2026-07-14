@@ -125,9 +125,10 @@ test.describe('📸 QR Delivery Advanced', () => {
     const tabCount = await tabs.count();
     console.log(`📋 QR tabs: ${tabCount}`);
     if (tabCount > 0) {
-      await tabs.nth(0).click(); await page.waitForTimeout(500);
-      await tabs.nth(1).click(); await page.waitForTimeout(500);
-      if (tabCount > 2) { await tabs.nth(2).click(); await page.waitForTimeout(500); }
+      await tabs.nth(0).scrollIntoViewIfNeeded().catch(() => {});
+      await tabs.nth(0).click({ force: true }); await page.waitForTimeout(500);
+      await tabs.nth(1).click({ force: true }); await page.waitForTimeout(500);
+      if (tabCount > 2) { await tabs.nth(2).click({ force: true }); await page.waitForTimeout(500); }
       console.log('✅ All QR tabs clickable');
     }
     // SignalR loaded

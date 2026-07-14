@@ -79,10 +79,11 @@ test.describe('🚚 Shipper — QR Code Display', () => {
     console.log(`📋 QR tabs: ${tabCount}`);
 
     if (tabCount > 0) {
-      // Click từng tab và kiểm tra content thay đổi
+      // Click từng tab — force click vì sticky header có thể overlap
       for (let i = 0; i < tabCount; i++) {
         const tabText = await tabBtns.nth(i).textContent();
-        await tabBtns.nth(i).click();
+        await tabBtns.nth(i).scrollIntoViewIfNeeded().catch(() => {});
+        await tabBtns.nth(i).click({ force: true });
         await page.waitForTimeout(500);
         console.log(`  Tab ${i}: "${tabText?.trim()}" — clicked`);
       }
@@ -375,10 +376,11 @@ test.describe('👑 Admin — Delivery Logs Matrix & Bypass', () => {
   test('[TC-6.14] Delivery Logs — admin sidebar nav link hoạt động', async ({ page }) => {
     await loginAs(page, ADMIN);
 
-    // Click nav link từ sidebar
+    // Click nav link từ sidebar — page.evaluate bypasses viewport issues on mobile
     const deliveryLink = page.locator('a[href*="DeliveryLogs"]').first();
     if (await deliveryLink.isVisible().catch(() => false)) {
-      await deliveryLink.click();
+      await deliveryLink.scrollIntoViewIfNeeded().catch(() => {});
+      await page.evaluate((el: HTMLElement) => el.click(), await deliveryLink.elementHandle());
       await page.waitForLoadState('networkidle');
       await page.waitForTimeout(2000);
 

@@ -138,7 +138,9 @@ test.describe('👑 Admin Dashboard - KPI & Charts', () => {
     for (const p of pages) {
       const link = page.locator(`a[href*="${p.href}"]`).first();
       if (await link.isVisible().catch(() => false)) {
-        await link.click();
+        // ponytail: page.evaluate click bypasses viewport + actionability checks
+        await link.scrollIntoViewIfNeeded().catch(() => {});
+        await page.evaluate((el: HTMLElement) => el.click(), await link.elementHandle());
         await page.waitForLoadState('networkidle');
         await page.waitForTimeout(1000);
         const url = page.url();

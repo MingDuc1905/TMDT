@@ -6,20 +6,34 @@
 
 ## 0. 📝 LOG SKILL KHI LÀM VIỆC
 
-**BẮT BUỘC**: Mỗi khi bắt đầu hoặc trong quá trình thực hiện task, Buffy PHẢI ghi log các skill đã load:
+**BẮT BUỘC TUYỆT ĐỐI — KHÔNG EXCEPTION**: Mỗi khi bắt đầu hoặc trong quá trình thực hiện task, Buffy PHẢI ghi log các skill đã load.
 
 ```yaml
 quy_tắc_log_skill:
-  - Khi mỗi response bắt đầu, ghi "**Skill đã load**: <danh sách skill>"
-  - Khi load skill mới, ghi "**Skill mới load**: <tên skill>"
-  - Khi spawn agent, ghi "**Agent spawned**: <tên agent> | mục đích"
-  - Khi dùng repo trong ShipFoodCore/Skills/, ghi "**Skills Repo used**: <tên repo>"
+  trigger: "MỖI RESPONSE — luôn luôn, không bao giờ bỏ qua"
+  format: |
+    **Skill đã load**: <danh sách skill đã load trong session>
+    **Skills Repo used**: <tên repo từ ShipFoodCore/Skills/> | <mục đích>
+    **Agent spawned**: <tên agent> | <mục đích> (nếu có)
+  rules:
+    - "KHÔNG BAO GIỜ response mà KHÔNG có log skill ở đầu"
+    - "Khi load skill mới → thêm vào danh sách, ghi **Skill mới load**"
+    - "Khi dùng repo → ghi rõ repo nào, dùng làm gì"
+    - "Khi spawn agent → ghi agent nào, mục đích gì"
+    - "Log skill TRƯỚC KHI làm việc, KHÔNG phải sau khi xong"
 ```
 
-**Ví dụ**:
+**Ví dụ đúng**:
 ```
 **Skill đã load**: brainstorming, ui-ux-pro-max, ponytail, gstack
 **Skills Repo used**: developer-icons-main | SVG icons for navbar
+```
+
+**Ví dụ SAI** (bị trừ điểm):
+```
+// Không có log skill → SAI
+// Log skill sau khi xong việc → SAI
+// Chỉ ghi tên skill không ghi repo → SAI
 ```
 
 ---

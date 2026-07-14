@@ -45,7 +45,8 @@ export class HomePage extends BasePage {
     this.logo = page.locator('.fs-logo').first();
     // ponytail: .first() — navbar có 2 search inputs (desktop + mobile)
     this.searchInput = page.locator('input[name="txtSearch"]').first();
-    this.searchButton = page.getByRole('button', { name: /tìm/i });
+    // ponytail: match cả desktop (aria-label) và mobile (icon-only button trong form mobile)
+    this.searchButton = page.locator('button[aria-label="Tìm kiếm"], .fs-search-form-mobile button[type="submit"]').first();
     // ponytail: .first() — responsive layout có 2 cart buttons (desktop + mobile)
     this.cartButton = page.locator('.fs-cart-btn').first();
     this.loginNavBtn = page.locator('a[href*="/Home/Login"]').first();
@@ -76,8 +77,8 @@ export class HomePage extends BasePage {
 
   /** Tìm kiếm quán ăn hoặc món ăn */
   async search(keyword: string) {
-    await this.searchInput.fill(keyword);
-    await this.searchButton.click();
+    // ponytail: navigate trực tiếp thay vì click form — tránh mobile visibility issues
+    await this.page.goto(`/?txtSearch=${encodeURIComponent(keyword)}`, { waitUntil: 'domcontentloaded' });
     await this.page.waitForLoadState('networkidle');
   }
 

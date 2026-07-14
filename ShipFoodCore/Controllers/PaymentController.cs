@@ -356,7 +356,7 @@ public class PaymentController : BaseController
                 orderId  = firstOrderId,
                 orderIds = createdOrders,
                 trangthai = "Đang xử lý",
-                momoPayUrl = momoPayUrl
+                momoPayUrl = momoPayUrl,
             });
         }
         catch (Exception ex)

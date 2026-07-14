@@ -210,7 +210,10 @@ function patchCartActions() {
         }
 
         var cartData = extractCartFromDOM();
-        if (cartData && (cartData.items.length > 0 || cartData.tongTien > 0)) {
+        // ponytail: if there's no cart DOM on this page (e.g., DetailRestaurant, ChiTietSanPham),
+        // extractCartFromDOM returns null — DON'T clear localStorage, just skip
+        if (cartData === null) return;
+        if (cartData.items.length > 0 || cartData.tongTien > 0) {
             saveCartToLocal(cartData);
         } else {
             clearCartLocal();
@@ -278,7 +281,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // Điều này đảm bảo sau khi login ở bất kỳ trang nào, giỏ hàng cũng được khôi phục
     syncCartFromLocal();
 
-    patchCartActions();
+    // ═══ FIX: Chỉ gọi patchCartActions nếu trang có cart DOM ═══
+    var hasCartDom = document.querySelector('#cart-total') !== null
+        || document.querySelector('#cart-items-container') !== null;
+    if (hasCartDom) {
+        patchCartActions();
+    }
     
     // Inject CSS animation
     if (!document.getElementById('fs-cart-anim-style')) {

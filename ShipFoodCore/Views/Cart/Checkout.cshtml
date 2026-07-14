@@ -650,6 +650,8 @@
             headers: { 'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() },
             success: function(r) {
                 if (r.success) {
+                    // ═══ FIX: Clear localStorage cart sau khi đặt hàng thành công ═══
+                    if (typeof clearCartLocal === 'function') clearCartLocal();
                     showResultPopup(true, 'Đặt hàng thành công!', r.message || '', r.orderId, r.qrCodeUrl, r.bankInfo, r.momoPayUrl);
                 } else {
                     showResultPopup(false, 'Thanh toán thất bại', r.message || 'Đã xảy ra lỗi. Vui lòng thử lại.');

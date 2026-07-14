@@ -180,6 +180,15 @@
 
 @section scripts {
 <script>
+var _voucherModal = null;
+
+function getModal() {
+    if (!_voucherModal) {
+        _voucherModal = new bootstrap.Modal(document.getElementById('voucherModal'));
+    }
+    return _voucherModal;
+}
+
 function resetForm() {
     document.getElementById('modalTitle').textContent = 'Thêm khuyến mãi';
     document.getElementById('makm').value = '0';
@@ -203,7 +212,7 @@ function editVoucher(btn) {
     document.getElementById('dieukien').value = ds.dieukien || '';
     document.getElementById('ngaybatdau').value = ds.ngaybatdau || '';
     document.getElementById('ngayketthuc').value = ds.ngayketthuc || '';
-    new bootstrap.Modal(document.getElementById('voucherModal')).show();
+    getModal().show();
 }
 
 function deleteVoucher(makm) {
@@ -219,9 +228,15 @@ function deleteVoucher(makm) {
     }).then(r => r.json()).then(data => {
         if (data.success) {
             var el = document.getElementById('voucher-' + makm);
-            if (el) el.remove();
+            if (el) {
+                // hi?u ?ng fadeOut tru?c khi xóa
+                el.style.transition = 'all .3s ease';
+                el.style.opacity = '0';
+                el.style.transform = 'scale(.95)';
+                setTimeout(function() { el.remove(); }, 300);
+            }
         } else {
-            alert('Xóa thất bại');
+            alert('Xóa thất bại: ' + (data.message || 'Lỗi không xác định'));
         }
     }).catch(function() { alert('Lỗi kết nối'); });
 }

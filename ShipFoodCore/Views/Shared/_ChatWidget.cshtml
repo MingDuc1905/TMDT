@@ -250,7 +250,30 @@
             // Load l?ch s? tin nh?n
             loadMyMessages();
             if (!adminConn || adminConn.state === 'Disconnected') connectAdmin();
+        } else if (tab === 'ai') {
+            // Load l?ch s? h?i tho?i AI t? session
+            loadAiHistory();
         }
+    }
+
+    // ─── Load AI chat history from session ───
+    function loadAiHistory() {
+        $.ajax({
+            url: '@Url.Action("GetAiHistory", "Chatbot")', type: 'GET',
+            success: function(res) {
+                if (!res.success || !res.history || res.history.length === 0) return;
+                var container = document.getElementById('aiMsgs');
+                // Ch? load n?u ch?a có tin nh?n nào (gi? message chào)
+                if (container.children.length > 1) return;
+                container.innerHTML = '';
+                res.history.forEach(function(msg) {
+                    var d = document.createElement('div'); d.className = 'msg ' + (msg.role === 'user' ? 'user' : 'bot');
+                    d.innerHTML = escHtml(msg.content).replace(/\n/g, '<br/>');
+                    container.appendChild(d);
+                });
+                container.scrollTop = container.scrollHeight;
+            }
+        });
     }
 
     // ─── SỬA DỨT ĐIỂM LỖI KẸT CHAT: Event Delegation + class .active ───

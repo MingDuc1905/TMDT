@@ -93,6 +93,26 @@ public class ChatbotController : BaseController
         });
     }
 
+    [HttpGet]
+    public JsonResult GetAiHistory()
+    {
+        var rawHistory = GetConversationHistory();
+        if (rawHistory.Count == 0)
+            return Json(new { success = true, history = new List<object>() });
+
+        // Chuy?n t? List<string> (lu?n phiên user/bot) sang List<{role, content}>
+        var formatted = new List<object>();
+        for (int i = 0; i < rawHistory.Count; i += 2)
+        {
+            if (i < rawHistory.Count)
+                formatted.Add(new { role = "user", content = rawHistory[i] });
+            if (i + 1 < rawHistory.Count)
+                formatted.Add(new { role = "bot", content = rawHistory[i + 1] });
+        }
+
+        return Json(new { success = true, history = formatted });
+    }
+
     /// <summary>
     /// Lưu tin nhắn vào lịch sử hội thoại (session)
     /// </summary>

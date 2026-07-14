@@ -467,6 +467,30 @@ public class CartController : BaseController
         return RedirectToAction("Index");
     }
 
+    [HttpGet]
+    public JsonResult ApiXoaMon(int maMonAn)
+    {
+        if (!CheckLogin())
+            return Json(new { success = false, message = "Vui lòng đăng nhập" });
+
+        var cart = GetCart();
+        if (cart == null)
+            return Json(new { success = false, message = "Giỏ hàng trống" });
+
+        var item = FindCartItemByMamon(cart, maMonAn);
+        if (item != null)
+            cart.xoaMon(item.mabienthe);
+        SetCart(cart);
+
+        return Json(new
+        {
+            success = true,
+            cartTotal = cart.tongTien?.ToString("N0") + " đ",
+            cartGrandTotal = (cart.tongTien + 15000)?.ToString("N0") + " đ",
+            isEmpty = cart.items == null || cart.items.Count == 0
+        });
+    }
+
     public ActionResult LichSuDatHang()
     {
         if (!CheckLogin())

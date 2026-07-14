@@ -802,33 +802,24 @@ public class HomeController : BaseController
             return View();
         }
 
-        // Mật khẩu — chỉ bắt buộc với Quán ăn/Shipper. Khách hàng được auto-gen.
-        bool requiresPwd = user.loaitaikhoan == "Quán ăn" || user.loaitaikhoan == "Shipper";
-        if (requiresPwd)
+        // Mật khẩu — bắt buộc với tất cả roles
+        if (string.IsNullOrEmpty(user.pwd))
         {
-            if (string.IsNullOrEmpty(user.pwd))
-            {
-                if (IsAjaxRequest()) return Json(new { success = false, message = "Vui lòng nhập mật khẩu" });
-                ViewBag.err = "Vui lòng nhập mật khẩu";
-                return View();
-            }
-            if (user.pwd.Length < 8)
-            {
-                if (IsAjaxRequest()) return Json(new { success = false, message = "Mật khẩu phải có ít nhất 8 ký tự" });
-                ViewBag.err = "Mật khẩu phải có ít nhất 8 ký tự";
-                return View();
-            }
-            if (user.pwd != repeatpw)
-            {
-                if (IsAjaxRequest()) return Json(new { success = false, message = "Xác nhận mật khẩu không khớp" });
-                ViewBag.err = "Xác nhận mật khẩu không khớp";
-                return View();
-            }
+            if (IsAjaxRequest()) return Json(new { success = false, message = "Vui lòng nhập mật khẩu" });
+            ViewBag.err = "Vui lòng nhập mật khẩu";
+            return View();
         }
-        else
+        if (user.pwd.Length < 8)
         {
-            // Khách hàng: auto-generate password (giống Google auth pattern)
-            user.pwd = $"FS_{Guid.NewGuid():N}";
+            if (IsAjaxRequest()) return Json(new { success = false, message = "Mật khẩu phải có ít nhất 8 ký tự" });
+            ViewBag.err = "Mật khẩu phải có ít nhất 8 ký tự";
+            return View();
+        }
+        if (user.pwd != repeatpw)
+        {
+            if (IsAjaxRequest()) return Json(new { success = false, message = "Xác nhận mật khẩu không khớp" });
+            ViewBag.err = "Xác nhận mật khẩu không khớp";
+            return View();
         }
         // Mật khẩu được lưu dạng plain-text (không hash)
 
@@ -896,6 +887,13 @@ public class HomeController : BaseController
         {
             if (IsAjaxRequest()) return Json(new { success = false, message = "Email này đã được sử dụng" });
             ViewBag.err = "Email này đã được sử dụng";
+            return View();
+        }
+        var existingSdt = db.tbUser.Where(u => u.sdt == user.sdt).ToList();
+        if (existingSdt.Count != 0)
+        {
+            if (IsAjaxRequest()) return Json(new { success = false, message = "Số điện thoại này đã được sử dụng" });
+            ViewBag.err = "Số điện thoại này đã được sử dụng";
             return View();
         }
 

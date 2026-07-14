@@ -480,9 +480,9 @@
                     <label for="inputUsername">Tên đăng nhập <span class="required">*</span></label>
                     <div class="fs-input-wrap">
                         <i class="fas fa-user-tag fs-input-icon"></i>
-                        <input type="text" id="inputUsername" name="username" placeholder="nguyenvan_a" autocomplete="username" required />
+                        <input type="text" id="inputUsername" name="username" placeholder="nguyenvan_a hoặc email@gmail.com hoặc 0912345678" autocomplete="username" required />
                     </div>
-                    <div class="fs-hint">Chỉ gồm chữ cái, số và dấu gạch dưới</div>
+                    <div class="fs-hint">Có thể dùng email, SĐT hoặc tên đăng nhập</div>
                     <div class="fs-error" id="errUsername"></div>
                 </div>
 
@@ -507,31 +507,33 @@
                     <div class="fs-error" id="errSdt"></div>
                 </div>
 
-                <!-- ═══ Extra fields: Password + Address (only for Quán ăn / Shipper) ═══ -->
+                <!-- ═══ Password fields (ALL roles — Khách hàng cũng phải nhập mật khẩu) ═══ -->
+                <div class="fs-field-group">
+                    <label for="inputPwd">Mật khẩu <span class="required">*</span></label>
+                    <div class="fs-input-wrap fs-password-wrap">
+                        <i class="fas fa-lock fs-input-icon"></i>
+                        <input type="password" id="inputPwd" name="pwd" placeholder="Tối thiểu 8 ký tự" autocomplete="new-password" required />
+                        <button type="button" class="fs-password-toggle" tabindex="-1" aria-label="Hiện/ẩn mật khẩu"><i class="fas fa-eye"></i></button>
+                    </div>
+                    <div class="fs-pwd-meter" id="pwdMeter" style="display:none;">
+                        <div class="fs-pwd-bar-track"><div class="fs-pwd-bar-fill" id="pwdBarFill"></div></div>
+                        <span class="fs-pwd-label" id="pwdLabel">Yếu</span>
+                    </div>
+                    <div class="fs-error" id="errPwd"></div>
+                </div>
+                <div class="fs-field-group">
+                    <label for="inputRepeatPwd">Xác nhận mật khẩu <span class="required">*</span></label>
+                    <div class="fs-input-wrap fs-password-wrap">
+                        <i class="fas fa-lock fs-input-icon"></i>
+                        <input type="password" id="inputRepeatPwd" name="repeatpw" placeholder="Nhập lại mật khẩu" autocomplete="new-password" required />
+                        <button type="button" class="fs-password-toggle" tabindex="-1" aria-label="Hiện/ẩn mật khẩu"><i class="fas fa-eye"></i></button>
+                    </div>
+                    <div class="fs-error" id="errRepeatPwd"></div>
+                </div>
+
+                <!-- ═══ Extra fields: Address (only for Quán ăn / Shipper) ═══ -->
                 <div class="fs-extra-fields" id="extraFields">
                     <div class="fs-extra-fields-inner">
-                        <div class="fs-field-group">
-                            <label for="inputPwd">Mật khẩu <span class="required">*</span></label>
-                            <div class="fs-input-wrap fs-password-wrap">
-                                <i class="fas fa-lock fs-input-icon"></i>
-                                <input type="password" id="inputPwd" name="pwd" placeholder="Tối thiểu 8 ký tự" autocomplete="new-password" />
-                                <button type="button" class="fs-password-toggle" tabindex="-1" aria-label="Hiện/ẩn mật khẩu"><i class="fas fa-eye"></i></button>
-                            </div>
-                            <div class="fs-pwd-meter" id="pwdMeter" style="display:none;">
-                                <div class="fs-pwd-bar-track"><div class="fs-pwd-bar-fill" id="pwdBarFill"></div></div>
-                                <span class="fs-pwd-label" id="pwdLabel">Yếu</span>
-                            </div>
-                            <div class="fs-error" id="errPwd"></div>
-                        </div>
-                        <div class="fs-field-group">
-                            <label for="inputRepeatPwd">Xác nhận mật khẩu <span class="required">*</span></label>
-                            <div class="fs-input-wrap fs-password-wrap">
-                                <i class="fas fa-lock fs-input-icon"></i>
-                                <input type="password" id="inputRepeatPwd" name="repeatpw" placeholder="Nhập lại mật khẩu" autocomplete="new-password" />
-                                <button type="button" class="fs-password-toggle" tabindex="-1" aria-label="Hiện/ẩn mật khẩu"><i class="fas fa-eye"></i></button>
-                            </div>
-                            <div class="fs-error" id="errRepeatPwd"></div>
-                        </div>
                         <div class="fs-field-group">
                             <label for="inputDistrict">Địa chỉ <span class="required">*</span></label>
                             <div class="fs-input-wrap">
@@ -634,18 +636,14 @@ function selectRole(card, roleName) {
     var fields = document.getElementById('formFields');
     fields.classList.add('open');
 
-    // Toggle extra fields (password + address) for Quán ăn / Shipper
+    // Toggle address field (chỉ Quán ăn / Shipper mới cần)
     var needsExtra = (roleName === 'Quán ăn' || roleName === 'Shipper');
     var extra = document.getElementById('extraFields');
     if (needsExtra) {
         extra.classList.add('open');
-        document.getElementById('inputPwd').required = true;
-        document.getElementById('inputRepeatPwd').required = true;
         document.getElementById('inputDistrict').required = true;
     } else {
         extra.classList.remove('open');
-        document.getElementById('inputPwd').required = false;
-        document.getElementById('inputRepeatPwd').required = false;
         document.getElementById('inputDistrict').required = false;
     }
 
@@ -719,15 +717,16 @@ document.getElementById('signupForm').addEventListener('submit', function(e) {
 
     if (!hoten || hoten.length < 2) { showError('formError', 'Họ tên phải có ít nhất 2 ký tự'); document.getElementById('inputHoten').focus(); return; }
     if (!username || username.length < 3) { showError('formError', 'Tên đăng nhập phải có ít nhất 3 ký tự'); document.getElementById('inputUsername').focus(); return; }
-    if (!/^[a-zA-Z0-9_]+$/.test(username)) { showError('formError', 'Tên đăng nhập chỉ gồm chữ, số và dấu gạch dưới'); document.getElementById('inputUsername').focus(); return; }
     if (!email || email.indexOf('@@') < 1 || email.lastIndexOf('.') < email.indexOf('@@') + 2) { showError('formError', 'Email không hợp lệ'); document.getElementById('inputEmail').focus(); return; }
     if (!sdt || !/^0[1-9][0-9]{8,9}$/.test(sdt)) { showError('formError', 'SĐT không hợp lệ (10-11 số, bắt đầu bằng 0)'); document.getElementById('inputSdt').focus(); return; }
 
+    // Password validation cho ALL roles
+    var pwd = document.getElementById('inputPwd').value;
+    var repeatPwd = document.getElementById('inputRepeatPwd').value;
+    if (!pwd || pwd.length < 8) { showError('formError', 'Mật khẩu phải có ít nhất 8 ký tự'); return; }
+    if (pwd !== repeatPwd) { showError('formError', 'Xác nhận mật khẩu không khớp'); return; }
+
     if (selectedRole === 'Quán ăn' || selectedRole === 'Shipper') {
-        var pwd = document.getElementById('inputPwd').value;
-        var repeatPwd = document.getElementById('inputRepeatPwd').value;
-        if (!pwd || pwd.length < 8) { showError('formError', 'Mật khẩu phải có ít nhất 8 ký tự'); return; }
-        if (pwd !== repeatPwd) { showError('formError', 'Xác nhận mật khẩu không khớp'); return; }
         var district = document.getElementById('inputDistrict').value;
         var detail = document.getElementById('inputDetailAddr').value.trim();
         if (!district) { showError('formError', 'Vui lòng chọn Quận/Huyện'); return; }
@@ -747,11 +746,9 @@ document.getElementById('signupForm').addEventListener('submit', function(e) {
     formData.append('username', username);
     formData.append('email', email);
     formData.append('sdt', sdt);
+    formData.append('pwd', document.getElementById('inputPwd').value);
+    formData.append('repeatpw', document.getElementById('inputRepeatPwd').value);
     formData.append('diachi', document.getElementById('hiddenDiachi').value || '');
-    if (selectedRole === 'Quán ăn' || selectedRole === 'Shipper') {
-        formData.append('pwd', document.getElementById('inputPwd').value);
-        formData.append('repeatpw', document.getElementById('inputRepeatPwd').value);
-    }
 
     $.ajax({
         url: $('#signupForm').attr('action'),

@@ -743,7 +743,7 @@ public class HomeController : BaseController
                             diachi        = diachi ?? "",
                             soluotdanhgia = 0,
                             diemdanhgia   = 0,
-                            trangthai     = "Không hoạt động"
+                            trangthai     = "Hoạt động"
                         });
                         break;
                 }
@@ -938,7 +938,7 @@ public class HomeController : BaseController
             else if (user.loaitaikhoan.Equals("Shipper"))
             {
                 user.vitien = 0;
-                user.trangthai = 0; // Chờ duyệt — admin phải duyệt mới active
+                user.trangthai = 1; // Active ngay — không cần duyệt
                 db.tbUser.Add(user);
                 db.SaveChanges();
 
@@ -949,9 +949,15 @@ public class HomeController : BaseController
                     diachi = diachi,
                     soluotdanhgia = 0,
                     diemdanhgia = 0,
-                    trangthai = "Không hoạt động"
+                    trangthai = "Hoạt động"
                 });
                 db.SaveChanges();
+
+                var cart = new Cart { userid = user.userid };
+                SetCart(cart);
+                SetSessionUser(user);
+                if (IsAjaxRequest()) return Json(new { success = true, redirectUrl = Url.Action("Index", "Shipper") });
+                return RedirectToAction("Index", "Shipper");
             }
 
             if (IsAjaxRequest()) return Json(new { success = true, redirectUrl = Url.Action("Login", "Home") });

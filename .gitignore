@@ -79,3 +79,6 @@ appsettings.json
 Thumbs.db
 *.swp
 *.swo
+# Windows reserved device names (cannot be indexed)
+[Nn][Uu][Ll]
+nul

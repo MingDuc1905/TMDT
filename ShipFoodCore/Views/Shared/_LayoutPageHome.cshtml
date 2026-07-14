@@ -206,34 +206,51 @@
                         <a href="/Home/DanhMuc" class="nav-item nav-link">Menu ẩm thực</a>
 
                         @if (user != null)
-                        {                        <!-- ═══ DESKTOP: Avatar dropdown (visible >=992px) — logout nằm TRONG dropdown ═══ -->
-                            <div class="d-none d-lg-flex align-items-center gap-1">
-                                <!-- Avatar dropdown (chứa cả logout) -->
-                                <div class="nav-item dropdown">
-                                    <a class="nav-link dropdown-toggle d-flex align-items-center gap-1" href="#" data-bs-toggle="dropdown" aria-expanded="false" style="cursor:pointer;">
-                                        <span class="fs-avatar-xs" style="width:32px;height:32px;border-radius:50%;background:var(--fs-green);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;">@user.username.Substring(0,1).ToUpper()</span>
-                                        <span class="d-none d-lg-inline fs-14 fw-500">@user.username</span>
+                        {                        <!-- ═══ DESKTOP: direct links (ko cần scroll) ═══ -->
+                            <div class="d-none d-lg-flex align-items-center gap-2 ms-2">
+                                <!-- Avatar + tên -->
+                                <span class="d-flex align-items-center gap-2 px-2" style="cursor:default;">
+                                    <span class="fs-avatar-xs" style="width:32px;height:32px;border-radius:50%;background:var(--fs-green);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;">@user.username.Substring(0,1).ToUpper()</span>
+                                    <span class="fs-14 fw-500">@user.username</span>
+                                </span>
+                                <!-- Lịch sử đơn hàng -->
+                                <a href="/Cart/LichSuDatHang" class="nav-link d-inline-flex align-items-center gap-1 px-2" style="font-size:13px;font-weight:500;color:#555;transition:color .15s;"
+                                   onmouseenter="this.style.color='var(--fs-green)'" onmouseleave="this.style.color='#555'">
+                                    <i class="fa fa-history"></i>
+                                    <span>Lịch sử</span>
+                                </a>
+                                <!-- Role-specific link -->
+                                @if (user.loaitaikhoan.Equals("Quán ăn"))
+                                {
+                                    <a href="/Restaurant" class="nav-link d-inline-flex align-items-center gap-1 px-2" style="font-size:13px;font-weight:500;color:#555;transition:color .15s;"
+                                       onmouseenter="this.style.color='var(--fs-green)'" onmouseleave="this.style.color='#555'">
+                                        <i class="fa fa-store"></i>
+                                        <span>Quản lý quán</span>
                                     </a>
-                                    <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="border:none;border-radius:12px;margin-top:10px;min-width:200px;">
-                                        <li><span class="dropdown-item-text text-muted small px-3 py-2">Xin chào, <strong>@user.username</strong></span></li>
-                                        <li><hr class="dropdown-divider my-1" /></li>
-                                        <li><a class="dropdown-item py-2 px-3" href="/Cart/LichSuDatHang"><i class="fa fa-history me-3 text-muted" style="width:16px;"></i>Lịch sử đơn hàng</a></li>
-                                        @if (user.loaitaikhoan.Equals("Quán ăn"))
-                                        {
-                                            <li><a class="dropdown-item py-2 px-3" href="/Restaurant"><i class="fa fa-store me-3 text-muted" style="width:16px;"></i>Quản lý quán</a></li>
-                                        }
-                                        @if (user.loaitaikhoan.Equals("Shipper"))
-                                        {
-                                            <li><a class="dropdown-item py-2 px-3" href="/Shipper"><i class="fa fa-truck me-3 text-muted" style="width:16px;"></i>Bảng điều khiển</a></li>
-                                        }
-                                        @if (user.loaitaikhoan.Equals("Admin"))
-                                        {
-                                            <li><a class="dropdown-item py-2 px-3" href="/Admin"><i class="fa fa-shield-alt me-3 text-muted" style="width:16px;"></i>Quản trị</a></li>
-                                        }
-                                        <li><hr class="dropdown-divider my-1" /></li>
-                                        <li><a class="dropdown-item py-2 px-3 text-danger fw-500" href="/Home/Logout"><i class="fa fa-sign-out-alt me-3" style="width:16px;"></i>Đăng xuất</a></li>
-                                    </ul>
-                                </div>
+                                }
+                                @if (user.loaitaikhoan.Equals("Shipper"))
+                                {
+                                    <a href="/Shipper" class="nav-link d-inline-flex align-items-center gap-1 px-2" style="font-size:13px;font-weight:500;color:#555;transition:color .15s;"
+                                       onmouseenter="this.style.color='var(--fs-green)'" onmouseleave="this.style.color='#555'">
+                                        <i class="fa fa-truck"></i>
+                                        <span>Bảng điều khiển</span>
+                                    </a>
+                                }
+                                @if (user.loaitaikhoan.Equals("Admin"))
+                                {
+                                    <a href="/Admin" class="nav-link d-inline-flex align-items-center gap-1 px-2" style="font-size:13px;font-weight:500;color:#555;transition:color .15s;"
+                                       onmouseenter="this.style.color='var(--fs-green)'" onmouseleave="this.style.color='#555'">
+                                        <i class="fa fa-shield-alt"></i>
+                                        <span>Quản trị</span>
+                                    </a>
+                                }
+                                <!-- Logout -->
+                                <a href="/Home/Logout" class="d-inline-flex align-items-center justify-content-center" aria-label="Đăng xuất" title="Đăng xuất"
+                                   style="width:36px;height:36px;border-radius:50%;color:#dc3545;font-size:15px;border:1.5px solid rgba(220,53,69,.25);transition:all .15s;text-decoration:none;"
+                                   onmouseenter="this.style.background='#fef2f2';this.style.borderColor='#dc3545'"
+                                   onmouseleave="this.style.background='transparent';this.style.borderColor='rgba(220,53,69,.25)'">
+                                    <i class="fa fa-sign-out-alt"></i>
+                                </a>
                             </div>
                             <!-- ═══ MOBILE: direct links (visible <992px) — KO cần scroll ═══ -->
                             <div class="d-lg-none border-top mt-2 pt-2 px-2">

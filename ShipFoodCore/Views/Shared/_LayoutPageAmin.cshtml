@@ -320,37 +320,31 @@
                                     <i class="fa fa-sign-out-alt" style="font-size:14px;"></i>
                                 </a>
                             </li>
-                            <li class="nav-item dropdown header-profile">
-                                <a class="nav-link" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <div class="header-info d-none d-md-inline">
-                                        <span>Xin chào, <strong>@adminName</strong></span>
-                                    </div>
-                                    @if (!string.IsNullOrEmpty(adminInfo?.hinhanh))
-                                    {
-                                        <img src="@TinhToan.HinhAnhUrl(adminInfo.hinhanh)" width="20" height="20" alt="" style="border-radius:50%;object-fit:cover;" />
-                                    }
-                                    else
-                                    {
-                                        <div style="width:20px;height:20px;border-radius:50%;background:#3CB815;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;">@firstLetter</div>
-                                    }
+                            <!-- ═══ ADMIN: User info + links trực tiếp (ko dropdown) ═══ -->
+                            <li class="nav-item d-flex align-items-center gap-1">
+                                <a href="@Url.Action("QuanLyQuanAn", "Admin")" class="nav-link d-flex align-items-center gap-1" title="Quản lý quán ăn"
+                                   style="font-size:13px;font-weight:500;color:var(--fs-muted,#6b7280);padding:6px 10px;border-radius:8px;transition:all .15s;"
+                                   onmouseenter="this.style.background='rgba(60,184,21,.07)';this.style.color='#3CB815'"
+                                   onmouseleave="this.style.background='transparent';this.style.color='#6b7280'">
+                                    <i class="fa fa-store" style="font-size:13px;"></i>
+                                    <span class="d-none d-lg-inline">Quản lý quán</span>
                                 </a>
-                                <div class="dropdown-menu dropdown-menu-right shadow-sm" style="border:none;border-radius:12px;margin-top:8px;min-width:200px;">
-                                    <span class="dropdown-item-text text-muted small px-3 py-2">Xin chào, <strong>@adminName</strong></span>
-                                    <hr class="dropdown-divider my-1" />
-                                    <a href="@Url.Action("QuanLyQuanAn", "Admin")" class="dropdown-item py-2 px-3">
-                                        <i class="fa fa-store me-3 text-muted" style="width:16px;"></i>
-                                        <span>Quản lý quán ăn</span>
-                                    </a>
-                                    <a href="@Url.Action("Order", "Admin")" class="dropdown-item py-2 px-3">
-                                        <i class="fa fa-clipboard-list me-3 text-muted" style="width:16px;"></i>
-                                        <span>Quản lý đơn hàng</span>
-                                    </a>
-                                    <hr class="dropdown-divider my-1" />
-                                    <a href="@Url.Action("Logout","Home")" class="dropdown-item py-2 px-3 text-danger fw-500">
-                                        <i class="fa fa-sign-out-alt me-3" style="width:16px;"></i>
-                                        <span>Đăng xuất</span>
-                                    </a>
-                                </div>
+                                <a href="@Url.Action("Order", "Admin")" class="nav-link d-flex align-items-center gap-1" title="Quản lý đơn hàng"
+                                   style="font-size:13px;font-weight:500;color:var(--fs-muted,#6b7280);padding:6px 10px;border-radius:8px;transition:all .15s;"
+                                   onmouseenter="this.style.background='rgba(60,184,21,.07)';this.style.color='#3CB815'"
+                                   onmouseleave="this.style.background='transparent';this.style.color='#6b7280'">
+                                    <i class="fa fa-clipboard-list" style="font-size:13px;"></i>
+                                    <span class="d-none d-lg-inline">Đơn hàng</span>
+                                </a>
+                                <span class="text-muted small px-1 d-none d-lg-inline">@adminName</span>
+                                @if (!string.IsNullOrEmpty(adminInfo?.hinhanh))
+                                {
+                                    <img src="@TinhToan.HinhAnhUrl(adminInfo.hinhanh)" width="28" height="28" alt="" style="border-radius:50%;object-fit:cover;" />
+                                }
+                                else
+                                {
+                                    <div style="width:28px;height:28px;border-radius:50%;background:#3CB815;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;">@firstLetter</div>
+                                }
                             </li>
                         </ul>
                     </div>

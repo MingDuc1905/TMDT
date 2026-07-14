@@ -516,11 +516,23 @@
         
         input.value = ''; document.getElementById('adminBtn').disabled = true;
         
+        var token = getToken();
         $.ajax({
             url: '@Url.Action("CustomerSendMessage", "AdminChat")', type: 'POST',
-            data: { orderId: adminOrderId, message: msg },
-            headers: { 'RequestVerificationToken': getToken() },
-            error: function(){ addMsg('adminMsgs', '❌ Lỗi gửi tin nhắn', 'admin'); },
+            data: { orderId: adminOrderId, message: msg, __RequestVerificationToken: token },
+            headers: { 'RequestVerificationToken': token },
+            success: function(r) {
+                if (r && r.success === false) {
+                    addMsg('adminMsgs', '⚠️ ' + (r.error || 'Không gửi được tin nhắn'), 'admin');
+                }
+            },
+            error: function(xhr) {
+                var errMsg = '❌ Lỗi gửi tin nhắn';
+                try { var r = JSON.parse(xhr.responseText); if (r && r.error) errMsg = '❌ ' + r.error; } catch(e){}
+                if (xhr.status === 403) errMsg = '❌ Phiên đăng nhập hết hạn. Vui lòng tải lại trang.';
+                if (xhr.status === 0) errMsg = '❌ Mất kết nối mạng.';
+                addMsg('adminMsgs', errMsg, 'admin');
+            },
             complete: function(){ document.getElementById('adminBtn').disabled = false; }
         });
     }

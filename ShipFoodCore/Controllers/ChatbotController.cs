@@ -63,11 +63,13 @@ public class ChatbotController : BaseController
             }
 
             var history = GetConversationHistory();
-            // Inject realtime context vào message trước khi gửi lên Gemini
+            // Inject realtime context + DB stats vào message trước khi gửi lên Gemini
             var augmentedMessage = message;
+            var dbContext = GetDBContextSummary();
+            augmentedMessage = $"[BỐI CẢNH HỆ THỐNG FASTSHIP]\n{dbContext}\n\n[CÂU HỎI CỦA KHÁCH HÀNG] {message}";
             if (realtimeOrderStatus != null)
             {
-                augmentedMessage = message + $"\n\n(Dữ liệu hệ thống: {realtimeOrderStatus})";
+                augmentedMessage += $"\n\n(Dữ liệu hệ thống: {realtimeOrderStatus})";
             }
             var geminiReply = await _gemini.SendMessageAsync(augmentedMessage, history);
             if (!string.IsNullOrEmpty(geminiReply))
@@ -133,11 +135,155 @@ public class ChatbotController : BaseController
         var invoiceResult = HandleInvoiceLookup(msg);
         if (invoiceResult != null) return invoiceResult;
 
+        // Thống kê / số liệu
+        var statsResult = HandleStatsQueries(msg);
+        if (statsResult != null) return statsResult;
+
+        // Món ít người mua nhất
+        var leastResult = HandleLeastPopular(msg);
+        if (leastResult != null) return leastResult;
+
+        // Phí ship
+        var shipResult = HandleShipFee(msg);
+        if (shipResult != null) return shipResult;
+
+        // Danh sách quán
+        var restaurantResult = HandleRestaurantList(msg);
+        if (restaurantResult != null) return restaurantResult;
+
         // Gợi ý món ăn
         var recommendResult = HandleRecommendation(msg);
         if (recommendResult != null) return recommendResult;
 
         return null;
+    }
+
+    /// <summary>
+    /// Thống kê tổng quát từ DB
+    /// </summary>
+    private object? HandleStatsQueries(string msg)
+    {
+        bool isStats = ContainsAny(msg, "thống kê", "bao nhiêu", "số lượng", "tổng số", "có bao nhiêu", "hiện có", "bao nhiêu quán", "bao nhiêu món", "bao nhiêu đơn");
+        if (!isStats) return null;
+
+        var tongQuan = db.tbQuanAn.Count();
+        var tongMon = db.tbMonAn.Count();
+        var tongDon = db.tbDonHang.Count();
+        var donThanhCong = db.tbDonHang.Count(d => d.trangthai == "Hoàn thành");
+        var tongNguoiDung = db.tbUser.Count();
+
+        var replyText = "📊 **THỐNG KÊ FASTSHIP**\n"
+            + $"- 🏪 Quán ăn: {tongQuan} quán\n"
+            + $"- 🍽️ Món ăn: {tongMon} món\n"
+            + $"- 📦 Tổng đơn hàng: {tongDon} đơn\n"
+            + $"- ✅ Đơn thành công: {donThanhCong} đơn\n"
+            + $"- 👥 Tài khoản: {tongNguoiDung} người dùng";
+
+        return new
+        {
+            reply = replyText,
+            quickReplies = new[] { "Gợi ý món ăn", "Món ít người mua", "Danh sách quán", "Phí ship thế nào?" }
+        };
+    }
+
+    /// <summary>
+    /// Món ít người đặt nhất
+    /// </summary>
+    private object? HandleLeastPopular(string msg)
+    {
+        bool isLeast = ContainsAny(msg, "ít người mua", "ít bán", "chưa có ai", "ít lượt", "ít đặt", "chậm bán", "ế");
+        if (!isLeast) return null;
+
+        var leastItems = db.tbChiTietDonHang
+            .Where(ct => ct.tbBienTheMonAn != null && ct.tbBienTheMonAn.tbMonAn != null)
+            .GroupBy(ct => new { ct.mamon, ten = ct.tbBienTheMonAn!.tbMonAn!.tenmon, gia = ct.tbBienTheMonAn!.tbMonAn!.giatien })
+            .Select(g => new { ten = g.Key.ten, gia = g.Key.gia, soLuong = g.Sum(ct => ct.soluong ?? 0) })
+            .OrderBy(g => g.soLuong)
+            .Take(5)
+            .ToList();
+
+        if (leastItems.Count == 0)
+        {
+            return new
+            {
+                reply = "😅 Chưa có đủ dữ liệu để thống kê món ít người mua.",
+                quickReplies = new[] { "Gợi ý món ăn", "Thống kê chung", "Danh sách quán" }
+            };
+        }
+
+        var replyText = "📉 **TOP MÓN ÍT NGƯỜI MUA**\n";
+        int i = 1;
+        foreach (var m in leastItems)
+        {
+            replyText += $"\n{i}. **{m.ten}** - {m.gia?.ToString("N0") ?? "0"}đ (Chỉ bán {m.soLuong} suất)";
+            i++;
+        }
+        replyText += "\n\n💡 Bạn có thể thử để ủng hộ các món này nhé!";
+
+        return new
+        {
+            reply = replyText,
+            quickReplies = new[] { "Gợi ý món ăn", "Thống kê chung", "Phí ship thế nào?" }
+        };
+    }
+
+    /// <summary>
+    /// Thông tin phí ship
+    /// </summary>
+    private object? HandleShipFee(string msg)
+    {
+        bool isShip = ContainsAny(msg, "phí ship", "phí vận chuyển", "ship bao nhiêu", "tiền ship", "giao hàng bao nhiêu", "phí giao", "bao phí");
+        if (!isShip) return null;
+
+        return new
+        {
+            reply = "🛵 **PHÍ VẬN CHUYỂN FASTSHIP**\n"
+                + "- Phí ship cố định: **15.000đ** / đơn\n"
+                + "- Miễn phí ship cho đơn từ **200.000đ**\n"
+                + "- Khu vực giao hàng: nội thành (bán kính 8km)\n"
+                + "- Thời gian giao: 20-40 phút\n\n"
+                + "👉 Đặt đơn từ 200k để được MIỄN PHÍ ship!",
+            quickReplies = new[] { "Gợi ý món ăn", "Danh sách quán", "Đặt hàng ngay" }
+        };
+    }
+
+    /// <summary>
+    /// Danh sách quán ăn
+    /// </summary>
+    private object? HandleRestaurantList(string msg)
+    {
+        bool isList = ContainsAny(msg, "danh sách quán", "quán nào", "quán ăn", "xem quán", "list quán", "quán gì");
+        if (!isList) return null;
+
+        var quans = db.tbQuanAn
+            .OrderByDescending(q => q.tbDonHang.Count())
+            .Take(6)
+            .Select(q => new { q.tenquanan, q.diachi, soDon = q.tbDonHang.Count() })
+            .ToList();
+
+        if (quans.Count == 0)
+        {
+            return new
+            {
+                reply = "😅 Hiện tại chưa có quán ăn nào. Vui lòng thử lại sau!",
+                quickReplies = new[] { "Gợi ý món ăn", "Phí ship thế nào?" }
+            };
+        }
+
+        var replyText = "🏪 **TOP QUÁN ĂN**\n";
+        int i = 1;
+        foreach (var q in quans)
+        {
+            replyText += $"\n{i}. **{q.tenquanan}** - {q.diachi} ({q.soDon} đơn)";
+            i++;
+        }
+        replyText += "\n\n👉 Truy cập trang chủ để xem menu chi tiết!";
+
+        return new
+        {
+            reply = replyText,
+            quickReplies = new[] { "Gợi ý món ăn", "Phí ship thế nào?", "Thống kê chung" }
+        };
     }
 
     private object? HandleOrderLookup(string msg)
@@ -335,5 +481,32 @@ public class ChatbotController : BaseController
         foreach (var k in keywords)
             if (text.Contains(k)) return true;
         return false;
+    }
+
+    /// <summary>
+    /// Tóm tắt DB context để inject vào Gemini prompt — giúp AI trả lời câu hỏi cụ thể
+    /// </summary>
+    private string GetDBContextSummary()
+    {
+        try
+        {
+            var tongQuan = db.tbQuanAn.Count();
+            var tongMon = db.tbMonAn.Count();
+            var tongDon = db.tbDonHang.Count();
+            var donThanhCong = db.tbDonHang.Count(d => d.trangthai == "Hoàn thành");
+            var topMon = db.tbChiTietDonHang
+                .Where(ct => ct.tbBienTheMonAn != null && ct.tbBienTheMonAn.tbMonAn != null)
+                .GroupBy(ct => ct.tbBienTheMonAn!.tbMonAn!.tenmon)
+                .Select(g => new { ten = g.Key, soLuong = g.Sum(ct => ct.soluong ?? 0) })
+                .OrderByDescending(g => g.soLuong)
+                .Take(5).Select(g => $"{g.ten}({g.soLuong})").ToList();
+            var listQuan = db.tbQuanAn.Select(q => q.tenquanan).Take(10).ToList();
+
+            return $"Số quán ăn: {tongQuan}. Số món: {tongMon}. Tổng đơn: {tongDon}. Đơn thành công: {donThanhCong}. "
+                + $"Top bán chạy: {string.Join(", ", topMon)}. "
+                + $"Quán: {string.Join(", ", listQuan)}. "
+                + "Phí ship cố định 15k, miễn phí ship từ 200k.";
+        }
+        catch { return "Dữ liệu hệ thống FastShip: quán ăn, món ăn, đơn hàng."; }
     }
 }

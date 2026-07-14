@@ -96,7 +96,7 @@
                             </div>
                         </div>
                         <div class="d-flex gap-1">
-                            <button class="btn btn-outline btn-sm" onclick="editVoucher(@km.makm, '@km.tenkm', '@km.mota', '@km.loaikm', @(km.phantramgiam ?? 0), '@km.dieukien', '@km.ngaybatdau?.ToString("yyyy-MM-ddTHH:mm")', '@km.ngayketthuc?.ToString("yyyy-MM-ddTHH:mm")')">
+                            <button class="btn btn-outline btn-sm" onclick="editVoucher(this)" data-makm="@km.makm" data-tenkm="@km.tenkm" data-mota="@km.mota" data-loaikm="@km.loaikm" data-phantramgiam="@(km.phantramgiam ?? 0)" data-dieukien="@km.dieukien" data-ngaybatdau="@km.ngaybatdau?.ToString("yyyy-MM-ddTHH:mm")" data-ngayketthuc="@km.ngayketthuc?.ToString("yyyy-MM-ddTHH:mm")">
                                 <i class="fas fa-edit"></i>
                             </button>
                             <button class="btn btn-danger btn-sm" onclick="deleteVoucher(@km.makm)">
@@ -192,32 +192,38 @@ function resetForm() {
     document.getElementById('ngayketthuc').value = '';
 }
 
-function editVoucher(makm, tenkm, mota, loaikm, phantramgiam, dieukien, ngaybatdau, ngayketthuc) {
-    document.getElementById('modalTitle').textContent = 'Sửa khuyến mãi #' + makm;
-    document.getElementById('makm').value = makm;
-    document.getElementById('tenkm').value = tenkm;
-    document.getElementById('mota').value = mota;
-    document.getElementById('loaikm').value = loaikm;
-    document.getElementById('phantramgiam').value = phantramgiam;
-    document.getElementById('dieukien').value = dieukien;
-    document.getElementById('ngaybatdau').value = ngaybatdau;
-    document.getElementById('ngayketthuc').value = ngayketthuc;
+function editVoucher(btn) {
+    var ds = btn.dataset;
+    document.getElementById('modalTitle').textContent = 'Sửa khuyến mãi #' + ds.makm;
+    document.getElementById('makm').value = ds.makm;
+    document.getElementById('tenkm').value = ds.tenkm || '';
+    document.getElementById('mota').value = ds.mota || '';
+    document.getElementById('loaikm').value = ds.loaikm || 'Giảm giá';
+    document.getElementById('phantramgiam').value = ds.phantramgiam || '';
+    document.getElementById('dieukien').value = ds.dieukien || '';
+    document.getElementById('ngaybatdau').value = ds.ngaybatdau || '';
+    document.getElementById('ngayketthuc').value = ds.ngayketthuc || '';
     new bootstrap.Modal(document.getElementById('voucherModal')).show();
 }
 
 function deleteVoucher(makm) {
     if (!confirm('Xóa khuyến mãi này?')) return;
+    var token = document.querySelector('input[name="__RequestVerificationToken"]');
     fetch('@Url.Action("DeleteVoucher", "Admin")', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'RequestVerificationToken': token ? token.value : ''
+        },
         body: 'makm=' + makm
     }).then(r => r.json()).then(data => {
         if (data.success) {
-            document.getElementById('voucher-' + makm).remove();
+            var el = document.getElementById('voucher-' + makm);
+            if (el) el.remove();
         } else {
             alert('Xóa thất bại');
         }
-    });
+    }).catch(function() { alert('Lỗi kết nối'); });
 }
 </script>
 }

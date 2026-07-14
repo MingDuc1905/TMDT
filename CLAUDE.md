@@ -284,4 +284,60 @@ skill gstack
 
 ---
 
+## 8. 🧪 E2E Testing Rules
+
+### ⚡ Lightpanda — Ưu tiên cho test đơn giản:
+
+```yaml
+lightpanda_rules:
+  overview: "Lightpanda = headless browser nhanh hơn Chrome 9x, RAM thấp hơn 16x. Kết nối qua CDP."
+  prerequisites:
+    - "docker compose up -d (chạy Lightpanda CDP server)"
+    - "Config: e2e-tests/lightpanda.config.ts"
+    - "Fixture: e2e-tests/fixtures/lightpanda-fixture.ts"
+  
+  khi_dùng_lightpanda:
+    - "Login, redirect, sidebar, search, form validation"
+    - "Dashboard load, KPI cards, stats display"
+    - "Navigation routing, URL changes"
+    - "Healthcheck endpoints, API responses"
+    - "Responsive layout, overflow checks"
+  
+  KHÔNG_dùng_lightpanda:
+    - "SignalR WebSocket (TC-6.8/6.9/9.8) — chưa hỗ trợ"
+    - "File upload/preview (TC-3.18)"
+    - "localStorage/cookie-dependent flows"
+    - "QR code rendering, canvas-based tests"
+    - "Multi-tab workflows (TC-3.9)"
+    - "Download handling (TC-10.9)"
+  
+  command: "npx playwright test --config=lightpanda.config.ts"
+  
+  workflow: |
+    Step 1: docker compose up -d
+    Step 2: Chạy subset test đơn giản bằng Lightpanda (nhanh)
+    Step 3: Chạy test nâng cao bằng Chromium (playwright.config.ts)
+    Step 4: Tổng hợp kết quả từ cả 2
+```
+
+### 📊 E2E Test Strategy:
+
+| Loại test | Browser | Timeout | Khi nào dùng |
+|-----------|---------|---------|--------------|
+| Smoke / Simple | Lightpanda | 30s | Search, login, sidebar, redirect, KPI |
+| Advanced | Chromium | 60s | SignalR, file upload, QR, multi-tab |
+| Mobile | Chrome Mobile | 60s | Responsive, viewport, touch events |
+
+### 🔧 Fixture usage:
+
+```typescript
+// Lightpanda (nhanh, đơn giản)
+import { test, expect } from '../fixtures/lightpanda-fixture';
+
+// Chromium (nâng cao, full feature)
+import { test, expect } from '@playwright/test';
+```
+
+---
+
 *File này được AI đọc tự động mỗi khi làm việc với dự án. Tuân thủ nghiêm ngặt.*

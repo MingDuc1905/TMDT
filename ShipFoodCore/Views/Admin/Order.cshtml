@@ -133,6 +133,10 @@ $(document).ready(function() {
         setTimeout(function() { $('a[href*="OrderDetail?id=' + madh + '"]').closest('tr').css('background', ''); }, 3000);
     });
 
+    conn.onreconnected(function() {
+        console.log('Admin SignalR reconnected');
+    });
+
     conn.start().catch(function(err) { console.error('Admin SignalR:', err); });
 });
 </script>

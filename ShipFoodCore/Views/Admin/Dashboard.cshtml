@@ -42,6 +42,8 @@
         .chart-container .card-header { background: white; border-bottom: 2px solid #f0f0f0; padding: 1rem 1.5rem; }
         .chart-container .card-header h4 { margin: 0; font-size: 1.1rem; font-weight: 600; color: #333; }
         .filter-bar { background: linear-gradient(145deg, #ffffff, #f8f9fa); border: none; border-radius: 14px; padding: 1.2rem 1.5rem; box-shadow: 0 2px 10px rgba(0,0,0,0.04); }
+        .apriori-card { background:linear-gradient(145deg,#f8f9fa,#fff);border-radius:12px;padding:16px 18px;border:1px solid #e9ecef;transition:all .3s; }
+        .apriori-card:hover { border-color:#17a2b8; box-shadow:0 4px 16px rgba(23,162,184,.15); }
     </style>
 
     <div class="row" id="summary-cards">
@@ -306,9 +308,7 @@
                                 @foreach (var insight in catApriori)
                                 {
                                     var i = insight as dynamic;
-                                    <div style="background:linear-gradient(145deg,#f8f9fa,#fff);border:1px solid #e9ecef;border-radius:12px;padding:16px 18px;transition:all .3s;"
-                                         onmouseover="this.style.borderColor='#17a2b8';this.style.boxShadow='0 4px 16px rgba(23,162,184,.15)'"
-                                         onmouseout="this.style.borderColor='#e9ecef';this.style.boxShadow='none'">
+                                    <div class="apriori-card">
                                         <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
                                             <span style="background:#17a2b8;color:#fff;width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;"><i class="fas fa-chart-bar"></i></span>
                                             <div>

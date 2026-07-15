@@ -467,6 +467,19 @@ try
             catch (Exception alterEx) { logger.LogWarning("ALTER TABLE skipped: {Error}", alterEx.Message); }
         }
         logger.LogInformation("Auto-migration: ALTER TABLE columns checked");
+
+        // ═══ Fix PostgreSQL sequence out-of-sync (prevent PK violation on signup) ═══
+        // ponytail: Sau khi seed v?i userid explicit (1-18), sequence v?n ? 1 → signup b? l?i 23505
+        // Reset sequence = max(userid) + 1 m?i l?n start (safe, nhanh)
+        try
+        {
+            db.Database.ExecuteSqlRaw(@"SELECT setval('""tbUser_userid_seq""', COALESCE((SELECT MAX(""userid"") FROM ""tbUser""), 0) + 1, false);");
+            logger.LogInformation("PostgreSQL sequence tbUser_userid_seq synced to max(userid) + 1");
+        }
+        catch (Exception seqEx)
+        {
+            logger.LogWarning(seqEx, "Could not reset tbUser sequence — may cause PK violation on signup");
+        }
     }
 }
 catch (Exception ex)

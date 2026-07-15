@@ -966,8 +966,25 @@ public class HomeController : BaseController
             var logger = HttpContext.RequestServices.GetRequiredService<ILogger<HomeController>>();
             var innerMsg = ex.InnerException?.Message ?? ex.Message;
             logger.LogError(ex, "Signup failed for user {Username}: {Error}", user.username, innerMsg);
+
+            // ═══ Fix PK violation: PostgreSQL sequence out of sync after seed ═══
+            // N?u l?i 23505 (unique constraint), try reset sequence + thông báo th? lai
+            // ponytail: Npgsql.PostgresException.SqlState == "23505" means duplicate key
+            // ponytail: user must retry submit — sequence is now fixed for next attempt
+            if (innerMsg.Contains("23505") || innerMsg.Contains("PK_tbUser") || innerMsg.Contains("duplicate key"))
+            {
+                try
+                {
+                    db.Database.ExecuteSqlRaw(@"SELECT setval('""tbUser_userid_seq""', COALESCE((SELECT MAX(""userid"") FROM ""tbUser""), 0) + 1, false);");
+                    logger.LogWarning("Reset tbUser sequence after PK violation — user should retry");
+                }
+                catch (Exception seqEx)
+                {
+                    logger.LogError(seqEx, "Failed to reset tbUser sequence");
+                }
+            }
+
             var userMsg = "Lỗi tạo tài khoản. Vui lòng thử lại.";
-            // ponytail: debug field exposes inner exception — remove after root cause is fixed
             if (IsAjaxRequest()) return Json(new { success = false, message = userMsg, debug = innerMsg });
             ViewBag.err = userMsg;
             return View();

@@ -164,7 +164,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
 <script>
     var connection = null;
-    var currentUserId = @(ViewBag.AdminUserId ?? 0);
+    var adminUserId = @(ViewBag.AdminUserId ?? 0);
+    var selectedUserId = 0;
     var connectPromise = null;
     var conversations = [];
 
@@ -177,30 +178,29 @@
             
         connection.on("customerMessage", function (message, orderId, userName, userId) {
             loadConversations();
-            // FIX B2: userId ở đây là customerId, currentUserId là adminId — ko so sánh bằng
-            // Thay vào đó, tự động load messages cho customer vừa gửi tin
+            // userId = customerId v?a g?i tin — dùng selectedUserId riêng, ko nh?m v?i adminUserId
             if (userId && userId > 0) {
-                // Nếu đang không xem customer nào, auto-select customer này
-                if (currentUserId === @(ViewBag.AdminUserId ?? 0)) {
+                // N?u ch?a ch?n customer nào, auto-select customer này
+                if (selectedUserId === 0) {
                     selectCustomer(userId);
                 }
-                // Refresh messages nếu đang xem đúng customer này
-                if (userId === currentUserId) {
+                // Refresh messages n?u dang xem dúng customer này
+                if (userId === selectedUserId) {
                     loadCustomerMessages(userId);
                 }
             }
         });
         
         connection.onreconnected(function () {
-            if (@(ViewBag.AdminUserId ?? 0) > 0) {
-                connection.invoke('JoinAdminGroup', @(ViewBag.AdminUserId ?? 0)).catch(function () {});
+            if (adminUserId > 0) {
+                connection.invoke('JoinAdminGroup', adminUserId).catch(function () {});
             }
         });
         
         connectPromise = connection.start().then(function () {
-            // Admin join group 'admins' để nhận tin từ CustomerSendMessage
-            if (@(ViewBag.AdminUserId ?? 0) > 0) {
-                return connection.invoke('JoinAdminGroup', @(ViewBag.AdminUserId ?? 0)).catch(function () {});
+            // Admin join group 'admins' d? nh?n tin t? CustomerSendMessage
+            if (adminUserId > 0) {
+                return connection.invoke('JoinAdminGroup', adminUserId).catch(function () {});
             }
         }).catch(function (err) {
             console.error("SignalR error: " + err.toString());
@@ -233,7 +233,7 @@
         list.innerHTML = '';
         data.forEach(function (c) {
             var div = document.createElement('div');
-            div.className = 'conversation-item' + (c.userId === currentUserId ? ' active' : '');
+            div.className = 'conversation-item' + (c.userId === selectedUserId ? ' active' : '');
             div.id = 'conv-' + c.userId;
             div.onclick = function () { selectCustomer(c.userId); };
             
@@ -258,7 +258,7 @@
     }
 
     function selectCustomer(userId) {
-        currentUserId = userId;
+        selectedUserId = userId;
         
         document.querySelectorAll('.conversation-item').forEach(function (el) {
             el.classList.remove('active');
@@ -279,6 +279,8 @@
                 connection.invoke('JoinCustomerSupportGroup', userId).catch(function () {});
             }
         });
+        // Chat input visible after customer selected
+        document.getElementById('chatInputArea').style.display = 'flex';
     }
 
     function loadCustomerMessages(userId) {
@@ -316,7 +318,7 @@
     function sendAdminMessage() {
         var input = document.getElementById('adminChatInput');
         var msg = input.value.trim();
-        if (!msg || currentUserId === 0) return;
+        if (!msg || selectedUserId === 0) return;
         input.value = '';
         
         addMessage(msg, 'admin', 'Admin');
@@ -324,7 +326,7 @@
         $.ajax({
             url: '@Url.Action("SendMessageToCustomer", "AdminChat")',
             type: 'POST',
-            data: { userId: currentUserId, message: msg },
+            data: { userId: selectedUserId, message: msg },
             error: function () {
                 addMessage('❌ Lỗi gửi tin nhắn', 'admin', 'Hệ thống');
             }

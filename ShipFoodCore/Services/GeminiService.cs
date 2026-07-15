@@ -30,8 +30,8 @@ QUY TẮC:
     public GeminiService(string? apiKey, string? modelName = null)
     {
         _apiKey = string.IsNullOrEmpty(apiKey) || apiKey == "YOUR_GEMINI_API_KEY" ? null : apiKey;
-        // Using gemini-3.5-flash (free tier) - gemini-2.0-flash retired as of 1/6/2026
-        _modelName = modelName ?? "gemini-3.5-flash";
+        // Use gemini-2.0-flash (stable, free tier) — model name can be overridden via env var
+        _modelName = modelName ?? "gemini-2.0-flash";
     }
 
     /// <summary>

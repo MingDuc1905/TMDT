@@ -97,6 +97,11 @@
             conn.start().then(function() {
                 conn.invoke('JoinRestaurantGroup', userId).catch(function(){});
             }).catch(function() {});
+
+            // ponytail: ph?i join l?i group sau khi SignalR reconnect
+            conn.onreconnected(function() {
+                conn.invoke('JoinRestaurantGroup', userId).catch(function(){});
+            });
         }
 
         function sendMsg() {

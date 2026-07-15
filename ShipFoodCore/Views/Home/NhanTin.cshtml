@@ -115,6 +115,11 @@
             conn.start().then(function() {
                 conn.invoke('JoinCustomerSupportGroup', userId).catch(function(){});
             }).catch(function() {});
+
+            // ponytail: ph?i join l?i group sau khi SignalR reconnect
+            conn.onreconnected(function() {
+                conn.invoke('JoinCustomerSupportGroup', userId).catch(function(){});
+            });
         }
 
         function sendMsg() {

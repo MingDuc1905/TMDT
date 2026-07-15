@@ -198,6 +198,13 @@
             }).catch(function (err) {
                 console.error('SignalR connection error:', err);
             });
+
+            // ponytail: ph?i join l?i order group sau khi SignalR reconnect
+            conn.onreconnected(function () {
+                conn.invoke('JoinOrderGroup', @donHang.madh).catch(function (err) {
+                    console.error('RejoinOrderGroup error:', err);
+                });
+            });
         }
     });
 </script>

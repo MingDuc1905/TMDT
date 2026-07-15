@@ -631,9 +631,11 @@ public class RestaurantController : BaseController
     {
         var user = GetCurrentUser();
         if (user == null) return null!;
-        return db.tbQuanAn.Include(q => q.tbUser) // Load tbUser để tránh NullReferenceException
+        // ponytail: Không load tbChiTietDonHangs→tbDanhGias qua chain — quá nặng (hàng nghìn records)
+        // Các trang cần data detail (Analytics, Review) tự query riêng qua DbSet
+        return db.tbQuanAn.Include(q => q.tbUser)
             .Include(q => q.tbMonAns).ThenInclude(m => m.tbDanhMuc)
-            .Include(q => q.tbMonAns).ThenInclude(m => m.tbBienTheMonAns).ThenInclude(b => b.tbChiTietDonHangs).ThenInclude(c => c.tbDanhGias)
+            .Include(q => q.tbMonAns).ThenInclude(m => m.tbBienTheMonAns)
             .Include(q => q.tbDonHangs).ThenInclude(d => d.tbThongTinDatHang).ThenInclude(tt => tt.tbKhachHang)
             .FirstOrDefault(q => q.userid == user.userid) ?? null!;
     }

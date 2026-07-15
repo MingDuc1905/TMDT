@@ -63,6 +63,13 @@
     padding: 0 !important;
     text-align: center !important;
 }
+/* SVG icons in topbar (Instagram, YouTube — replaced FA Brands after v4.1 cleanup) */
+.fs-header .top-bar-right a svg {
+    width: 14px !important;
+    height: 14px !important;
+    display: inline-flex !important;
+    fill: currentColor !important;
+}
 
 /* ── Utilities ─────────────────────────────────────────────── */
 .fw-700 { font-weight: 700 !important; }

@@ -314,7 +314,7 @@
 
                             <!-- ═══ ADMIN: Avatar dropdown (modern minimalist) — P0: Cleaned role desync ═══ -->
                             <li class="nav-item dropdown" style="margin-right:12px;">
-                                <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false"
+                                <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" role="button" data-toggle="dropdown" aria-expanded="false"
                                    style="padding:4px 8px;border-radius:8px;transition:background .15s;"
                                    onmouseenter="this.style.background='rgba(60,184,21,.07)'" onmouseleave="this.style.background='transparent'">
                                     @if (!string.IsNullOrEmpty(adminInfo?.hinhanh))
@@ -327,7 +327,7 @@
                                     }
                                     <span class="d-none d-lg-inline text-muted small fw-500">@adminName</span>
                                 </a>
-                                <ul class="dropdown-menu dropdown-menu-end" style="min-width:160px;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.12);border:1px solid rgba(0,0,0,.06);">
+                                <ul class="dropdown-menu dropdown-menu-right" style="min-width:160px;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.12);border:1px solid rgba(0,0,0,.06);">
                                     <li><a class="dropdown-item d-flex align-items-center gap-2 py-2" href="@Url.Action("Dashboard","Admin")"><i class="fas fa-chart-pie" style="width:16px;color:var(--fs-green);"></i> Dashboard</a></li>
                                     <li><hr class="dropdown-divider my-1"></li>
                                     <li><a class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger" href="@Url.Action("Logout","Home")"><i class="fas fa-sign-out-alt" style="width:16px;"></i> Đăng xuất</a></li>

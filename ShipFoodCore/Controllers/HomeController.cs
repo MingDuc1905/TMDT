@@ -317,10 +317,11 @@ public class HomeController : BaseController
                 return View();
             }
 
-            var cart = new Cart { userid = userFind.userid };
-            SetCart(cart);                    // ─── Set auth cookie + session (bền vững qua restart) ───
-                    // ponytail: clear session cũ trước khi set mới (multi-tab fix)
+            // ponytail: clear session cũ trước — SetCart SAU Clear để ko bị xóa mất
                     HttpContext.Session.Clear();
+
+                    var cart = new Cart { userid = userFind.userid };
+                    SetCart(cart);                    // ─── Set auth cookie + session (bền vững qua restart) ───
                     await HttpContext.Session.CommitAsync();
                     await SetSessionAndCookieAsync(userFind, rememberMe);
 

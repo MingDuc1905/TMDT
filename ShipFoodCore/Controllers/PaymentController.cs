@@ -213,8 +213,9 @@ public class PaymentController : BaseController
 
             decimal tongCong = Math.Max(tongTienMon + phiShip - discountAmount, 0);
 
-            // ponytail: Fix Item 3 — MoMo (pttt==5) cung la async payment => "Chờ thanh toán"
-            bool isBankTransfer = IsBankTransferMethod(pttt) || pttt == 5;
+            // ponytail: Fix Item 3 — MoMo (pttt==5) va PayPal cung la async payment => "Chờ thanh toán"
+            bool isBankTransfer = IsBankTransferMethod(pttt) || pttt == 5 || IsPayPalMethod(pttt);
+            bool isPayPal = IsPayPalMethod(pttt);
             var trangThaiBanDau = isBankTransfer ? "Chờ thanh toán" : "Đã đặt";
 
             // ═══ MULTI-RESTAURANT: Tạo đơn riêng cho từng quán ═══
@@ -380,8 +381,49 @@ public class PaymentController : BaseController
                 SetCart(new Cart());
             }
 
+            // ─── PayPal: trả về approval link ───
+            if (isPayPal && createdOrders.Any())
+            {
+                var ppOrderId = createdOrders.First();
+                try
+                {
+                    var returnUrl = $"{Request.Scheme}://{Request.Host}/Payment/CapturePayPalOrder?orderId={ppOrderId}";
+                    var cancelUrl = $"{Request.Scheme}://{Request.Host}/Cart/OrderTracking?id={ppOrderId}";
+
+                    var ppResult = await _payPalService.CreateOrderAsync(ppOrderId.ToString(), totalAllOrders, returnUrl, cancelUrl);
+                    if (ppResult.Success)
+                    {
+                        HttpContext.Session.SetString($"paypal_order_{ppOrderId}", ppResult.PayPalOrderId ?? "");
+
+                        _logger.LogInformation("PayPal order created via ProcessPayment: OrderId={OrderId}, PayPalOrderId={PayPalOrderId}",
+                            ppOrderId, ppResult.PayPalOrderId);
+
+                        // Khong xoa cart — PayPal la async, user can chua thanh toan
+
+                        return Json(new
+                        {
+                            success = true,
+                            message = $"Đã tạo {createdOrders.Count} đơn hàng! Chuyển hướng đến PayPal...",
+                            orderId = ppOrderId,
+                            orderIds = createdOrders,
+                            trangthai = "Chờ thanh toán",
+                            paypalApprovalUrl = ppResult.ApproveLink
+                        });
+                    }
+                    else
+                    {
+                        _logger.LogWarning("PayPal CreateOrder failed for order #{OrderId} from ProcessPayment: {Message}", ppOrderId, ppResult.Message);
+                        // Fall through: tra ve success nhung ko co paypal URL (user co the thanh toan sau tu OrderTracking)
+                    }
+                }
+                catch (Exception ppEx)
+                {
+                    _logger.LogError(ppEx, "PayPal CreateOrder error for order #{OrderId} from ProcessPayment", ppOrderId);
+                }
+            }
+
             // ─── Bank Transfer: trả về QR URL ───
-            if (isBankTransfer)
+            if (isBankTransfer && !isPayPal)
             {
                 // ponytail: SePay format — "SEVQR FASTSHIP{OrderId}" (SePay yêu cầu prefix "SEVQR ")
                 var memo = $"SEVQR FASTSHIP{firstOrderId}";
@@ -531,6 +573,22 @@ public class PaymentController : BaseController
         {
             _logger.LogError(ex, "MoMo IPN callback error");
             return Json(new { error = -1, message = ex.Message });
+        }
+    }
+
+    // ─── Helper: kiểm tra có phải PayPal không ───
+    private bool IsPayPalMethod(int pttt)
+    {
+        try
+        {
+            var method = db.tbLoaiHinhThanhToan.Find(pttt);
+            if (method == null) return false;
+            var name = (method.tenhinhthuc ?? "").ToLowerInvariant();
+            return name.Contains("paypal");
+        }
+        catch
+        {
+            return false;
         }
     }
 

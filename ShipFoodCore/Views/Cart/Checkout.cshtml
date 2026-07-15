@@ -657,7 +657,7 @@
                 if (r.success) {
                     // ═══ FIX: Clear localStorage cart sau khi đặt hàng thành công ═══
                     if (typeof clearCartLocal === 'function') clearCartLocal();
-                    showResultPopup(true, 'Đặt hàng thành công!', r.message || '', r.orderId, r.qrCodeUrl, r.bankInfo, r.momoPayUrl);
+                    showResultPopup(true, 'Đặt hàng thành công!', r.message || '', r.orderId, r.qrCodeUrl, r.bankInfo, r.momoPayUrl, r.paypalApprovalUrl);
                 } else {
                     showResultPopup(false, 'Thanh toán thất bại', r.message || 'Đã xảy ra lỗi. Vui lòng thử lại.');
                 }
@@ -713,12 +713,18 @@
     //   success = true  → QR code path OR COD/MoMo/PayPal path
     //   success = false → failure path
     // ════════════════════════════════════════════════════════════════
-    function showResultPopup(success, title, detail, orderId, qrCodeUrl, bankInfo, momoPayUrl) {
+    function showResultPopup(success, title, detail, orderId, qrCodeUrl, bankInfo, momoPayUrl, paypalApprovalUrl) {
         $('#payment-popup-overlay').remove();
         var iconHtml, contentHtml, btnHtml, redirectUrl;
 
         if (success) {
             // ═══ MoMo: redirect to MoMo payment page ═══
+            // ═══ PayPal: redirect to PayPal approval page ═══
+            if (paypalApprovalUrl) {
+                window.location.href = paypalApprovalUrl;
+                return;
+            }
+
             if (momoPayUrl) {
                 window.location.href = momoPayUrl;
                 return;

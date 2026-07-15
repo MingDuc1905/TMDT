@@ -1206,6 +1206,11 @@ public class HomeController : BaseController
 
         ViewBag.WalletSuccess = TempData["WalletSuccess"];
         ViewBag.WalletError = TempData["WalletError"];
+        // ponytail: d?c TempData tu NapTien POST de view hien thi QR + so tien
+        ViewBag.WalletPending = TempData["WalletPending"];
+        ViewBag.DepositQR = TempData["DepositQR"];
+        ViewBag.DepositAmount = TempData["DepositAmount"];
+        ViewBag.DepositCode = TempData["DepositCode"];
 
         // Lấy lịch sử đơn hàng đã hoàn thành (tương tự shipper)
         var userId = user.userid;

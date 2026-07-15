@@ -297,6 +297,9 @@ builder.Services.AddScoped<ShipFood.ViewComponents.FilterBarViewComponent>();
 // Register MoMo Payment Service
 builder.Services.AddHttpClient<ShipFood.Services.MoMoService>();
 
+// Register PayPal Payment Service
+builder.Services.AddHttpClient<ShipFood.Services.PayPalService>();
+
 // Add Antiforgery (hỗ trợ AJAX header token cho Mock Payment)
 builder.Services.AddAntiforgery(options =>
 {

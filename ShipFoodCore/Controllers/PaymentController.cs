@@ -14,16 +14,18 @@ public class PaymentController : BaseController
     private readonly ILogger<PaymentController> _logger;
     private readonly IHubContext<Chats> _hubContext;
     private readonly MoMoService _moMoService;
+    private readonly PayPalService _payPalService;
     private readonly IConfiguration _configuration;
     private readonly EDeliveryService _eDelivery;
 
     public PaymentController(dbFoodyEntities context, ILogger<PaymentController> logger, IHubContext<Chats> hubContext,
-        MoMoService moMoService, IConfiguration configuration, EDeliveryService eDelivery)
+        MoMoService moMoService, PayPalService payPalService, IConfiguration configuration, EDeliveryService eDelivery)
     {
         db = context;
         _logger = logger;
         _hubContext = hubContext;
         _moMoService = moMoService;
+        _payPalService = payPalService;
         _configuration = configuration;
         _eDelivery = eDelivery;
     }
@@ -821,5 +823,119 @@ public class PaymentController : BaseController
             return RedirectToAction("ChiTietDonHang", "Cart", new { id = orderId });
         }
         return RedirectToAction("Index", "Cart");
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // PayPal Payment Integration
+    // ═══════════════════════════════════════════════════════════════
+
+    // ─── Create PayPal Order: T?o don PayPal, tr? v? approve link ───
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<JsonResult> CreatePayPalOrder(int orderId)
+    {
+        if (!CheckLogin())
+            return Json(new { success = false, message = "Vui lòng đăng nhập" });
+
+        try
+        {
+            var donHang = await db.tbDonHangs.FindAsync(orderId);
+            if (donHang == null)
+                return Json(new { success = false, message = "Đơn hàng không tồn tại" });
+
+            if (donHang.trangthai != "Chờ thanh toán")
+                return Json(new { success = false, message = $"Đơn hàng ở trạng thái '{donHang.trangthai}', không thể thanh toán PayPal" });
+
+            var returnUrl = $"{Request.Scheme}://{Request.Host}/Payment/CapturePayPalOrder?orderId={orderId}";
+            var cancelUrl = $"{Request.Scheme}://{Request.Host}/Cart/OrderTracking?id={orderId}";
+
+            var result = await _payPalService.CreateOrderAsync(orderId.ToString(), donHang.tongtien ?? 0, returnUrl, cancelUrl);
+
+            if (result.Success)
+            {
+                // L?u PayPal OrderId vào session d? dùng khi capture
+                HttpContext.Session.SetString($"paypal_order_{orderId}", result.PayPalOrderId ?? "");
+
+                _logger.LogInformation("PayPal order created: OrderId={OrderId}, PayPalOrderId={PayPalOrderId}, Amount={Amount}USD",
+                    orderId, result.PayPalOrderId, Math.Round((donHang.tongtien ?? 0) / 25000m, 2));
+
+                return Json(new
+                {
+                    success = true,
+                    approveLink = result.ApproveLink,
+                    paypalOrderId = result.PayPalOrderId,
+                    message = "Chuyển hướng đến PayPal..."
+                });
+            }
+
+            _logger.LogWarning("PayPal CreateOrder failed for OrderId={OrderId}: {Message}", orderId, result.Message);
+            return Json(new { success = false, message = result.Message ?? "Không thể tạo thanh toán PayPal" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "CreatePayPalOrder error for OrderId={OrderId}", orderId);
+            return Json(new { success = false, message = $"Lỗi: {ex.Message}" });
+        }
+    }
+
+    // ─── Capture PayPal Order: Thu ti?n sau khi khách duy?t trên PayPal ───
+    [HttpGet]
+    public async Task<IActionResult> CapturePayPalOrder(int orderId, string? token = null)
+    {
+        if (!CheckLogin())
+            return RedirectToAction("Login", "Home");
+
+        try
+        {
+            var donHang = await db.tbDonHangs.FindAsync(orderId);
+            if (donHang == null)
+            {
+                TempData["OrderError"] = "Đơn hàng không tồn tại";
+                return RedirectToAction("OrderTracking", "Cart", new { id = orderId });
+            }
+
+            // L?y PayPal OrderId t? session ho?c t? query string token (PayPal g?i token param)
+            var paypalOrderId = HttpContext.Session.GetString($"paypal_order_{orderId}") ?? token ?? "";
+            if (string.IsNullOrEmpty(paypalOrderId))
+            {
+                TempData["OrderError"] = "Không tìm thấy giao dịch PayPal";
+                return RedirectToAction("OrderTracking", "Cart", new { id = orderId });
+            }
+
+            var result = await _payPalService.CaptureOrderAsync(paypalOrderId);
+
+            if (result.Success)
+            {
+                donHang.trangthai = "Đã đặt";
+                donHang.ngaythanhtoan = DateTime.Now;
+                donHang.momo_trans_id = result.CaptureId;
+                await db.SaveChangesAsync();
+
+                HttpContext.Session.Remove($"paypal_order_{orderId}");
+
+                _logger.LogInformation("PayPal capture success: OrderId={OrderId}, CaptureId={CaptureId}", orderId, result.CaptureId);
+
+                // SignalR broadcast
+                try { await _hubContext.Clients.Group($"order_{orderId}").SendAsync("paymentConfirmed", orderId, donHang.tongtien); } catch { }
+                try { await _hubContext.Clients.Group($"order_{orderId}").SendAsync("orderStatusChanged", orderId, "Đã đặt", DateTime.Now.ToString("HH:mm")); } catch { }
+                if (donHang.maquan != null)
+                {
+                    try { await _hubContext.Clients.Group($"restaurant_{donHang.maquan}").SendAsync("newOrder", new { orderId = donHang.madh, status = "Đã đặt", time = DateTime.Now.ToString("HH:mm") }); } catch { }
+                }
+
+                TempData["OrderSuccess"] = $"Thanh toán PayPal thành công! Mã đơn hàng: #{orderId}";
+                return RedirectToAction("OrderTracking", "Cart", new { id = orderId });
+            }
+
+            _logger.LogWarning("PayPal capture failed: OrderId={OrderId}, Status={Status}", orderId, result.Status);
+            TempData["OrderError"] = result.Message ?? "Thanh toán PayPal thất bại";
+            return RedirectToAction("OrderTracking", "Cart", new { id = orderId });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "CapturePayPalOrder error for OrderId={OrderId}", orderId);
+            TempData["OrderError"] = $"Lỗi: {ex.Message}";
+            return RedirectToAction("OrderTracking", "Cart", new { id = orderId });
+        }
     }
 }

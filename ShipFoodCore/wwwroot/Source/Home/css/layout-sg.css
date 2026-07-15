@@ -93,11 +93,11 @@ body.fs-body-padded {
 
 /* Khi scroll qua topbar: nav fixed tại top:0 */
 .fs-nav.fs-nav-fixed {
-    position: fixed;
+    position: fixed !important;
     top: 0;
     left: 0;
     right: 0;
-    z-index: 10000;
+    z-index: 1060;
     background: #fff;
     box-shadow: 0 4px 20px rgba(0,0,0,.12);
     transition: box-shadow .3s ease;
@@ -133,7 +133,7 @@ body.fs-body-padded {
     overflow: visible !important;
     position: sticky;
     top: 0;
-    z-index: 10000;
+    z-index: 1060;
 }
 
 /* Logo */
@@ -294,7 +294,7 @@ body.fs-body-padded {
         border-top: 1px solid var(--fs-border);
         padding: 8px 0 12px;
         max-height: calc(100vh - var(--fs-nav-h));
-        overflow: hidden !important;
+        overflow: visible !important;
     }
     .fs-nav .navbar-nav .nav-link {
         padding: 10px 16px;
@@ -306,6 +306,12 @@ body.fs-body-padded {
         background: var(--fs-light);
         border-radius: 0;
         padding: 0 0 4px 12px;
+    }
+    /* ponytail: fix dropdown mobile ngoài collapse bị clip */
+    .d-lg-none > .dropdown .dropdown-menu {
+        position: absolute !important;
+        overflow: visible !important;
+        z-index: 1070 !important;
     }
 }
 

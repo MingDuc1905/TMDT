@@ -556,12 +556,14 @@ public class RestaurantController : BaseController
 
         if (fileAnh != null)
         {
+            // ponytail: Fix Item 13 — path traversal protection
             var uploadsDir = Path.Combine(_env.WebRootPath, "Source/images/MonAn");
             Directory.CreateDirectory(uploadsDir);
-            var path = Path.Combine(uploadsDir, fileAnh.FileName);
+            var safeFileName = Path.GetFileName(fileAnh.FileName);
+            var path = Path.Combine(uploadsDir, safeFileName);
             using var stream = new FileStream(path, FileMode.Create);
             fileAnh.CopyTo(stream);
-            monAn.hinhanh = fileAnh.FileName;
+            monAn.hinhanh = safeFileName;
         }
 
         if (monAn.mamon == 0)

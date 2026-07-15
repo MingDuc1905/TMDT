@@ -592,8 +592,72 @@ $(document).ready(function() {
     }
     updateETA('@donHang.trangthai');
 
+    // ═══ POLLING: T? d?ng ki?m tra tr?ng thái thanh toán m?i 10 giây ───
+    // ponytail: Fix #3 — polling cho don "Ch? thanh toán" de tu d?ng c?p nh?t khi webhook xác nh?n
+    var paymentPollTimer = null;
+    function startPaymentPolling(orderId) {
+        if (paymentPollTimer) clearInterval(paymentPollTimer);
+        var trangthai = '@donHang.trangthai';
+        if (trangthai !== 'Chờ thanh toán') {
+            $('#paymentWaitingIndicator').html('<span style="color:#28a745;">✅ Thanh toán đã được xác nhận!</span>');
+            return;
+        }
+        paymentPollTimer = setInterval(function() {
+            $.get('@Url.Action("CheckPaymentStatus", "Payment")', { madh: orderId })
+                .done(function(res) {
+                    if (res.success) {
+                        clearInterval(paymentPollTimer);
+                        paymentPollTimer = null;
+                        $('.bank-qr-card').fadeOut();
+                        $('#paymentWaitingIndicator').html('<span style="color:#28a745;">✅ Thanh toán thành công!</span>');
+                        $('#verifyResult').html('<div class="alert alert-success" style="padding:10px;border-radius:8px;font-size:13px;">✅ ' + (res.message || '') + '</div>');
+                        $('#btnVerifyPayment').hide();
+                    }
+                })
+                .fail(function() {
+                    // Silent retry — không hi?n l?i cho user
+                    console.log('Payment polling failed — will retry');
+                });
+        }, 10000); // 10 giây
+    }
+
+    // Kh?i d?ng polling n?u d?n dang "Ch? thanh toán"
+    var initialTrangthai = '@donHang.trangthai';
+    if (initialTrangthai === 'Chờ thanh toán') {
+        startPaymentPolling(@donHang.madh);
+    }
+
     // ═══ Bank Transfer: Verify payment fallback ═══
     window.verifyBankPayment = function(orderId) {
+        var btn = $('#btnVerifyPayment');
+        var resultDiv = $('#verifyResult');
+        var indicator = $('#paymentWaitingIndicator');
+
+        btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Đang kiểm tra...');
+        resultDiv.html('');
+
+        $.get('@Url.Action("VerifyBankTransaction", "Payment")', { madh: orderId })
+            .done(function(res) {
+                if (res.success) {
+                    // D?ng polling vì dã thanh toán thành công
+                    if (paymentPollTimer) {
+                        clearInterval(paymentPollTimer);
+                        paymentPollTimer = null;
+                    }
+                    resultDiv.html('<div class="alert alert-success" style="padding:10px;border-radius:8px;font-size:13px;">✅ ' + res.message + ' <a href="/Cart/OrderTracking/' + orderId + '" class="alert-link">Tải lại trang</a></div>');
+                    $('.bank-qr-card').fadeOut();
+                    btn.hide();
+                    indicator.html('<span style="color:#28a745;">✅ Thanh toán đã được xác nhận!</span>');
+                } else {
+                    resultDiv.html('<div class="alert alert-info" style="padding:10px;border-radius:8px;font-size:13px;">🕐 ' + res.message + '</div>');
+                    btn.prop('disabled', false).html('<i class="fa fa-check-circle me-1"></i> Tôi đã chuyển khoản thành công');
+                }
+            })
+            .fail(function() {
+                resultDiv.html('<div class="alert alert-danger" style="padding:10px;border-radius:8px;font-size:13px;">❌ Lỗi kết nối. Vui lòng thử lại sau.</div>');
+                btn.prop('disabled', false).html('<i class="fa fa-check-circle me-1"></i> Tôi đã chuyển khoản thành công');
+            });
+    };
         var btn = $('#btnVerifyPayment');
         var resultDiv = $('#verifyResult');
         var indicator = $('#paymentWaitingIndicator');

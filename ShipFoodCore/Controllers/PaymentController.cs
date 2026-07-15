@@ -123,8 +123,6 @@ public class PaymentController : BaseController
             }
 
             // ═══ MULTI-DEVICE CHECK: Phát hiện giỏ hàng đã được xử lý trên thiết bị khác ═══
-            // Nếu session cart tồn tại nhưng DB đã có đơn hàng mới của user này trong 5 phút,
-            // chứng tỏ thiết bị khác đã đặt hàng — không cho phép tạo thêm đơn từ session cart cũ
             var recentMultiDeviceOrder = db.tbDonHang
                 .Where(dh => dh.tbThongTinDatHang != null
                     && dh.tbThongTinDatHang.userid == user!.userid
@@ -133,7 +131,6 @@ public class PaymentController : BaseController
                 .FirstOrDefault();
             if (recentMultiDeviceOrder != null && recentMultiDeviceOrder.madh > 0)
             {
-                // Kiểm tra nếu session cart vẫn tồn tại (thiết bị cũ chưa reload)
                 var staleCart = GetCart();
                 if (staleCart != null && staleCart.items.Any())
                 {
@@ -172,7 +169,6 @@ public class PaymentController : BaseController
             }
 
             // ═══ 3a: BẮT BUỘC re-read giá từ DB ═══
-            // Không tin tưởng giatien từ Frontend/localStorage, phải truy vấn giá mới nhất từ tbBienTheMonAn
             decimal tongTienMon = 0;
             foreach (var item in cart.items)
             {
@@ -181,7 +177,6 @@ public class PaymentController : BaseController
                 {
                     return Json(new { success = false, message = $"Món '{item.tenmon}' không còn tồn tại hoặc đã thay đổi giá. Vui lòng tải lại giỏ hàng." });
                 }
-                // Ghi đè giá từ DB, không dùng giá frontend gửi lên
                 item.giatien = bt.giatien;
                 tongTienMon += (bt.giatien ?? 0) * item.soLuong;
             }
@@ -195,8 +190,6 @@ public class PaymentController : BaseController
                 var coupon = db.tbKhuyenMai.Find(makhuyenmai);
                 if (coupon != null && (coupon.ngayketthuc == null || coupon.ngayketthuc >= DateTime.Now))
                 {
-                    // ponytail: fix P9 — voucher lo?i "Mi?n phí ship" set phiShip = 0
-                    // Ch? match exact loaikm, tránh false positive v?i 'ship' trong tên khác
                     var loai = (coupon.loaikm ?? "").ToLowerInvariant();
                     if (loai == "free ship" || loai == "miễn phí ship" || loai == "miễn phí vận chuyển")
                     {
@@ -213,21 +206,15 @@ public class PaymentController : BaseController
 
             decimal tongCong = Math.Max(tongTienMon + phiShip - discountAmount, 0);
 
-            // ponytail: Fix Item 3 — MoMo (pttt==5) va PayPal cung la async payment => "Chờ thanh toán"
             bool isBankTransfer = IsBankTransferMethod(pttt) || pttt == 5 || IsPayPalMethod(pttt);
             bool isPayPal = IsPayPalMethod(pttt);
             var trangThaiBanDau = isBankTransfer ? "Chờ thanh toán" : "Đã đặt";
 
-            // ═══ MULTI-RESTAURANT: Tạo đơn riêng cho từng quán ═══
-            // Nếu chỉ có 1 quán, tạo 1 đơn như bình thường
-            // Nếu nhiều quán, tạo N đơn riêng biệt, gộp chung vào 1 địa chỉ giao hàng
             var createdOrders = new List<int>();
             string? momoPayUrl = null;
             bool momoSuccess = false;
             decimal totalAllOrders = 0;
 
-            // ponytail: Fix Item 5 — ship fee chi tinh 1 lan cho tong don, ko tinh N lan
-            // Ship fee duoc cong vao don dau tien, cac don con lai co ship fee = 0
             bool shipFeeApplied = false;
 
             foreach (var resId in restaurantIds)
@@ -235,7 +222,6 @@ public class PaymentController : BaseController
                 var resItems = cart.items.Where(i => i.maquanan == resId).ToList();
                 if (resItems.Count == 0) continue;
 
-                // Tính tiền cho từng quán riêng
                 decimal resTongTienMon = 0;
                 foreach (var item in resItems)
                 {
@@ -248,9 +234,7 @@ public class PaymentController : BaseController
                     resTongTienMon += (bt.giatien ?? 0) * item.soLuong;
                 }
 
-                // Chỉ áp dụng discount + ship fee cho đơn đầu tiên
                 decimal resDiscount = (resId == restaurantIds.First()) ? discountAmount : 0;
-                // ponytail: Fix Item 5 — ship fee chi 1 lan, amount = tongCong dung totalAllOrders cho MoMo
                 decimal resShipFee = shipFeeApplied ? 0 : phiShip;
                 shipFeeApplied = true;
                 decimal resTongCong = Math.Max(resTongTienMon + resShipFee - resDiscount, 0);
@@ -286,11 +270,8 @@ public class PaymentController : BaseController
                 createdOrders.Add(dh.madh);
                 _logger.LogInformation("Order #{OrderId} (Restaurant #{ResId}) placed by user {UserId}", dh.madh, resId, user!.userid);
 
-                // ponytail: Fix Item 5 — dung resShipFee cho phiship field, ko dung phiShip goc
                 dh.phiship = resShipFee;
 
-                // ponytail: CH? broadcast newOrder cho restaurant n?u don da thanh toan (ko ph?i bank transfer)
-                // Bank transfer: restaurant ch? nhan thong bao SAU KHI webhook xac nhan (trong BankWebhook)
                 if (!isBankTransfer && trangThaiBanDau != "Chờ thanh toán")
                 {
                     try
@@ -306,18 +287,17 @@ public class PaymentController : BaseController
                     }
                     catch { }
                 }
-            } // ← end foreach
+            }
 
-            // ponytail: Fix Item 1 — MoMo payment SAU vong lap de dung totalAllOrders (da tinh du)
-            // ponytail: Fix Item 18 — bo *1000, totalAllOrders da la VND, ko nhan them 1000
+            // ─── MoMo Payment ───
             if (pttt == 5 && momoPayUrl == null && createdOrders.Any())
             {
                 var firstDh = createdOrders.First();
                 try
                 {
                     int momoAmount = (int)totalAllOrders;
-                    if (momoAmount <= 0) momoAmount = 1000; // fallback
-                    
+                    if (momoAmount <= 0) momoAmount = 1000;
+
                     var momoRequest = new MoMoCreatePaymentRequest
                     {
                         OrderId = $"FS{firstDh}_{DateTime.Now:yyyyMMddHHmmss}",
@@ -345,9 +325,26 @@ public class PaymentController : BaseController
                 {
                     _logger.LogError(momoEx, "MoMo payment creation failed for order #{OrderId}", firstDh);
                 }
+
+                // ponytail: Fix #1 — MoMo fail => xóa đơn, trả error
+                if (!momoSuccess && createdOrders.Any())
+                {
+                    _logger.LogWarning("MoMo creation FAILED — deleting {Count} orders", createdOrders.Count);
+                    try
+                    {
+                        var ordersToDelete = db.tbDonHang.Where(o => createdOrders.Contains(o.madh)).ToList();
+                        var detailIds = db.tbChiTietDonHang.Where(c => createdOrders.Contains((int)c.madh)).ToList();
+                        db.tbChiTietDonHang.RemoveRange(detailIds);
+                        db.tbDonHang.RemoveRange(ordersToDelete);
+                        await db.SaveChangesAsync();
+                    }
+                    catch (Exception delEx) { _logger.LogError(delEx, "Failed to delete orders after MoMo failure"); }
+
+                    return Json(new { success = false, message = "Không thể tạo thanh toán MoMo. Vui lòng thử lại sau.", keepCart = true });
+                }
             }
 
-            // ─── Ghi nhận lịch sử sử dụng mã giảm giá ───
+            // ─── Coupon usage ───
             if (appliedCouponId != null)
             {
                 try
@@ -361,27 +358,27 @@ public class PaymentController : BaseController
                     });
                     db.SaveChanges();
                 }
-                catch (Exception couponEx)
-                {
-                    _logger.LogWarning(couponEx, "Failed to record coupon usage for order #{OrderId}", createdOrders.FirstOrDefault());
-                }
+                catch (Exception couponEx) { _logger.LogWarning(couponEx, "Failed to record coupon usage for order #{OrderId}", createdOrders.FirstOrDefault()); }
             }
 
             var firstOrderId = createdOrders.FirstOrDefault();
 
-            // ponytail: Fix Item 2 — xoa cart CHI KHI payment success (bank transfer hoac cash)
-            // Khong xoa cart cho MoMo (async, chua chac da thanh toan)
+            // ponytail: Fix #4 — xoa cart cho ca bank transfer, MoMo, PayPal success
             if (!isBankTransfer && pttt != 5)
             {
                 SetCart(new Cart());
             }
             else if (momoSuccess)
             {
-                // MoMo da tao payment URL — cung xoa cart (user duoc redirect sang MoMo)
+                SetCart(new Cart());
+            }
+            else if (isBankTransfer)
+            {
+                // ponytail: Fix #4 — don da tao trong DB => xoa cart, user theo doi qua OrderTracking
                 SetCart(new Cart());
             }
 
-            // ─── PayPal: trả về approval link ───
+            // ─── PayPal ───
             if (isPayPal && createdOrders.Any())
             {
                 var ppOrderId = createdOrders.First();
@@ -395,10 +392,8 @@ public class PaymentController : BaseController
                     {
                         HttpContext.Session.SetString($"paypal_order_{ppOrderId}", ppResult.PayPalOrderId ?? "");
 
-                        _logger.LogInformation("PayPal order created via ProcessPayment: OrderId={OrderId}, PayPalOrderId={PayPalOrderId}",
+                        _logger.LogInformation("PayPal order created: OrderId={OrderId}, PayPalOrderId={PayPalOrderId}",
                             ppOrderId, ppResult.PayPalOrderId);
-
-                        // Khong xoa cart — PayPal la async, user can chua thanh toan
 
                         return Json(new
                         {
@@ -412,20 +407,44 @@ public class PaymentController : BaseController
                     }
                     else
                     {
-                        _logger.LogWarning("PayPal CreateOrder failed for order #{OrderId} from ProcessPayment: {Message}", ppOrderId, ppResult.Message);
-                        // Fall through: tra ve success nhung ko co paypal URL (user co the thanh toan sau tu OrderTracking)
+                        _logger.LogWarning("PayPal CreateOrder FAILED for order #{OrderId}: {Message}", ppOrderId, ppResult.Message);
+
+                        // ponytail: Fix #1 — PayPal fail => xóa đơn
+                        try
+                        {
+                            var ordersToDelete = db.tbDonHang.Where(o => createdOrders.Contains(o.madh)).ToList();
+                            var detailIds = db.tbChiTietDonHang.Where(c => createdOrders.Contains((int)c.madh)).ToList();
+                            db.tbChiTietDonHang.RemoveRange(detailIds);
+                            db.tbDonHang.RemoveRange(ordersToDelete);
+                            await db.SaveChangesAsync();
+                        }
+                        catch (Exception delEx) { _logger.LogError(delEx, "Failed to delete orders after PayPal failure"); }
+
+                        return Json(new { success = false, message = "Không thể tạo thanh toán PayPal. Vui lòng thử lại sau.", keepCart = true });
                     }
                 }
                 catch (Exception ppEx)
                 {
-                    _logger.LogError(ppEx, "PayPal CreateOrder error for order #{OrderId} from ProcessPayment", ppOrderId);
+                    _logger.LogError(ppEx, "PayPal CreateOrder error for order #{OrderId}", ppOrderId);
+
+                    // Delete orders on PayPal exception
+                    try
+                    {
+                        var ordersToDelete = db.tbDonHang.Where(o => createdOrders.Contains(o.madh)).ToList();
+                        var detailIds = db.tbChiTietDonHang.Where(c => createdOrders.Contains((int)c.madh)).ToList();
+                        db.tbChiTietDonHang.RemoveRange(detailIds);
+                        db.tbDonHang.RemoveRange(ordersToDelete);
+                        await db.SaveChangesAsync();
+                    }
+                    catch (Exception delEx) { _logger.LogError(delEx, "Failed to delete orders after PayPal exception"); }
+
+                    return Json(new { success = false, message = "Lỗi kết nối PayPal. Vui lòng thử lại sau.", keepCart = true });
                 }
             }
 
-            // ─── Bank Transfer: trả về QR URL ───
+            // ─── Bank Transfer ───
             if (isBankTransfer && !isPayPal)
             {
-                // ponytail: SePay format — "SEVQR FASTSHIP{OrderId}" (SePay yêu cầu prefix "SEVQR ")
                 var memo = $"SEVQR FASTSHIP{firstOrderId}";
                 var qrUrl = $"https://img.vietqr.io/image/{BankVietQrBinCode}-{BankAccountNo}-compact2.png?amount={(long)totalAllOrders}&addInfo={Uri.EscapeDataString(memo)}&accountName={Uri.EscapeDataString(BankAccountName)}";
 
@@ -465,8 +484,6 @@ public class PaymentController : BaseController
         catch (Exception ex)
         {
             _logger.LogError(ex, "ProcessPayment failed for user {User}", GetCurrentUser()?.userid);
-
-            // Phân loại lỗi chi tiết — LUÔN log đầy đủ inner exception để debug
             _logger.LogError(ex, "Payment failed. Inner: {InnerMessage}",
                 (ex is DbUpdateException due && due.InnerException != null) ? due.InnerException.Message : ex.Message);
 
@@ -493,7 +510,7 @@ public class PaymentController : BaseController
         }
     }
 
-    // ─── MoMo IPN Callback (MoMo gọi khi có kết quả thanh toán) ───
+    // ─── MoMo IPN Callback ───
     [HttpPost]
     [AllowAnonymous]
     public async Task<JsonResult> MoMoIpn()
@@ -507,7 +524,6 @@ public class PaymentController : BaseController
             if (ipnParams == null)
                 return Json(new { error = "Invalid IPN data" });
 
-            // Xác thực signature
             if (!_moMoService.VerifyIpnSignature(ipnParams))
             {
                 _logger.LogWarning("MoMo IPN signature verification failed");
@@ -521,7 +537,6 @@ public class PaymentController : BaseController
             _logger.LogInformation("MoMo IPN received: OrderId={OrderId}, ResultCode={ResultCode}, TransId={TransId}",
                 orderId, resultCode, transId);
 
-            // Parse mã đơn hàng từ orderId (FS{madh}_...)
             if (orderId.StartsWith("FS"))
             {
                 var parts = orderId.Split('_');
@@ -532,41 +547,27 @@ public class PaymentController : BaseController
                     {
                         if (resultCode == 0)
                         {
-                            // Thanh toán thành công
                             donHang.trangthai = "Đã thanh toán";
                             donHang.ngaythanhtoan = DateTime.Now;
-                            donHang.momo_trans_id = transId; // Lưu mã giao dịch MoMo để dùng cho Refund
+                            donHang.momo_trans_id = transId;
                             _logger.LogInformation("MoMo payment confirmed for order #{OrderId}, TransId={TransId}", madh, transId);
 
-                            // ─── E-Delivery: Auto-sinh E-Invoice ───
                             try { await _eDelivery.GenerateEInvoice(madh); }
                             catch (Exception edEx) { _logger.LogWarning(edEx, "E-Invoice generation failed for order #{OrderId}", madh); }
 
-                            // SignalR broadcast đến khách hàng
-                            try
-                            {
-                                await _hubContext.Clients.Group($"order_{madh}").SendAsync("paymentConfirmed", madh, donHang.tongtien);
-                            }
-                            catch { }
+                            try { await _hubContext.Clients.Group($"order_{madh}").SendAsync("paymentConfirmed", madh, donHang.tongtien); } catch { }
                         }
                         else
                         {
-                            // Thanh toán thất bại
                             _logger.LogWarning("MoMo payment failed for order #{OrderId}: ResultCode={ResultCode}", madh, resultCode);
                             donHang.trangthai = "Chờ thanh toán";
-
-                            try
-                            {
-                                await _hubContext.Clients.Group($"order_{madh}").SendAsync("paymentFailed", madh, ipnParams.GetValueOrDefault("message", "Thanh toán thất bại"));
-                            }
-                            catch { }
+                            try { await _hubContext.Clients.Group($"order_{madh}").SendAsync("paymentFailed", madh, ipnParams.GetValueOrDefault("message", "Thanh toán thất bại")); } catch { }
                         }
                         await db.SaveChangesAsync();
                     }
                 }
             }
 
-            // MoMo yêu cầu response OK để không gửi lại IPN
             return Json(new { error = 0 });
         }
         catch (Exception ex)
@@ -576,7 +577,6 @@ public class PaymentController : BaseController
         }
     }
 
-    // ─── Helper: kiểm tra có phải PayPal không ───
     private bool IsPayPalMethod(int pttt)
     {
         try
@@ -586,16 +586,11 @@ public class PaymentController : BaseController
             var name = (method.tenhinhthuc ?? "").ToLowerInvariant();
             return name.Contains("paypal");
         }
-        catch
-        {
-            return false;
-        }
+        catch { return false; }
     }
 
-    // ─── Helper: kiểm tra có phải bank transfer không ───
     private bool IsBankTransferMethod(int pttt)
     {
-        // ponytail: Kiểm tra tên phương thức từ DB, bỏ dấu tiếng Việt để match linh hoạt
         try
         {
             var method = db.tbLoaiHinhThanhToan.Find(pttt);
@@ -603,10 +598,7 @@ public class PaymentController : BaseController
             var name = RemoveDiacritics((method.tenhinhthuc ?? "").ToLowerInvariant());
             return name.Contains("chuyen khoan") || name.Contains("ngan hang") || name.Contains("bank");
         }
-        catch
-        {
-            return false;
-        }
+        catch { return false; }
     }
 
     private static string RemoveDiacritics(string text)
@@ -617,7 +609,7 @@ public class PaymentController : BaseController
         return new string(chars).Normalize(System.Text.NormalizationForm.FormC);
     }
 
-    // ─── BANK WEBHOOK: Casso/SePay/PayOS tự động gọi khi có biến động số dư ───
+    // ─── BANK WEBHOOK: Casso/SePay/PayOS — xác nhận chuyển khoản ───
     [HttpPost]
     [AllowAnonymous]
     [Route("Payment/BankWebhook")]
@@ -625,8 +617,6 @@ public class PaymentController : BaseController
     {
         try
         {
-            // ponytail: Fix Item 10 — REQUIRE token, ko cho bypass neu BANK_WEBHOOK_TOKEN chua set
-            // Neu chua config token, tra ve 401 luon
             if (string.IsNullOrEmpty(BankWebhookToken))
             {
                 _logger.LogError("BankWebhook: BANK_WEBHOOK_TOKEN not configured");
@@ -642,7 +632,6 @@ public class PaymentController : BaseController
                 return Json(new { error = "Unauthorized" });
             }
 
-            // ponytail: FixedTimeEquals chong timing attack
             if (!System.Security.Cryptography.CryptographicOperations.FixedTimeEquals(
                 System.Text.Encoding.UTF8.GetBytes(token),
                 System.Text.Encoding.UTF8.GetBytes(BankWebhookToken)))
@@ -651,18 +640,14 @@ public class PaymentController : BaseController
                 return Json(new { error = "Unauthorized" });
             }
 
-            // Đọc body
             using var reader = new System.IO.StreamReader(Request.Body);
             var body = await reader.ReadToEndAsync();
-
-            // Parse JSON (linh hoạt với nhiều định dạng webhook)
             var json = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(body);
 
-            // Tìm nội dung chuyển khoản (memo/description) — hỗ trợ nhiều định dạng
             string? memo = null;
             long? amount = null;
 
-            // Casso format: data[0].description, data[0].amount
+            // Casso format
             if (json.TryGetProperty("data", out var data) && data.ValueKind == System.Text.Json.JsonValueKind.Array && data.GetArrayLength() > 0)
             {
                 var first = data[0];
@@ -670,60 +655,40 @@ public class PaymentController : BaseController
                 if (first.TryGetProperty("amount", out var amt)) amount = (long)amt.GetDecimal();
             }
 
-            // SePay format: content (n?i dung CK), transferAmount, gateway
-            // SePay g?i webhook v?i field "content" ch?a n?i dung chuy?n kho?n
+            // SePay format
             if (memo == null && json.TryGetProperty("content", out var sepayContent)) memo = sepayContent.GetString();
             if (memo == null && json.TryGetProperty("transferDesc", out var td)) memo = td.GetString();
             if (amount == null && json.TryGetProperty("transferAmount", out var ta)) amount = (long)ta.GetDecimal();
-
-            // SePay gateway (tên ngân hàng) — log cho traceability
             if (json.TryGetProperty("gateway", out var gateway))
-            {
                 _logger.LogInformation("BankWebhook: Gateway={Gateway}", gateway.GetString());
-            }
 
-            // PayOS format: amount, description
+            // PayOS format
             if (amount == null && json.TryGetProperty("amount", out var payosAmt)) amount = (long)payosAmt.GetDecimal();
             if (memo == null && json.TryGetProperty("description", out var pd)) memo = pd.GetString();
 
             if (string.IsNullOrEmpty(memo))
             {
-                _logger.LogWarning("BankWebhook: No memo found in webhook data");
+                _logger.LogWarning("BankWebhook: No memo found");
                 return Json(new { error = "No memo" });
             }
 
-            // ═══ Parse mã từ memo ═══
-            // Format 1: SEVQR FASTSHIP{madh} — thanh toán đơn hàng (VD: SEVQR FASTSHIP42)
-            // Format 2: SEVQR FASTSHIPNAP{UserId}_{Timestamp} — nạp tiền ví (VD: SEVQR FASTSHIPNAP1_20240715143000)
             var orderMatch = System.Text.RegularExpressions.Regex.Match(memo, @"FASTSHIP(\d+)$", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
             var depositMatch = System.Text.RegularExpressions.Regex.Match(memo, @"FASTSHIPNAP(\d+)_(\d+)$", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
 
             if (depositMatch.Success)
             {
-                // ═══ WALLET DEPOSIT: Nạp tiền vào ví ═══
                 if (!int.TryParse(depositMatch.Groups[1].Value, out var depositUserId))
-                {
-                    _logger.LogWarning("BankWebhook: Cannot parse user ID from deposit memo: {Memo}", memo);
                     return Json(new { error = "Invalid deposit memo" });
-                }
 
                 var user = await db.tbUsers.FindAsync(depositUserId);
-                if (user == null)
-                {
-                    _logger.LogWarning("BankWebhook: Deposit user #{UserId} not found", depositUserId);
-                    return Json(new { error = "User not found" });
-                }
+                if (user == null) return Json(new { error = "User not found" });
 
                 if (amount == null || amount.Value <= 0)
-                {
-                    _logger.LogWarning("BankWebhook: Invalid deposit amount: {Amount}", amount);
                     return Json(new { error = "Invalid amount" });
-                }
 
                 user.vitien = (user.vitien ?? 0) + (decimal)amount.Value;
                 await db.SaveChangesAsync();
 
-                // Ghi log
                 try
                 {
                     db.tbTinNhans.Add(new tbTinNhan
@@ -735,45 +700,31 @@ public class PaymentController : BaseController
                 }
                 catch { }
 
-                _logger.LogInformation("BankWebhook: Wallet deposit {Amount}đ for user #{UserId} via bank transfer", amount, depositUserId);
-
-                // SignalR broadcast đến user
-                try
-                {
-                    await _hubContext.Clients.Group($"customer_{depositUserId}").SendAsync("walletDeposit", amount, user.vitien);
-                }
-                catch { }
+                _logger.LogInformation("BankWebhook: Wallet deposit {Amount}đ for user #{UserId}", amount, depositUserId);
+                try { await _hubContext.Clients.Group($"customer_{depositUserId}").SendAsync("walletDeposit", amount, user.vitien); } catch { }
 
                 return Json(new { error = 0, message = "Deposit approved" });
             }
             else if (orderMatch.Success)
             {
-                // ═══ ORDER PAYMENT: Thanh toán đơn hàng ═══
                 if (!int.TryParse(orderMatch.Groups[1].Value, out var madh))
-                {
-                    _logger.LogWarning("BankWebhook: Cannot parse order ID from memo: {Memo}", memo);
-                    return Json(new { error = "Invalid memo format" });
-                }
+                    return Json(new { error = "Invalid order memo" });
 
                 var donHang = await db.tbDonHangs.FindAsync(madh);
-                if (donHang == null)
-                {
-                    _logger.LogWarning("BankWebhook: Order #{OrderId} not found", madh);
-                    return Json(new { error = "Order not found" });
-                }
+                if (donHang == null) return Json(new { error = "Order not found" });
 
-                if (donHang.trangthai != "Chờ thanh toán")
+                // ponytail: Fix #5 — N?u don da hoan tat => skip (kh?i trùng l?p)
+                if (donHang.trangthai == "Đã đặt" || donHang.trangthai == "Đã xác nhận" || donHang.trangthai == "Đã thanh toán" || donHang.trangthai == "Hoàn thành")
                 {
                     _logger.LogInformation("BankWebhook: Order #{OrderId} already processed (status: {Status})", madh, donHang.trangthai);
                     return Json(new { error = 0, message = "Already processed" });
                 }
 
-                // ponytail: Fix Item 25 — tranh lossy cast (long)decimal, dung Convert.ToDecimal
-                // Fix Item 20 — kiem tra don hang da huy/hoan thanh thi ko xu ly
-                if (donHang.trangthai == "Đã hủy" || donHang.trangthai == "Hoàn thành")
+                // ponytail: Fix #5 — N?u don da bi auto-cancel nhung khach da chuy?n kho?n => kích ho?t l?i
+                bool wasCancelled = donHang.trangthai == "Đã hủy";
+                if (wasCancelled)
                 {
-                    _logger.LogInformation("BankWebhook: Order #{OrderId} already final (status: {Status})", madh, donHang.trangthai);
-                    return Json(new { error = 0, message = "Already processed" });
+                    _logger.LogWarning("BankWebhook: Order #{OrderId} was CANCELLED but payment received — reactivating", madh);
                 }
 
                 // Kiểm tra số tiền (cho phép sai số ±1000đ do phí ngân hàng)
@@ -784,26 +735,18 @@ public class PaymentController : BaseController
                     return Json(new { error = "Amount mismatch" });
                 }
 
-                // ═══ Cập nhật trạng thái đơn hàng ═══
                 donHang.trangthai = "Đã đặt";
                 donHang.ngaythanhtoan = DateTime.Now;
                 await db.SaveChangesAsync();
 
-                // ─── E-Delivery: Auto-sinh E-Invoice khi bank transfer confirmed ───
                 try { await _eDelivery.GenerateEInvoice(madh); }
                 catch (Exception edEx) { _logger.LogWarning(edEx, "E-Invoice generation failed for order #{OrderId}", madh); }
 
-                _logger.LogInformation("BankWebhook: Order #{OrderId} auto-approved via bank transfer", madh);
+                _logger.LogInformation("BankWebhook: Order #{OrderId} approved via bank transfer (was cancelled: {WasCancelled})", madh, wasCancelled);
 
-                // ═══ SignalR broadcast đến khách hàng ═══
-                try
-                {
-                    await _hubContext.Clients.Group($"order_{madh}").SendAsync("paymentConfirmed", madh, donHang.tongtien);
-                    await _hubContext.Clients.Group($"order_{madh}").SendAsync("orderStatusChanged", madh, "Đã đặt", DateTime.Now.ToString("HH:mm"));
-                }
-                catch { }
+                try { await _hubContext.Clients.Group($"order_{madh}").SendAsync("paymentConfirmed", madh, donHang.tongtien); } catch { }
+                try { await _hubContext.Clients.Group($"order_{madh}").SendAsync("orderStatusChanged", madh, "Đã đặt", DateTime.Now.ToString("HH:mm")); } catch { }
 
-                // ═══ SignalR broadcast đến quán ăn ═══
                 if (donHang.maquan != null)
                 {
                     try
@@ -817,6 +760,11 @@ public class PaymentController : BaseController
                     }
                     catch { }
                 }
+
+                string logMsg = wasCancelled
+                    ? $"BankWebhook: Order #{madh} REACTIVATED after auto-cancel — payment received"
+                    : $"BankWebhook: Order #{madh} approved normally";
+                _logger.LogInformation(logMsg);
 
                 return Json(new { error = 0, message = "Order approved" });
             }
@@ -833,9 +781,46 @@ public class PaymentController : BaseController
         }
     }
 
-    // ponytail: Da xoa 15-min self-confirm fallback — phai cho bank webhook thuc te
-    // Nguoi dung khong the tu xac nhan chuyen khoan, dam bao tinh bao mat
-    // Thay bang: kiem tra trang thai don hang hien tai
+    // ─── Verify Bank Transaction: User nhấn "Tôi đã chuyển khoản" — kiểm tra trạng thái ───
+    [HttpGet]
+    public async Task<JsonResult> VerifyBankTransaction(int madh)
+    {
+        if (!CheckLogin())
+            return Json(new { success = false, message = "Vui lòng đăng nhập" });
+
+        try
+        {
+            var donHang = await db.tbDonHangs.FindAsync(madh);
+            if (donHang == null)
+                return Json(new { success = false, message = "Đơn hàng không tồn tại" });
+
+            // ponytail: ownership check — user ch? xem ???c don c?a mình
+            var user = GetCurrentUser();
+            var ttdh = await db.tbThongTinDatHangs.FindAsync(donHang.mattdh);
+            if (ttdh?.userid != user?.userid)
+                return Json(new { success = false, message = "Không có quyền kiểm tra đơn hàng này" });
+
+            // ponytail: Fix #2 — Ki?m tra tr?ng thái th?c t? t? DB
+            bool daThanhToan = donHang.trangthai == "Đã đặt" || donHang.trangthai == "Đã xác nhận" || donHang.trangthai == "Đã thanh toán" || donHang.trangthai == "Hoàn thành";
+            if (daThanhToan)
+            {
+                return Json(new { success = true, message = $"✅ Đơn hàng #{madh} đã được thanh toán! (trạng thái: {donHang.trangthai})" });
+            }
+
+            if (donHang.trangthai == "Đã hủy")
+            {
+                return Json(new { success = false, message = $"❌ Đơn hàng #{madh} đã bị hủy do quá thời gian thanh toán. Vui lòng liên hệ admin nếu bạn đã chuyển khoản." });
+            }
+
+            return Json(new { success = false, message = "🕐 Hệ thống chưa nhận được xác nhận chuyển khoản. Vui lòng kiểm tra lại sau 1-2 phút." });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "VerifyBankTransaction failed for order #{OrderId}", madh);
+            return Json(new { success = false, message = $"Lỗi: {ex.Message}" });
+        }
+    }
+
     [HttpGet]
     public async Task<JsonResult> CheckPaymentStatus(int madh)
     {
@@ -853,7 +838,6 @@ public class PaymentController : BaseController
             if (ttdh?.userid != user?.userid)
                 return Json(new { success = false, message = "Không có quyền kiểm tra đơn hàng này" });
 
-            // ponytail: Fix Item 20 — cancelled la final state, ko tra ve success
             bool daThanhToan = donHang.trangthai == "Đã đặt" || donHang.trangthai == "Đã xác nhận" || donHang.trangthai == "Đã thanh toán"
                 || donHang.trangthai == "Hoàn thành";
             return Json(new
@@ -870,8 +854,6 @@ public class PaymentController : BaseController
         }
     }
 
-
-    // ─── MoMo Payment Return URL (sau khi user thanh toán xong) ───
     [HttpGet]
     public IActionResult MoMoReturn(int? orderId)
     {
@@ -887,7 +869,6 @@ public class PaymentController : BaseController
     // PayPal Payment Integration
     // ═══════════════════════════════════════════════════════════════
 
-    // ─── Create PayPal Order: T?o don PayPal, tr? v? approve link ───
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<JsonResult> CreatePayPalOrder(int orderId)
@@ -911,19 +892,11 @@ public class PaymentController : BaseController
 
             if (result.Success)
             {
-                // L?u PayPal OrderId vào session d? dùng khi capture
                 HttpContext.Session.SetString($"paypal_order_{orderId}", result.PayPalOrderId ?? "");
-
                 _logger.LogInformation("PayPal order created: OrderId={OrderId}, PayPalOrderId={PayPalOrderId}, Amount={Amount}USD",
                     orderId, result.PayPalOrderId, Math.Round((donHang.tongtien ?? 0) / 25000m, 2));
 
-                return Json(new
-                {
-                    success = true,
-                    approveLink = result.ApproveLink,
-                    paypalOrderId = result.PayPalOrderId,
-                    message = "Chuyển hướng đến PayPal..."
-                });
+                return Json(new { success = true, approveLink = result.ApproveLink, paypalOrderId = result.PayPalOrderId, message = "Chuyển hướng đến PayPal..." });
             }
 
             _logger.LogWarning("PayPal CreateOrder failed for OrderId={OrderId}: {Message}", orderId, result.Message);
@@ -936,7 +909,6 @@ public class PaymentController : BaseController
         }
     }
 
-    // ─── Capture PayPal Order: Thu ti?n sau khi khách duy?t trên PayPal ───
     [HttpGet]
     public async Task<IActionResult> CapturePayPalOrder(int orderId, string? token = null)
     {
@@ -952,7 +924,6 @@ public class PaymentController : BaseController
                 return RedirectToAction("OrderTracking", "Cart", new { id = orderId });
             }
 
-            // L?y PayPal OrderId t? session ho?c t? query string token (PayPal g?i token param)
             var paypalOrderId = HttpContext.Session.GetString($"paypal_order_{orderId}") ?? token ?? "";
             if (string.IsNullOrEmpty(paypalOrderId))
             {
@@ -968,12 +939,10 @@ public class PaymentController : BaseController
                 donHang.ngaythanhtoan = DateTime.Now;
                 donHang.momo_trans_id = result.CaptureId;
                 await db.SaveChangesAsync();
-
                 HttpContext.Session.Remove($"paypal_order_{orderId}");
 
                 _logger.LogInformation("PayPal capture success: OrderId={OrderId}, CaptureId={CaptureId}", orderId, result.CaptureId);
 
-                // SignalR broadcast
                 try { await _hubContext.Clients.Group($"order_{orderId}").SendAsync("paymentConfirmed", orderId, donHang.tongtien); } catch { }
                 try { await _hubContext.Clients.Group($"order_{orderId}").SendAsync("orderStatusChanged", orderId, "Đã đặt", DateTime.Now.ToString("HH:mm")); } catch { }
                 if (donHang.maquan != null)

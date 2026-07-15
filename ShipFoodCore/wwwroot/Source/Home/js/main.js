@@ -75,33 +75,29 @@
     
     
     // Fixed Navbar on scroll — topbar scrolls away, nav becomes fixed at top
-    var navScrollTicking = false;
     $(window).scroll(function () {
-        if (!navScrollTicking) {
-            requestAnimationFrame(function () {
-                var scrollY = $(window).scrollTop();
-                var topbar = $('.fs-topbar');
-                var topbarH = topbar.length ? topbar.outerHeight() : 34;
-                var $nav = $('.fs-nav');
-                var $body = $('body');
+        var scrollY = $(this).scrollTop();
+        var topbar = $('.fs-topbar');
+        var topbarH = topbar.length ? topbar.outerHeight() : 34; /* v4.2: 38→34 compact */
+        var $nav = $('.fs-nav');
+        var $body = $('body');
 
-                if (scrollY > topbarH) {
-                    $nav.addClass('fs-nav-fixed');
-                    $body.addClass('fs-body-padded');
-                } else {
-                    $nav.removeClass('fs-nav-fixed');
-                    $body.removeClass('fs-body-padded');
-                }
-
-                // Back to top button
-                if (scrollY > 300) {
-                    $('.back-to-top').fadeIn('slow');
-                } else {
-                    $('.back-to-top').fadeOut('slow');
-                }
-                navScrollTicking = false;
-            });
-            navScrollTicking = true;
+        if (scrollY > topbarH) {
+            $nav.addClass('fs-nav-fixed');
+            $body.addClass('fs-body-padded');
+        } else {
+            $nav.removeClass('fs-nav-fixed');
+            $body.removeClass('fs-body-padded');
+        }
+    });
+    
+    
+    // Back to top button
+    $(window).scroll(function () {
+        if ($(this).scrollTop() > 300) {
+            $('.back-to-top').fadeIn('slow');
+        } else {
+            $('.back-to-top').fadeOut('slow');
         }
     });
     $('.back-to-top').click(function () {

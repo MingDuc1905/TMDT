@@ -1,0 +1,19 @@
+{
+  "name": "Fastship — Đặt món giao tận nơi tại TP.HCM",
+  "short_name": "Fastship",
+  "description": "Nền tảng đặt món và giao hàng nhanh tại TP. Hồ Chí Minh",
+  "start_url": "/Home",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3CB815",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/Source/Home/img/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ],
+  "categories": ["food", "delivery", "lifestyle"],
+  "lang": "vi-VN"
+}

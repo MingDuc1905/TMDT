@@ -13,8 +13,12 @@
     <meta name="keywords" content="đặt đồ ăn, giao thức ăn, quán ăn Sài Gòn, Fastship" />
     <meta name="description" content="Fastship — nền tảng đặt món và giao hàng nhanh tại TP. Hồ Chí Minh. Hàng trăm quán ăn, giao trong 30 phút." />
     <link href="~/Source/Home/css/chat.css" rel="stylesheet" />
-    <!-- Favicon -->
+    <!-- Favicon + PWA -->
     <link href="~/Source/Home/img/favicon.ico" rel="icon" />
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#3CB815" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 
     <!-- Google Web Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -22,12 +26,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Roboto:wght@400;500&display=swap" rel="stylesheet" />
 
     <!-- Font Awesome 5 (CDN) — dùng CDN cloudflare, ko cần fallback local vì FA6 không tồn tại trong repo -->
+    <!-- Font Awesome 5 (CDN) — load m?t CDN duy nh?t + onerror fallback -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet" onerror="var s=document.createElement('link');s.rel='stylesheet';s.href='https://use.fontawesome.com/releases/v5.10.0/css/all.css';document.head.appendChild(s);console.warn('FA CDN fallback loaded from use.fontawesome.com');" />
 
     <!-- Libraries Stylesheet -->
     <link href="~/Source/Home/lib/animate/animate.min.css" rel="stylesheet" />
     <link href="~/Source/Home/lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet" />
-    <!-- Customized Bootstrap Stylesheet -->
+    <!-- Bootstrap — dùng local file (da duoc Cache-Control qua Program.cs) -->
     <link href="~/Source/Home/css/bootstrap.min.css" rel="stylesheet" />
 
     <!-- Template Stylesheet -->
@@ -58,6 +63,25 @@
         });
     });
     </script>
+
+    <!-- ═══ Dark mode: CSS variables override (toggle ? layout) ═══ -->
+    <style>
+        html[data-theme="dark"] body {
+            background: #1a1a2e !important;
+            color: #e5e7eb !important;
+        }
+        html[data-theme="dark"] .fs-header,
+        html[data-theme="dark"] .fs-footer,
+        html[data-theme="dark"] .checkout-card,
+        html[data-theme="dark"] .order-summary,
+        html[data-theme="dark"] .wallet-mini-stat,
+        html[data-theme="dark"] .tx-item { background: #1f2937 !important; border-color: #374151 !important; }
+        html[data-theme="dark"] .navbar-light .navbar-nav .nav-link { color: #e5e7eb !important; }
+        html[data-theme="dark"] .text-muted { color: #9ca3af !important; }
+        html[data-theme="dark"] .dropdown-menu { background: #1f2937 !important; border-color: #374151 !important; }
+        html[data-theme="dark"] .dropdown-item { color: #e5e7eb !important; }
+        html[data-theme="dark"] .dropdown-item:hover { background: #374151 !important; }
+    </style>
 
     <!-- ═══ Global JS error boundary (9.4) — catch l?i JS ko ch?p UI crash ═══ -->
     <script>
@@ -465,7 +489,7 @@
     <!-- Back to top — dịch lên trên chat toggle (bottom: 24px) để ko overlap -->
     <a href="#" class="btn btn-success back-to-top" aria-label="Lên đầu trang" style="bottom:96px;z-index:9997;"><i class="fa fa-angle-up"></i></a>
 
-    <!-- JavaScript Libraries -->
+    <!-- JavaScript Libraries (CDN) -->
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/Source/Home/lib/wow/wow.min.js"></script>
@@ -479,7 +503,37 @@
     <script src="~/js/filter.js"></script>
     <script src="~/js/cart-local.js"></script>
     <script src="~/js/map.js"></script>
-    <!-- Lucide icons removed: dùng Font Awesome CDN thay thế -->
+
+    <!-- ═══ PWA: Service Worker + Dark Mode Toggle ═══ -->
+    <script>
+    // ponytail: register service worker (fail silent n?u ko h? tr?)
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js').catch(function(err) {
+            console.warn('SW registration failed:', err);
+        });
+    }
+    // ponytail: dark mode toggle
+    function toggleDarkMode() {
+        var html = document.documentElement;
+        var current = html.getAttribute('data-theme') || 'light';
+        var next = current === 'dark' ? 'light' : 'dark';
+        html.setAttribute('data-theme', next);
+        localStorage.setItem('fastship-theme', next);
+    }
+    (function() {
+        var saved = localStorage.getItem('fastship-theme');
+        if (saved === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+    })();
+    </script>
+
+    <!-- ═══ Lazy loading cho t?t c? <img> (native browser support) ═══ -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('img:not([loading])').forEach(function(img) {
+            img.setAttribute('loading', 'lazy');
+        });
+    });
+    </script>
     
     @RenderSection("scripts", required: false)
 

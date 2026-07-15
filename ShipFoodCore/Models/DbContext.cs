@@ -201,5 +201,45 @@ public partial class dbFoodyEntities : DbContext
             .WithMany(k => k.tbMonAnKhuyenMais)
             .HasForeignKey(m => m.makm)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // ═══ Database indexes for frequently queried columns (7.4) ═══
+        // ponytail: composite indexes gi?m full-scan cho queries ph? bi?n
+
+        // tbUser: tìm user theo email (login) + loaitaikhoan (role filter)
+        modelBuilder.Entity<tbUser>()
+            .HasIndex(u => u.email)
+            .IsUnique();
+        modelBuilder.Entity<tbUser>()
+            .HasIndex(u => new { u.loaitaikhoan, u.trangthai });
+
+        // tbDonHang: tìm theo user (LichSuDatHang), tr?ng th?i (OrderList), quán (nh?n don)
+        modelBuilder.Entity<tbDonHang>()
+            .HasIndex(d => new { d.trangthai, d.ngaydathang });
+        modelBuilder.Entity<tbDonHang>()
+            .HasIndex(d => new { d.maquan, d.trangthai });
+
+        // tbChiTietDonHang: foreign key madh (join v?i tbDonHang)
+        modelBuilder.Entity<tbChiTietDonHang>()
+            .HasIndex(c => c.madh);
+
+        // tbMonAn: tìm quán + danh m?c
+        modelBuilder.Entity<tbMonAn>()
+            .HasIndex(m => new { m.maquanan, m.madanhmuc });
+
+        // tbBienTheMonAn: foreign key mamon
+        modelBuilder.Entity<tbBienTheMonAn>()
+            .HasIndex(b => b.mamon);
+
+        // tbThongTinDatHang: foreign key userid
+        modelBuilder.Entity<tbThongTinDatHang>()
+            .HasIndex(t => t.userid);
+
+        // tbTinNhan: foreign key madh (chat theo don)
+        modelBuilder.Entity<tbTinNhan>()
+            .HasIndex(t => t.madh);
+
+        // tbDanhGia: foreign key mactdh
+        modelBuilder.Entity<tbDanhGia>()
+            .HasIndex(d => d.mactdh);
     }
 }

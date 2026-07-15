@@ -1033,6 +1033,81 @@ public class HomeController : BaseController
         return HttpContext.Request.Headers["X-Requested-With"] == "XMLHttpRequest";
     }
 
+    // ─── CUSTOMER PROFILE: H? so ca? nhân ───
+    public ActionResult Profile()
+    {
+        var user = GetCurrentUser();
+        if (user == null || user.loaitaikhoan != "Khách hàng")
+            return RedirectToAction("Login");
+        var kh = db.tbKhachHang.Find(user.userid);
+        ViewBag.KhachHang = kh;
+        return View(user);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public ActionResult Profile(string hoten, string sdt, string oldPwd, string newPwd, string confirmPwd)
+    {
+        var user = GetCurrentUser();
+        if (user == null || user.loaitaikhoan != "Khách hàng")
+            return RedirectToAction("Login");
+
+        var dbUser = db.tbUser.Find(user.userid);
+        if (dbUser == null) return RedirectToAction("Login");
+
+        if (!string.IsNullOrEmpty(sdt))
+        {
+            if (!System.Text.RegularExpressions.Regex.IsMatch(sdt, @"^0[1-9][0-9]{8,9}$"))
+            {
+                TempData["ProfileError"] = "Số điện thoại không hợp lệ.";
+                return RedirectToAction("Profile");
+            }
+            dbUser.sdt = sdt;
+        }
+
+        // ?i mâ?t khâ?u nê?u co? yêu câ?u
+        if (!string.IsNullOrEmpty(newPwd))
+        {
+            if (string.IsNullOrEmpty(oldPwd))
+            {
+                TempData["ProfileError"] = "Vui lòng nhập mật khẩu hiện tại.";
+                return RedirectToAction("Profile");
+            }
+            if (newPwd.Length < 8)
+            {
+                TempData["ProfileError"] = "Mật khẩu mới phải có ít nhất 8 ký tự.";
+                return RedirectToAction("Profile");
+            }
+            if (newPwd != confirmPwd)
+            {
+                TempData["ProfileError"] = "Xác nhận mật khẩu không khớp.";
+                return RedirectToAction("Profile");
+            }
+            // Verify old password
+            bool verified = false;
+            try { verified = BCrypt.Net.BCrypt.Verify(oldPwd, dbUser.pwd); } catch { }
+            if (!verified && dbUser.pwd != oldPwd)
+            {
+                TempData["ProfileError"] = "Mật khẩu hiện tại không đúng.";
+                return RedirectToAction("Profile");
+            }
+            dbUser.pwd = BCrypt.Net.BCrypt.HashPassword(newPwd);
+        }
+
+        db.SaveChanges();
+
+        // ponytail: tbKhachHang ko có diachi, chỉ update tenkh
+        var kh = db.tbKhachHang.Find(user.userid);
+        if (kh != null && !string.IsNullOrEmpty(hoten))
+        {
+            kh.tenkh = hoten;
+            db.SaveChanges();
+        }
+
+        TempData["ProfileSuccess"] = "Cập nhật hồ sơ thành công!";
+        return RedirectToAction("Profile");
+    }
+
     public ActionResult Forgot()
     {
         return View();

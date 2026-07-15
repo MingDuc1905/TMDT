@@ -82,8 +82,8 @@ public class MoMoService
             var amount = request.Amount.ToString("F0");
             var extraData = request.ExtraData ?? "";
 
-            // Tạo requestId unique
-            var requestId = $"{orderId}_{DateTime.Now:yyyyMMddHHmmss}";
+            // ponytail: them GUID dam bao requestId unique tuyet doi
+            var requestId = $"{orderId}_{DateTime.Now:yyyyMMddHHmmss}_{Guid.NewGuid():N}";
 
             // Build raw signature
             var rawSignature = $"accessKey={_accessKey}&amount={amount}&extraData={extraData}&ipnUrl={request.IpnUrl}&orderId={orderId}&orderInfo={orderInfo}&partnerCode={_partnerCode}&redirectUrl={request.RedirectUrl}&requestId={requestId}&requestType={request.RequestType}";
@@ -143,8 +143,8 @@ public class MoMoService
     public async Task<MoMoTransactionStatusResponse> CheckTransactionAsync(string orderId)
     {
         try
-        {
-            var requestId = $"check_{orderId}_{DateTime.Now:yyyyMMddHHmmss}";
+        {            var requestId = $"check_{orderId}_{DateTime.Now:yyyyMMddHHmmss}_{Guid.NewGuid():N}";
+
             var rawSignature = $"accessKey={_accessKey}&orderId={orderId}&partnerCode={_partnerCode}&requestId={requestId}";
             var signature = ComputeHmacSha256(rawSignature, _secretKey);
 

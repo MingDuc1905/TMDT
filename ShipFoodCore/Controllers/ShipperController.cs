@@ -136,9 +136,15 @@ public class ShipperController : BaseController
     {
         var sh = GetCurrentUser();
         if (sh == null || !checkShipper()) return RedirectToAction("Login", "Home");
+        // ponytail: pagination cho LichSu
+        int page = 1;
+        int pageSize = 50;
         var listdh = db.tbDonHang
             .Where(dh => dh.mashipper == sh.userid)
             .Include(d => d.tbThongTinDatHang)
+            .OrderByDescending(d => d.madh)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .ToList();
         return View(listdh);
     }
@@ -162,10 +168,11 @@ public class ShipperController : BaseController
         if (existingUser != null)
         {
             existingUser.sdt = user.sdt;
-            // Chỉ cập nhật password nếu có thay đổi (không rỗng, khác current)
-            if (!string.IsNullOrEmpty(user.pwd) && user.pwd != existingUser.pwd)
+            // Chỉ cập nhật password nếu có thay đổi (không rỗng)
+            // ponytail: hash password bang BCrypt truoc khi luu
+            if (!string.IsNullOrEmpty(user.pwd))
             {
-                existingUser.pwd = user.pwd;
+                existingUser.pwd = BCrypt.Net.BCrypt.HashPassword(user.pwd);
             }
             db.SaveChanges();
         }
@@ -204,23 +211,18 @@ public class ShipperController : BaseController
             return RedirectToAction("ViTien");
         }
 
-        var user = db.tbUser.Find(sh.userid);
-        if (user != null)
-        {
-            user.vitien = (user.vitien ?? 0) + soTien;
-            db.SaveChanges();
-
-            // Ghi log giao dịch
-            db.tbTinNhans.Add(new tbTinNhan
-            {
-                noidung = $"💳 Nạp tiền: +{soTien:N0}đ. Số dư mới: {user.vitien:N0}đ",
-                makh = sh.userid,
-                mashipper = sh.userid
-            });
-            db.SaveChanges();
-
-            TempData["NapTienSuccess"] = $"Nạp thành công {soTien:N0}đ vào ví!";
-        }
+        // ponytail: Fix Item 7 — dung config BANK_ACCOUNT thay vi hardcode
+        var configuration = HttpContext.RequestServices.GetRequiredService<IConfiguration>();
+        var bankId = configuration["BANK_ID"] ?? "970436";
+        var bankAccountNo = configuration["BANK_ACCOUNT_NO"] ?? "1234567890";
+        var bankAccountName = configuration["BANK_ACCOUNT_NAME"] ?? "FASTSHIP CO., LTD";
+        var binCode = ShipFood.Helpers.BankHelper.GetVietQrBinCode(bankId);
+        
+        var depositCode = $"FASTSHIPNAP{sh.userid}_{DateTime.Now:yyyyMMddHHmmss}";
+        TempData["NapTienPending"] = $"Quét mã QR để chuyển {soTien:N0}đ vào ví.";
+        TempData["NapTienQR"] = $"https://img.vietqr.io/image/{binCode}-{bankAccountNo}-compact2.png?amount={(long)soTien}&addInfo={Uri.EscapeDataString("SEVQR " + depositCode)}&accountName={Uri.EscapeDataString(bankAccountName)}";
+        TempData["NapTienSoTien"] = soTien.ToString();
+        TempData["NapTienDepositCode"] = depositCode;
         return RedirectToAction("ViTien");
     }
 
@@ -340,6 +342,7 @@ public class ShipperController : BaseController
     public ActionResult NhanTin() => View();
 
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<JsonResult> UpdateDonHang(string status, int id)
     {
         if (!checkShipper())
@@ -354,11 +357,25 @@ public class ShipperController : BaseController
             var donhang = db.tbDonHang.Include(d => d.tbThongTinDatHang).FirstOrDefault(d => d.madh == id);
             if (donhang != null)
             {
+                // ponytail: Fix Item 9 — validate state transition
+                var allowedTransitions = new Dictionary<string, string[]>
+                {
+                    ["Đã lấy"] = new[] { "Đã xác nhận", "Chờ shipper lấy hàng", "Đang giao" },
+                    ["Đang giao"] = new[] { "Đã lấy" },
+                    ["Hoàn thành"] = new[] { "Đang giao", "Đã lấy" }
+                };
+                if (allowedTransitions.TryGetValue(trangthai, out var validPrev) && !validPrev.Contains(donhang.trangthai))
+                {
+                    return Json(new { success = false, message = $"Không thể chuyển từ '{donhang.trangthai}' sang '{trangthai}'" });
+                }
+
+                // ponytail: Fix Item 4 — luu oldStatus TRUOC khi set
+                var oldStatus = donhang.trangthai;
                 donhang.trangthai = trangthai;
-                if (trangthai == "Hoàn thành")
+                if (trangthai == "Hoàn thành" && oldStatus != "Hoàn thành")
                 {
                     donhang.ngaythanhtoan = DateTime.Now;
-                    // Cộng phí ship vào ví shipper
+                    // Cộng phí ship vào ví shipper — chỉ 1 lần
                     if (donhang.phiship > 0)
                     {
                         var shipperUser = db.tbUser.Find(donhang.mashipper);

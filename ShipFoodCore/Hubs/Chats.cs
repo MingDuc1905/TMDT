@@ -5,7 +5,8 @@ using System.Text.Json;
 
 namespace ShipFood.Hubs;
 
-[Authorize]
+// ponytail: KHÔNG dùng [Authorize] class-level vì SignalR client-side ko g?i auth cookie ?úng cách
+// gây block k?t n?i cho customer. Thay vào ?ó, validate userId t? query string t?ng method.
 public class Chats : Hub
 {
     private readonly IDistributedCache _cache;
@@ -25,7 +26,7 @@ public class Chats : Hub
     /// </summary>
     public async Task Message(string message, int id)
     {
-        await Clients.All.SendAsync("message", message, id);
+        await Clients.Group($"order_{id}").SendAsync("message", message, id);
     }
 
     /// <summary>
@@ -221,7 +222,9 @@ public class Chats : Hub
                     _logger.LogWarning(ex, "Redis cache unavailable for connection tracking");
                 }
 
-                await Clients.All.SendAsync("userOnline", userId, true);
+                // ponytail: chi broadcast toi groups lien quan, khong phai Clients.All
+                await Clients.Group("shippers").SendAsync("shipperOnline", userId);
+                await Clients.Group("admins").SendAsync("userOnline", userId, true);
             }
         }
         await base.OnConnectedAsync();
@@ -237,8 +240,9 @@ public class Chats : Hub
                 await _cache.RemoveAsync($"{CONN_KEY_PREFIX}{Context.ConnectionId}");
                 await _cache.RemoveAsync($"{USER_KEY_PREFIX}{userId}");
 
-                await Clients.All.SendAsync("userOnline", userId, false);
-                await Clients.All.SendAsync("shipperOffline", userId);
+                // ponytail: chi broadcast toi groups lien quan, khong phai Clients.All
+                await Clients.Group("admins").SendAsync("userOnline", userId, false);
+                await Clients.Group("shippers").SendAsync("shipperOffline", userId);
             }
         }
         catch (Exception ex)

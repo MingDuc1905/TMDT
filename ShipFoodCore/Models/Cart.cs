@@ -60,13 +60,15 @@ public class Cart
             if (i.mabienthe == item.mabienthe)
             {
                 i.soLuong += soLuong;
-                tongTien += i.giatien * soLuong;
+                // ponytail: Fix Item 14 — handle null price
+                tongTien = (tongTien ?? 0) + (i.giatien ?? 0) * soLuong;
                 return;
             }
         }
         item.soLuong = soLuong;
         items.Add(item);
-        tongTien += item.giatien * soLuong;
+        // ponytail: Fix Item 14 — handle null price (decimal? + null = null)
+        tongTien = (tongTien ?? 0) + (item.giatien ?? 0) * soLuong;
     }
 
     public void xoaMon(int mabienthe)
@@ -76,7 +78,8 @@ public class Cart
             if (i.mabienthe == mabienthe)
             {
                 items.Remove(i);
-                tongTien -= i.giatien * i.soLuong;
+                // ponytail: Fix Item 14 — handle null price
+                tongTien = Math.Max((tongTien ?? 0) - (i.giatien ?? 0) * i.soLuong, 0);
                 return;
             }
         }
@@ -91,13 +94,15 @@ public class Cart
                 if (i.soLuong <= 1)
                 {
                     items.Remove(i);
-                    tongTien -= i.giatien;
+                    // ponytail: Fix Item 14 — handle null price
+                    tongTien = Math.Max((tongTien ?? 0) - (i.giatien ?? 0), 0);
                     break;
                 }
                 else
                 {
                     i.soLuong -= 1;
-                    tongTien -= i.giatien;
+                    // ponytail: Fix Item 14 — handle null price
+                    tongTien = Math.Max((tongTien ?? 0) - (i.giatien ?? 0), 0);
                     return;
                 }
             }

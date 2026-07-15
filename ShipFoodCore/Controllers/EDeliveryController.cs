@@ -17,7 +17,8 @@ public class EDeliveryController : BaseController
 {
     private readonly IHubContext<Chats> _hubContext;
     private readonly EDeliveryService _eDelivery;
-    private const string QR_HASH_SECRET = "FastShip2024!EDelivery@Secure";
+    // ponytail: QR_HASH_SECRET tu env var, fallback secure default
+    private static string QR_HASH_SECRET => Environment.GetEnvironmentVariable("QR_HASH_SECRET") ?? "FastShip2024!EDelivery@Secure";
 
     public EDeliveryController(
         dbFoodyEntities context,

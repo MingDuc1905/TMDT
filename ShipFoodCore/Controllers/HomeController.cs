@@ -240,7 +240,8 @@ public class HomeController : BaseController
         {
             var logger = HttpContext.RequestServices.GetRequiredService<ILogger<HomeController>>();
             logger.LogError(ex, "DetailRestaurant CRASHED for id={Id}", id);
-            return Content($"❌ LỖI DetailRestaurant: {ex.GetType().Name}: {ex.Message}\n\n{ex.StackTrace}");
+            // ponytail: khong leak stack trace cho user — chi log server-side
+            return RedirectToAction("Error", "Home", new { traceId = HttpContext.TraceIdentifier });
         }
     }
 
@@ -287,8 +288,22 @@ public class HomeController : BaseController
         {
             var userFind = users[0];
 
-            // === Kiểm tra mật khẩu dạng plain-text ===
-            bool passwordMatched = (userFind.pwd == pwd);
+            // === Kiểm tra mật khẩu (BCrypt hash hoac plain-text cho legacy users) ===
+            bool passwordMatched = false;
+            // Thu bang BCrypt truoc (password moi)
+            try { passwordMatched = BCrypt.Net.BCrypt.Verify(pwd, userFind.pwd); } catch { }
+            // Fallback: so sanh plain-text cho legacy users (se duoc hash lai o login sau)
+            if (!passwordMatched && userFind.pwd == pwd)
+            {
+                passwordMatched = true;
+                // Upgrade len BCrypt hash
+                try
+                {
+                    userFind.pwd = BCrypt.Net.BCrypt.HashPassword(pwd);
+                    db.SaveChanges();
+                }
+                catch { }
+            }
 
             if (!passwordMatched)
             {
@@ -445,7 +460,8 @@ public class HomeController : BaseController
                 // ─── FACEBOOK LẦN ĐẦU: Auto-create Khách hàng ───
                 try
                 {
-                    var randomPwd = $"FB_{Guid.NewGuid():N}";
+                    // ponytail: hash password bang BCrypt
+                    var randomPwd = BCrypt.Net.BCrypt.HashPassword($"FB_{Guid.NewGuid():N}");
                     var truncatedEmail = email.Length > 50 ? email[..50] : email;
                     var shortUser = "fb_" + Guid.NewGuid().ToString("N")[..12];
                     var tenDayDu = (!string.IsNullOrEmpty(name) ? name : truncatedEmail);
@@ -564,7 +580,8 @@ public class HomeController : BaseController
                 // ─── 1-CLICK: Auto-create Khách hàng ───
                 try
                 {
-                    var randomPwd = $"GG_{Guid.NewGuid():N}";
+                    // ponytail: hash password bang BCrypt
+                    var randomPwd = BCrypt.Net.BCrypt.HashPassword($"GG_{Guid.NewGuid():N}");
                     var truncatedEmail = email.Length > 50 ? email[..50] : email;
                     var shortUser = "gg_" + Guid.NewGuid().ToString("N")[..12];
                     var tenDayDu = (!string.IsNullOrEmpty(name) ? name : truncatedEmail);
@@ -707,7 +724,8 @@ public class HomeController : BaseController
                 }
 
                 // ─── Tạo tài khoản ───
-                var randomPwd = $"GG_{Guid.NewGuid():N}";
+                // ponytail: hash password bang BCrypt
+                var randomPwd = BCrypt.Net.BCrypt.HashPassword($"GG_{Guid.NewGuid():N}");
                 var truncatedEmail = email.Length > 50 ? email[..50] : email;
                 var shortUser = "gg_" + Guid.NewGuid().ToString("N")[..12];
                 var tenDayDu = !string.IsNullOrEmpty(name) ? name : truncatedEmail;
@@ -834,8 +852,7 @@ public class HomeController : BaseController
             if (IsAjaxRequest()) return Json(new { success = false, message = "Xác nhận mật khẩu không khớp" });
             ViewBag.err = "Xác nhận mật khẩu không khớp";
             return View();
-        }
-        // Mật khẩu được lưu dạng plain-text (không hash)
+        }            // ponytail: hash password bang BCrypt truoc khi luu
 
         // Số điện thoại
         if (string.IsNullOrWhiteSpace(user.sdt) || !System.Text.RegularExpressions.Regex.IsMatch(user.sdt, @"^0[1-9][0-9]{8,9}$"))
@@ -851,18 +868,20 @@ public class HomeController : BaseController
             if (IsAjaxRequest()) return Json(new { success = false, message = "Vui lòng nhập email" });
             ViewBag.err = "Vui lòng nhập email";
             return View();
-        }
-        try
-        {
-            var addr = new System.Net.Mail.MailAddress(user.email);
-            if (addr.Address != user.email) throw new Exception();
-        }
-        catch
-        {
-            if (IsAjaxRequest()) return Json(new { success = false, message = "Email không hợp lệ (VD: example@gmail.com)" });
-            ViewBag.err = "Email không hợp lệ (VD: example@gmail.com)";
-            return View();
-        }
+        }            try
+            {
+                var addr = new System.Net.Mail.MailAddress(user.email);
+                if (addr.Address != user.email) throw new Exception();
+            }
+            catch
+            {
+                if (IsAjaxRequest()) return Json(new { success = false, message = "Email không hợp lệ (VD: example@gmail.com)" });
+                ViewBag.err = "Email không hợp lệ (VD: example@gmail.com)";
+                return View();
+            }
+
+            // ponytail: hash password before saving
+            user.pwd = BCrypt.Net.BCrypt.HashPassword(user.pwd);
 
         // Địa chỉ (chỉ bắt buộc với Quán ăn / Shipper)
         bool requiresAddress = user.loaitaikhoan == "Quán ăn" || user.loaitaikhoan == "Shipper";
@@ -1147,13 +1166,37 @@ public class HomeController : BaseController
             return RedirectToAction("Wallet");
         }
 
-        var dbUser = db.tbUser.Find(user.userid);
-        if (dbUser != null)
+        // ponytail: Không tự cộng tiền trực tiếp — tạo QR chuyển khoản
+        // User phải chuyển khoản, SePay webhook sẽ tự động cập nhật
+        var depositCode = $"NAP{user.userid}_{DateTime.Now:yyyyMMddHHmmss}";
+        var memo = $"SEVQR FASTSHIP{depositCode}";
+
+        // L?y config bank
+        var config = HttpContext.RequestServices.GetRequiredService<IConfiguration>();
+        var bankId = config["BANK_ID"] ?? "970436";
+        var bankAccountNo = config["BANK_ACCOUNT_NO"] ?? "1234567890";
+        var bankAccountName = config["BANK_ACCOUNT_NAME"] ?? "FASTSHIP CO., LTD";
+        var bankBin = Helpers.BankHelper.GetVietQrBinCode(bankId);
+
+        var qrUrl = $"https://img.vietqr.io/image/{bankBin}-{bankAccountNo}-compact2.png?amount={(long)soTien}&addInfo={Uri.EscapeDataString(memo)}&accountName={Uri.EscapeDataString(bankAccountName)}";
+
+        // L?u pending deposit v?o tbTinNhan ?? webhook sau này xác nh?n
+        try
         {
-            dbUser.vitien = (dbUser.vitien ?? 0) + soTien;
+            db.tbTinNhans.Add(new tbTinNhan
+            {
+                noidung = $"DEPOSIT_PENDING|{depositCode}|{soTien}|{user.userid}",
+                makh = user.userid
+            });
             db.SaveChanges();
-            TempData["WalletSuccess"] = $"Nạp thành công {soTien:N0}đ vào ví!";
         }
+        catch { }
+
+        TempData["DepositQR"] = qrUrl;
+        TempData["DepositAmount"] = soTien;
+        TempData["DepositCode"] = depositCode;
+        TempData["WalletPending"] = $"Vui lòng chuyển khoản {soTien:N0}đ theo mã QR để nạp tiền vào ví. Hệ thống sẽ tự động cập nhật sau khi nhận được chuyển khoản.";
+
         return RedirectToAction("Wallet");
     }
 

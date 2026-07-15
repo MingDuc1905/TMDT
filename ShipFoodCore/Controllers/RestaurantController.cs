@@ -96,13 +96,10 @@ public class RestaurantController : BaseController
             return RedirectToAction("Wallet");
         }
 
-        var dbUser = db.tbUser.Find(user!.userid);
-        if (dbUser != null)
-        {
-            dbUser.vitien = (dbUser.vitien ?? 0) + soTien;
-            db.SaveChanges();
-            TempData["WalletSuccess"] = $"Nạp thành công {soTien:N0}đ vào ví!";
-        }
+        // ponytail: Nap tien qua chuyen khoan — tao pending deposit, cho SePay xac nhan
+        var depositCode = $"FASTSHIPNAP{user!.userid}_{DateTime.Now:yyyyMMddHHmmss}";
+        TempData["WalletPending"] = $"Quét mã QR để chuyển {soTien:N0}đ vào ví.";
+        TempData["WalletQR"] = $"https://img.vietqr.io/image/970415-102878588446-compact2.png?amount={(long)soTien}&addInfo={Uri.EscapeDataString("SEVQR " + depositCode)}&accountName={Uri.EscapeDataString("BUI MINH DUC")}";
         return RedirectToAction("Wallet");
     }
 
@@ -128,6 +125,13 @@ public class RestaurantController : BaseController
                 return RedirectToAction("Wallet");
             }
             dbUser.vitien -= soTien;
+            db.SaveChanges();
+            // ponytail: Fix Item 22 — audit trail cho rut tien
+            db.tbTinNhans.Add(new tbTinNhan
+            {
+                noidung = $"WITHDRAW|{soTien}|{dbUser.vitien}|{user!.userid}",
+                makh = user.userid
+            });
             db.SaveChanges();
             TempData["WalletSuccess"] = $"Rút {soTien:N0}đ thành công. Số dư mới: {dbUser.vitien:N0}đ";
         }
@@ -206,7 +210,8 @@ public class RestaurantController : BaseController
 
         datas = datas.OrderByDescending(d => d.soLuongBanDuoc).ToList();
         ViewBag.datas = datas;
-        ViewBag.doanhThu = (double?)quanAn.tbDonHang.Sum(dh => dh.tongtien) ?? 0;
+        // ponytail: Fix Item 15 — loai bo cancelled orders khoi doanh thu
+        ViewBag.doanhThu = (double?)quanAn.tbDonHang.Where(dh => dh.trangthai != "Đã hủy").Sum(dh => dh.tongtien) ?? 0;
         ViewBag.dataDanhMucs = dataDanhMucs;
         return View();
     }
@@ -290,7 +295,8 @@ public class RestaurantController : BaseController
     public async Task<ActionResult> nhandon(int id)
     {
         if (!checkLogin()) return RedirectToAction("Login", "Home");
-        var dh = db.tbDonHang.Include(d => d.tbThongTinDatHang).FirstOrDefault(d => d.madh == id);
+        var quanAn = getQuanAn();
+        var dh = db.tbDonHang.Include(d => d.tbThongTinDatHang).FirstOrDefault(d => d.madh == id && d.maquan == quanAn.userid);
         if (dh != null)
         {
             dh.trangthai = "Đã xác nhận";
@@ -323,7 +329,8 @@ public class RestaurantController : BaseController
     public async Task<ActionResult> huydon(int id)
     {
         if (!checkLogin()) return RedirectToAction("Login", "Home");
-        var dh = db.tbDonHang.Find(id);
+        var quanAn = getQuanAn();
+        var dh = db.tbDonHang.FirstOrDefault(d => d.madh == id && d.maquan == quanAn.userid);
         if (dh != null)
         {
             var oldStatus = dh.trangthai;
@@ -342,8 +349,11 @@ public class RestaurantController : BaseController
                     {
                         transId = parsedTransId;
                     }
+                    // ponytail: Fix Item 11 — dung original orderId format cho refund
+                    // ponytail: Fix Item 11 — dung original orderId, xu ly nullable ngaydathang
+                    var refundOrderId = $"FS{dh.madh}_{dh.ngaydathang?.ToString("yyyyMMddHHmmss") ?? DateTime.Now.ToString("yyyyMMddHHmmss")}";
                     var refundResult = await moMoService.RefundAsync(
-                        orderId: $"FS{dh.madh}_{DateTime.Now:yyyyMMddHHmmss}",
+                        orderId: refundOrderId,
                         amount: (long)(dh.tongtien * 1000),
                         description: $"Hoàn tiền đơn hàng FastShip #{dh.madh}",
                         transId: transId
@@ -461,12 +471,14 @@ public class RestaurantController : BaseController
 
         if (fileAnh != null)
         {
+            // ponytail: Fix Item 13 — path traversal protection
             var uploadsDir = Path.Combine(_env.WebRootPath, "Source/Restaurant/images/avatar");
             Directory.CreateDirectory(uploadsDir);
-            var path = Path.Combine(uploadsDir, fileAnh.FileName);
+            var safeFileName = Path.GetFileName(fileAnh.FileName);
+            var path = Path.Combine(uploadsDir, safeFileName);
             using var stream = new FileStream(path, FileMode.Create);
             fileAnh.CopyTo(stream);
-            quanAn.hinhanh = fileAnh.FileName;
+            quanAn.hinhanh = safeFileName;
         }
 
         var quanAnOld = db.tbQuanAn.Include(q => q.tbUser).FirstOrDefault(q => q.userid == getQuanAn().userid);
@@ -475,9 +487,10 @@ public class RestaurantController : BaseController
             quanAnOld.tenquanan = quanAn.tenquanan;
             if (quanAn.hinhanh != null) quanAnOld.hinhanh = quanAn.hinhanh;
             quanAnOld.diachi = quanAn.diachi;
+            // ponytail: Fix Item 6 — hash password truoc khi luu
             if (!string.IsNullOrEmpty(pwd))
             {
-                quanAnOld.tbUser.pwd = pwd;
+                quanAnOld.tbUser.pwd = BCrypt.Net.BCrypt.HashPassword(pwd);
             }
             db.SaveChanges();
         }

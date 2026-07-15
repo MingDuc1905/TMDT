@@ -313,17 +313,21 @@ public class ChatbotController : BaseController
 
         int orderId = int.Parse(match.Groups[1].Value);
 
+        // ponytail: chi cho phep tra cuu don hang cua chinh nguoi dung
+        var user = GetCurrentUser();
         var donHang = db.tbDonHang
             .Include(d => d.tbQuanAn)
             .Include(d => d.tbThongTinDatHang)
             .Include(d => d.tbShipper)
-            .FirstOrDefault(d => d.madh == orderId);
+            .FirstOrDefault(d => d.madh == orderId && (user == null || d.tbThongTinDatHang == null || d.tbThongTinDatHang.userid == user.userid));
 
         if (donHang == null)
         {
             return new
             {
-                reply = "❌ Không tìm thấy đơn hàng mã #" + orderId + ". Vui lòng kiểm tra lại mã đơn hàng.",
+                reply = user == null
+                    ? "🔒 Vui lòng đăng nhập để tra cứu đơn hàng."
+                    : "❌ Không tìm thấy đơn hàng mã #" + orderId + ". Vui lòng kiểm tra lại mã đơn hàng.",
                 quickReplies = new[] { "Gợi ý món ăn", "Phí ship thế nào?", "Liên hệ hỗ trợ" }
             };
         }

@@ -6,6 +6,8 @@ using ShipFood.Models;
 using Serilog;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.ResponseCompression;
+using System.IO.Compression;
 
 // ponytail: Cho phép DateTime Local với PostgreSQL timestamptz
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
@@ -78,6 +80,16 @@ if (!builder.Environment.IsDevelopment())
 // Add services to the container.
 builder.Services.AddControllersWithViews()
     .AddRazorRuntimeCompilation();
+
+// ═══ Response compression (Gzip/Brotli) ═══
+builder.Services.AddResponseCompression(options =>
+{
+    options.EnableForHttps = true;
+    options.Providers.Add<BrotliCompressionProvider>();
+    options.Providers.Add<GzipCompressionProvider>();
+});
+builder.Services.Configure<BrotliCompressionProviderOptions>(opt => opt.Level = CompressionLevel.Fastest);
+builder.Services.Configure<GzipCompressionProviderOptions>(opt => opt.Level = CompressionLevel.Fastest);
 
 // Add SignalR
 builder.Services.AddSignalR();
@@ -264,7 +276,9 @@ catch (Exception ex)
 builder.Services.AddScoped<ShipFood.Services.RecommendationService>();
 builder.Services.AddScoped<ShipFood.Services.VoucherService>();
 builder.Services.AddScoped<ShipFood.Services.EDeliveryService>();
-builder.Services.AddHostedService<ShipFood.Services.AutoPreparingService>(); // Task 3b
+// ponytail: AutoPreparingService da xoa — restaurant phai tu xac nhan mon an
+// Auto-cancel pending orders sau 15 phút
+builder.Services.AddHostedService<ShipFood.Services.AutoCancelPendingOrdersService>();
 // ponytail: AddSingleton để tránh mất/gãy API key do SignalR ChatHub tạo lại service liên tục
 builder.Services.AddSingleton<ShipFood.Services.GeminiService>(sp =>
 {
@@ -533,8 +547,31 @@ app.Use(async (context, next) =>
     }
 });
 
-// Dedicated healthcheck endpoint (no database dependency, always returns 200)
-app.MapGet("/health", () => Results.Ok(new { status = "healthy" }));
+// ═══ Health check details (9.8) — verify DB + disk ═══
+app.MapGet("/health", async (HttpContext context) =>
+{
+    var result = new Dictionary<string, object> { ["status"] = "healthy", ["timestamp"] = DateTime.UtcNow };
+    try
+    {
+        using var scope = context.RequestServices.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<dbFoodyEntities>();
+        await db.Database.CanConnectAsync();
+        result["database"] = "connected";
+    }
+    catch (Exception ex)
+    {
+        result["database"] = $"error: {ex.Message}";
+        result["status"] = "degraded";
+    }
+    try
+    {
+        var root = Directory.GetCurrentDirectory();
+        var drive = new System.IO.DriveInfo(root);
+        result["disk_free_mb"] = Math.Round(drive.AvailableFreeSpace / 1024.0 / 1024.0);
+    }
+    catch { result["disk_free_mb"] = "unknown"; }
+    return Results.Json(result);
+});
 
 // Ensure UTF-8 charset for all HTML responses (fixes Vietnamese character encoding)
 app.Use(async (context, next) =>
@@ -560,7 +597,21 @@ if (app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 }
 
-app.UseStaticFiles();
+// ═══ Response compression (Gzip/Brotli) — gi?m ~70% bandwidth ═══
+app.UseResponseCompression();
+
+// ═══ Cache-Control + ETag cho static assets (7.3) ═══
+app.UseStaticFiles(new StaticFileOptions
+{
+    OnPrepareResponse = ctx =>
+    {
+        // ponytail: file có hash (VD: main.v123.js) → cache 1 n?m
+        var dotCount = ctx.File.Name.Count(c => c == '.');
+        var cacheMaxAge = dotCount >= 2 ? TimeSpan.FromDays(365) : TimeSpan.FromDays(1);
+        ctx.Context.Response.Headers.CacheControl = $"public, max-age={(int)cacheMaxAge.TotalSeconds}";
+        ctx.Context.Response.Headers.ETag = $"\"{ctx.File.LastModified:yyyyMMddHHmmss}\"";
+    }
+});
 
 app.UseRouting();
 

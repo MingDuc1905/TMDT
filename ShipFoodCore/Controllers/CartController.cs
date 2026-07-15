@@ -177,11 +177,26 @@ public class CartController : BaseController
             return Json(new { success = false, message = "Mã khuyến mãi không hợp lệ hoặc đã hết hạn" });
 
         if (coupon.ngaybatdau != null && coupon.ngaybatdau > DateTime.Now)
-            return Json(new { success = false, message = "Mã khuyến mãi chưa đến ngày áp dụng" });            // ─── 1b: Kiểm tra tần suất sử dụng mã của User ───
+            return Json(new { success = false, message = "Mã khuyến mãi chưa đến ngày áp dụng" });
+
+        // ponytail: Fix Item 17 — validate dieukien (minimum order amount)
+        if (!string.IsNullOrEmpty(coupon.dieukien))
+        {
+            // Parse dieukien format: "Đơn từ 200.000đ" hoặc "Từ 200k"
+            var minMatch = System.Text.RegularExpressions.Regex.Match(coupon.dieukien, @"(\d+)");
+            if (minMatch.Success && decimal.TryParse(minMatch.Groups[1].Value, out var minAmount))
+            {
+                if (tongTien < minAmount * 1000)
+                {
+                    return Json(new { success = false, message = $"Đơn hàng tối thiểu {minAmount:N0}đ để áp dụng mã này. Hiện tại: {tongTien:N0}đ" });
+                }
+            }
+        }
+
+        // ─── 1b: Kiểm tra tần suất sử dụng mã của User ───
             var user = GetCurrentUser();
             if (user != null)
             {
-                // Non-blocking: nếu bảng chưa tồn tại, bỏ qua kiểm tra usage
                 try
                 {
                     var usageCount = db.tbLichSuSuDungKhuyenMai
@@ -295,10 +310,10 @@ public class CartController : BaseController
             return RedirectToAction("Index", "Home");
         }
 
+        // ponytail: Fix Item 12 — ko xoa toan bo cart khi tang so luong item quán khác
+        // Cho phep multi-restaurant (giong ThemMonAn)
         if (cart.maquanan == null)
             cart.maquanan = item.maquanan;
-        else if (cart.maquanan != item.maquanan)
-            cart = new Cart();
 
         cart.themMon(item, soLuong);
         SetCart(cart);
@@ -338,7 +353,7 @@ public class CartController : BaseController
             soLuong = FindCartItemByMamon(cart, maMonAn)?.soLuong ?? soLuong,
             cartCount = cart.items.Sum(i => i.soLuong),
             cartTotal = cart.tongTien?.ToString("N0") + " đ",
-            cartGrandTotal = (cart.tongTien + 15000)?.ToString("N0") + " đ",
+            cartGrandTotal = (cart.tongTien + ShipFood.Helpers.FastShipConstants.SHIP_FEE)?.ToString("N0") + " đ",
             redirect = Url.Action("Index", "Cart")
         });
     }
@@ -390,7 +405,7 @@ public class CartController : BaseController
             soLuong = cartItem?.soLuong ?? 0,
             itemTotal = cartItem != null ? (cartItem.giatien * cartItem.soLuong)?.ToString("N0") + " đ" : "0 đ",
             cartTotal = cart.tongTien?.ToString("N0") + " đ",
-            cartGrandTotal = (cart.tongTien + 15000)?.ToString("N0") + " đ"
+            cartGrandTotal = (cart.tongTien + ShipFood.Helpers.FastShipConstants.SHIP_FEE)?.ToString("N0") + " đ"
         });
     }
 
@@ -410,8 +425,10 @@ public class CartController : BaseController
         if (cart != null)
         {
             var existingItem = FindCartItemByMamon(cart, maMonAn);
-            if (existingItem != null && existingItem.soLuong <= 1)
+            // ponytail: Fix Item 16 — xoa item neu so luong ve 0
+        if (existingItem != null && existingItem.soLuong <= 1)
             {
+                cart.xoaMon(existingItem.mabienthe);
                 SetCart(cart);
                 return RedirectToAction("Index");
             }
@@ -441,7 +458,7 @@ public class CartController : BaseController
                 soLuong = existingItem.soLuong,
                 itemTotal = (existingItem.giatien * existingItem.soLuong)?.ToString("N0") + " đ",
                 cartTotal = cart.tongTien?.ToString("N0") + " đ",
-                cartGrandTotal = (cart.tongTien + 15000)?.ToString("N0") + " đ"
+                cartGrandTotal = (cart.tongTien + ShipFood.Helpers.FastShipConstants.SHIP_FEE)?.ToString("N0") + " đ"
             });
         }
 
@@ -456,7 +473,7 @@ public class CartController : BaseController
             soLuong = item?.soLuong ?? 0,
             itemTotal = item != null ? (item.giatien * item.soLuong)?.ToString("N0") + " đ" : "0 đ",
             cartTotal = cart.tongTien?.ToString("N0") + " đ",
-            cartGrandTotal = (cart.tongTien + 15000)?.ToString("N0") + " đ"
+            cartGrandTotal = (cart.tongTien + ShipFood.Helpers.FastShipConstants.SHIP_FEE)?.ToString("N0") + " đ"
         });
     }
 
@@ -496,7 +513,7 @@ public class CartController : BaseController
         {
             success = true,
             cartTotal = cart.tongTien?.ToString("N0") + " đ",
-            cartGrandTotal = (cart.tongTien + 15000)?.ToString("N0") + " đ",
+            cartGrandTotal = (cart.tongTien + ShipFood.Helpers.FastShipConstants.SHIP_FEE)?.ToString("N0") + " đ",
             isEmpty = cart.items == null || cart.items.Count == 0
         });
     }

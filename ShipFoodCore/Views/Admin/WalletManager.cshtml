@@ -1,0 +1,168 @@
+@using ShipFood.Models
+@model List<tbUser>
+@{
+    ViewBag.Title = "Quản lý ví tiền";
+    Layout = "~/Views/Shared/_LayoutPageAmin.cshtml";
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <h4 class="fw-700 mb-0"><i class="fas fa-wallet text-success me-2"></i>Quản lý ví tiền</h4>
+        <div class="text-muted small">
+            <i class="fas fa-coins me-1"></i>Tổng số dư hệ thống:
+            <strong class="text-success fs-5">@ViewBag.TongVi?.ToString("N0") đ</strong>
+        </div>
+    </div>
+
+    @if (TempData["AdminSuccess"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="fas fa-check-circle me-2"></i>@TempData["AdminSuccess"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="py-3">ID</th>
+                            <th class="py-3">Username</th>
+                            <th class="py-3">Vai trò</th>
+                            <th class="py-3">SĐT</th>
+                            <th class="py-3">Số dư</th>
+                            <th class="py-3">Trạng thái</th>
+                            <th class="py-3 text-center">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var u in Model)
+                        {
+                            var statusLabel = u.trangthai switch
+                            {
+                                1 => "<span class='badge bg-success'>Hoạt động</span>",
+                                2 => "<span class='badge bg-warning text-dark'>Khoá</span>",
+                                3 => "<span class='badge bg-danger'>Huỷ</span>",
+                                _ => "<span class='badge bg-secondary'>Chờ duyệt</span>"
+                            };
+                            <tr>
+                                <td class="align-middle fw-500">@u.userid</td>
+                                <td class="align-middle">
+                                    <span class="fw-600">@u.username</span>
+                                    <br><small class="text-muted">@u.email</small>
+                                </td>
+                                <td class="align-middle"><span class="badge bg-info text-dark">@u.loaitaikhoan</span></td>
+                                <td class="align-middle">@u.sdt</td>
+                                <td class="align-middle">
+                                    <strong class="text-success">@(u.vitien?.ToString("N0") ?? "0") đ</strong>
+                                </td>
+                                <td class="align-middle">@Html.Raw(statusLabel)</td>
+                                <td class="align-middle text-center">
+                                    <button type="button" class="btn btn-sm btn-success px-3"
+                                            onclick="openCongTien(@u.userid, '@u.username', @(u.vitien ?? 0))">
+                                        <i class="fas fa-plus-circle me-1"></i>Cộng tiền
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal cộng tiền -->
+<div class="modal fade" id="congTienModal" tabindex="-1">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="fas fa-coins me-2"></i>Cộng tiền vào ví</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="congTienForm">
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                    <input type="hidden" name="userid" id="ct-userid" />
+                    <div class="mb-3">
+                        <label class="form-label fw-600">Người dùng</label>
+                        <input type="text" class="form-control" id="ct-username" readonly style="background:#f8f9fa;" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-600">Số dư hiện tại</label>
+                        <input type="text" class="form-control" id="ct-soDu" readonly style="background:#f8f9fa;" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-600">Số tiền cộng <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <input type="number" name="soTien" id="ct-soTien" class="form-control"
+                                   min="1000" max="100000000" step="1000" placeholder="Nhập số tiền..." required />
+                            <span class="input-group-text">đ</span>
+                        </div>
+                        <div class="form-text">Tối thiểu 1.000đ, tối đa 100.000.000đ</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-600">Lý do</label>
+                        <input type="text" name="lyDo" class="form-control" placeholder="VD: Thưởng, hoàn tiền, hỗ trợ..." />
+                    </div>
+                    <div id="ct-feedback" style="display:none;" class="alert py-2 mb-0"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Huỷ</button>
+                    <button type="submit" class="btn btn-success px-4" id="ct-submit">
+                        <i class="fas fa-check me-1"></i>Xác nhận cộng tiền
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function openCongTien(userid, username, soDu) {
+            $('#ct-userid').val(userid);
+            $('#ct-username').val(username);
+            $('#ct-soDu').val(soDu.toLocaleString('vi-VN') + ' đ');
+            $('#ct-soTien').val(10000);
+            $('#ct-feedback').hide();
+            $('#congTienModal').modal('show');
+        }
+
+        $('#congTienForm').on('submit', function(e) {
+            e.preventDefault();
+            var $btn = $('#ct-submit');
+            $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i>Đang xử lý...');
+            $('#ct-feedback').hide();
+
+            var formData = $(this).serialize();
+            formData += '&__RequestVerificationToken=' + $('input[name="__RequestVerificationToken"]').val();
+
+            $.ajax({
+                url: '@Url.Action("CongTien", "Admin")',
+                type: 'POST',
+                data: formData,
+                success: function(r) {
+                    if (r.success) {
+                        $('#ct-feedback').removeClass('alert-danger').addClass('alert-success')
+                            .html('<i class="fas fa-check-circle me-1"></i>' + r.message).show();
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1500);
+                    } else {
+                        $('#ct-feedback').removeClass('alert-success').addClass('alert-danger')
+                            .html('<i class="fas fa-exclamation-circle me-1"></i>' + r.message).show();
+                        $btn.prop('disabled', false).html('<i class="fas fa-check me-1"></i>Xác nhận cộng tiền');
+                    }
+                },
+                error: function() {
+                    $('#ct-feedback').removeClass('alert-success').addClass('alert-danger')
+                        .html('<i class="fas fa-exclamation-circle me-1"></i>Lỗi kết nối').show();
+                    $btn.prop('disabled', false).html('<i class="fas fa-check me-1"></i>Xác nhận cộng tiền');
+                }
+            });
+        });
+    </script>
+}

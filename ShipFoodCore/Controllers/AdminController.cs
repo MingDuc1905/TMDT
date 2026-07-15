@@ -31,13 +31,33 @@ public class AdminController : BaseController
     {
         if (!checkLogin())
             return RedirectToAction("Login", "Home");
-        // ponytail: AsNoTracking vì Admin Order list chỉ đọc, không sửa
-        var litsdh = db.tbDonHang
+        // ponytail: pagination + date filter cho Admin Order list
+        var tuNgay = DateTime.Now.AddMonths(-1);
+        var denNgay = DateTime.Now;
+        int page = 1;
+        int pageSize = 50;
+        
+        var query = db.tbDonHang
             .AsNoTracking()
             .Include(d => d.tbShipper)
             .Include(d => d.tbQuanAn)
             .Include(d => d.tbThongTinDatHang)
+            .Where(d => d.ngaydathang >= tuNgay);
+        
+        var totalItems = query.Count();
+        var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+        
+        var litsdh = query
+            .OrderByDescending(d => d.madh)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .ToList();
+        
+        ViewBag.TotalItems = totalItems;
+        ViewBag.TotalPages = totalPages;
+        ViewBag.CurrentPage = page;
+        ViewBag.TuNgay = tuNgay;
+        ViewBag.DenNgay = denNgay;
         return View(litsdh);
     }
 
@@ -398,7 +418,8 @@ public class AdminController : BaseController
             var userOld = db.tbUser.Find(user.userid);
             if (userOld != null)
             {
-                userOld.pwd = user.pwd;
+                // ponytail: hash password bang BCrypt truoc khi luu
+                userOld.pwd = BCrypt.Net.BCrypt.HashPassword(user.pwd);
                 userOld.sdt = user.sdt;
                 userOld.email = user.email;
             }
@@ -828,6 +849,7 @@ public class AdminController : BaseController
     }
 
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public ActionResult DeleteVoucher(int makm)
     {
         if (!checkLogin())
@@ -864,8 +886,9 @@ public class AdminController : BaseController
         return Json(coupons);
     }
 
+    // ponytail: rename ExportExcel thanh ExportCsv vi thuc te xuat CSV
     [HttpGet]
-    public ActionResult ExportExcel(string type = "revenue")
+    public ActionResult ExportCsv(string type = "revenue")
     {
         if (!checkLogin())
             return RedirectToAction("Login", "Home");
@@ -894,6 +917,7 @@ public class AdminController : BaseController
     /// Admin bấm "Xác nhận đã nhận tiền" → SignalR broadcast real-time đến khách hàng
     /// </summary>
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<JsonResult> MockPaymentWebhook(int madh)
     {
         if (!checkLogin())
@@ -916,6 +940,61 @@ public class AdminController : BaseController
         {
             success = true,
             message = $"✅ Đã xác nhận thanh toán cho đơn hàng #{madh}. Real-time notification đã gửi đến khách hàng."
+        });
+    }
+
+    // ─── Task: Admin qu?n lý v? ti?n User ───
+    public ActionResult WalletManager()
+    {
+        if (!checkLogin())
+            return RedirectToAction("Login", "Home");
+
+        var users = db.tbUser
+            .OrderByDescending(u => u.vitien)
+            .ToList();
+        ViewBag.TongVi = users.Sum(u => u.vitien ?? 0);
+        return View(users);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<ActionResult> CongTien(int userid, decimal soTien, string? lyDo)
+    {
+        if (!checkLogin())
+            return Json(new { success = false, message = "Không có quy?n" });
+
+        if (soTien <= 0)
+            return Json(new { success = false, message = "S? ti?n ph?i l?n h?n 0" });
+        if (soTien > 100000000)
+            return Json(new { success = false, message = "S? ti?n t?i da 100,000,000?" });
+
+        var user = await db.tbUser.FindAsync(userid);
+        if (user == null)
+            return Json(new { success = false, message = "Không tìm th?y user" });
+
+        user.vitien = (user.vitien ?? 0) + soTien;
+        await db.SaveChangesAsync();
+
+        // Ghi log giao d?ch
+        try
+        {
+            db.tbTinNhans.Add(new tbTinNhan
+            {
+                noidung = $"? Admin c?ng ti?n: +{soTien:N0}?. Lý do: {(lyDo ?? "Không có")}. S? d? m?i: {user.vitien:N0}?",
+                makh = userid
+            });
+            await db.SaveChangesAsync();
+        }
+        catch { }
+
+        var logger = HttpContext.RequestServices.GetRequiredService<ILogger<AdminController>>();
+        logger.LogInformation("Admin c?ng {Amount} vào ví user #{UserId}, lý do: {Reason}", soTien, userid, lyDo);
+
+        return Json(new
+        {
+            success = true,
+            message = $"? Ðã c?ng {soTien:N0}? vào ví {user.username}. S? d? m?i: {user.vitien:N0}?",
+            soDuMoi = user.vitien
         });
     }
 

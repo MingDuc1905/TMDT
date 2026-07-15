@@ -59,6 +59,18 @@
     });
     </script>
 
+    <!-- ═══ Global JS error boundary (9.4) — catch l?i JS ko ch?p UI crash ═══ -->
+    <script>
+    window.addEventListener('error', function(e) {
+        console.error('[Global Error]', e.error || e.message);
+        // Không b?t silent — ch? log, UI v?n ch?y
+    });
+    window.addEventListener('unhandledrejection', function(e) {
+        console.error('[Unhandled Promise]', e.reason);
+        e.preventDefault();
+    });
+    </script>
+
     @RenderSection("styles", required: false)
 </head>
 
@@ -135,23 +147,18 @@
                 <div class="d-flex d-lg-none align-items-center ms-auto ms-lg-0 gap-1 me-1">
                     @if (user != null)
                     {
-                        <!-- User avatar icon → đơn hàng (luôn visible) -->
-                        <a href="/Home/Wallet" class="fs-mobile-icon" aria-label="Ví tiền" title="Ví tiền"
-                           style="display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;background:var(--fs-green);color:#fff;font-size:13px;font-weight:700;text-decoration:none;transition:opacity .15s;"
-                           onmouseenter="this.style.opacity='.8'" onmouseleave="this.style.opacity='1'">
-                            <i class="fa fa-wallet" aria-hidden="true"></i>
-                        </a>
-                        <a href="/Cart/LichSuDatHang" class="fs-mobile-icon" aria-label="Lịch sử đơn hàng" title="Lịch sử đơn hàng"
-                           style="display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;background:var(--fs-green);color:#fff;font-size:13px;font-weight:700;text-decoration:none;transition:opacity .15s;"
-                           onmouseenter="this.style.opacity='.8'" onmouseleave="this.style.opacity='1'">
-                            @user.username.Substring(0,1).ToUpper()
-                        </a>
                         <!-- Wallet icon (luôn visible) -->
                         <a href="/Home/Wallet" class="fs-mobile-icon" aria-label="Ví tiền" title="Ví tiền"
                            style="display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;color:#3CB815;font-size:16px;border:1.5px solid rgba(60,184,21,.3);transition:all .15s;text-decoration:none;"
                            onmouseenter="this.style.background='#3CB815';this.style.color='#fff'"
                            onmouseleave="this.style.background='transparent';this.style.color='#3CB815'">
                             <i class="fa fa-wallet" aria-hidden="true"></i>
+                        </a>
+                        <!-- Avatar initial (tên user, link đến Lịch sử) -->
+                        <a href="/Cart/LichSuDatHang" class="fs-mobile-icon" aria-label="Lịch sử đơn hàng" title="@user.username - Lịch sử đơn hàng"
+                           style="display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;background:var(--fs-green);color:#fff;font-size:13px;font-weight:700;text-decoration:none;transition:opacity .15s;"
+                           onmouseenter="this.style.opacity='.8'" onmouseleave="this.style.opacity='1'">
+                            @user.username.Substring(0,1).ToUpper()
                         </a>
                         <!-- Logout icon (luôn visible) -->
                         <a href="/Home/Logout" class="fs-logout-btn fs-mobile-icon" aria-label="Đăng xuất" title="Đăng xuất">
@@ -234,53 +241,45 @@
                         <a href="/Home" class="nav-item nav-link">Trang chủ</a>
                         <a href="/Home/DanhMuc" class="nav-item nav-link">Menu ẩm thực</a>                            @if (user != null)
                             {                        
-                            <!-- ═══ DESKTOP: direct links — show on lg+, ko mobile (fix P14/P15) ═══ -->
-                            <!-- ko dùng d-none vì parent container có th? ?n — dùng d-lg-flex ?? luôn visible tr?n desktop -->
-                            <div class="d-lg-flex align-items-center gap-2 ms-2">
-                                <!-- Avatar + tên -->
-                                <span class="d-flex align-items-center gap-2 px-2" style="cursor:default;">
-                                    <span class="fs-avatar-xs" style="width:32px;height:32px;border-radius:50%;background:var(--fs-green);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;">@user.username.Substring(0,1).ToUpper()</span>
-                                    <span class="fs-14 fw-500">@user.username</span>
+                            <!-- ═══ DESKTOP: user dropdown — g?n h?t vào 1 menu ═══ -->
+                            <div class="d-lg-flex align-items-center ms-2 dropdown">
+                                <span class="d-flex align-items-center gap-1 px-2 py-1" style="cursor:pointer;border-radius:8px;transition:background .15s;" data-bs-toggle="dropdown" aria-expanded="false" onmouseenter="this.style.background='rgba(60,184,21,.07)'" onmouseleave="this.style.background='transparent'">
+                                    <span class="fs-avatar-xs" style="width:30px;height:30px;border-radius:50%;background:var(--fs-green);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;">@user.username.Substring(0,1).ToUpper()</span>
+                                    <span class="fs-13 fw-500" style="line-height:1;">@user.username</span>
+                                    <i class="fa fa-chevron-down" style="font-size:9px;color:#9ca3af;"></i>
                                 </span>
-                                <!-- Lịch sử đơn hàng -->
-                                <a href="/Cart/LichSuDatHang" class="nav-link fs-nav-link-muted px-2">
-                                    <i class="fa fa-history"></i>
-                                    <span>Lịch sử</span>
-                                </a>
-                                <!-- Role-specific link -->
-                                @if (user.loaitaikhoan.Equals("Quán ăn"))
-                                {
-                                    <a href="/Restaurant" class="nav-link fs-nav-link-muted px-2">
-                                        <i class="fa fa-store"></i>
-                                        <span>Quản lý quán</span>
+                                <div class="dropdown-menu dropdown-menu-end shadow-sm" style="border-radius:12px;border:1px solid #f0f0f0;min-width:190px;padding:6px;">
+                                    <a href="/Cart/LichSuDatHang" class="dropdown-item py-2 px-3" style="border-radius:8px;">
+                                        <i class="fa fa-history me-2" style="color:#6b7280;"></i> Lịch sử đơn hàng
                                     </a>
-                                }
-                                @if (user.loaitaikhoan.Equals("Shipper"))
-                                {
-                                    <a href="/Shipper" class="nav-link fs-nav-link-muted px-2">
-                                        <i class="fa fa-truck"></i>
-                                        <span>Bảng điều khiển</span>
+                                    <a href="/Home/Wallet" class="dropdown-item py-2 px-3" style="border-radius:8px;">
+                                        <i class="fa fa-wallet me-2" style="color:#3CB815;"></i> Ví tiền
                                     </a>
-                                }
-                                @if (user.loaitaikhoan.Equals("Admin"))
-                                {
-                                    <a href="/Admin" class="nav-link fs-nav-link-muted px-2">
-                                        <i class="fa fa-shield-alt"></i>
-                                        <span>Quản trị</span>
+                                    @if (user.loaitaikhoan.Equals("Quán ăn"))
+                                    {
+                                        <a href="/Restaurant" class="dropdown-item py-2 px-3" style="border-radius:8px;">
+                                            <i class="fa fa-store me-2" style="color:#6b7280;"></i> Quản lý quán
+                                        </a>
+                                    }
+                                    @if (user.loaitaikhoan.Equals("Shipper"))
+                                    {
+                                        <a href="/Shipper" class="dropdown-item py-2 px-3" style="border-radius:8px;">
+                                            <i class="fa fa-truck me-2" style="color:#6b7280;"></i> Bảng điều khiển
+                                        </a>
+                                    }
+                                    @if (user.loaitaikhoan.Equals("Admin"))
+                                    {
+                                        <a href="/Admin" class="dropdown-item py-2 px-3" style="border-radius:8px;">
+                                            <i class="fa fa-shield-alt me-2" style="color:#6b7280;"></i> Quản trị
+                                        </a>
+                                    }
+                                    <div class="dropdown-divider my-1"></div>
+                                    <a href="/Home/Logout" class="dropdown-item py-2 px-3" style="border-radius:8px;color:#ef4444;">
+                                        <i class="fa fa-sign-out-alt me-2"></i> Đăng xuất
                                     </a>
-                                }
-                                <!-- Logout -->
-                            <a href="/Home/Wallet" class="fs-nav-link" aria-label="Ví tiền" title="Ví tiền"
-                               style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:8px;color:#1a1a2e;font-weight:500;font-size:14px;text-decoration:none;transition:all .15s;"
-                               onmouseenter="this.style.background='rgba(60,184,21,.07)'"
-                               onmouseleave="this.style.background='transparent'">
-                                <i class="fa fa-wallet" aria-hidden="true"></i> Ví tiền
-                            </a>
-                            <a href="/Home/Logout" class="fs-logout-btn" aria-label="Đăng xuất" title="Đăng xuất">
-                                <i class="fa fa-sign-out-alt" aria-hidden="true"></i>
-                            </a>
+                                </div>
                             </div>
-                            <!-- ═══ MOBILE: direct links (visible <992px) — KO cần scroll ═══ -->
+                            <!-- ═══ MOBILE: direct links (visible <992px) ═══ -->
                             <div class="d-lg-none border-top mt-2 pt-2 px-2">
                                 <div class="text-muted small mb-2 px-2">
                                     <i class="fa fa-user-circle me-1"></i>Xin chào, <strong class="text-dark">@user.username</strong>

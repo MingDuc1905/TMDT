@@ -13,7 +13,7 @@ public class GeminiService
 Bạn là trợ lý FastShip - nền tảng giao đồ ăn tại Việt Nam.
 
 THÔNG TIN:
-- Phí ship: 15,000đ cố định, free ship nếu đơn từ 100,000đ
+- Phí ship: 15,000đ cố định, free ship nếu đơn từ 200,000đ
 - Giao hàng: 30-45 phút
 - Thanh toán: Tiền mặt, Chuyển khoản, PayPal
 - Giờ: 7:00 - 21:30
@@ -30,8 +30,8 @@ QUY TẮC:
     public GeminiService(string? apiKey, string? modelName = null)
     {
         _apiKey = string.IsNullOrEmpty(apiKey) || apiKey == "YOUR_GEMINI_API_KEY" ? null : apiKey;
-        // Use gemini-2.0-flash (stable, free tier) — model name can be overridden via env var
-        _modelName = modelName ?? "gemini-2.0-flash";
+        // Use gemini-2.5-flash (latest stable, free tier) — model name can be overridden via env var
+        _modelName = modelName ?? "gemini-2.5-flash";
     }
 
     /// <summary>

@@ -295,7 +295,7 @@ public class AdminChatController : BaseController
                     lastMessage = g.OrderByDescending(t => t.matn).First().noidung ?? "",
                     lastTime = g.Max(t => t.matn),
                     messageCount = g.Count(),
-                    hasUnread = g.Any(t => t.mashipper == null)
+                    hasUnread = g.Any(t => t.mashipper == null && t.makh != null)
                 })
                 .OrderByDescending(x => x.lastTime)
                 .Take(50)

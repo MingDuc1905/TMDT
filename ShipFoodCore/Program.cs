@@ -120,7 +120,10 @@ builder.Services.AddSession(options =>
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
     options.Cookie.SameSite = SameSiteMode.Lax;
-    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    // ponytail: Ch? set SecurePolicy=Always khi production (HTTPS), Allow local dev HTTP
+    options.Cookie.SecurePolicy = builder.Environment.IsDevelopment() 
+        ? CookieSecurePolicy.SameAsRequest 
+        : CookieSecurePolicy.Always;
 });
 
 // ─── Task 1c: API Rate Limiting ───
@@ -131,7 +134,8 @@ builder.Services.AddRateLimiter(options =>
     // Gemini chatbot: 5 requests/minute per user
     options.AddFixedWindowLimiter("gemini-policy", opt =>
     {
-        opt.PermitLimit = 5;
+        // ponytail: Tang tu 5→20 de tranh 429 false positive khi user chat nhieu cau lien tuc
+        opt.PermitLimit = 20;
         opt.Window = TimeSpan.FromMinutes(1);
         opt.QueueLimit = 0;
     });
@@ -285,10 +289,12 @@ builder.Services.AddSingleton<ShipFood.Services.GeminiService>(sp =>
     var configuration = sp.GetRequiredService<IConfiguration>();
     // Ưu tiên đọc từ Environment Variable trước, fallback xuống appsettings.json
     var apiKey = Environment.GetEnvironmentVariable("Gemini__ApiKey") ?? configuration["Gemini:ApiKey"];
+    var modelName = Environment.GetEnvironmentVariable("Gemini__Model") ?? configuration["Gemini:Model"];
     if (!string.IsNullOrEmpty(apiKey))
-        Log.Information("GeminiService initialized as Singleton (key source: {Source})",
-            Environment.GetEnvironmentVariable("Gemini__ApiKey") != null ? "env var" : "appsettings");
-    return new ShipFood.Services.GeminiService(apiKey);
+        Log.Information("GeminiService initialized as Singleton (key source: {Source}, model: {Model})",
+            Environment.GetEnvironmentVariable("Gemini__ApiKey") != null ? "env var" : "appsettings",
+            modelName ?? "gemini-2.5-flash");
+    return new ShipFood.Services.GeminiService(apiKey, modelName);
 });
 
 // Register ViewComponents
@@ -344,7 +350,9 @@ var authBuilder = builder.Services.AddAuthentication(Microsoft.AspNetCore.Authen
         options.ExpireTimeSpan = TimeSpan.FromDays(30);
         options.SlidingExpiration = true;
         options.Cookie.SameSite = SameSiteMode.Lax;
-        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+        options.Cookie.SecurePolicy = builder.Environment.IsDevelopment()
+                ? CookieSecurePolicy.SameAsRequest
+                : CookieSecurePolicy.Always;
     });
 
 // Only add Google OAuth if credentials are configured (prevents crash when not set)

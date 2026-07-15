@@ -13,13 +13,15 @@ public class ChatbotController : BaseController
 {
     private readonly GeminiService _gemini;
     private readonly EDeliveryService _eDelivery;
+    private readonly ILogger<ChatbotController> _logger;
     private const int MaxHistoryLength = 20; // Giữ tối đa 20 tin nhắn gần nhất cho hội thoại tự nhiên hơn
 
-    public ChatbotController(dbFoodyEntities context, GeminiService gemini, EDeliveryService eDelivery)
+    public ChatbotController(dbFoodyEntities context, GeminiService gemini, EDeliveryService eDelivery, ILogger<ChatbotController> logger)
     {
         db = context;
         _gemini = gemini;
         _eDelivery = eDelivery;
+        _logger = logger;
     }
 
     [HttpPost]
@@ -32,7 +34,7 @@ public class ChatbotController : BaseController
 
         // 1. Xử lý các truy vấn cần database (tra cứu đơn hàng, gợi ý món ăn)
         // Chỉ xử lý khi có từ khóa rõ ràng - không ảnh hưởng đến hội thoại tự do với AI
-        var dbResult = HandleDatabaseQueries(lowerMsg);
+        var dbResult = await HandleDatabaseQueries(lowerMsg);
         if (dbResult != null)
         {
             SaveToHistory(message, (string)dbResult.GetType().GetProperty("reply")!.GetValue(dbResult)!);
@@ -144,14 +146,14 @@ public class ChatbotController : BaseController
     /// <summary>
     /// Xử lý các câu hỏi cần truy vấn database
     /// </summary>
-    private object? HandleDatabaseQueries(string msg)
+    private async Task<object?> HandleDatabaseQueries(string msg)
     {
         // Tra cứu đơn hàng (#123 hoặc 123)
         var orderResult = HandleOrderLookup(msg);
         if (orderResult != null) return orderResult;
 
         // Tra cứu hóa đơn / vận đơn điện tử
-        var invoiceResult = HandleInvoiceLookup(msg);
+        var invoiceResult = await HandleInvoiceLookup(msg);
         if (invoiceResult != null) return invoiceResult;
 
         // Thống kê / số liệu
@@ -353,7 +355,7 @@ public class ChatbotController : BaseController
     /// <summary>
     /// Tra cứu hóa đơn / vận đơn điện tử
     /// </summary>
-    private object? HandleInvoiceLookup(string msg)
+    private async Task<object?> HandleInvoiceLookup(string msg)
     {
         bool isInvoiceQuery = ContainsAny(msg, "hóa đơn", "hoá đơn", "invoice", "vận đơn", "van don", "chứng từ", "chung tu", "e-invoice", "e-waybill");
         if (!isInvoiceQuery) return null;
@@ -377,7 +379,8 @@ public class ChatbotController : BaseController
         try
         {
             // ponytail: GetAwaiter().GetResult() tránh deadlock khi gọi async từ sync context
-            var docs = _eDelivery.GetDocumentsByOrder(orderId).GetAwaiter().GetResult();
+            // ponytail: Fix #4 — dùng await thay vì GetAwaiter().GetResult() tránh deadlock
+            var docs = await _eDelivery.GetDocumentsByOrder(orderId);
             if (docs.Count == 0)
             {
                 return new
@@ -409,6 +412,7 @@ public class ChatbotController : BaseController
         catch (Exception ex)
         {
             Console.Error.WriteLine($"[Chatbot] Invoice lookup error: {ex.Message}");
+            _logger.LogError(ex, "Invoice lookup failed for order #{OrderId}", orderId);
             return new
             {
                 reply = "❌ Không thể tra cứu hóa đơn lúc này. Vui lòng thử lại sau.",
@@ -530,6 +534,11 @@ public class ChatbotController : BaseController
                 + $"Quán: {string.Join(", ", listQuan)}. "
                 + "Phí ship cố định 15k, miễn phí ship từ 200k.";
         }
-        catch { return "Dữ liệu hệ thống FastShip: quán ăn, món ăn, đơn hàng."; }
+        catch (Exception ex)
+        {
+            // ponytail: Fix #9 — log l?i DB thay vì silent exception
+            _logger.LogWarning(ex, "GetDBContextSummary failed — fallback used");
+            return "Dữ liệu hệ thống FastShip: quán ăn, món ăn, đơn hàng.";
+        }
     }
 }

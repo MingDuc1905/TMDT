@@ -222,6 +222,9 @@ public class Chats : Hub
                     _logger.LogWarning(ex, "Redis cache unavailable for connection tracking");
                 }
 
+                // ponytail: join customer_{userId} group trước broadcast — tránh race condition
+                await Groups.AddToGroupAsync(Context.ConnectionId, $"customer_{userId}");
+
                 // ponytail: chi broadcast toi groups lien quan, khong phai Clients.All
                 await Clients.Group("shippers").SendAsync("shipperOnline", userId);
                 await Clients.Group("admins").SendAsync("userOnline", userId, true);

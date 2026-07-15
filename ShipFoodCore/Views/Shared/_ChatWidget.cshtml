@@ -250,7 +250,6 @@
             document.getElementById('adminTabBadge').textContent = '0';
             // Load l?ch s? tin nh?n
             loadMyMessages();
-            if (!adminConn || adminConn.state === 'Disconnected') connectAdmin();
         } else if (tab === 'ai') {
             // Load l?ch s? h?i tho?i AI t? session
             loadAiHistory();
@@ -389,6 +388,10 @@
         }
     });
 
+    // ponytail: Fix #3 — k?t n?i SignalR ngay khi load trang, ko ch? khi b?m tab "H? tr?
+    // ?? admin có th? g?i tin cho customer dù user dang ? tab AI
+    connectAdmin().catch(function(e){ console.warn('SignalR early connect failed:', e); });
+
     // L?ng nghe s? ki?n unreadCountUpdate real-time t? SignalR hub
     // (listener ???c d?ng ký trong connectAdmin() d??i dây, sau khi adminConn ???c kh?i t?o)
     // Check l?n ??u khi load (AJAX, không c?n SignalR)
@@ -492,6 +495,7 @@
 
     function rejoinAdminGroup() {
         if (!adminConn || adminConn.state !== 'Connected') return;
+        // ponytail: customer chi join customer_{userId} + order groups, KHONG join admin groups
         adminConn.invoke('JoinCustomerSupportGroup', adminUserId).catch(function(){});
         if (adminOrderId > 0) adminConn.invoke('JoinOrderGroup', adminOrderId).catch(function(){});
     }

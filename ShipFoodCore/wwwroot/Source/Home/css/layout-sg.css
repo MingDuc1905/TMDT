@@ -86,7 +86,7 @@ body.fs-body-padded {
    HEADER / NAVBAR
    ============================================================ */
 .fs-header {
-    /* Normal flow — nav được fixed riêng qua JS */
+    position: relative;
     background: #fff;
     overflow: visible !important;
 }
@@ -101,11 +101,6 @@ body.fs-body-padded {
     background: #fff;
     box-shadow: 0 4px 20px rgba(0,0,0,.12);
     transition: box-shadow .3s ease;
-}
-
-/* Subtle shadow trên header khi đã cuộn (trước khi nav fixed) */
-.fs-header.scrolled {
-    box-shadow: 0 2px 8px rgba(0,0,0,.06);
 }
 
 /* Top bar — thu nhỏ để khít viewport */
@@ -294,7 +289,7 @@ body.fs-body-padded {
         border-top: 1px solid var(--fs-border);
         padding: 8px 0 12px;
         max-height: calc(100vh - var(--fs-nav-h));
-        overflow: visible !important;
+        overflow-y: auto !important;
     }
     .fs-nav .navbar-nav .nav-link {
         padding: 10px 16px;
@@ -306,12 +301,6 @@ body.fs-body-padded {
         background: var(--fs-light);
         border-radius: 0;
         padding: 0 0 4px 12px;
-    }
-    /* ponytail: fix dropdown mobile ngoài collapse bị clip */
-    .d-lg-none > .dropdown .dropdown-menu {
-        position: absolute !important;
-        overflow: visible !important;
-        z-index: 1070 !important;
     }
 }
 

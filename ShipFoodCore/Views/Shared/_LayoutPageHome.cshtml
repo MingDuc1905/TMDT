@@ -156,8 +156,12 @@
     </div>
     <!-- Skeleton End -->
 
-    <!-- ===== NAVBAR (z-index: 1050) ===== -->
-    <header class="fs-header" id="fsHeader" style="position:sticky;top:0;z-index:1050;background:#fff;box-shadow:0 2px 12px rgba(0,0,0,.06);">
+    <!-- ===== NAVBAR ===== -->
+    @{
+        var ctrl = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+        var act  = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+    }
+    <header class="fs-header" id="fsHeader" style="z-index:1050;background:#fff;box-shadow:0 2px 12px rgba(0,0,0,.06);">
         <!-- Top info bar (desktop only) -->
         <div class="fs-topbar d-none d-lg-block">
             <div class="container-fluid px-5">
@@ -195,65 +199,13 @@
                     <span class="logo-f">F</span><span class="logo-ast">ast</span><span class="logo-ship">ship</span>
                 </a>
 
-                <!-- ═══ MOBILE HEADER: always visible icons (login/logout, cart, hamburger) ═══ -->
-                <div class="d-flex d-lg-none align-items-center ms-auto ms-lg-0 gap-1 me-1">
-                    @if (user != null)
-                    {
-                        <!-- Avatar dropdown (mobile) -->
-                        <div class="dropdown">
-                            <button class="btn p-0 border-0 dropdown-toggle" type="button"
-                                    data-bs-toggle="dropdown" data-bs-auto-close="true" aria-expanded="false"
-                                    style="width:36px;height:36px;border-radius:50%;background:var(--fs-green);color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;box-shadow:none;">
-                                @user.username.Substring(0,1).ToUpper()
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end fs-user-dropdown-menu" style="min-width:200px;">
-                                <li><span class="dropdown-item-text px-3 py-2" style="font-size:12px;color:#888;">Xin chào,</span></li>
-                                <li><span class="dropdown-item-text px-3 pb-2 fw-bold" style="font-size:15px;">@user.username</span></li>
-                                <li><hr class="dropdown-divider" style="margin:4px 16px;"></li>
-                                <li><a class="dropdown-item d-flex align-items-center gap-2 px-3 py-2" href="/Cart/LichSuDatHang"><i class="fa fa-history" style="width:18px;color:#6b7280;"></i> Lịch sử đơn hàng</a></li>
-                                <li><a class="dropdown-item d-flex align-items-center gap-2 px-3 py-2" href="/Home/Wallet"><i class="fa fa-wallet" style="width:18px;color:var(--fs-green);"></i> Ví tiền</a></li>
-                                <li><a class="dropdown-item d-flex align-items-center gap-2 px-3 py-2" href="/Home/Profile"><i class="fa fa-user" style="width:18px;color:#6b7280;"></i> Hồ sơ</a></li>
-                                @if (user.loaitaikhoan.Equals("Quán ăn"))
-                                {
-                                    <li><a class="dropdown-item d-flex align-items-center gap-2 px-3 py-2" href="/Restaurant"><i class="fa fa-store" style="width:18px;color:#6b7280;"></i> Quản lý quán</a></li>
-                                }
-                                @if (user.loaitaikhoan.Equals("Shipper"))
-                                {
-                                    <li><a class="dropdown-item d-flex align-items-center gap-2 px-3 py-2" href="/Shipper"><i class="fa fa-truck" style="width:18px;color:#6b7280;"></i> Bảng điều khiển</a></li>
-                                }
-                                @if (user.loaitaikhoan.Equals("Admin"))
-                                {
-                                    <li><a class="dropdown-item d-flex align-items-center gap-2 px-3 py-2" href="/Admin"><i class="fa fa-shield-alt" style="width:18px;color:#6b7280;"></i> Quản trị</a></li>
-                                }
-                                <li><hr class="dropdown-divider" style="margin:4px 16px;"></li>
-                                <li><a class="dropdown-item d-flex align-items-center gap-2 px-3 py-2" href="/Home/Logout" style="color:#ef4444;"><i class="fa fa-sign-out-alt" style="width:18px;"></i> Đăng xuất</a></li>
-                            </ul>
-                        </div>
-                    }
-                    else
-                    {
-                        <a href="/Home/Login" class="fs-mobile-login-btn" aria-label="Đăng nhập" title="Đăng nhập"
-                           style="display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;color:#3CB815;font-size:16px;border:1.5px solid rgba(60,184,21,.3);transition:all .15s;text-decoration:none;"
-                           onmouseenter="this.style.background='#3CB815';this.style.color='#fff'"
-                           onmouseleave="this.style.background='transparent';this.style.color='#3CB815'">
-                            <i class="fa fa-sign-in-alt" style="font-size:14px;" aria-hidden="true"></i>
-                        </a>
-                    }
-                    <a class="fs-cart-btn" href="/Cart" aria-label="Giỏ hàng" id="navCartBtnMobile" style="position:relative;">
-                        <i class="fa fa-shopping-bag"></i>
-                        <span class="fs-cart-badge" id="navCartBadgeMobile" style="display:none;position:absolute;top:-6px;right:-6px;background:#dc3545;color:#fff;width:20px;height:20px;border-radius:50%;font-size:11px;align-items:center;justify-content:center;font-weight:700;">0</span>
-                    </a>
-                    <button type="button" class="d-lg-none navbar-toggler border-0" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Mở menu">
-                        <span class="navbar-toggler-icon"></span>
-                    </button>
-                </div>
-
-                <!-- Search (visible inline on desktop) -->
                 @{
                     var selectedIdDM = ViewBag.idDM as int?;
                     List<tbDanhMuc> allDanhMuc = new List<tbDanhMuc>();
-                    try { allDanhMuc = _db.tbDanhMuc.ToList(); } catch { /* DB unavailable — skip category filter */ }
+                    try { allDanhMuc = _db.tbDanhMuc.ToList(); } catch { }
                 }
+
+                <!-- Desktop search (hidden on mobile) -->
                 <div class="fs-search-wrap d-none d-lg-flex">
                     <form action="/Home" method="get" class="fs-search-form" role="search" aria-label="Tìm quán ăn">
                         <select name="idDM" aria-label="Chọn danh mục">
@@ -277,11 +229,11 @@
 
                 <!-- Collapse menu -->
                 <div class="collapse navbar-collapse" id="navbarCollapse">
-                    <!-- Mobile search inside collapse -->
+                    <!-- Mobile search (hidden on desktop) -->
                     <div class="d-lg-none px-2 py-2">
                         <form action="/Home" method="get" class="fs-search-form-mobile" role="search">
                             <div class="input-group">
-                                <select name="idDM" class="form-select form-select-sm fs-select-mobile" aria-label="Danh mục">
+                                <select name="idDM" class="form-select form-select-sm fs-select-mobile" aria-label="Chọn danh mục">
                                     <option value="">Tất cả</option>
                                     @foreach (var item in allDanhMuc)
                                     {
@@ -295,30 +247,37 @@
                                         }
                                     }
                                 </select>
-                                <input type="text" value="@ViewBag.txtSearch" name="txtSearch" class="form-control form-control-sm" placeholder="Tìm quán ăn..." />
+                                <input type="text" value="@ViewBag.txtSearch" name="txtSearch" class="form-control form-control-sm" placeholder="Tìm quán ăn..." aria-label="Từ khoá tìm kiếm" />
                                 <button type="submit" class="btn btn-success btn-sm px-3"><i class="fa fa-search"></i></button>
                             </div>
                         </form>
                     </div>
 
                     <!-- Nav links -->
-                    <div class="navbar-nav ms-auto p-2 p-lg-0 align-items-lg-center">
-                        <a href="/Home" class="nav-item nav-link">Trang chủ</a>
-                        <a href="/Home/DanhMuc" class="nav-item nav-link">Menu ẩm thực</a>                            @if (user != null)
-                            {                        
-                            <!-- ═══ DESKTOP: user dropdown ═══ -->
-                            <div class="d-lg-flex align-items-center ms-2 dropdown">
+                    <div class="navbar-nav ms-auto p-2 p-lg-0 align-items-lg-center gap-1">
+                        <a href="/Home" class="nav-link @(ctrl=="Home" && act=="Index" ? "active" : "")">Trang chủ</a>
+                        <a href="/Home/DanhMuc" class="nav-link @(ctrl=="Home" && act=="DanhMuc" ? "active" : "")">Menu ẩm thực</a>
+
+                        @if (user != null)
+                        {
+                            <a href="/Cart/LichSuDatHang" class="nav-link @(ctrl=="Cart" && act=="LichSuDatHang" ? "active" : "")">
+                                <i class="fa fa-receipt d-lg-none me-1"></i>Đơn hàng
+                            </a>
+                            <a href="/Home/Wallet" class="nav-link @(ctrl=="Home" && act=="Wallet" ? "active" : "")">
+                                <i class="fa fa-wallet d-lg-none me-1"></i>Ví tiền
+                            </a>
+
+                            <!-- Desktop: avatar dropdown (profile + role links + logout) -->
+                            <div class="d-none d-lg-flex align-items-center ms-1 dropdown">
                                 <button class="btn dropdown-toggle d-flex align-items-center gap-1 px-2 py-1 fs-user-dropdown-toggle" type="button"
                                         data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
-                                    <span style="width:30px;height:30px;border-radius:50%;background:var(--fs-green);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;">@user.username.Substring(0,1).ToUpper()</span>
-                                    <span class="d-none d-lg-inline" style="font-size:13px;font-weight:500;line-height:1;color:#1a1a2e;">@user.username</span>
+                                    <span style="width:30px;height:30px;border-radius:50%;background:var(--fs-green);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;">@(user.username?.Length > 0 ? user.username.Substring(0,1).ToUpper() : "?")</span>
+                                    <span class="d-none d-xl-inline" style="font-size:13px;font-weight:500;line-height:1;color:#1a1a2e;">@user.username</span>
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-end fs-user-dropdown-menu" style="min-width:200px;">
                                     <li><span class="dropdown-item-text px-3 py-2" style="font-size:12px;color:#888;">Xin chào,</span></li>
                                     <li><span class="dropdown-item-text px-3 pb-2 fw-bold" style="font-size:15px;">@user.username</span></li>
                                     <li><hr class="dropdown-divider" style="margin:4px 16px;"></li>
-                                    <li><a class="dropdown-item d-flex align-items-center gap-2 px-3 py-2" href="/Cart/LichSuDatHang"><i class="fa fa-history" style="width:18px;color:#6b7280;"></i> Lịch sử đơn hàng</a></li>
-                                    <li><a class="dropdown-item d-flex align-items-center gap-2 px-3 py-2" href="/Home/Wallet"><i class="fa fa-wallet" style="width:18px;color:var(--fs-green);"></i> Ví tiền</a></li>
                                     <li><a class="dropdown-item d-flex align-items-center gap-2 px-3 py-2" href="/Home/Profile"><i class="fa fa-user" style="width:18px;color:#6b7280;"></i> Hồ sơ</a></li>
                                     @if (user.loaitaikhoan.Equals("Quán ăn"))
                                     {
@@ -336,32 +295,55 @@
                                     <li><a class="dropdown-item d-flex align-items-center gap-2 px-3 py-2" href="/Home/Logout" style="color:#ef4444;"><i class="fa fa-sign-out-alt" style="width:18px;"></i> Đăng xuất</a></li>
                                 </ul>
                             </div>
+
+                            <!-- Mobile: profile + logout as direct links in collapse -->
+                            <a href="/Home/Profile" class="nav-link d-lg-none">
+                                <i class="fa fa-user me-1"></i>Hồ sơ
+                            </a>
+                            @if (user.loaitaikhoan.Equals("Quán ăn"))
+                            {
+                                <a href="/Restaurant" class="nav-link d-lg-none"><i class="fa fa-store me-1"></i>Quản lý quán</a>
+                            }
+                            @if (user.loaitaikhoan.Equals("Shipper"))
+                            {
+                                <a href="/Shipper" class="nav-link d-lg-none"><i class="fa fa-truck me-1"></i>Bảng điều khiển</a>
+                            }
+                            @if (user.loaitaikhoan.Equals("Admin"))
+                            {
+                                <a href="/Admin" class="nav-link d-lg-none"><i class="fa fa-shield-alt me-1"></i>Quản trị</a>
+                            }
+                            <a href="/Home/Logout" class="nav-link d-lg-none" style="color:#ef4444;">
+                                <i class="fa fa-sign-out-alt me-1"></i>Đăng xuất
+                            </a>
                         }
                         else
                         {
-                            <!-- ═══ DESKTOP login button — visible tr?n desktop, ko mobile (fix P14/P15) ═══ -->
-                            <div class="d-lg-flex align-items-center gap-1 gap-lg-2">
-                                <a href="/Home/Login" class="nav-link" style="font-size:13.5px;font-weight:600;border:1.5px solid var(--fs-green);border-radius:24px;padding:6px 16px;color:var(--fs-green);transition:all .2s;"
-                                   onmouseenter="this.style.background='var(--fs-green)';this.style.color='#fff'"
-                                   onmouseleave="this.style.background='transparent';this.style.color='var(--fs-green)'">
-                                    <i class="fa fa-sign-in-alt"></i>
-                                    <span class="d-none d-lg-inline">Đăng nhập</span>
-                                </a>
-                                <a href="/Home/Signup" class="nav-link" style="font-size:13.5px;font-weight:600;background:var(--fs-green);color:#fff;border-radius:24px;padding:6px 16px;border:1.5px solid var(--fs-green);transition:all .2s;"
-                                   onmouseenter="this.style.background='#2ea310';this.style.borderColor='#2ea310'"
-                                   onmouseleave="this.style.background='var(--fs-green)';this.style.borderColor='var(--fs-green)'">
-                                    <i class="fa fa-user-plus"></i>
-                                    <span class="d-none d-lg-inline">Đăng ký</span>
-                                </a>
-                            </div>
+                            <a href="/Home/Login" class="nav-link @(ctrl=="Home" && act=="Login" ? "active" : "")">
+                                <i class="fa fa-sign-in-alt d-lg-none me-1"></i>Đăng nhập
+                            </a>
+                            <a href="/Home/Signup" class="nav-link btn btn-success btn-sm text-white ms-lg-1">
+                                <i class="fa fa-user-plus d-lg-none me-1"></i>Đăng ký
+                            </a>
                         }
 
-                        <a class="fs-cart-btn d-none d-lg-flex ms-2" href="/Cart" aria-label="Giỏ hàng" id="navCartBtn" style="position:relative;">
+                        <!-- Desktop cart -->
+                        <a class="fs-cart-btn d-none d-lg-flex ms-1" href="/Cart" aria-label="Giỏ hàng" id="navCartBtn">
                             <i class="fa fa-shopping-bag"></i>
                             <span class="fs-cart-badge" id="navCartBadge" style="display:none;position:absolute;top:-6px;right:-4px;background:#dc3545;color:#fff;width:20px;height:20px;border-radius:50%;font-size:10px;align-items:center;justify-content:center;font-weight:700;box-shadow:0 2px 4px rgba(220,53,69,.3);border:2px solid #fff;">0</span>
                             <noscript><span style="position:absolute;top:-6px;right:-4px;background:#dc3545;color:#fff;width:20px;height:20px;border-radius:50%;font-size:10px;display:flex;align-items:center;justify-content:center;font-weight:700;">?</span></noscript>
                         </a>
                     </div>
+                </div>
+
+                <!-- Mobile right icons (cart + hamburger) -->
+                <div class="d-flex d-lg-none align-items-center gap-1 ms-auto">
+                    <a class="fs-cart-btn" href="/Cart" aria-label="Giỏ hàng" id="navCartBtnMobile">
+                        <i class="fa fa-shopping-bag"></i>
+                        <span class="fs-cart-badge" id="navCartBadgeMobile" style="display:none;position:absolute;top:-6px;right:-6px;background:#dc3545;color:#fff;width:20px;height:20px;border-radius:50%;font-size:11px;align-items:center;justify-content:center;font-weight:700;">0</span>
+                    </a>
+                    <button type="button" class="navbar-toggler border-0" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Mở menu">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
                 </div>
             </div>
         </nav>

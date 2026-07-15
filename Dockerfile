@@ -1,35 +1,58 @@
 # ==========================================================
-# FastShip - Docker Build
+# FastShip - Docker Build (Render-optimized)
 # ==========================================================
 
 # ==========================================================
-# Stage 1: Build
+# Stage 1: Restore (cached layer)
 # ==========================================================
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS restore
 WORKDIR /src
 
-# Copy project file and restore (cached layer)
-COPY ShipFoodCore/ShipFoodCore.csproj ./ShipFoodCore/
-RUN dotnet restore ShipFoodCore/ShipFoodCore.csproj
+# NuGet config for reliable restore
+COPY nuget.config ./
 
-# Copy everything else and publish
-COPY . .
-RUN dotnet publish ShipFoodCore/ShipFoodCore.csproj -c Release -o /app/publish --no-restore \
-    -p:DebugType=none \
-    -p:DebugSymbols=false
+# Only copy project file first — Docker caches this layer
+COPY ShipFoodCore/ShipFoodCore.csproj ./ShipFoodCore/
+
+# Restore with optimizations for low-memory
+ENV NUGET_XMLDOC_MODE=none
+ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
+ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1
+RUN dotnet restore ShipFoodCore/ShipFoodCore.csproj --verbosity quiet
 
 # ==========================================================
-# Stage 2: Runtime
+# Stage 2: Build
+# ==========================================================
+FROM restore AS build
+
+# Copy source files (dockerignore excludes .agents/, Skills/, .git/, etc.)
+COPY ShipFoodCore/ ./ShipFoodCore/
+
+# Publish with trimmed output
+RUN dotnet publish ShipFoodCore/ShipFoodCore.csproj -c Release -o /app/publish \
+    --no-restore \
+    --verbosity quiet \
+    -p:DebugType=none \
+    -p:DebugSymbols=false \
+    -p:CopyOutputSymbolsToPublishDirectory=false
+
+# ==========================================================
+# Stage 3: Runtime (slim image)
 # ==========================================================
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
+
+# Copy published app
 COPY --from=build /app/publish .
 COPY seed.sql ./seed.sql
 
-EXPOSE 8080
-ENV ASPNETCORE_URLS=http://+:8080
+# Suppress ICU warning (kosher for ASP.NET)
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1
+ENV ASPNETCORE_URLS=http://+:8080
 ENV DOTNET_USE_POLLING_FILE_WATCHER=1
 ENV ASPNETCORE_ENVIRONMENT=Production
+ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
+
+EXPOSE 8080
 
 ENTRYPOINT ["dotnet", "ShipFoodCore.dll"]

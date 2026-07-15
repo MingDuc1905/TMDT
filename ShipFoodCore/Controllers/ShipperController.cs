@@ -182,7 +182,7 @@ public class ShipperController : BaseController
         return View(shipper ?? new tbUser());
     }
 
-    public ActionResult OrderDetail(int? id)
+    public async Task<ActionResult> OrderDetail(int? id)
     {
         var sh = GetCurrentUser();
         if (sh == null || !checkShipper()) return RedirectToAction("Login", "Home");
@@ -217,6 +217,13 @@ public class ShipperController : BaseController
             }
             // Trường hợp chính shipper này đã claim rồi (reload trang) → cho qua
         }
+
+        // ═══ SignalR: Broadcast toàn bộ shippers rằng đơn đã được nhận ═══
+        try
+        {
+            await _hubContext.Clients.Group("shippers").SendAsync("orderAccepted", id, sh.userid);
+        }
+        catch { }
 
         var listctdh = db.tbChiTietDonHang
             .Where(ct => ct.madh == id)

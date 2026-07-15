@@ -284,13 +284,19 @@
                         <i class="fas fa-arrow-right"></i>
                     </div>
                     <div class="col-lg-3">
-                        <a id="btnPickup" class="btn btn-primary w-100 @(dh.trangthai == "Lấy hàng" ? "disabled" : " ") @(dh.trangthai == "Hoàn thành" ? "disabled" : " ")" onclick="updateOrderStatus('btnPickup', 'lh',@dh.madh)" >Lấy hàng</a>
+                        <a id="btnPickup" class="btn btn-primary w-100 @(dh.trangthai == "Đã lấy" || dh.trangthai == "Đang giao" || dh.trangthai == "Hoàn thành" ? "disabled" : " ")" onclick="updateOrderStatus('btnPickup', 'lh',@dh.madh)" >Lấy hàng</a>
                     </div>
                     <div class="arrow" style="align-self:center">
                         <i class="fas fa-arrow-right"></i>
                     </div>
                     <div class="col-lg-3">
-                        <a id="btnComplete" class="btn btn-primary w-100 @(dh.trangthai == "Hoàn thành" ? "disabled" : " ")" onclick="updateOrderStatus('btnComplete', 'ht',@dh.madh)" >Hoàn thành</a>
+                        <a id="btnDelivering" class="btn btn-primary w-100 @(dh.trangthai == "Đang giao" || dh.trangthai == "Hoàn thành" || dh.trangthai == "Đã đặt" || dh.trangthai == "Chờ shipper lấy hàng" ? "disabled" : " ")" onclick="updateOrderStatus('btnDelivering', 'dg',@dh.madh)" >Đang giao</a>
+                    </div>
+                    <div class="arrow" style="align-self:center">
+                        <i class="fas fa-arrow-right"></i>
+                    </div>
+                    <div class="col-lg-3">
+                        <a id="btnComplete" class="btn btn-primary w-100 @(dh.trangthai == "Hoàn thành" || dh.trangthai == "Đã đặt" || dh.trangthai == "Chờ shipper lấy hàng" || dh.trangthai == "Đã lấy" ? "disabled" : " ")" onclick="updateOrderStatus('btnComplete', 'ht',@dh.madh)" >Hoàn thành</a>
                     </div>
                 </div>
             </div>

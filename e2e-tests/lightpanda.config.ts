@@ -22,16 +22,16 @@ import { defineConfig } from '@playwright/test';
  * Xem: https://github.com/lightpanda-io/browser
  */
 export default defineConfig({
-  testDir: './examples',
+  testDir: './tests',
   // ponytail: Lightpanda nhanh hơn Chrome 9x → giảm timeout
-  timeout: 30_000,              // 30s (vs 60s cho Chromium)
+  timeout: 90_000,              // 90s — Render free tier 23-25s/page + Lightpanda Beta overhead
   expect: {
-    timeout: 10_000,             // 10s (vs 15s cho Chromium)
+    timeout: 30_000,             // 30s
   },
-  fullyParallel: true,           // Lightpanda nhẹ → chạy parallel được
+  fullyParallel: false,          // Render free tier rate limit → serial
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 1 : 0,
-  workers: process.env.CI ? 2 : 4,
+  retries: 0,
+  workers: 1,
 
   reporter: [
     ['html', { outputFolder: 'playwright-report-lightpanda' }],
@@ -40,8 +40,8 @@ export default defineConfig({
 
   use: {
     baseURL: process.env.BASE_URL || 'https://fastship-web.onrender.com',
-    actionTimeout: 15_000,       // 15s
-    navigationTimeout: 15_000,   // 15s
+    actionTimeout: 30_000,       // 30s
+    navigationTimeout: 60_000,   // 60s — Render cold start can take 25s+
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
     trace: 'on-first-retry',

@@ -73,6 +73,14 @@ UpgradeLog*.htm
 appsettings.json
 
 # ============
+# Playwright E2E
+# ============
+e2e-tests/playwright-report/
+e2e-tests/test-results/
+e2e-tests/screenshots/
+e2e-tests/playwright-report-lightpanda/
+
+# ============
 # OS
 # ============
 .DS_Store

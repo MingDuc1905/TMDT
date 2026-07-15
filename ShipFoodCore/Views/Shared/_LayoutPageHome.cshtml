@@ -112,7 +112,7 @@
                 </a>
 
                 <!-- ═══ MOBILE HEADER: always visible icons (login/logout, cart, hamburger) ═══ -->
-                <div class="d-flex d-lg-none align-items-center ms-auto gap-1 me-1">
+                <div class="d-flex align-items-center ms-auto ms-lg-0 gap-1 me-1">
                     @if (user != null)
                     {
                         <!-- User avatar icon → đơn hàng (luôn visible) -->
@@ -142,7 +142,7 @@
                         <i class="fa fa-shopping-bag"></i>
                         <span class="fs-cart-badge" id="navCartBadgeMobile" style="display:none;position:absolute;top:-6px;right:-6px;background:#dc3545;color:#fff;width:20px;height:20px;border-radius:50%;font-size:11px;align-items:center;justify-content:center;font-weight:700;">0</span>
                     </a>
-                    <button type="button" class="navbar-toggler border-0" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Mở menu">
+                    <button type="button" class="d-lg-none navbar-toggler border-0" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Mở menu">
                         <span class="navbar-toggler-icon"></span>
                     </button>
                 </div>

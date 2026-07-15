@@ -25,7 +25,7 @@ export class AdminPage extends BasePage {
     this.userManagementLink = page.locator('a[href*="/Admin/QuanLyKhachHang"]');
     this.orderManagementLink = page.locator('a[href*="/Admin/Order"]');
     this.categoryManagementLink = page.locator('a[href*="/Admin/Category"]');
-    this.kpiCards = page.locator('.card-header, [class*="kpi"]');
+    this.kpiCards = page.locator('.stat-card');
     this.revenueChart = page.locator('canvas');
     this.orderTable = page.locator('.table-responsive table');
   }
@@ -66,7 +66,7 @@ export class AdminPage extends BasePage {
 
   /** Tìm kiếm user trong bảng quản lý */
   async searchUser(keyword: string) {
-    const searchInput = this.page.locator('input[type="search"], input[placeholder*="tìm"]').first();
+    const searchInput = this.page.locator('#searchInput').first();
     await searchInput.fill(keyword);
     await this.page.waitForTimeout(1000);
   }

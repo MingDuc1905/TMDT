@@ -210,7 +210,9 @@
 
         <!-- Category filter pills — 🍽 → FA icon -->
         <!-- ponytail: class "wow" gây ẩn element khi wow.js chưa init → thêm fallback visible -->
-        <div class="fs-category-row" id="categoryRow" style="opacity:1!important;visibility:visible!important;">
+        <!-- ponytail: overflow-x: auto + -webkit-overflow-scrolling: touch cho mobile (fix P12) -->
+        <!-- ponytail: overflow-x:auto cho mobile scroll (fix P12), ko c?n white-space v? display:flex m?c d?nh nowrap -->
+        <div class="fs-category-row" id="categoryRow" style="opacity:1!important;visibility:visible!important;overflow-x:auto;-webkit-overflow-scrolling:touch;display:flex;gap:8px;padding-bottom:8px;">
             <a href="/Home" class="fs-category-pill @(idDMActive == null ? "active" : "")">
                 <i class="fa fa-th-list me-1"></i> Tất cả
             </a>

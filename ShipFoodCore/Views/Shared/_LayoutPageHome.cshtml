@@ -51,6 +51,34 @@
         .fs-trans-x:hover { transform: translateX(4px); }
         .fs-card-hover:hover { border-color: #3CB815 !important; box-shadow: 0 2px 12px rgba(60,184,21,.15) !important; }
         .fs-btn-hover-green:hover { background: #2ea310 !important; border-color: #2ea310 !important; }
+
+        /* ─── User dropdown fix: không bị ẩn trong collapse ─── */
+        .fs-user-dropdown-toggle {
+            font-size: 13.5px; font-weight: 600; border: 1.5px solid var(--fs-green);
+            border-radius: 24px; padding: 6px 14px 6px 8px; color: #1a1a2e;
+            background: #fff; transition: all .2s; box-shadow: none; line-height: 1;
+        }
+        .fs-user-dropdown-toggle:hover, .fs-user-dropdown-toggle:focus, .fs-user-dropdown-toggle:active {
+            background: rgba(60,184,21,.07) !important; border-color: var(--fs-green) !important;
+            box-shadow: none !important; color: #1a1a2e !important;
+        }
+        .fs-user-dropdown-toggle.dropdown-toggle::after { margin-left: 4px; }
+        .fs-user-dropdown-menu {
+            border-radius: 12px; border: 1px solid #f0f0f0; padding: 6px 0;
+            box-shadow: 0 8px 32px rgba(0,0,0,.12); z-index: 1060 !important;
+        }
+        .fs-user-dropdown-menu .dropdown-item { border-radius: 8px; margin: 0 6px; padding: 8px 12px; font-size: 14px; transition: background .15s; }
+        .fs-user-dropdown-menu .dropdown-item:hover { background: rgba(60,184,21,.08); }
+        /* Fix dropdown inside Bootstrap collapse: không bị clip */
+        .navbar-collapse.show .dropdown .fs-user-dropdown-menu,
+        .navbar-collapse.collapsing .dropdown .fs-user-dropdown-menu {
+            position: absolute !important;
+            overflow: visible !important;
+        }
+        @@media (min-width: 992px) {
+            .navbar-nav .dropdown { position: relative; }
+            .navbar-nav .dropdown .fs-user-dropdown-menu { right: 0; left: auto; top: 100%; }
+        }
     </style>
 
     <!-- Auto aria-hidden cho FA icons (fix P11 — khỏi sửa từng icon th? công) -->
@@ -171,23 +199,36 @@
                 <div class="d-flex d-lg-none align-items-center ms-auto ms-lg-0 gap-1 me-1">
                     @if (user != null)
                     {
-                        <!-- Wallet icon (luôn visible) -->
-                        <a href="/Home/Wallet" class="fs-mobile-icon" aria-label="Ví tiền" title="Ví tiền"
-                           style="display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;color:#3CB815;font-size:16px;border:1.5px solid rgba(60,184,21,.3);transition:all .15s;text-decoration:none;"
-                           onmouseenter="this.style.background='#3CB815';this.style.color='#fff'"
-                           onmouseleave="this.style.background='transparent';this.style.color='#3CB815'">
-                            <i class="fa fa-wallet" aria-hidden="true"></i>
-                        </a>
-                        <!-- Avatar initial (tên user, link đến Lịch sử) -->
-                        <a href="/Cart/LichSuDatHang" class="fs-mobile-icon" aria-label="Lịch sử đơn hàng" title="@user.username - Lịch sử đơn hàng"
-                           style="display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;background:var(--fs-green);color:#fff;font-size:13px;font-weight:700;text-decoration:none;transition:opacity .15s;"
-                           onmouseenter="this.style.opacity='.8'" onmouseleave="this.style.opacity='1'">
-                            @user.username.Substring(0,1).ToUpper()
-                        </a>
-                        <!-- Logout icon (luôn visible) -->
-                        <a href="/Home/Logout" class="fs-logout-btn fs-mobile-icon" aria-label="Đăng xuất" title="Đăng xuất">
-                            <i class="fa fa-sign-out-alt" aria-hidden="true"></i>
-                        </a>
+                        <!-- Avatar dropdown (mobile) -->
+                        <div class="dropdown">
+                            <button class="btn p-0 border-0 dropdown-toggle" type="button"
+                                    data-bs-toggle="dropdown" data-bs-auto-close="true" aria-expanded="false"
+                                    style="width:36px;height:36px;border-radius:50%;background:var(--fs-green);color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;box-shadow:none;">
+                                @user.username.Substring(0,1).ToUpper()
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end fs-user-dropdown-menu" style="min-width:200px;">
+                                <li><span class="dropdown-item-text px-3 py-2" style="font-size:12px;color:#888;">Xin chào,</span></li>
+                                <li><span class="dropdown-item-text px-3 pb-2 fw-bold" style="font-size:15px;">@user.username</span></li>
+                                <li><hr class="dropdown-divider" style="margin:4px 16px;"></li>
+                                <li><a class="dropdown-item d-flex align-items-center gap-2 px-3 py-2" href="/Cart/LichSuDatHang"><i class="fa fa-history" style="width:18px;color:#6b7280;"></i> Lịch sử đơn hàng</a></li>
+                                <li><a class="dropdown-item d-flex align-items-center gap-2 px-3 py-2" href="/Home/Wallet"><i class="fa fa-wallet" style="width:18px;color:var(--fs-green);"></i> Ví tiền</a></li>
+                                <li><a class="dropdown-item d-flex align-items-center gap-2 px-3 py-2" href="/Home/Profile"><i class="fa fa-user" style="width:18px;color:#6b7280;"></i> Hồ sơ</a></li>
+                                @if (user.loaitaikhoan.Equals("Quán ăn"))
+                                {
+                                    <li><a class="dropdown-item d-flex align-items-center gap-2 px-3 py-2" href="/Restaurant"><i class="fa fa-store" style="width:18px;color:#6b7280;"></i> Quản lý quán</a></li>
+                                }
+                                @if (user.loaitaikhoan.Equals("Shipper"))
+                                {
+                                    <li><a class="dropdown-item d-flex align-items-center gap-2 px-3 py-2" href="/Shipper"><i class="fa fa-truck" style="width:18px;color:#6b7280;"></i> Bảng điều khiển</a></li>
+                                }
+                                @if (user.loaitaikhoan.Equals("Admin"))
+                                {
+                                    <li><a class="dropdown-item d-flex align-items-center gap-2 px-3 py-2" href="/Admin"><i class="fa fa-shield-alt" style="width:18px;color:#6b7280;"></i> Quản trị</a></li>
+                                }
+                                <li><hr class="dropdown-divider" style="margin:4px 16px;"></li>
+                                <li><a class="dropdown-item d-flex align-items-center gap-2 px-3 py-2" href="/Home/Logout" style="color:#ef4444;"><i class="fa fa-sign-out-alt" style="width:18px;"></i> Đăng xuất</a></li>
+                            </ul>
+                        </div>
                     }
                     else
                     {
@@ -265,72 +306,35 @@
                         <a href="/Home" class="nav-item nav-link">Trang chủ</a>
                         <a href="/Home/DanhMuc" class="nav-item nav-link">Menu ẩm thực</a>                            @if (user != null)
                             {                        
-                            <!-- ═══ DESKTOP: user dropdown — g?n h?t vào 1 menu ═══ -->
+                            <!-- ═══ DESKTOP: user dropdown ═══ -->
                             <div class="d-lg-flex align-items-center ms-2 dropdown">
-                                <span class="d-flex align-items-center gap-1 px-2 py-1" style="cursor:pointer;border-radius:8px;transition:background .15s;" data-bs-toggle="dropdown" aria-expanded="false" onmouseenter="this.style.background='rgba(60,184,21,.07)'" onmouseleave="this.style.background='transparent'">
-                                    <span class="fs-avatar-xs" style="width:30px;height:30px;border-radius:50%;background:var(--fs-green);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;">@user.username.Substring(0,1).ToUpper()</span>
-                                    <span class="fs-13 fw-500" style="line-height:1;">@user.username</span>
-                                    <i class="fa fa-chevron-down" style="font-size:9px;color:#9ca3af;"></i>
-                                </span>
-                                <div class="dropdown-menu dropdown-menu-end shadow-sm" style="border-radius:12px;border:1px solid #f0f0f0;min-width:190px;padding:6px;">
-                                    <a href="/Cart/LichSuDatHang" class="dropdown-item py-2 px-3" style="border-radius:8px;">
-                                        <i class="fa fa-history me-2" style="color:#6b7280;"></i> Lịch sử đơn hàng
-                                    </a>
-                                    <a href="/Home/Wallet" class="dropdown-item py-2 px-3" style="border-radius:8px;">
-                                        <i class="fa fa-wallet me-2" style="color:#3CB815;"></i> Ví tiền
-                                    </a>
-                                    <a href="/Home/Profile" class="dropdown-item py-2 px-3" style="border-radius:8px;">
-                                        <i class="fa fa-user me-2" style="color:#6b7280;"></i> Hồ sơ
-                                    </a>
+                                <button class="btn dropdown-toggle d-flex align-items-center gap-1 px-2 py-1 fs-user-dropdown-toggle" type="button"
+                                        data-bs-toggle="dropdown" data-bs-auto-close="true" aria-expanded="false">
+                                    <span style="width:30px;height:30px;border-radius:50%;background:var(--fs-green);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;">@user.username.Substring(0,1).ToUpper()</span>
+                                    <span class="d-none d-lg-inline" style="font-size:13px;font-weight:500;line-height:1;color:#1a1a2e;">@user.username</span>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end fs-user-dropdown-menu" style="min-width:200px;">
+                                    <li><span class="dropdown-item-text px-3 py-2" style="font-size:12px;color:#888;">Xin chào,</span></li>
+                                    <li><span class="dropdown-item-text px-3 pb-2 fw-bold" style="font-size:15px;">@user.username</span></li>
+                                    <li><hr class="dropdown-divider" style="margin:4px 16px;"></li>
+                                    <li><a class="dropdown-item d-flex align-items-center gap-2 px-3 py-2" href="/Cart/LichSuDatHang"><i class="fa fa-history" style="width:18px;color:#6b7280;"></i> Lịch sử đơn hàng</a></li>
+                                    <li><a class="dropdown-item d-flex align-items-center gap-2 px-3 py-2" href="/Home/Wallet"><i class="fa fa-wallet" style="width:18px;color:var(--fs-green);"></i> Ví tiền</a></li>
+                                    <li><a class="dropdown-item d-flex align-items-center gap-2 px-3 py-2" href="/Home/Profile"><i class="fa fa-user" style="width:18px;color:#6b7280;"></i> Hồ sơ</a></li>
                                     @if (user.loaitaikhoan.Equals("Quán ăn"))
                                     {
-                                        <a href="/Restaurant" class="dropdown-item py-2 px-3" style="border-radius:8px;">
-                                            <i class="fa fa-store me-2" style="color:#6b7280;"></i> Quản lý quán
-                                        </a>
+                                        <li><a class="dropdown-item d-flex align-items-center gap-2 px-3 py-2" href="/Restaurant"><i class="fa fa-store" style="width:18px;color:#6b7280;"></i> Quản lý quán</a></li>
                                     }
                                     @if (user.loaitaikhoan.Equals("Shipper"))
                                     {
-                                        <a href="/Shipper" class="dropdown-item py-2 px-3" style="border-radius:8px;">
-                                            <i class="fa fa-truck me-2" style="color:#6b7280;"></i> Bảng điều khiển
-                                        </a>
+                                        <li><a class="dropdown-item d-flex align-items-center gap-2 px-3 py-2" href="/Shipper"><i class="fa fa-truck" style="width:18px;color:#6b7280;"></i> Bảng điều khiển</a></li>
                                     }
                                     @if (user.loaitaikhoan.Equals("Admin"))
                                     {
-                                        <a href="/Admin" class="dropdown-item py-2 px-3" style="border-radius:8px;">
-                                            <i class="fa fa-shield-alt me-2" style="color:#6b7280;"></i> Quản trị
-                                        </a>
+                                        <li><a class="dropdown-item d-flex align-items-center gap-2 px-3 py-2" href="/Admin"><i class="fa fa-shield-alt" style="width:18px;color:#6b7280;"></i> Quản trị</a></li>
                                     }
-                                    <div class="dropdown-divider my-1"></div>
-                                    <a href="/Home/Logout" class="dropdown-item py-2 px-3" style="border-radius:8px;color:#ef4444;">
-                                        <i class="fa fa-sign-out-alt me-2"></i> Đăng xuất
-                                    </a>
-                                </div>
-                            </div>
-                            <!-- ═══ MOBILE: direct links (visible <992px) ═══ -->
-                            <div class="d-lg-none border-top mt-2 pt-2 px-2">
-                                <div class="text-muted small mb-2 px-2">
-                                    <i class="fa fa-user-circle me-1"></i>Xin chào, <strong class="text-dark">@user.username</strong>
-                                </div>
-                                <a href="/Cart/LichSuDatHang" class="d-flex align-items-center gap-2 py-2 px-2 rounded text-decoration-none text-dark fs-nav-hover">
-                                    <i class="fa fa-history" style="width:18px;color:var(--fs-green);"></i>
-                                    <span>Lịch sử đơn hàng</span>
-                                </a>
-                                <a href="/Home/Wallet" class="d-flex align-items-center gap-2 py-2 px-2 rounded text-decoration-none text-dark fs-nav-hover">
-                                    <i class="fa fa-wallet" style="width:18px;color:var(--fs-green);"></i>
-                                    <span>Ví tiền</span>
-                                </a>
-                                @if (user.loaitaikhoan.Equals("Quán ăn"))
-                                {
-                                    <a href="/Restaurant" class="d-flex align-items-center gap-2 py-2 px-2 rounded text-decoration-none text-dark fs-nav-hover">
-                                        <i class="fa fa-store" style="width:18px;color:var(--fs-green);"></i>
-                                        <span>Quản lý quán</span>
-                                    </a>
-                                }
-                                <a href="/Home/Logout" class="d-flex align-items-center gap-2 py-2 px-2 rounded text-decoration-none text-danger fs-nav-hover"
-                                   style="font-weight:500;">
-                                    <i class="fa fa-sign-out-alt" style="width:18px;"></i>
-                                    <span>Đăng xuất</span>
-                                </a>
+                                    <li><hr class="dropdown-divider" style="margin:4px 16px;"></li>
+                                    <li><a class="dropdown-item d-flex align-items-center gap-2 px-3 py-2" href="/Home/Logout" style="color:#ef4444;"><i class="fa fa-sign-out-alt" style="width:18px;"></i> Đăng xuất</a></li>
+                                </ul>
                             </div>
                         }
                         else

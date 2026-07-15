@@ -126,11 +126,14 @@ body.fs-body-padded {
 }
 .fs-topbar a:hover { color: var(--fs-green); }
 
-/* Nav */
+/* Nav — sticky luôn active (fix P5: header ko b? m?t khi scroll) */
 .fs-nav {
     height: var(--fs-nav-h);
     padding: 0;
     overflow: visible !important;
+    position: sticky;
+    top: 0;
+    z-index: 10000;
 }
 
 /* Logo */
@@ -532,6 +535,22 @@ body.fs-body-padded {
     gap: 10px;
     flex-wrap: wrap;
     padding: 24px 0 4px;
+}
+@media (max-width: 768px) {
+    .fs-category-row {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 8px;
+        scrollbar-width: thin;
+    }
+    .fs-category-row::-webkit-scrollbar {
+        height: 3px;
+    }
+    .fs-category-row::-webkit-scrollbar-thumb {
+        background: #d1d5db;
+        border-radius: 4px;
+    }
 }
 .fs-category-pill {
     display: inline-flex;

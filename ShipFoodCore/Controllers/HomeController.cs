@@ -52,6 +52,13 @@ public class HomeController : BaseController
 
     public static string RemoveDiacritics(string text)
     {
+        // ponytail: null check — tránh NullReferenceException
+        if (string.IsNullOrEmpty(text)) return text ?? "";
+
+        // ponytail: X? lý ký tự D/d — Unicode normalization không chuy?n D → D
+        // Replace D?c/D?c before normalization
+        text = text.Replace('Đ', 'D').Replace('đ', 'd');
+
         var normalizedString = text.Normalize(NormalizationForm.FormD);
         var stringBuilder = new StringBuilder();
 
@@ -1095,6 +1102,90 @@ public class HomeController : BaseController
     /// <summary>
     /// Trang lỗi mặc định — tránh 404 khi exception handler redirect đến /Home/Error
     /// </summary>
+    // ─── CUSTOMER WALLET: Ví tiền cho khách hàng ───
+    public ActionResult Wallet()
+    {
+        var user = GetCurrentUser();
+        if (user == null || user.loaitaikhoan != "Khách hàng")
+            return RedirectToAction("Login");
+
+        ViewBag.WalletSuccess = TempData["WalletSuccess"];
+        ViewBag.WalletError = TempData["WalletError"];
+
+        // Lấy lịch sử đơn hàng đã hoàn thành (tương tự shipper)
+        var userId = user.userid;
+        var mattdhIds = db.tbThongTinDatHang
+            .Where(t => t.userid == userId)
+            .Select(t => t.mattdh)
+            .ToList();
+        var listdh = db.tbDonHang
+            .Where(dh => mattdhIds.Contains(dh.mattdh ?? 0))
+            .OrderByDescending(dh => dh.ngaydathang)
+            .Take(50)
+            .ToList();
+        ViewBag.listdh = listdh;
+
+        return View(user);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public ActionResult NapTien(decimal soTien)
+    {
+        var user = GetCurrentUser();
+        if (user == null || user.loaitaikhoan != "Khách hàng")
+            return Json(new { success = false, message = "Vui lòng đăng nhập" });
+
+        if (soTien < 10000)
+        {
+            TempData["WalletError"] = "Số tiền nạp tối thiểu là 10,000đ";
+            return RedirectToAction("Wallet");
+        }
+        if (soTien > 100000000)
+        {
+            TempData["WalletError"] = "Số tiền nạp tối đa là 100,000,000đ";
+            return RedirectToAction("Wallet");
+        }
+
+        var dbUser = db.tbUser.Find(user.userid);
+        if (dbUser != null)
+        {
+            dbUser.vitien = (dbUser.vitien ?? 0) + soTien;
+            db.SaveChanges();
+            TempData["WalletSuccess"] = $"Nạp thành công {soTien:N0}đ vào ví!";
+        }
+        return RedirectToAction("Wallet");
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public ActionResult RutTien(decimal soTien)
+    {
+        var user = GetCurrentUser();
+        if (user == null || user.loaitaikhoan != "Khách hàng")
+            return Json(new { success = false, message = "Vui lòng đăng nhập" });
+
+        if (soTien < 10000)
+        {
+            TempData["WalletError"] = "Số tiền rút tối thiểu là 10,000đ";
+            return RedirectToAction("Wallet");
+        }
+
+        var dbUser = db.tbUser.Find(user.userid);
+        if (dbUser != null)
+        {
+            if ((dbUser.vitien ?? 0) < soTien)
+            {
+                TempData["WalletError"] = $"Số dư không đủ. Hiện tại: {dbUser.vitien:N0}đ";
+                return RedirectToAction("Wallet");
+            }
+            dbUser.vitien -= soTien;
+            db.SaveChanges();
+            TempData["WalletSuccess"] = $"Rút {soTien:N0}đ thành công. Số dư mới: {dbUser.vitien:N0}đ";
+        }
+        return RedirectToAction("Wallet");
+    }
+
     public ActionResult Error()
     {
         return View();

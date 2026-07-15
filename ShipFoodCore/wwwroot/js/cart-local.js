@@ -39,6 +39,12 @@ function getCartCount() {
 
 // ─── Update cart badge trên navbar ───
 function updateCartBadge(count) {
+    // ponytail: KHÔNG hi?n badge khi ch?a d?ng nh?p (cart ch? ? localStorage, chua th?c)
+    var isLoggedIn = typeof window._IS_LOGGED_IN !== 'undefined' ? window._IS_LOGGED_IN : false;
+    if (!isLoggedIn) {
+        count = 0;
+    }
+    
     // Tìm tất cả cart badges
     document.querySelectorAll('.fs-cart-badge, .cart-count-badge').forEach(function(el) {
         if (count > 0) {

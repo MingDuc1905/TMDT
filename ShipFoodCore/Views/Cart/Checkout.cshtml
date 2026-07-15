@@ -426,6 +426,12 @@
     var URL_CHECKOUT = '@Html.Raw(urlCheckout)';
     var SHIPPING_FEE = @totalShipping;
 
+    // === Bank info th?t t? server — BIN code cho QR, tên ngân hàng riêng cho hi?n th? ===
+    var BANK_BIN = '@ViewBag.BankId' || '970415'; // BIN code (VD: 970415 = VietinBank) cho VietQR API
+    var BANK_DISPLAY = '@ViewBag.BankIdDisplay' || 'VietinBank'; // Tên hi?n th? (VD: VietinBank)
+    var BANK_ACC_NO = '@ViewBag.BankAccountNo' || '102878588446';
+    var BANK_ACC_NAME = '@ViewBag.BankAccountName' || 'BUI MINH DUC';
+
     // === Chế độ địa chỉ ===
     var addressMode = 'new'; // 'new' | 'current' | 'available'
 
@@ -530,16 +536,15 @@
             testArea.hide();
             codBtn.show().html('<i class="fas fa-check-circle me-2"></i>Xác nhận đặt hàng');
         } else if (name.includes('Chuyển khoản') || name.includes('ngân hàng') || name.includes('bank')) {
-            var bankId = '970436', accNo = '1234567890', accName = 'FASTSHIP CO., LTD'; // ponytail: 970436 = Vietcombank BIN cho VietQR API
+            var bankBin = BANK_BIN, accNo = BANK_ACC_NO, accName = BANK_ACC_NAME;
             var previewMemo = 'FASTSHIP[MaDon]';
-            var qrPreviewUrl = 'https://img.vietqr.io/image/' + bankId + '-' + accNo + '-compact2.png?accountName=' + encodeURIComponent(accName);
+            var qrPreviewUrl = 'https://img.vietqr.io/image/' + bankBin + '-' + accNo + '-compact2.png?accountName=' + encodeURIComponent(accName);
             area.html('<div class="payment-detail-box"><div class="text-center mb-3"><div style="background:linear-gradient(135deg,#007bff,#17a2b8);width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 10px"><i class="fas fa-university text-white fa-lg"></i></div><strong style="color:#007bff;">Chuyển khoản ngân hàng</strong></div>'
-                + '<div style="text-align:center;margin-bottom:14px;"><img src="' + qrPreviewUrl + '" alt="QR NH" style="width:160px;height:160px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.08);" onerror="this.style.display=\'none\'" /></div>'
-                + '<div class="d-flex justify-content-between mb-1"><span class="text-muted">Ngân hàng:</span><strong>' + bankId + '</strong></div>'
+                + '<div style="text-align:center;margin-bottom:14px;"><img src="' + qrPreviewUrl + '" alt="QR NH" style="width:160px;height:160px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.08);" onerror="this.style.display=\'none\'" /></div>'                    + '<div class="d-flex justify-content-between mb-1"><span class="text-muted">Ngân hàng:</span><strong>' + BANK_DISPLAY + '</strong></div>'
                 + '<div class="d-flex justify-content-between mb-1"><span class="text-muted">Số TK:</span><strong style="color:#e74c3c;letter-spacing:1px;">' + accNo + '</strong></div>'
                 + '<div class="d-flex justify-content-between mb-1"><span class="text-muted">Chủ TK:</span><strong>' + accName + '</strong></div>'
                 + '<div class="d-flex justify-content-between"><span class="text-muted">Nội dung CK:</span><strong style="color:#e74c3c;"><span id="dh-ref">FASTSHIP[Mã đơn]</span></strong></div></div>').show();
-            testArea.show();
+            testArea.hide(); // ponytail: ?n test mode cho bank transfer th?t
             codBtn.show().html('<i class="fas fa-university me-2"></i>Đặt hàng (Chờ chuyển khoản)');
         } else {
             area.hide();

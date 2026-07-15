@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.SignalR;
 using ShipFood.Hubs;
+using ShipFood.Helpers;
 using ShipFood.Models;
 using ShipFood.Services;
 
@@ -27,8 +28,9 @@ public class PaymentController : BaseController
         _eDelivery = eDelivery;
     }
 
-    // ─── Bank transfer config (đọc từ env vars) — default BIN 970436 = Vietcombank (VietQR API cần BIN hoặc short code) ───
+    // ─── Bank transfer config (đọc từ env vars) ───
     private string BankId => _configuration["BANK_ID"] ?? "970436";
+    private string BankVietQrBinCode => BankHelper.GetVietQrBinCode(BankId);
     private string BankAccountNo => _configuration["BANK_ACCOUNT_NO"] ?? "1234567890";
     private string BankAccountName => _configuration["BANK_ACCOUNT_NAME"] ?? "FASTSHIP CO., LTD";
     private string BankWebhookToken => _configuration["BANK_WEBHOOK_TOKEN"] ?? "";
@@ -175,8 +177,18 @@ public class PaymentController : BaseController
                 var coupon = db.tbKhuyenMai.Find(makhuyenmai);
                 if (coupon != null && (coupon.ngayketthuc == null || coupon.ngayketthuc >= DateTime.Now))
                 {
-                    int phanTram = coupon.phantramgiam ?? 0;
-                    discountAmount = tongTienMon * phanTram / 100;
+                    // ponytail: fix P9 — voucher lo?i "Mi?n phí ship" set phiShip = 0
+                    // Ch? match exact loaikm, tránh false positive v?i 'ship' trong tên khác
+                    var loai = (coupon.loaikm ?? "").ToLowerInvariant();
+                    if (loai == "free ship" || loai == "miễn phí ship" || loai == "miễn phí vận chuyển")
+                    {
+                        phiShip = 0;
+                    }
+                    else
+                    {
+                        int phanTram = coupon.phantramgiam ?? 0;
+                        discountAmount = tongTienMon * phanTram / 100;
+                    }
                     appliedCouponId = coupon.makm;
                 }
             }
@@ -323,8 +335,9 @@ public class PaymentController : BaseController
             // ─── Bank Transfer: trả về QR URL ───
             if (isBankTransfer)
             {
-                var memo = $"FASTSHIP{firstOrderId}";
-                var qrUrl = $"https://img.vietqr.io/image/{BankId}-{BankAccountNo}-compact2.png?amount={(long)totalAllOrders}&addInfo={Uri.EscapeDataString(memo)}&accountName={Uri.EscapeDataString(BankAccountName)}";
+                // ponytail: SePay format — "SEVQR FASTSHIP{OrderId}" (SePay yêu cầu prefix "SEVQR ")
+                var memo = $"SEVQR FASTSHIP{firstOrderId}";
+                var qrUrl = $"https://img.vietqr.io/image/{BankVietQrBinCode}-{BankAccountNo}-compact2.png?amount={(long)totalAllOrders}&addInfo={Uri.EscapeDataString(memo)}&accountName={Uri.EscapeDataString(BankAccountName)}";
 
                 _logger.LogInformation("Bank transfer QR URL generated. Orders: {OrderIds}", string.Join(",", createdOrders));
 
@@ -501,6 +514,7 @@ public class PaymentController : BaseController
     // ─── BANK WEBHOOK: Casso/SePay/PayOS tự động gọi khi có biến động số dư ───
     [HttpPost]
     [AllowAnonymous]
+    [Route("Payment/BankWebhook")]
     public async Task<JsonResult> BankWebhook()
     {
         try
@@ -534,13 +548,21 @@ public class PaymentController : BaseController
                 if (first.TryGetProperty("amount", out var amt)) amount = (long)amt.GetDecimal();
             }
 
-            // SePay format: transferDesc, transferAmount
+            // SePay format: content (n?i dung CK), transferAmount, gateway
+            // SePay g?i webhook v?i field "content" ch?a n?i dung chuy?n kho?n
+            if (memo == null && json.TryGetProperty("content", out var sepayContent)) memo = sepayContent.GetString();
             if (memo == null && json.TryGetProperty("transferDesc", out var td)) memo = td.GetString();
             if (amount == null && json.TryGetProperty("transferAmount", out var ta)) amount = (long)ta.GetDecimal();
 
-            // PayOS format: description, amount
+            // SePay gateway (tên ngân hàng) — log cho traceability
+            if (json.TryGetProperty("gateway", out var gateway))
+            {
+                _logger.LogInformation("BankWebhook: Gateway={Gateway}", gateway.GetString());
+            }
+
+            // PayOS format: amount, description
+            if (amount == null && json.TryGetProperty("amount", out var payosAmt)) amount = (long)payosAmt.GetDecimal();
             if (memo == null && json.TryGetProperty("description", out var pd)) memo = pd.GetString();
-            if (amount == null && json.TryGetProperty("amount", out var pa)) amount = (long)pa.GetDecimal();
 
             if (string.IsNullOrEmpty(memo))
             {
@@ -549,7 +571,7 @@ public class PaymentController : BaseController
             }
 
             // ═══ Parse mã đơn hàng từ memo ═══
-            // Format: FASTSHIP{madh}  (VD: FASTSHIP42)
+            // Format: SEVQR FASTSHIP{madh}  (VD: SEVQR FASTSHIP42)
             var match = System.Text.RegularExpressions.Regex.Match(memo, @"FASTSHIP(\d+)", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
             if (!match.Success || !int.TryParse(match.Groups[1].Value, out var madh))
             {

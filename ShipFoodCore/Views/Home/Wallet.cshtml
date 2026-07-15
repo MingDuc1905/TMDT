@@ -1,0 +1,204 @@
+@model ShipFood.Models.tbUser
+@{
+    ViewBag.Title = "Ví tiền";
+    Layout = "~/Views/Shared/_LayoutPageHome.cshtml";
+    var listdh = ViewBag.listdh as List<ShipFood.Models.tbDonHang> ?? new();
+    var soDu = Model?.vitien ?? 0;
+    var tongDaGiao = listdh.Where(d => d.trangthai == "Hoàn thành").Sum(d => d.tongtien ?? 0);
+    var tongHoan = listdh.Where(d => d.trangthai == "Đã hủy").Sum(d => d.tongtien ?? 0);
+}
+
+<style>
+    .wallet-page { max-width: 1000px; margin: 100px auto 0; padding: 24px; }
+    @@media (max-width:768px) { .wallet-page { padding: 12px; margin-top: 70px; } }
+    .wallet-card {
+        background: linear-gradient(135deg, #0f3460, #1a1a2e);
+        border-radius: 20px; padding: 28px 32px; color: white;
+        position: relative; overflow: hidden; margin-bottom: 24px;
+    }
+    .wallet-card::before {
+        content: ''; position: absolute; top: -80px; right: -80px;
+        width: 250px; height: 250px;
+        background: radial-gradient(circle, rgba(60,184,21,.1), transparent 60%);
+        border-radius: 50%;
+    }
+    .wallet-card .wallet-label { font-size: 13px; color: rgba(255,255,255,.5); text-transform: uppercase; letter-spacing: 2px; position: relative; z-index: 1; }
+    .wallet-card .wallet-balance { font-size: 40px; font-weight: 800; position: relative; z-index: 1; margin: 4px 0; }
+    .wallet-actions { display: flex; gap: 12px; margin-bottom: 24px; }
+    .wallet-actions .btn-action { flex: 1; padding: 12px; border-radius: 14px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; transition: all .2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .wallet-actions .btn-action.deposit { background: #3CB815; color: #fff; }
+    .wallet-actions .btn-action.deposit:hover { background: #2ea310; }
+    .wallet-actions .btn-action.withdraw { background: #fff; color: #1a1a2e; border: 1.5px solid #e5e7eb; }
+    .wallet-actions .btn-action.withdraw:hover { border-color: #3CB815; background: #f0fdf4; }
+    .wallet-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,.4); z-index: 9999; align-items: center; justify-content: center; }
+    .wallet-modal.active { display: flex; }
+    .wallet-modal .modal-box { background: #fff; border-radius: 20px; padding: 24px; width: 90%; max-width: 400px; box-shadow: 0 20px 60px rgba(0,0,0,.15); }
+    .wallet-modal .modal-box h4 { margin: 0 0 8px; font-weight: 700; }
+    .wallet-modal .modal-box p { font-size: 13px; color: #6b7280; margin: 0 0 16px; }
+    .wallet-modal .modal-box input { width: 100%; padding: 12px 16px; border: 1.5px solid #e5e7eb; border-radius: 12px; font-size: 16px; font-weight: 600; outline: none; transition: border-color .2s; }
+    .wallet-modal .modal-box input:focus { border-color: #3CB815; }
+    .wallet-modal .modal-box .modal-actions { display: flex; gap: 8px; margin-top: 16px; }
+    .wallet-modal .modal-box .modal-actions button { flex: 1; padding: 12px; border-radius: 12px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; transition: all .2s; }
+    .wallet-modal .modal-box .modal-actions .btn-confirm { background: #3CB815; color: #fff; }
+    .wallet-modal .modal-box .modal-actions .btn-cancel { background: #f3f4f6; color: #6b7280; }
+    .wallet-toast { position: fixed; top: 20px; right: 20px; z-index: 99999; padding: 14px 20px; border-radius: 12px; font-size: 14px; font-weight: 500; box-shadow: 0 4px 20px rgba(0,0,0,.1); animation: slideIn .3s ease; }
+    .wallet-toast.success { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+    .wallet-toast.error { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+    @@keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    .wallet-mini-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; }
+    .wallet-mini-stat { background: white; border-radius: 14px; padding: 16px 20px; border: 1px solid #f0f0f0; }
+    .wallet-mini-stat .label { font-size: 12px; color: #6b7280; margin: 0 0 4px; }
+    .wallet-mini-stat .value { font-size: 22px; font-weight: 700; margin: 0; }
+    .wallet-mini-stat .value.green { color: #3CB815; }
+    .wallet-mini-stat .value.orange { color: #f59e0b; }
+    .tx-list-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .tx-list-header h3 { margin: 0; font-size: 18px; font-weight: 700; color: #1a1a2e; }
+    .tx-list { display: flex; flex-direction: column; gap: 8px; }
+    .tx-item { background: white; border-radius: 12px; padding: 16px 20px; border: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; transition: all .2s; }
+    .tx-item:hover { box-shadow: 0 2px 12px rgba(0,0,0,.05); border-color: #e0e7ff; }
+    .tx-item .tx-left { display: flex; align-items: center; gap: 14px; }
+    .tx-item .tx-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+    .tx-item .tx-icon.income { background: #f0fdf4; color: #3CB815; }
+    .tx-item .tx-icon.pending { background: #fefce8; color: #f59e0b; }
+    .tx-item .tx-icon.cancelled { background: #fef2f2; color: #ef4444; }
+    .tx-item .tx-info .tx-title { font-size: 14px; font-weight: 600; color: #1a1a2e; margin: 0; }
+    .tx-item .tx-info .tx-sub { font-size: 12px; color: #9ca3af; margin: 2px 0 0; }
+    .tx-item .tx-amount { font-size: 16px; font-weight: 700; }
+    .tx-item .tx-amount.income { color: #3CB815; }
+    .tx-item .tx-amount.pending { color: #f59e0b; }
+    .tx-item .tx-amount.cancelled { color: #ef4444; }
+    .tx-status { font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; display: inline-block; }
+    .tx-status.hoanthanh { background: #f0fdf4; color: #16a34a; }
+    .tx-status.dahuy { background: #fef2f2; color: #dc2626; }
+    .empty-wallet { text-align: center; padding: 60px 20px; color: #9ca3af; }
+</style>
+
+<div class="wallet-page">
+    @if (ViewBag.WalletSuccess != null)
+    {
+        <div class="wallet-toast success" id="walletToast">
+            <i class="fas fa-check-circle me-1" aria-hidden="true"></i> @ViewBag.WalletSuccess
+        </div>
+    }
+    @if (ViewBag.WalletError != null)
+    {
+        <div class="wallet-toast error" id="walletToast">
+            <i class="fas fa-exclamation-circle me-1" aria-hidden="true"></i> @ViewBag.WalletError
+        </div>
+    }
+
+    <div class="wallet-card">
+        <div class="wallet-label" style="font-size:24px;margin-bottom:8px;">👛</div>
+        <div class="wallet-label">Số dư khả dụng</div>
+        <div class="wallet-balance">@soDu.ToString("N0")<span style="font-size:20px;font-weight:400;">đ</span></div>
+    </div>
+
+    <div class="wallet-actions">
+        <button class="btn-action deposit" onclick="openModal('deposit')">
+            <i class="fas fa-plus-circle" aria-hidden="true"></i> Nạp tiền
+        </button>
+        <button class="btn-action withdraw" onclick="openModal('withdraw')">
+            <i class="fas fa-arrow-right" aria-hidden="true"></i> Rút tiền
+        </button>
+    </div>
+
+    <!-- Nạp tiền Modal -->
+    <div class="wallet-modal" id="depositModal">
+        <div class="modal-box">
+            <h4>Nạp tiền</h4>
+            <p>Nhập số tiền bạn muốn nạp vào ví (tối thiểu 10,000đ)</p>
+            <form method="post" action="@Url.Action("NapTien", "Home")">
+                @Html.AntiForgeryToken()
+                <input type="number" name="soTien" min="10000" max="100000000" step="10000"
+                       placeholder="Nhập số tiền..." required aria-label="Số tiền nạp" />
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" onclick="closeModal('depositModal')">Huỷ</button>
+                    <button type="submit" class="btn-confirm">Nạp tiền</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Rút tiền Modal -->
+    <div class="wallet-modal" id="withdrawModal">
+        <div class="modal-box">
+            <h4>Rút tiền</h4>
+            <p>Nhập số tiền bạn muốn rút (tối thiểu 10,000đ)</p>
+            <form method="post" action="@Url.Action("RutTien", "Home")">
+                @Html.AntiForgeryToken()
+                <input type="number" name="soTien" min="10000" max="@((int)soDu)" step="10000"
+                       placeholder="Nhập số tiền..." required aria-label="Số tiền rút" />
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" onclick="closeModal('withdrawModal')">Huỷ</button>
+                    <button type="submit" class="btn-confirm">Rút tiền</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="wallet-mini-stats">
+        <div class="wallet-mini-stat">
+            <p class="label">Tổng đã chi</p>
+            <h3 class="value green">@tongDaGiao.ToString("N0")đ</h3>
+        </div>
+        <div class="wallet-mini-stat">
+            <p class="label">Đã hoàn</p>
+            <h3 class="value orange">@tongHoan.ToString("N0")đ</h3>
+        </div>
+    </div>
+
+    <div class="tx-list-header">
+        <h3>Lịch sử đơn hàng</h3>
+        <span style="font-size:13px;color:#6b7280;">@listdh.Count đơn</span>
+    </div>
+
+    @if (listdh.Any())
+    {
+        <div class="tx-list">
+            @foreach (var item in listdh.Take(20))
+            {
+                var isIncome = item.trangthai == "Hoàn thành";
+                var isCancelled = item.trangthai == "Đã hủy";
+                var iconClass = isIncome ? "income" : (isCancelled ? "cancelled" : "pending");
+                var amountClass = isIncome ? "income" : (isCancelled ? "cancelled" : "pending");
+                var statusClass = isIncome ? "hoanthanh" : (isCancelled ? "dahuy" : "dangcho");
+
+                <div class="tx-item">
+                    <div class="tx-left">
+                        <div class="tx-icon @iconClass">
+                            <i class="fas @(isIncome ? "fa-check-circle" : (isCancelled ? "fa-times-circle" : "fa-clock"))" aria-hidden="true"></i>
+                        </div>
+                        <div class="tx-info">
+                            <p class="tx-title">Đơn hàng #@item.madh</p>
+                            <p class="tx-sub">@item.ngaydathang?.ToString("dd/MM/yyyy HH:mm")</p>
+                        </div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div class="tx-amount @amountClass">@((item.tongtien ?? 0).ToString("N0"))đ</div>
+                        <span class="tx-status @statusClass">
+                            @(isIncome ? "Hoàn thành" : (isCancelled ? "Đã hủy" : item.trangthai))
+                        </span>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="empty-wallet">
+            <div class="icon" style="font-size:48px;margin-bottom:12px;">📭</div>
+            <p>Chưa có giao dịch nào</p>
+            <small style="color:#bbb;">Đặt món để bắt đầu</small>
+        </div>
+    }
+</div>
+
+<script>
+function openModal(type) { document.getElementById(type + 'Modal').classList.add('active'); }
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+window.onclick = function(e) { if (e.target.classList.contains('wallet-modal')) e.target.classList.remove('active'); }
+setTimeout(function() {
+    var t = document.getElementById('walletToast');
+    if (t) { t.style.transition = 'opacity .5s'; t.style.opacity = '0'; setTimeout(function(){ t.remove(); }, 500); }
+}, 4000);
+</script>

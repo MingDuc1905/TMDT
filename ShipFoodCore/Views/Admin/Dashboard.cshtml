@@ -16,6 +16,12 @@
                             <input type="date" id="fromDate" class="form-control form-control-sm" style="width:160px" />
                             <label class="mb-0 ms-2">Đến:</label>
                             <input type="date" id="toDate" class="form-control form-control-sm" style="width:160px" />
+                            <style>
+                                @@media (max-width: 768px) {
+                                    .card-body.d-flex { flex-direction: column; align-items: flex-start !important; }
+                                    .card-body input[type="date"] { width: 100% !important; margin: 4px 0; }
+                                }
+                            </style>
                             <button class="btn btn-primary btn-sm ms-2" onclick="loadDashboard()">
                                 <i class="fas fa-sync"></i> Cập nhật
                             </button>

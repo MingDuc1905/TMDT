@@ -245,7 +245,8 @@ public class MoMoService
     /// <summary>
     /// Xác thực signature từ MoMo IPN callback
     /// </summary>
-    public bool VerifyIpnSignature(Dictionary<string, string> ipnParams)
+    // ponytail: virtual cho phép Moq mock trong unit test
+    public virtual bool VerifyIpnSignature(Dictionary<string, string> ipnParams)
     {
         try
         {

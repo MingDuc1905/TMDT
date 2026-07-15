@@ -489,7 +489,7 @@
                                             {
                                                 <div class="item-restaurant-row" style="display:flex;align-items:center;padding:10px 0;border-bottom:1px solid var(--fs-border-soft);">
                                                     <div style="width:50px;height:50px;margin-right:12px;">
-                                                        <img src="@TinhToan.HinhAnhUrl(item.hinhanh)" style="width:50px;height:50px;border-radius:8px;object-fit:cover;" onerror="this.src='/Source/Home/img/pizza.jpg'" />
+                                                        <img src="@TinhToan.HinhAnhUrl(item.hinhanh)" alt="@item.tenmon" style="width:50px;height:50px;border-radius:8px;object-fit:cover;" onerror="this.src='/Source/Home/img/pizza.jpg'" />
                                                     </div>
                                                     <div style="flex:1;">
                                                         <strong>@item.tenmon</strong>
@@ -512,7 +512,7 @@
                                                 @foreach (var item in trendingNow)
                                                 {
                                                     <div style="min-width:160px;border:1px solid var(--fs-border);border-radius:10px;padding:12px;text-align:center;">
-                                                        <img src="@TinhToan.HinhAnhUrl(item.hinhanh)" style="width:80px;height:80px;border-radius:8px;object-fit:cover;" onerror="this.src='/Source/Home/img/pizza.jpg'" />
+                                                        <img src="@TinhToan.HinhAnhUrl(item.hinhanh)" alt="@item.tenmon" style="width:80px;height:80px;border-radius:8px;object-fit:cover;" onerror="this.src='/Source/Home/img/pizza.jpg'" />
                                                         <div style="margin-top: 8px;"><strong>@item.tenmon</strong></div>
                                                         <div style="color:var(--fs-danger);font-weight:600;">@item.tbBienTheMonAns?.FirstOrDefault()?.giatien?.ToString("N0")đ</div>
                                                         <a href="@Url.Action("DetailRestaurant", new { id = item.maquanan })" class="btn btn-sm btn-success mt-2">Đặt ngay</a>

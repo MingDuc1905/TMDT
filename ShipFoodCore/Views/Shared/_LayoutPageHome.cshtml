@@ -48,6 +48,17 @@
         .fs-btn-hover-green:hover { background: #2ea310 !important; border-color: #2ea310 !important; }
     </style>
 
+    <!-- Auto aria-hidden cho FA icons (fix P11 — khỏi sửa từng icon th? công) -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('i.fa, i.fas, i.far, i.fab, i.fal').forEach(function(el) {
+            if (!el.hasAttribute('aria-hidden') && !el.getAttribute('aria-label')) {
+                el.setAttribute('aria-hidden', 'true');
+            }
+        });
+    });
+    </script>
+
     @RenderSection("styles", required: false)
 </head>
 
@@ -125,14 +136,26 @@
                     @if (user != null)
                     {
                         <!-- User avatar icon → đơn hàng (luôn visible) -->
+                        <a href="/Home/Wallet" class="fs-mobile-icon" aria-label="Ví tiền" title="Ví tiền"
+                           style="display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;background:var(--fs-green);color:#fff;font-size:13px;font-weight:700;text-decoration:none;transition:opacity .15s;"
+                           onmouseenter="this.style.opacity='.8'" onmouseleave="this.style.opacity='1'">
+                            <i class="fa fa-wallet" aria-hidden="true"></i>
+                        </a>
                         <a href="/Cart/LichSuDatHang" class="fs-mobile-icon" aria-label="Lịch sử đơn hàng" title="Lịch sử đơn hàng"
                            style="display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;background:var(--fs-green);color:#fff;font-size:13px;font-weight:700;text-decoration:none;transition:opacity .15s;"
                            onmouseenter="this.style.opacity='.8'" onmouseleave="this.style.opacity='1'">
                             @user.username.Substring(0,1).ToUpper()
                         </a>
+                        <!-- Wallet icon (luôn visible) -->
+                        <a href="/Home/Wallet" class="fs-mobile-icon" aria-label="Ví tiền" title="Ví tiền"
+                           style="display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;color:#3CB815;font-size:16px;border:1.5px solid rgba(60,184,21,.3);transition:all .15s;text-decoration:none;"
+                           onmouseenter="this.style.background='#3CB815';this.style.color='#fff'"
+                           onmouseleave="this.style.background='transparent';this.style.color='#3CB815'">
+                            <i class="fa fa-wallet" aria-hidden="true"></i>
+                        </a>
                         <!-- Logout icon (luôn visible) -->
                         <a href="/Home/Logout" class="fs-logout-btn fs-mobile-icon" aria-label="Đăng xuất" title="Đăng xuất">
-                            <i class="fa fa-sign-out-alt"></i>
+                            <i class="fa fa-sign-out-alt" aria-hidden="true"></i>
                         </a>
                     }
                     else
@@ -141,7 +164,7 @@
                            style="display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;color:#3CB815;font-size:16px;border:1.5px solid rgba(60,184,21,.3);transition:all .15s;text-decoration:none;"
                            onmouseenter="this.style.background='#3CB815';this.style.color='#fff'"
                            onmouseleave="this.style.background='transparent';this.style.color='#3CB815'">
-                            <i class="fa fa-sign-in-alt" style="font-size:14px;"></i>
+                            <i class="fa fa-sign-in-alt" style="font-size:14px;" aria-hidden="true"></i>
                         </a>
                     }
                     <a class="fs-cart-btn" href="/Cart" aria-label="Giỏ hàng" id="navCartBtnMobile" style="position:relative;">
@@ -209,11 +232,11 @@
                     <!-- Nav links -->
                     <div class="navbar-nav ms-auto p-2 p-lg-0 align-items-lg-center">
                         <a href="/Home" class="nav-item nav-link">Trang chủ</a>
-                        <a href="/Home/DanhMuc" class="nav-item nav-link">Menu ẩm thực</a>
-
-                        @if (user != null)
-                        {                        <!-- ═══ DESKTOP: direct links (ko cần scroll) ═══ -->
-                            <div class="d-none d-lg-flex align-items-center gap-2 ms-2">
+                        <a href="/Home/DanhMuc" class="nav-item nav-link">Menu ẩm thực</a>                            @if (user != null)
+                            {                        
+                            <!-- ═══ DESKTOP: direct links — show on lg+, ko mobile (fix P14/P15) ═══ -->
+                            <!-- ko dùng d-none vì parent container có th? ?n — dùng d-lg-flex ?? luôn visible tr?n desktop -->
+                            <div class="d-lg-flex align-items-center gap-2 ms-2">
                                 <!-- Avatar + tên -->
                                 <span class="d-flex align-items-center gap-2 px-2" style="cursor:default;">
                                     <span class="fs-avatar-xs" style="width:32px;height:32px;border-radius:50%;background:var(--fs-green);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;">@user.username.Substring(0,1).ToUpper()</span>
@@ -247,9 +270,15 @@
                                     </a>
                                 }
                                 <!-- Logout -->
-                                <a href="/Home/Logout" class="fs-logout-btn" aria-label="Đăng xuất" title="Đăng xuất">
-                                    <i class="fa fa-sign-out-alt"></i>
-                                </a>
+                            <a href="/Home/Wallet" class="fs-nav-link" aria-label="Ví tiền" title="Ví tiền"
+                               style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:8px;color:#1a1a2e;font-weight:500;font-size:14px;text-decoration:none;transition:all .15s;"
+                               onmouseenter="this.style.background='rgba(60,184,21,.07)'"
+                               onmouseleave="this.style.background='transparent'">
+                                <i class="fa fa-wallet" aria-hidden="true"></i> Ví tiền
+                            </a>
+                            <a href="/Home/Logout" class="fs-logout-btn" aria-label="Đăng xuất" title="Đăng xuất">
+                                <i class="fa fa-sign-out-alt" aria-hidden="true"></i>
+                            </a>
                             </div>
                             <!-- ═══ MOBILE: direct links (visible <992px) — KO cần scroll ═══ -->
                             <div class="d-lg-none border-top mt-2 pt-2 px-2">
@@ -259,6 +288,10 @@
                                 <a href="/Cart/LichSuDatHang" class="d-flex align-items-center gap-2 py-2 px-2 rounded text-decoration-none text-dark fs-nav-hover">
                                     <i class="fa fa-history" style="width:18px;color:var(--fs-green);"></i>
                                     <span>Lịch sử đơn hàng</span>
+                                </a>
+                                <a href="/Home/Wallet" class="d-flex align-items-center gap-2 py-2 px-2 rounded text-decoration-none text-dark fs-nav-hover">
+                                    <i class="fa fa-wallet" style="width:18px;color:var(--fs-green);"></i>
+                                    <span>Ví tiền</span>
                                 </a>
                                 @if (user.loaitaikhoan.Equals("Quán ăn"))
                                 {
@@ -276,7 +309,8 @@
                         }
                         else
                         {
-                            <div class="nav-item d-flex align-items-center gap-1 gap-lg-2">
+                            <!-- ═══ DESKTOP login button — visible tr?n desktop, ko mobile (fix P14/P15) ═══ -->
+                            <div class="d-lg-flex align-items-center gap-1 gap-lg-2">
                                 <a href="/Home/Login" class="nav-link" style="font-size:13.5px;font-weight:600;border:1.5px solid var(--fs-green);border-radius:24px;padding:6px 16px;color:var(--fs-green);transition:all .2s;"
                                    onmouseenter="this.style.background='var(--fs-green)';this.style.color='#fff'"
                                    onmouseleave="this.style.background='transparent';this.style.color='var(--fs-green)'">
@@ -379,6 +413,7 @@
                             else
                             {
                                 <li><a href="/Cart/LichSuDatHang">Đơn hàng của tôi</a></li>
+                                <li><a href="/Home/Wallet">Ví tiền</a></li>
                                 <li><a href="/Home/Logout">Đăng xuất</a></li>
                             }
                         </ul>

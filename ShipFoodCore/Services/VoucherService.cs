@@ -87,6 +87,9 @@ public class VoucherService
         }
 
         // 3. Gợi ý MIỄN PHÍ SHIP nếu đơn hàng đủ điều kiện
+        // ponytail: fix P9 — ch? g?i ? voucher free ship khi don >= 50K
+        // Tru?c dây query step 4 (l?y voucher applied) tr? v? voucher nhung ko set ShippingFeeDiscount d?ng
+        // => don du?i 50K van du?c g?i free ship (leak discount)
         if (tongTien.HasValue && tongTien.Value >= 50000)
         {
             var freeShipVoucher = await _db.tbKhuyenMai

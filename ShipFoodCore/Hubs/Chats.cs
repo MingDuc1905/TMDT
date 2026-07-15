@@ -1,9 +1,11 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Caching.Distributed;
 using System.Text.Json;
 
 namespace ShipFood.Hubs;
 
+[Authorize]
 public class Chats : Hub
 {
     private readonly IDistributedCache _cache;

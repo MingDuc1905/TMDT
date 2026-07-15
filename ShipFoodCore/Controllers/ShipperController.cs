@@ -266,15 +266,14 @@ public class ShipperController : BaseController
     {
         var sh = GetCurrentUser();
         if (sh == null || !checkShipper()) return RedirectToAction("Login", "Home");
-        if (id == null) return RedirectToAction("Index");
-
-        // ─── RACE CONDITION FIX: Atomic SQL UPDATE để tránh 2 shipper nhận cùng 1 đơn ───
-        // Dùng ExecuteSqlRaw với WHERE mashipper IS NULL để đảm bảo chỉ 1 shipper claim thành công
-        var updatedRows = db.Database.ExecuteSqlRaw(
-            @"UPDATE tbDonHang SET mashipper = {0}, trangthai = 'Chờ shipper lấy hàng'
-              WHERE madh = {1} AND mashipper IS NULL
-              AND (trangthai = 'Đã xác nhận' OR trangthai = 'Chờ shipper lấy hàng')",
-            sh.userid, id);
+        if (id == null) return RedirectToAction("Index");            // ─── RACE CONDITION FIX: Atomic SQL UPDATE để tránh 2 shipper nhận cùng 1 đơn ───
+            // Dùng ExecuteSqlRaw với WHERE mashipper IS NULL để đảm bảo chỉ 1 shipper claim thành công
+            // ponytail: PostgreSQL case-sensitive — dùng "" quotes cho table/column names
+            var updatedRows = db.Database.ExecuteSqlRaw(
+                @"UPDATE ""tbDonHang"" SET ""mashipper"" = {0}, ""trangthai"" = 'Chờ shipper lấy hàng'
+                  WHERE ""madh"" = {1} AND ""mashipper"" IS NULL
+                  AND (""trangthai"" = 'Đã xác nhận' OR ""trangthai"" = 'Chờ shipper lấy hàng')",
+                sh.userid, id);
 
         if (updatedRows == 0)
         {

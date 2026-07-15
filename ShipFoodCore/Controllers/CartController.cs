@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using ShipFood.Helpers;
 using ShipFood.Models;
 using ShipFood.Services;
 
@@ -20,8 +21,10 @@ public class CartController : BaseController
         _configuration = configuration;
     }
 
-    // ─── Bank transfer config (shared với PaymentController) ───
+    // ─── Bank transfer config ───
+    // BankId = tên ngân hàng (hi?n th?), BankVietQrBinCode = BIN code (cho VietQR API)
     private string BankId => _configuration["BANK_ID"] ?? "Vietcombank";
+    private string BankVietQrBinCode => BankHelper.GetVietQrBinCode(BankId);
     private string BankAccountNo => _configuration["BANK_ACCOUNT_NO"] ?? "1234567890";
     private string BankAccountName => _configuration["BANK_ACCOUNT_NAME"] ?? "FASTSHIP CO., LTD";
 
@@ -79,6 +82,13 @@ public class CartController : BaseController
 
         // Coupon list thường (fallback)
         ViewBag.CouponList = db.tbKhuyenMai.Where(k => k.ngayketthuc == null || k.ngayketthuc >= DateTime.Now).Take(5).ToList();
+
+        // ═══ Bank info từ env vars — dùng BIN code cho VietQR API ═══
+        ViewBag.BankId = BankVietQrBinCode; // BIN code (VD: 970415) cho VietQR API
+        ViewBag.BankIdDisplay = BankId; // Tên ngân hàng (VD: VietinBank) cho UI hi?n th?
+        ViewBag.BankAccountNo = BankAccountNo;
+        ViewBag.BankAccountName = BankAccountName;
+
         return View();
     }
 
@@ -616,8 +626,9 @@ public class CartController : BaseController
             var methodName = (donHang.tbLoaiHinhThanhToan.tenhinhthuc ?? "").ToLowerInvariant();
             if (methodName.Contains("chuyển khoản") || methodName.Contains("ngân hàng") || methodName.Contains("bank"))
             {
-                var memo = $"FASTSHIP{donHang.madh}";
-                var qrUrl = $"https://img.vietqr.io/image/{BankId}-{BankAccountNo}-compact2.png?amount={(long)(donHang.tongtien ?? 0)}&addInfo={Uri.EscapeDataString(memo)}&accountName={Uri.EscapeDataString(BankAccountName)}";
+                // ponytail: SePay format — "SEVQR FASTSHIP{OrderId}"
+                var memo = $"SEVQR FASTSHIP{donHang.madh}";
+                var qrUrl = $"https://img.vietqr.io/image/{BankVietQrBinCode}-{BankAccountNo}-compact2.png?amount={(long)(donHang.tongtien ?? 0)}&addInfo={Uri.EscapeDataString(memo)}&accountName={Uri.EscapeDataString(BankAccountName)}";
 
                 ViewBag.QrCodeUrl = qrUrl;
                 ViewBag.BankInfo = new

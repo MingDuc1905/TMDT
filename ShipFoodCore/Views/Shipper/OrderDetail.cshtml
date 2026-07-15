@@ -2,10 +2,14 @@
 @{
     ViewBag.Title = "OrderDetail";
     Layout = "~/Views/Shared/_LayoutPageShipper.cshtml";
+    var userJson = Context.Session.GetString("user");
+    ShipFood.Models.tbUser? user = userJson != null ? System.Text.Json.JsonSerializer.Deserialize<ShipFood.Models.tbUser>(userJson) : null;
+    var loggedIn = user != null && user.userid > 0;
 }
 
 @{ List<ShipFood.Models.tbChiTietDonHang> listctdh = ViewBag.listctdh;
     ShipFood.Models.tbDonHang dh = ViewBag.dh;
+    int? customerId = dh.tbThongTinDatHang?.userid;
 }
 
 <style>
@@ -13,6 +17,43 @@
         0% { background-position: -200% 0; }
         100% { background-position: 200% 0; }
     }
+
+    /* ═══ Shipper Chat Floating Panel ═══ */
+    .shipper-chat-btn { position:fixed; bottom:24px; right:24px; width:56px; height:56px; border-radius:50%; background:linear-gradient(135deg,#3CB815,#27a001); color:#fff; border:none; box-shadow:0 4px 16px rgba(60,184,21,.4); display:flex; align-items:center; justify-content:center; font-size:22px; cursor:pointer; z-index:999; transition:transform .2s,box-shadow .2s; }
+    .shipper-chat-btn:hover { transform:scale(1.08); box-shadow:0 6px 24px rgba(60,184,21,.5); }
+    .shipper-chat-btn:active { transform:scale(.95); }
+    .shipper-chat-btn .badge-chat { position:absolute; top:-4px; right:-4px; width:20px; height:20px; border-radius:50%; background:#e74c3c; color:#fff; font-size:10px; display:flex; align-items:center; justify-content:center; font-weight:700; }
+
+    .shipper-chat-panel { position:fixed; bottom:0; right:0; width:400px; max-width:100vw; max-height:75vh; background:#fff; border-radius:20px 20px 0 0; box-shadow:0 -4px 30px rgba(0,0,0,.15); z-index:1000; display:none; flex-direction:column; transform:translateY(100%); transition:transform .35s cubic-bezier(.32,.72,0,1); overflow:hidden; }
+    .shipper-chat-panel.open { display:flex; transform:translateY(0); }
+    @@media (max-width:576px) { .shipper-chat-panel { width:100vw; max-height:85vh; border-radius:16px 16px 0 0; } }
+
+    .shipper-chat-header { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; background:linear-gradient(135deg,#3CB815,#27a001); color:#fff; flex-shrink:0; cursor:pointer; }
+    .shipper-chat-header h6 { margin:0; font-weight:600; font-size:14px; }
+    .shipper-chat-header button { background:none; border:none; color:#fff; font-size:16px; cursor:pointer; opacity:.8; padding:4px; }
+    .shipper-chat-header button:hover { opacity:1; }
+
+    .shipper-chat-msgs { flex:1; overflow-y:auto; padding:12px 14px; background:#f8f9fa; min-height:180px; max-height:320px; }
+    .shipper-chat-msgs::-webkit-scrollbar { width:4px; }
+    .shipper-chat-msgs::-webkit-scrollbar-thumb { background:rgba(0,0,0,.1); border-radius:4px; }
+
+    .s-msg { margin-bottom:8px; max-width:85%; padding:8px 12px; border-radius:12px; font-size:13px; line-height:1.5; word-wrap:break-word; clear:both; }
+    .s-msg.own { float:right; background:linear-gradient(135deg,#3CB815,#2ea310); color:#fff; border-bottom-right-radius:4px; }
+    .s-msg.other { float:left; background:#fff; border:1.5px solid #e5e7eb; color:#1a1a2e; border-bottom-left-radius:4px; }
+    .s-msg .label { font-size:9px; opacity:.6; display:block; margin-bottom:2px; }
+    .s-msg .time { font-size:9px; opacity:.5; display:block; margin-top:3px; text-align:right; }
+    .s-msg.own .time { color:rgba(255,255,255,.65); }
+
+    .shipper-chat-input { display:flex; align-items:center; gap:6px; padding:8px 12px; border-top:1px solid #e5e7eb; background:#fff; flex-shrink:0; }
+    .shipper-chat-input input { flex:1; border:1.5px solid #e5e7eb; border-radius:20px; padding:7px 12px; font-size:13px; outline:none; }
+    .shipper-chat-input input:focus { border-color:#3CB815; }
+    .shipper-chat-input .chat-action-btn { background:transparent; border:1.5px solid #ddd; border-radius:50%; width:34px; height:34px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:14px; color:#666; transition:all .2s; }
+    .shipper-chat-input .chat-action-btn:hover { border-color:#3CB815; color:#3CB815; }
+    .shipper-chat-input .send-btn { background:linear-gradient(135deg,#3CB815,#27a001); color:#fff; border:none; border-radius:50%; width:34px; height:34px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:13px; }
+
+    .shipper-quick-replies { display:flex; gap:5px; padding:6px 12px; flex-wrap:wrap; border-top:1px solid #f0f0f0; background:#fafafa; flex-shrink:0; }
+    .shipper-qr-btn { background:#fff; border:1.5px solid #3CB815; color:#3CB815; border-radius:14px; padding:4px 10px; font-size:10px; cursor:pointer; transition:all .2s; white-space:nowrap; }
+    .shipper-qr-btn:hover { background:#3CB815; color:#fff; }
 </style>
 
 <div class="content-body">
@@ -129,11 +170,49 @@
                                     <div class="thanhtoan col-lg-3 text-center">
                                         <small>Thu khách</small>
                                         <p>@dh.tongtien?.ToString("N0")</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>                            <!-- ═══ QR CODE CARD: E-Delivery Glassmorphism ═══ -->
+                                    </div>                    </div>
+                </div>
+            </div>
+
+            <!-- ═══ CHAT PANEL: Shipper Floating Chat ═══ -->
+            <button class="shipper-chat-btn" id="shipperChatFab" onclick="toggleShipperChat()" title="Chat với khách hàng">
+                <i class="fas fa-comment-dots"></i>
+                <span class="badge-chat" id="shipperChatBadge" style="display:none;">1</span>
+            </button>
+
+            <div class="shipper-chat-panel" id="shipperChatPanel">
+                <div class="shipper-chat-header" onclick="toggleShipperChat()">
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <i class="fab fa-facebook-messenger" style="font-size:16px;"></i>
+                        <h6>Chat - @dh.tbThongTinDatHang.tennguoinhan</h6>
+                    </div>
+                    <button onclick="event.stopPropagation();toggleShipperChat()" title="Đóng">✕</button>
+                </div>
+                <div class="shipper-chat-msgs" id="shipperChatMsgs">
+                    <div class="s-msg other">
+                        <span class="label">FastShip</span>
+                        Chat trực tiếp với <strong>@dh.tbThongTinDatHang.tennguoinhan</strong> về đơn hàng #@dh.madh.
+                        Có thể gửi ảnh hóa đơn/quẹt thẻ làm minh chứng.
+                    </div>
+                </div>
+                <!-- Quick Replies for Shipper -->
+                <div class="shipper-quick-replies" id="shipperQuickReplies">
+                    <button class="shipper-qr-btn" onclick="shipperQuickReply('Tôi đã đến quán ăn, đang chờ lấy hàng')">🏪 Đã đến quán</button>
+                    <button class="shipper-qr-btn" onclick="shipperQuickReply('Tôi đang giao đến, khoảng 5 phút nữa tới')">🚚 5 phút nữa</button>
+                    <button class="shipper-qr-btn" onclick="shipperQuickReply('Tôi đang đứng trước cửa nhà, ra nhận hàng giúp mình')">🏠 Đang giao</button>
+                    <button class="shipper-qr-btn" onclick="shipperQuickReply('Đã giao hàng thành công. Cảm ơn bạn!')">✅ Giao xong</button>
+                </div>
+                <div class="shipper-chat-input">
+                    @Html.AntiForgeryToken()
+                    <button class="chat-action-btn" onclick="alert('Chụp ảnh hóa đơn / gói hàng để gửi minh chứng')" title="Gửi ảnh">
+                        <i class="fas fa-camera"></i>
+                    </button>
+                    <input type="text" id="shipperChatInput" placeholder="Soạn tin nhắn..." onkeypress="if(event.key==='Enter')sendShipperMsg()" />
+                    <button class="send-btn" onclick="sendShipperMsg()"><i class="fas fa-paper-plane"></i></button>
+                </div>
+            </div>
+
+                                    <!-- ═══ QR CODE CARD: E-Delivery Glassmorphism ═══ -->
                             <div class="col-xl-12">
                                 <div class="card" style="border-radius:18px;overflow:hidden;border:1px solid rgba(255,255,255,.3);background:linear-gradient(135deg,rgba(255,255,255,.9),rgba(255,255,255,.7));backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 8px 32px rgba(0,0,0,.08);">
                                     <div class="card-body text-center" style="padding:24px;">
@@ -186,11 +265,9 @@
                                                 <i class="fas fa-phone"></i>
                                                 <p>@dh.tbThongTinDatHang.sdt</p>
                                             </div>
-                                            <div class="iconbox">
-                                                <a class="" href="@Url.Action("NhanTin", "Shipper")">
-                                                    <i class="fab fa-facebook-messenger"></i>
-                                                    <p>Chat ngay!</p>
-                                                </a>
+                                            <div class="iconbox" style="cursor:pointer;" onclick="toggleShipperChat()">
+                                                <i class="fab fa-facebook-messenger" style="color:#3CB815;"></i>
+                                                <p style="color:#3CB815;font-weight:600;">Chat ngay!</p>
                                             </div>
                                         </div>
                                     </div>
@@ -371,6 +448,120 @@
             }
         })();
     });
+
+    // ═══ Shipper Chat Functions ═══
+    function toggleShipperChat() {
+        var panel = document.getElementById('shipperChatPanel');
+        var fab = document.getElementById('shipperChatFab');
+        if (panel.classList.contains('open')) {
+            panel.classList.remove('open');
+            fab.style.display = 'flex';
+        } else {
+            panel.classList.add('open');
+            fab.style.display = 'none';
+            loadShipperChat();
+            setTimeout(function(){
+                document.getElementById('shipperChatMsgs').scrollTop = 9999;
+            }, 100);
+        }
+    }
+
+    function loadShipperChat() {
+        var customerId = @(customerId ?? 0);
+        if (!customerId) return;
+        $.ajax({
+            url: '@Url.Action("GetCustomerMessages", "AdminChat")',
+            type: 'GET', data: { userId: customerId },
+            success: function(res) {
+                if (!res.success || !res.data || res.data.length === 0) return;
+                var c = document.getElementById('shipperChatMsgs');
+                var welcome = c.querySelector('.s-msg:first-child');
+                c.innerHTML = '';
+                if (welcome) c.appendChild(welcome);
+                res.data.forEach(function(msg) {
+                    var isOwn = msg.sender === 'Shipper';
+                    appendShipperMsg(msg.content, isOwn ? 'own' : 'other', isOwn ? 'Bạn' : msg.sender);
+                });
+                c.scrollTop = c.scrollHeight;
+            }
+        });
+    }
+
+    function sendShipperMsg() {
+        var input = document.getElementById('shipperChatInput');
+        var msg = input.value.trim();
+        if (!msg) return;
+        appendShipperMsg(msg, 'own', 'Bạn');
+        input.value = '';
+        var token = document.querySelector('#shipperChatPanel input[name="__RequestVerificationToken"]')?.value || '';
+        var customerId = @(customerId ?? 0);
+        $.ajax({
+            url: '@Url.Action("CustomerSendMessage", "AdminChat")',
+            type: 'POST',
+            data: { orderId: @(ViewBag.dh?.madh ?? 0), message: msg, targetUserId: customerId },
+            headers: { 'RequestVerificationToken': token },
+            error: function() { appendShipperMsg('❌ Lỗi gửi tin nhắn', 'other', 'Hệ thống'); }
+        });
+    }
+
+    function shipperQuickReply(text) {
+        document.getElementById('shipperChatInput').value = text;
+        sendShipperMsg();
+    }
+
+    function appendShipperMsg(text, type, label) {
+        var c = document.getElementById('shipperChatMsgs');
+        var d = document.createElement('div');
+        d.className = 's-msg ' + type;
+        var time = new Date().toLocaleTimeString('vi-VN', {hour:'2-digit',minute:'2-digit'});
+        var safe = (text || '').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g, '<br/>');
+        d.innerHTML = '<span class="label">' + (label || '') + '</span>'
+            + safe
+            + '<span class="time">' + time + '</span>';
+        c.appendChild(d);
+        c.scrollTop = c.scrollHeight;
+    }
+
+    // Wire up SignalR chat listeners for shipper
+    (function wireChatListeners() {
+        var conn = window.shipperConn;
+        if (!conn) {
+            setTimeout(wireChatListeners, 1000);
+            return;
+        }
+        var orderId = @(ViewBag.dh?.madh ?? 0);
+        conn.on('orderMessage', function(msg, oid, senderName, senderRole, connId) {
+            if (oid === orderId && senderRole !== 'Shipper') {
+                appendShipperMsg(msg, 'other', (senderRole || '') + ' - ' + (senderName || ''));
+                var panel = document.getElementById('shipperChatPanel');
+                if (!panel.classList.contains('open')) {
+                    var badge = document.getElementById('shipperChatBadge');
+                    badge.style.display = 'flex';
+                    setTimeout(function(){ badge.style.display = 'none'; }, 5000);
+                }
+                loadShipperChat();
+            }
+        });
+        conn.on('adminMessage', function(msg, oid, sender) {
+            if (oid === orderId) {
+                appendShipperMsg(msg, 'other', 'Admin');
+                loadShipperChat();
+            }
+        });
+        // Listen for customer messages (Customer g?i qua CustomerSendMessage)
+        conn.on('customerMessage', function(msg, oid, senderName) {
+            if (oid === orderId) {
+                appendShipperMsg(msg, 'other', 'Khách hàng - ' + (senderName || ''));
+                var panel = document.getElementById('shipperChatPanel');
+                if (!panel.classList.contains('open')) {
+                    var badge = document.getElementById('shipperChatBadge');
+                    badge.style.display = 'flex';
+                    setTimeout(function(){ badge.style.display = 'none'; }, 5000);
+                }
+                loadShipperChat();
+            }
+        });
+    })();
 
     // Cleanup geolocation watch on page unload
     window.addEventListener('beforeunload', function() {

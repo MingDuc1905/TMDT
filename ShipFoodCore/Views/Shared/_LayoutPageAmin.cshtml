@@ -312,40 +312,26 @@
                                 </a>
                             </li>
 
-                            <!-- Quick logout icon (luôn visible, 1 click) -->
-                            <li class="nav-item d-flex align-items-center">
-                                <a href="@Url.Action("Logout","Home")" class="nav-link d-flex align-items-center justify-content-center" title="Đăng xuất"
-                                   style="width:36px;height:36px;border-radius:50%;color:#dc3545;border:1.5px solid rgba(220,53,69,.2);transition:all .15s;padding:0;"
-                                   onmouseenter="this.style.background='#fef2f2';this.style.borderColor='#dc3545'"
-                                   onmouseleave="this.style.background='transparent';this.style.borderColor='rgba(220,53,69,.2)'">
-                                    <i class="fa fa-sign-out-alt" style="font-size:14px;"></i>
+                            <!-- ═══ ADMIN: Avatar dropdown (modern minimalist) — P0: Cleaned role desync ═══ -->
+                            <li class="nav-item dropdown" style="margin-right:12px;">
+                                <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false"
+                                   style="padding:4px 8px;border-radius:8px;transition:background .15s;"
+                                   onmouseenter="this.style.background='rgba(60,184,21,.07)'" onmouseleave="this.style.background='transparent'">
+                                    @if (!string.IsNullOrEmpty(adminInfo?.hinhanh))
+                                    {
+                                        <img src="@TinhToan.HinhAnhUrl(adminInfo.hinhanh)" width="28" height="28" alt="" style="border-radius:50%;object-fit:cover;" />
+                                    }
+                                    else
+                                    {
+                                        <div style="width:28px;height:28px;border-radius:50%;background:#3CB815;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;">@firstLetter</div>
+                                    }
+                                    <span class="d-none d-lg-inline text-muted small fw-500">@adminName</span>
                                 </a>
-                            </li>
-                            <!-- ═══ ADMIN: User info + links trực tiếp (ko dropdown) ═══ -->
-                            <li class="nav-item d-flex align-items-center gap-1">
-                                <a href="@Url.Action("QuanLyQuanAn", "Admin")" class="nav-link d-flex align-items-center gap-1" title="Quản lý quán ăn"
-                                   style="font-size:13px;font-weight:500;color:var(--fs-muted,#6b7280);padding:6px 10px;border-radius:8px;transition:all .15s;"
-                                   onmouseenter="this.style.background='rgba(60,184,21,.07)';this.style.color='#3CB815'"
-                                   onmouseleave="this.style.background='transparent';this.style.color='#6b7280'">
-                                    <i class="fa fa-store" style="font-size:13px;"></i>
-                                    <span class="d-none d-lg-inline">Quản lý quán</span>
-                                </a>
-                                <a href="@Url.Action("Order", "Admin")" class="nav-link d-flex align-items-center gap-1" title="Quản lý đơn hàng"
-                                   style="font-size:13px;font-weight:500;color:var(--fs-muted,#6b7280);padding:6px 10px;border-radius:8px;transition:all .15s;"
-                                   onmouseenter="this.style.background='rgba(60,184,21,.07)';this.style.color='#3CB815'"
-                                   onmouseleave="this.style.background='transparent';this.style.color='#6b7280'">
-                                    <i class="fa fa-clipboard-list" style="font-size:13px;"></i>
-                                    <span class="d-none d-lg-inline">Đơn hàng</span>
-                                </a>
-                                <span class="text-muted small px-1 d-none d-lg-inline">@adminName</span>
-                                @if (!string.IsNullOrEmpty(adminInfo?.hinhanh))
-                                {
-                                    <img src="@TinhToan.HinhAnhUrl(adminInfo.hinhanh)" width="28" height="28" alt="" style="border-radius:50%;object-fit:cover;" />
-                                }
-                                else
-                                {
-                                    <div style="width:28px;height:28px;border-radius:50%;background:#3CB815;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;">@firstLetter</div>
-                                }
+                                <ul class="dropdown-menu dropdown-menu-end" style="min-width:160px;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.12);border:1px solid rgba(0,0,0,.06);">
+                                    <li><a class="dropdown-item d-flex align-items-center gap-2 py-2" href="@Url.Action("Dashboard","Admin")"><i class="fas fa-chart-pie" style="width:16px;color:var(--fs-green);"></i> Dashboard</a></li>
+                                    <li><hr class="dropdown-divider my-1"></li>
+                                    <li><a class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger" href="@Url.Action("Logout","Home")"><i class="fas fa-sign-out-alt" style="width:16px;"></i> Đăng xuất</a></li>
+                                </ul>
                             </li>
                         </ul>
                     </div>

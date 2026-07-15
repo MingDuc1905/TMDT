@@ -61,6 +61,43 @@
     /* ── Map ── */
     #trackingMap { height: 300px; border-radius: 12px; border: 2px solid #e5e7eb; }
 
+    /* ── Chat Bottom Sheet ── */
+    .chat-fab { position:fixed; bottom:24px; right:24px; width:56px; height:56px; border-radius:50%; background:linear-gradient(135deg,#3CB815,#27a001); color:#fff; border:none; box-shadow:0 4px 16px rgba(60,184,21,.4); display:flex; align-items:center; justify-content:center; font-size:22px; cursor:pointer; z-index:999; transition:transform .2s,box-shadow .2s; }
+    .chat-fab:hover { transform:scale(1.08); box-shadow:0 6px 24px rgba(60,184,21,.5); }
+    .chat-fab:active { transform:scale(.95); }
+    .chat-fab .badge-chat { position:absolute; top:-4px; right:-4px; width:20px; height:20px; border-radius:50%; background:#e74c3c; color:#fff; font-size:10px; display:flex; align-items:center; justify-content:center; font-weight:700; }
+
+    .chat-sheet { position:fixed; bottom:0; right:0; width:380px; max-width:100vw; max-height:70vh; background:#fff; border-radius:20px 20px 0 0; box-shadow:0 -4px 30px rgba(0,0,0,.15); z-index:1000; display:none; flex-direction:column; transform:translateY(100%); transition:transform .35s cubic-bezier(.32,.72,0,1); overflow:hidden; }
+    .chat-sheet.open { display:flex; transform:translateY(0); }
+    @@media (max-width:576px) { .chat-sheet { width:100vw; max-height:80vh; border-radius:16px 16px 0 0; } }
+
+    .chat-sheet-header { display:flex; align-items:center; justify-content:space-between; padding:14px 18px; background:linear-gradient(135deg,#3CB815,#27a001); color:#fff; cursor:pointer; flex-shrink:0; }
+    .chat-sheet-header h6 { margin:0; font-weight:600; font-size:15px; }
+    .chat-sheet-header button { background:none; border:none; color:#fff; font-size:18px; cursor:pointer; opacity:.8; padding:4px; }
+    .chat-sheet-header button:hover { opacity:1; }
+
+    .chat-sheet-messages { flex:1; overflow-y:auto; padding:14px 16px; background:#f8f9fa; min-height:200px; max-height:350px; }
+    .chat-sheet-messages::-webkit-scrollbar { width:4px; }
+    .chat-sheet-messages::-webkit-scrollbar-thumb { background:rgba(0,0,0,.1); border-radius:4px; }
+
+    .chat-bubble { margin-bottom:10px; max-width:82%; padding:9px 14px; border-radius:14px; font-size:13px; line-height:1.5; word-wrap:break-word; clear:both; }
+    .chat-bubble.own { float:right; background:linear-gradient(135deg,#3CB815,#2ea310); color:#fff; border-bottom-right-radius:4px; }
+    .chat-bubble.other { float:left; background:#fff; border:1.5px solid #e5e7eb; color:#1a1a2e; border-bottom-left-radius:4px; }
+    .chat-bubble .label { font-size:9px; opacity:.6; display:block; margin-bottom:2px; }
+    .chat-bubble .time { font-size:9px; opacity:.5; display:block; margin-top:3px; text-align:right; }
+    .chat-bubble.own .time { color:rgba(255,255,255,.65); }
+
+    .chat-sheet-input { display:flex; align-items:center; gap:8px; padding:10px 14px; border-top:1px solid #e5e7eb; background:#fff; flex-shrink:0; }
+    .chat-sheet-input input { flex:1; border:1.5px solid #e5e7eb; border-radius:20px; padding:8px 14px; font-size:13px; outline:none; transition:border-color .2s; }
+    .chat-sheet-input input:focus { border-color:#3CB815; }
+    .chat-sheet-input button { background:linear-gradient(135deg,#3CB815,#27a001); color:#fff; border:none; border-radius:50%; width:36px; height:36px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:13px; transition:opacity .2s; }
+    .chat-sheet-input button:hover { opacity:.85; }
+    .chat-sheet-input button:disabled { opacity:.4; cursor:default; }
+
+    .quick-replies { display:flex; gap:6px; padding:8px 14px; flex-wrap:wrap; border-top:1px solid #f0f0f0; background:#fafafa; flex-shrink:0; }
+    .quick-reply-btn { background:#fff; border:1.5px solid #3CB815; color:#3CB815; border-radius:16px; padding:5px 12px; font-size:11px; cursor:pointer; transition:all .2s; white-space:nowrap; }
+    .quick-reply-btn:hover { background:#3CB815; color:#fff; }
+
     /* ── Shipper Info ── */
     .shipper-info { display: flex; align-items: center; gap: 14px; padding: 16px; background: linear-gradient(135deg,#f0fff0,#e8f5e9); border-radius: 12px; border: 1px solid #c3e6cb; }
     .shipper-avatar { width: 48px; height: 48px; border-radius: 50%; background: #3CB815; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 20px; font-weight: 700; }
@@ -183,9 +220,9 @@
                                 <div class="shipper-name">@donHang.tbShipper.tenshipper</div>
                                 <div class="shipper-phone"><i class="fa fa-phone me-1"></i>@donHang.tbShipper.tbUser?.sdt</div>
                             </div>
-                            <a href="@Url.Action("NhanTin","Home")" class="btn btn-sm btn-success ms-auto" style="border-radius:8px;">
+                            <button onclick="toggleChat()" class="btn btn-sm btn-success ms-auto" style="border-radius:8px;">
                                 <i class="fab fa-facebook-messenger"></i> Nhắn tin
-                            </a>
+                            </button>
                         </div>
                     </div>
                 }
@@ -253,6 +290,43 @@
                 </div>
             </div>
         </div>
+    </div>
+</div>
+
+<!-- ═══ CHAT FAB + BOTTOM SHEET ═══ -->
+<button class="chat-fab" id="chatFab" onclick="toggleChat()" title="Chat với đơn hàng">
+    <i class="fas fa-comment-dots"></i>
+    <span class="badge-chat" id="chatBadge" style="display:none;">1</span>
+</button>
+
+<div class="chat-sheet" id="chatSheet">
+    <div class="chat-sheet-header" onclick="toggleChat()">
+        <div style="display:flex;align-items:center;gap:8px;">
+            <i class="fab fa-facebook-messenger" style="font-size:18px;"></i>
+            <h6>Chat đơn hàng #@donHang.madh</h6>
+        </div>
+        <button onclick="event.stopPropagation();toggleChat()" title="Đóng">✕</button>
+    </div>
+    <div class="chat-sheet-messages" id="chatSheetMessages">
+        <div class="chat-bubble other">
+            <span class="label">FastShip</span>
+            Chào bạn! Đây là kênh chat trực tiếp cho đơn hàng #@donHang.madh.
+            @if (donHang.tbShipper != null) {
+                <text>@donHang.tbShipper.tenshipper sẽ liên hệ với bạn khi giao hàng.</text>
+            }
+        </div>
+    </div>
+    <!-- Quick Replies (Customer) -->
+    <div class="quick-replies" id="quickReplies">
+        <button class="quick-reply-btn" onclick="quickReply('Bạn tới đâu rồi?')">📍 Bạn tới đâu rồi?</button>
+        <button class="quick-reply-btn" onclick="quickReply('Gửi ở bảo vệ giúp mình')">🏢 Gửi bảo vệ</button>
+        <button class="quick-reply-btn" onclick="quickReply('Đồ ăn có kèm đũa muỗng không ạ?')">🥢 Đũa muỗng?</button>
+        <button class="quick-reply-btn" onclick="quickReply('Cho mình xin số điện thoại shipper')">📞 SĐT shipper</button>
+    </div>
+    <div class="chat-sheet-input">
+        @Html.AntiForgeryToken()
+        <input type="text" id="chatInput" placeholder="Soạn tin nhắn..." onkeypress="if(event.key==='Enter')sendChatMsg()" />
+        <button onclick="sendChatMsg()"><i class="fas fa-paper-plane"></i></button>
     </div>
 </div>
 
@@ -327,13 +401,117 @@ $(document).ready(function() {
                                 $('.tracking-card:first .badge').text(status);
                             }
                         },
+                        // ═══ REAL-TIME CHAT: L?ng nghe tin nh?n t? m?i role ═══
+
         onConnected: function(conn) {
             console.log('SignalR connected for order tracking');
+            // Wire up real-time chat listener
+            conn.on('orderMessage', function(msg, orderId, senderName, senderRole, connId) {
+                if (orderId === @donHang.madh && senderRole !== 'Khách hàng') {
+                    appendChatMsg(msg, 'other', (senderRole || '') + ' - ' + (senderName || ''));
+                    var sheet = document.getElementById('chatSheet');
+                    if (!sheet.classList.contains('open')) {
+                        var badge = document.getElementById('chatBadge');
+                        badge.style.display = 'flex';
+                        setTimeout(function(){ badge.style.display = 'none'; }, 5000);
+                    }
+                    loadChatMessages();
+                }
+            });
+            // Also listen for admin messages
+            conn.on('adminMessage', function(msg, orderId, sender) {
+                if (orderId === @donHang.madh) {
+                    appendChatMsg(msg, 'other', 'Admin');
+                    loadChatMessages();
+                }
+            });
+            // Listen for shipper messages (Shipper g?i qua CustomerSendMessage)
+            conn.on('shipperMessage', function(msg, orderId, senderName) {
+                if (orderId === @donHang.madh) {
+                    appendChatMsg(msg, 'other', 'Shipper - ' + (senderName || ''));
+                    loadChatMessages();
+                }
+            });
         },
         onError: function(err) {
             console.error('SignalR error:', err);
         }
     });
+
+    // ═══ Chat Sheet Functions ═══
+    function toggleChat() {
+        var sheet = document.getElementById('chatSheet');
+        var fab = document.getElementById('chatFab');
+        if (sheet.classList.contains('open')) {
+            sheet.classList.remove('open');
+            fab.style.display = 'flex';
+        } else {
+            sheet.classList.add('open');
+            fab.style.display = 'none';
+            // Load messages when opening
+            loadChatMessages();
+            setTimeout(function(){
+                var msgs = document.getElementById('chatSheetMessages');
+                msgs.scrollTop = msgs.scrollHeight;
+            }, 100);
+        }
+    }
+
+    function loadChatMessages() {
+        var userId = @(user?.userid ?? 0);
+        if (!userId) return;
+        $.ajax({
+            url: '@Url.Action("GetMyMessages", "AdminChat")',
+            type: 'GET', data: { orderId: @donHang.madh },
+            success: function(res) {
+                if (!res.success || !res.data || res.data.length === 0) return;
+                var c = document.getElementById('chatSheetMessages');
+                // Keep only welcome message, replace rest
+                var welcome = c.querySelector('.chat-bubble:first-child');
+                c.innerHTML = '';
+                if (welcome) c.appendChild(welcome);
+                res.data.forEach(function(msg) {
+                    var isOwn = msg.sender === 'Khách hàng';
+                    appendChatMsg(msg.content, isOwn ? 'own' : 'other', isOwn ? 'Bạn' : msg.sender);
+                });
+                c.scrollTop = c.scrollHeight;
+            }
+        });
+    }
+
+    function sendChatMsg() {
+        var input = document.getElementById('chatInput');
+        var msg = input.value.trim();
+        if (!msg) return;
+        appendChatMsg(msg, 'own', 'Bạn');
+        input.value = '';
+        var token = document.querySelector('#chatSheet input[name="__RequestVerificationToken"]')?.value || '';
+        $.ajax({
+            url: '@Url.Action("CustomerSendMessage", "AdminChat")',
+            type: 'POST',
+            data: { orderId: @donHang.madh, message: msg },
+            headers: { 'RequestVerificationToken': token },
+            error: function() { appendChatMsg('❌ Lỗi gửi tin nhắn', 'other', 'Hệ thống'); }
+        });
+    }
+
+    function quickReply(text) {
+        document.getElementById('chatInput').value = text;
+        sendChatMsg();
+    }
+
+    function appendChatMsg(text, type, label) {
+        var c = document.getElementById('chatSheetMessages');
+        var d = document.createElement('div');
+        d.className = 'chat-bubble ' + type;
+        var time = new Date().toLocaleTimeString('vi-VN', {hour:'2-digit',minute:'2-digit'});
+        var safeText = (text || '').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g, '<br/>');
+        d.innerHTML = '<span class="label">' + (label || '') + '</span>'
+            + safeText
+            + '<span class="time">' + time + '</span>';
+        c.appendChild(d);
+        c.scrollTop = c.scrollHeight;
+    }
 
     function showToast(type, msg) {
         var color = type === 'error' ? '#dc3545' : (type === 'success' ? '#28a745' : '#3CB815');

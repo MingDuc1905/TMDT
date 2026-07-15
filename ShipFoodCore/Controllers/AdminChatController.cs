@@ -136,6 +136,37 @@ public class AdminChatController : BaseController
             // Xác ??nh customerId: t? tham s? targetUserId ho?c t? user hi?n t?i
             int? customerId = isCustomer ? user.userid : targetUserId;
 
+            // ═══ AUTO-LOCK: Ki?m tra n?u don hàng dã hoàn thành ho?c h?y quá 30 phút ═══
+            if (orderId > 0)
+            {
+                var order = await db.tbDonHang.FindAsync(orderId);
+                if (order != null)
+                {
+                    bool isCompleted = order.trangthai == "Hoàn thành" || order.trangthai == "Đã hủy";
+                    if (isCompleted && order.ngaythanhtoan.HasValue)
+                    {
+                        var elapsed = DateTime.Now - order.ngaythanhtoan.Value;
+                        if (elapsed.TotalMinutes > 30)
+                        {
+                            return Json(new { success = false, error = "Đơn hàng đã hoàn thành/hủy hơn 30 phút. Chat đã bị khóa tự động." });
+                        }
+                    }
+                    else if (isCompleted && order.ngaygiaohang.HasValue)
+                    {
+                        var elapsed = DateTime.Now - order.ngaygiaohang.Value;
+                        if (elapsed.TotalMinutes > 30)
+                        {
+                            return Json(new { success = false, error = "Đơn hàng đã hoàn thành/hủy hơn 30 phút. Chat đã bị khóa tự động." });
+                        }
+                    }
+                    // Catch-all: n?u dã hoàn thành/h?y mà không có timestamp, v?n khóa chat
+                    if (isCompleted)
+                    {
+                        return Json(new { success = false, error = "Đơn hàng đã hoàn thành/hủy. Chat đã bị khóa tự động." });
+                    }
+                }
+            }
+
             // L?u tin nh?n vào DB v?i role t??ng ?ng
             var tinNhan = new tbTinNhan
             {
@@ -303,6 +334,7 @@ public class AdminChatController : BaseController
     /// <summary>
     /// API: L?y tin nh?n c?a m?t khách hàng (cho admin panel & shipper chat)
     /// Cho phép c? Admin và Shipper truy c?p
+    /// FIX: Thêm sender role chính xác d?a trên d? li?u DB thay vì suy lu?n t? null
     /// </summary>
     [HttpGet]
     public JsonResult GetCustomerMessages(int userId)
@@ -344,6 +376,7 @@ public class AdminChatController : BaseController
 
     /// <summary>
     /// API: Admin g?i tin nh?n cho khách hàng
+    /// FIX B1: Không hardcode orderId=0 — dùng orderId gần nhất từ customer để broadcast đúng group
     /// </summary>
     [HttpPost]
     public async Task<JsonResult> SendMessageToCustomer(int userId, string message)
@@ -356,9 +389,16 @@ public class AdminChatController : BaseController
 
         try
         {
+            // Tìm orderId gần nhất của customer để broadcast vào group đúng
+            var latestOrder = db.tbTinNhans
+                .Where(t => t.makh == userId && t.madh != null && t.madh > 0)
+                .OrderByDescending(t => t.matn)
+                .Select(t => t.madh)
+                .FirstOrDefault();
+
             var tinNhan = new tbTinNhan
             {
-                madh = null,
+                madh = latestOrder, // Lưu với orderId thực tế thay vì null
                 noidung = message,
                 makh = userId,
                 mashipper = null
@@ -366,8 +406,10 @@ public class AdminChatController : BaseController
             db.tbTinNhans.Add(tinNhan);
             await db.SaveChangesAsync();
 
-            // Broadcast qua SignalR d?n group c?a khách hàng
-            await _hubContext.Clients.Group($"customer_{userId}").SendAsync("adminMessage", message, 0, "Admin");
+            // Broadcast đến customer group + order group (nếu có) — ko hardcode 0
+            await _hubContext.Clients.Group($"customer_{userId}").SendAsync("adminMessage", message, latestOrder ?? 0, "Admin");
+            if (latestOrder.HasValue && latestOrder.Value > 0)
+                await _hubContext.Clients.Group($"order_{latestOrder.Value}").SendAsync("adminMessage", message, latestOrder.Value, "Admin");
 
             return Json(new { success = true });
         }

@@ -434,10 +434,9 @@
         adminConn = new signalR.HubConnectionBuilder().withUrl('/nhantin?userId=' + adminUserId).withAutomaticReconnect().build();
 
         // ═══ Nh?n tin nh?n t? Admin ═══
+        // FIX B3: Lu?n hi?n tin nh?n t? admin khi kh?p userId — không filter theo orderId quá ch?t
         adminConn.on('adminMessage', function(msg, orderId, sender) {
-            if (orderId === adminOrderId || (orderId === 0 && adminOrderId === 0)) {
-                addMsg('adminMsgs', msg, 'admin');
-            }
+            addMsg('adminMsgs', msg, 'admin');
             showMsgBadge();
         });
 

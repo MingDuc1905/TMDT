@@ -177,23 +177,30 @@
             
         connection.on("customerMessage", function (message, orderId, userName, userId) {
             loadConversations();
-            if (userId === currentUserId) {
-                loadCustomerMessages(currentUserId);
+            // FIX B2: userId ở đây là customerId, currentUserId là adminId — ko so sánh bằng
+            // Thay vào đó, tự động load messages cho customer vừa gửi tin
+            if (userId && userId > 0) {
+                // Nếu đang không xem customer nào, auto-select customer này
+                if (currentUserId === @(ViewBag.AdminUserId ?? 0)) {
+                    selectCustomer(userId);
+                }
+                // Refresh messages nếu đang xem đúng customer này
+                if (userId === currentUserId) {
+                    loadCustomerMessages(userId);
+                }
             }
         });
         
         connection.onreconnected(function () {
-            if (currentUserId > 0) {
-                connection.invoke('JoinAdminGroup', currentUserId).catch(function () {});
+            if (@(ViewBag.AdminUserId ?? 0) > 0) {
+                connection.invoke('JoinAdminGroup', @(ViewBag.AdminUserId ?? 0)).catch(function () {});
             }
         });
         
         connectPromise = connection.start().then(function () {
-            // ═══ FIX: Admin cần join group 'admins' để nhận tin từ CustomerSendMessage ═══
-            // CustomerSendMessage broadcast đến 'admins' group, nhưng JoinCustomerSupportGroup chỉ join customer_{userId}
-            // → Admin không nhận được tin nhắn từ khách hàng!
-            if (currentUserId > 0) {
-                return connection.invoke('JoinAdminGroup', currentUserId).catch(function () {});
+            // Admin join group 'admins' để nhận tin từ CustomerSendMessage
+            if (@(ViewBag.AdminUserId ?? 0) > 0) {
+                return connection.invoke('JoinAdminGroup', @(ViewBag.AdminUserId ?? 0)).catch(function () {});
             }
         }).catch(function (err) {
             console.error("SignalR error: " + err.toString());

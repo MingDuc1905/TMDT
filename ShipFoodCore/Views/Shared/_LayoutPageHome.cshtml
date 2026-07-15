@@ -22,7 +22,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Roboto:wght@400;500&display=swap" rel="stylesheet" />
 
     <!-- Font Awesome 5 (CDN) — dùng CDN cloudflare, ko cần fallback local vì FA6 không tồn tại trong repo -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet" onerror="var s=document.createElement('link');s.rel='stylesheet';s.href='https://use.fontawesome.com/releases/v5.10.0/css/all.css';document.head.appendChild(s);console.warn('FA CDN fallback loaded from use.fontawesome.com');" />
 
     <!-- Libraries Stylesheet -->
     <link href="~/Source/Home/lib/animate/animate.min.css" rel="stylesheet" />
@@ -38,6 +38,15 @@
 
     <!-- Global Design System v4.0 -->
     <link href="~/Source/Shared/css/fastship-design-tokens.css" rel="stylesheet" />
+
+    <!-- ─── Common color CSS variables (ponytail: reuse --fs-* tokens) ─── -->
+    <style>
+        .fs-hover-green:hover { border-color: var(--fs-green, #3CB815) !important; background: var(--fs-green-bg, rgba(60,184,21,.07)) !important; }
+        .fs-hover-danger:hover { background: #fef2f2 !important; border-color: #ef4444 !important; }
+        .fs-trans-x:hover { transform: translateX(4px); }
+        .fs-card-hover:hover { border-color: #3CB815 !important; box-shadow: 0 2px 12px rgba(60,184,21,.15) !important; }
+        .fs-btn-hover-green:hover { background: #2ea310 !important; border-color: #2ea310 !important; }
+    </style>
 
     @RenderSection("styles", required: false)
 </head>

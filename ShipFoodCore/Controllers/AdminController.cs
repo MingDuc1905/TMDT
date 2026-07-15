@@ -31,7 +31,9 @@ public class AdminController : BaseController
     {
         if (!checkLogin())
             return RedirectToAction("Login", "Home");
+        // ponytail: AsNoTracking vì Admin Order list chỉ đọc, không sửa
         var litsdh = db.tbDonHang
+            .AsNoTracking()
             .Include(d => d.tbShipper)
             .Include(d => d.tbQuanAn)
             .Include(d => d.tbThongTinDatHang)

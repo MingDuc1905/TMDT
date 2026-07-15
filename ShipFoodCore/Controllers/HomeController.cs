@@ -241,16 +241,21 @@ public class HomeController : BaseController
     public ActionResult Login()
     {
         return View();
-    }
-
-    [HttpPost]
-    [EnableRateLimiting("login-policy")]
-    [ValidateAntiForgeryToken]
-    public async Task<ActionResult> Login(string usernameOrPhone, string pwd, bool rememberMe = false)
-    {
-        try
+    }        [HttpPost]
+        [EnableRateLimiting("login-policy")]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> Login(string usernameOrPhone, string pwd, bool rememberMe = false)
         {
-        if (string.IsNullOrWhiteSpace(usernameOrPhone) || string.IsNullOrWhiteSpace(pwd))
+            try
+            {
+            // ═══ Multi-tab fix: Sign out trước khi login mới ═══
+            // Tránh session cũ bị ghi đè khi login role khác trên cùng browser
+            if (HttpContext.User?.Identity?.IsAuthenticated == true)
+            {
+                try { await HttpContext.SignOutAsync(Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme); } catch { }
+            }
+
+            if (string.IsNullOrWhiteSpace(usernameOrPhone) || string.IsNullOrWhiteSpace(pwd))
         {
             ViewBag.LoginFail = "Vui lòng nhập tên đăng nhập/SĐT và mật khẩu";
             return View();
@@ -291,9 +296,11 @@ public class HomeController : BaseController
             }
 
             var cart = new Cart { userid = userFind.userid };
-            SetCart(cart);
-            // ─── Set auth cookie + session (bền vững qua restart) ───
-            await SetSessionAndCookieAsync(userFind, rememberMe);
+            SetCart(cart);                    // ─── Set auth cookie + session (bền vững qua restart) ───
+                    // ponytail: clear session cũ trước khi set mới (multi-tab fix)
+                    HttpContext.Session.Clear();
+                    await HttpContext.Session.CommitAsync();
+                    await SetSessionAndCookieAsync(userFind, rememberMe);
 
             var redirectUrl = userFind.loaitaikhoan switch
             {
@@ -1007,10 +1014,19 @@ public class HomeController : BaseController
     public async Task<ActionResult> Logout()
     {
         // ─── Xoá cả session + auth cookie ───
-        await HttpContext.SignOutAsync(Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme);
-        HttpContext.Session.Remove("user");
-        HttpContext.Session.Remove("cart");
-        await HttpContext.Session.CommitAsync();
+        try
+        {
+            await HttpContext.SignOutAsync(Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme);
+        }
+        catch { /* Auth cookie may be missing or invalid — still clear session */ }
+        try
+        {
+            HttpContext.Session.Remove("user");
+            HttpContext.Session.Remove("cart");
+            HttpContext.Session.Clear();
+            await HttpContext.Session.CommitAsync();
+        }
+        catch { /* Session may be corrupted — still redirect to home */ }
         return RedirectToAction("Index");
     }
 

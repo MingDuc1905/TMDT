@@ -46,6 +46,66 @@
         margin: 4px 0;
     }
 
+    /* ── Wallet Actions ── */
+    .wallet-actions {
+        display: flex; gap: 12px; margin-bottom: 24px;
+    }
+    .wallet-actions .btn-action {
+        flex: 1; padding: 12px; border-radius: 14px; border: none;
+        font-size: 14px; font-weight: 600; cursor: pointer;
+        transition: all .2s; display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .wallet-actions .btn-action.deposit {
+        background: #3CB815; color: #fff;
+    }
+    .wallet-actions .btn-action.deposit:hover { background: #2ea310; }
+    .wallet-actions .btn-action.withdraw {
+        background: #fff; color: #1a1a2e;
+        border: 1.5px solid #e5e7eb;
+    }
+    .wallet-actions .btn-action.withdraw:hover { border-color: #3CB815; background: #f0fdf4; }
+
+    /* ── Modal ── */
+    .wallet-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,.4); z-index: 9999; align-items: center; justify-content: center; }
+    .wallet-modal.active { display: flex; }
+    .wallet-modal .modal-box {
+        background: #fff; border-radius: 20px; padding: 24px;
+        width: 90%; max-width: 400px; box-shadow: 0 20px 60px rgba(0,0,0,.15);
+    }
+    .wallet-modal .modal-box h4 { margin: 0 0 8px; font-weight: 700; }
+    .wallet-modal .modal-box p { font-size: 13px; color: #6b7280; margin: 0 0 16px; }
+    .wallet-modal .modal-box input {
+        width: 100%; padding: 12px 16px; border: 1.5px solid #e5e7eb;
+        border-radius: 12px; font-size: 16px; font-weight: 600;
+        outline: none; transition: border-color .2s;
+    }
+    .wallet-modal .modal-box input:focus { border-color: #3CB815; }
+    .wallet-modal .modal-box .modal-actions {
+        display: flex; gap: 8px; margin-top: 16px;
+    }
+    .wallet-modal .modal-box .modal-actions button {
+        flex: 1; padding: 12px; border-radius: 12px; border: none;
+        font-size: 14px; font-weight: 600; cursor: pointer; transition: all .2s;
+    }
+    .wallet-modal .modal-box .modal-actions .btn-confirm {
+        background: #3CB815; color: #fff;
+    }
+    .wallet-modal .modal-box .modal-actions .btn-confirm:hover { background: #2ea310; }
+    .wallet-modal .modal-box .modal-actions .btn-cancel {
+        background: #f3f4f6; color: #6b7280;
+    }
+    .wallet-modal .modal-box .modal-actions .btn-cancel:hover { background: #e5e7eb; }
+    .wallet-toast {
+        position: fixed; top: 20px; right: 20px; z-index: 99999;
+        padding: 14px 20px; border-radius: 12px; font-size: 14px; font-weight: 500;
+        box-shadow: 0 4px 20px rgba(0,0,0,.1);
+        animation: slideIn .3s ease;
+    }
+    .wallet-toast.success { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+    .wallet-toast.error { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+    @@keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
     /* ── Mini Stats ── */
     .wallet-mini-stats {
         display: grid;
@@ -128,11 +188,81 @@
 </style>
 
 <div class="wallet-page">
+    <!-- ═══ Toast Messages ═══ -->
+    @if (ViewBag.NapTienSuccess != null)
+    {
+        <div class="wallet-toast success" id="walletToast">
+            <i class="fas fa-check-circle me-1"></i> @ViewBag.NapTienSuccess
+        </div>
+    }
+    @if (ViewBag.NapTienError != null)
+    {
+        <div class="wallet-toast error" id="walletToast">
+            <i class="fas fa-exclamation-circle me-1"></i> @ViewBag.NapTienError
+        </div>
+    }
+    @if (ViewBag.RutTienSuccess != null)
+    {
+        <div class="wallet-toast success" id="walletToast">
+            <i class="fas fa-check-circle me-1"></i> @ViewBag.RutTienSuccess
+        </div>
+    }
+    @if (ViewBag.RutTienError != null)
+    {
+        <div class="wallet-toast error" id="walletToast">
+            <i class="fas fa-exclamation-circle me-1"></i> @ViewBag.RutTienError
+        </div>
+    }
+
     <!-- ═══ Wallet Card ═══ -->
     <div class="wallet-card">
         <div class="wallet-icon">👛</div>
         <div class="wallet-label">Số dư khả dụng</div>
         <div class="wallet-balance">@soDu.ToString("N0")<span style="font-size:20px;font-weight:400;">đ</span></div>
+    </div>
+
+    <!-- ═══ Wallet Actions (Nạp/Rút) ═══ -->
+    <div class="wallet-actions">
+        <button class="btn-action deposit" onclick="openModal('deposit')">
+            <i class="fas fa-plus-circle"></i> Nạp tiền
+        </button>
+        <button class="btn-action withdraw" onclick="openModal('withdraw')">
+            <i class="fas fa-arrow-right"></i> Rút tiền
+        </button>
+    </div>
+
+    <!-- ═══ Nạp tiền Modal ═══ -->
+    <div class="wallet-modal" id="depositModal">
+        <div class="modal-box">
+            <h4>💳 Nạp tiền</h4>
+            <p>Nhập số tiền bạn muốn nạp vào ví (tối thiểu 10,000đ)</p>
+            <form method="post" action="@Url.Action("NapTien", "Shipper")">
+                @Html.AntiForgeryToken()
+                <input type="number" name="soTien" min="10000" max="100000000" step="10000"
+                       placeholder="Nhập số tiền..." required />
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" onclick="closeModal('depositModal')">Huỷ</button>
+                    <button type="submit" class="btn-confirm">Nạp tiền</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ═══ Rút tiền Modal ═══ -->
+    <div class="wallet-modal" id="withdrawModal">
+        <div class="modal-box">
+            <h4>💸 Rút tiền</h4>
+            <p>Nhập số tiền bạn muốn rút (tối thiểu 10,000đ)</p>
+            <form method="post" action="@Url.Action("RutTien", "Shipper")">
+                @Html.AntiForgeryToken()
+                <input type="number" name="soTien" min="10000" max="@((int)soDu)" step="10000"
+                       placeholder="Nhập số tiền..." required />
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" onclick="closeModal('withdrawModal')">Huỷ</button>
+                    <button type="submit" class="btn-confirm">Rút tiền</button>
+                </div>
+            </form>
+        </div>
     </div>
 
     <!-- ═══ Mini Stats ═══ -->
@@ -193,3 +323,21 @@
         </div>
     }
 </div>
+
+<script>
+function openModal(type) {
+    document.getElementById(type + 'Modal').classList.add('active');
+}
+function closeModal(id) {
+    document.getElementById(id).classList.remove('active');
+}
+window.onclick = function(e) {
+    if (e.target.classList.contains('wallet-modal')) {
+        e.target.classList.remove('active');
+    }
+}
+setTimeout(function() {
+    var t = document.getElementById('walletToast');
+    if (t) { t.style.transition = 'opacity .5s'; t.style.opacity = '0'; setTimeout(function(){ t.remove(); }, 500); }
+}, 4000);
+</script>

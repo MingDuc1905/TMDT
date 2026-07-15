@@ -1,36 +1,183 @@
-﻿
-@{
-    ViewBag.Title = "Wallet";
+﻿@{
+    ViewBag.Title = "Ví tiền";
     Layout = "~/Views/Shared/_LayoutPageRestaurant.cshtml";
-    List<ShipFood.Models.tbDonHang> donHangs = ViewBag.donHangs; 
+    var donHangs = ViewBag.donHangs as List<ShipFood.Models.tbDonHang> ?? new();
+    var soDu = ViewBag.soDu ?? 0;
+    var vitien = ViewBag.vitien ?? 0;
 }
 
-    <!-- row -->
-    <div class="container-fluid">
-        <div class="form-head d-flex mb-3 align-items-start">
-            <div class="mr-auto d-none d-lg-block">
-                <h2 class="text-black font-w600 mb-0">Ví tiền</h2>
-                <p class="mb-0">Số dư: @ViewBag.soDu VND</p>
+<style>
+    .wallet-page { max-width: 1000px; margin: 0 auto; padding: 24px; }
+    @@media (max-width:768px) { .wallet-page { padding: 12px; } }
+    .wallet-card {
+        background: linear-gradient(135deg, #0f3460, #1a1a2e);
+        border-radius: 20px; padding: 28px 32px; color: white;
+        position: relative; overflow: hidden; margin-bottom: 24px;
+    }
+    .wallet-card::before {
+        content: ''; position: absolute;
+        top: -80px; right: -80px;
+        width: 250px; height: 250px;
+        background: radial-gradient(circle, rgba(60,184,21,.1), transparent 60%);
+        border-radius: 50%;
+    }
+    .wallet-card .wallet-icon { font-size: 32px; margin-bottom: 12px; position: relative; z-index: 1; }
+    .wallet-card .wallet-label {
+        font-size: 13px; color: rgba(255,255,255,.5);
+        text-transform: uppercase; letter-spacing: 2px; position: relative; z-index: 1;
+    }
+    .wallet-card .wallet-balance {
+        font-size: 40px; font-weight: 800; position: relative; z-index: 1; margin: 4px 0;
+    }
+    .wallet-actions { display: flex; gap: 12px; margin-bottom: 24px; }
+    .wallet-actions .btn-action {
+        flex: 1; padding: 12px; border-radius: 14px; border: none;
+        font-size: 14px; font-weight: 600; cursor: pointer; transition: all .2s;
+        display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .wallet-actions .btn-action.deposit { background: #3CB815; color: #fff; }
+    .wallet-actions .btn-action.deposit:hover { background: #2ea310; }
+    .wallet-actions .btn-action.withdraw {
+        background: #fff; color: #1a1a2e; border: 1.5px solid #e5e7eb;
+    }
+    .wallet-actions .btn-action.withdraw:hover { border-color: #3CB815; background: #f0fdf4; }
 
-            </div>
-        </div>
-        <div class="row">
-            <div class="form-group row">
-               
-            </div>
+    .wallet-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,.4); z-index: 9999; align-items: center; justify-content: center; }
+    .wallet-modal.active { display: flex; }
+    .wallet-modal .modal-box {
+        background: #fff; border-radius: 20px; padding: 24px;
+        width: 90%; max-width: 400px; box-shadow: 0 20px 60px rgba(0,0,0,.15);
+    }
+    .wallet-modal .modal-box h4 { margin: 0 0 8px; font-weight: 700; }
+    .wallet-modal .modal-box p { font-size: 13px; color: #6b7280; margin: 0 0 16px; }
+    .wallet-modal .modal-box input {
+        width: 100%; padding: 12px 16px; border: 1.5px solid #e5e7eb;
+        border-radius: 12px; font-size: 16px; font-weight: 600;
+        outline: none; transition: border-color .2s;
+    }
+    .wallet-modal .modal-box input:focus { border-color: #3CB815; }
+    .wallet-modal .modal-box .modal-actions { display: flex; gap: 8px; margin-top: 16px; }
+    .wallet-modal .modal-box .modal-actions button {
+        flex: 1; padding: 12px; border-radius: 12px; border: none;
+        font-size: 14px; font-weight: 600; cursor: pointer; transition: all .2s;
+    }
+    .wallet-modal .modal-box .modal-actions .btn-confirm { background: #3CB815; color: #fff; }
+    .wallet-modal .modal-box .modal-actions .btn-confirm:hover { background: #2ea310; }
+    .wallet-modal .modal-box .modal-actions .btn-cancel { background: #f3f4f6; color: #6b7280; }
+    .wallet-modal .modal-box .modal-actions .btn-cancel:hover { background: #e5e7eb; }
+    .wallet-toast {
+        position: fixed; top: 20px; right: 20px; z-index: 99999;
+        padding: 14px 20px; border-radius: 12px; font-size: 14px; font-weight: 500;
+        box-shadow: 0 4px 20px rgba(0,0,0,.1); animation: slideIn .3s ease;
+    }
+    .wallet-toast.success { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+    .wallet-toast.error { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+    @@keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    .tx-list { display: flex; flex-direction: column; gap: 8px; }
+    .tx-item {
+        background: white; border-radius: 12px; padding: 14px 18px;
+        border: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center;
+        transition: all .2s;
+    }
+    .tx-item:hover { box-shadow: 0 2px 12px rgba(0,0,0,.05); border-color: #e0e7ff; }
+    .tx-item .tx-left { display: flex; align-items: center; gap: 12px; }
+    .tx-item .tx-info .tx-title { font-size: 14px; font-weight: 600; color: #1a1a2e; margin: 0; }
+    .tx-item .tx-info .tx-sub { font-size: 12px; color: #9ca3af; margin: 2px 0 0; }
+    .tx-amount { font-size: 15px; font-weight: 700; color: #3CB815; }
+</style>
 
-        </div>
+<div class="wallet-page">
+    <!-- Toast -->
+    @if (ViewBag.WalletSuccess != null)
+    {
+        <div class="wallet-toast success" id="walletToast"><i class="fas fa-check-circle me-1"></i> @ViewBag.WalletSuccess</div>
+    }
+    @if (ViewBag.WalletError != null)
+    {
+        <div class="wallet-toast error" id="walletToast"><i class="fas fa-exclamation-circle me-1"></i> @ViewBag.WalletError</div>
+    }
+
+    <!-- Wallet Card -->
+    <div class="wallet-card">
+        <div class="wallet-icon">👛</div>
+        <div class="wallet-label">Số dư khả dụng</div>
+        <div class="wallet-balance">@Convert.ToDecimal(vitien).ToString("N0")<span style="font-size:20px;font-weight:400;">đ</span></div>
     </div>
-    <div class="row">
-        @foreach (var i in donHangs)
-        {
-            <div class="col-lg-12">
-                <div class="card">
-                    <div class="card-header">
-                        <h4 class="card-title">Đơn hàng @i.madh : +@(Math.Round((double)i.tongtien, 1)) VND</h4>
-                    </div>
+
+    <!-- Actions -->
+    <div class="wallet-actions">
+        <button class="btn-action deposit" onclick="openModal('deposit')">
+            <i class="fas fa-plus-circle"></i> Nạp tiền
+        </button>
+        <button class="btn-action withdraw" onclick="openModal('withdraw')">
+            <i class="fas fa-arrow-right"></i> Rút tiền
+        </button>
+    </div>
+
+    <!-- Deposit Modal -->
+    <div class="wallet-modal" id="depositModal">
+        <div class="modal-box">
+            <h4>💳 Nạp tiền</h4>
+            <p>Nhập số tiền muốn nạp (tối thiểu 10,000đ)</p>
+            <form method="post" action="@Url.Action("NapTien", "Restaurant")">
+                @Html.AntiForgeryToken()
+                <input type="number" name="soTien" min="10000" max="100000000" step="10000" placeholder="Nhập số tiền..." required />
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" onclick="closeModal('depositModal')">Huỷ</button>
+                    <button type="submit" class="btn-confirm">Nạp tiền</button>
                 </div>
-            </div>
-        }
-        
+            </form>
+        </div>
     </div>
+
+    <!-- Withdraw Modal -->
+    <div class="wallet-modal" id="withdrawModal">
+        <div class="modal-box">
+            <h4>💸 Rút tiền</h4>
+            <p>Nhập số tiền muốn rút (tối thiểu 10,000đ)</p>
+            <form method="post" action="@Url.Action("RutTien", "Restaurant")">
+                @Html.AntiForgeryToken()
+                <input type="number" name="soTien" min="10000" max="@((int)Convert.ToDecimal(vitien))" step="10000" placeholder="Nhập số tiền..." required />
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" onclick="closeModal('withdrawModal')">Huỷ</button>
+                    <button type="submit" class="btn-confirm">Rút tiền</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Transaction List -->
+    <h4 style="font-weight:700;color:#1a1a2e;margin-bottom:16px;">📋 Lịch sử đơn hàng</h4>
+    @if (donHangs.Any())
+    {
+        <div class="tx-list">
+            @foreach (var i in donHangs.Take(20))
+            {
+                <div class="tx-item">
+                    <div class="tx-left">
+                        <div class="tx-info">
+                            <p class="tx-title">Đơn hàng #@i.madh</p>
+                            <p class="tx-sub">@i.ngaydathang?.ToString("dd/MM/yyyy HH:mm")</p>
+                        </div>
+                    </div>
+                    <div class="tx-amount">+@(i.tongtien?.ToString("N0") ?? "0")đ</div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <p class="text-muted text-center py-4">Chưa có đơn hàng nào</p>
+    }
+</div>
+
+<script>
+function openModal(type) { document.getElementById(type + 'Modal').classList.add('active'); }
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+window.onclick = function(e) { if (e.target.classList.contains('wallet-modal')) e.target.classList.remove('active'); };
+setTimeout(function() {
+    var t = document.getElementById('walletToast');
+    if (t) { t.style.transition = 'opacity .5s'; t.style.opacity = '0'; setTimeout(function(){ t.remove(); }, 500); }
+}, 4000);
+</script>

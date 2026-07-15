@@ -179,7 +179,87 @@ public class ShipperController : BaseController
         var shipper = db.tbUser.Find(sh.userid);
         var listdonhang = db.tbDonHang.Where(dh => dh.mashipper == sh.userid).ToList();
         ViewBag.listdh = listdonhang;
+        ViewBag.NapTienSuccess = TempData["NapTienSuccess"];
+        ViewBag.NapTienError = TempData["NapTienError"];
+        ViewBag.RutTienSuccess = TempData["RutTienSuccess"];
+        ViewBag.RutTienError = TempData["RutTienError"];
         return View(shipper ?? new tbUser());
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public ActionResult NapTien(decimal soTien)
+    {
+        var sh = GetCurrentUser();
+        if (sh == null || !checkShipper()) return Json(new { success = false, message = "Vui lòng đăng nhập" });
+
+        if (soTien < 10000)
+        {
+            TempData["NapTienError"] = "Số tiền nạp tối thiểu là 10,000đ";
+            return RedirectToAction("ViTien");
+        }
+        if (soTien > 100000000)
+        {
+            TempData["NapTienError"] = "Số tiền nạp tối đa là 100,000,000đ";
+            return RedirectToAction("ViTien");
+        }
+
+        var user = db.tbUser.Find(sh.userid);
+        if (user != null)
+        {
+            user.vitien = (user.vitien ?? 0) + soTien;
+            db.SaveChanges();
+
+            // Ghi log giao dịch
+            db.tbTinNhans.Add(new tbTinNhan
+            {
+                noidung = $"💳 Nạp tiền: +{soTien:N0}đ. Số dư mới: {user.vitien:N0}đ",
+                makh = sh.userid,
+                mashipper = sh.userid
+            });
+            db.SaveChanges();
+
+            TempData["NapTienSuccess"] = $"Nạp thành công {soTien:N0}đ vào ví!";
+        }
+        return RedirectToAction("ViTien");
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public ActionResult RutTien(decimal soTien)
+    {
+        var sh = GetCurrentUser();
+        if (sh == null || !checkShipper()) return Json(new { success = false, message = "Vui lòng đăng nhập" });
+
+        if (soTien < 10000)
+        {
+            TempData["RutTienError"] = "Số tiền rút tối thiểu là 10,000đ";
+            return RedirectToAction("ViTien");
+        }
+
+        var user = db.tbUser.Find(sh.userid);
+        if (user != null)
+        {
+            if ((user.vitien ?? 0) < soTien)
+            {
+                TempData["RutTienError"] = $"Số dư không đủ. Hiện tại: {user.vitien:N0}đ";
+                return RedirectToAction("ViTien");
+            }
+
+            user.vitien -= soTien;
+            db.SaveChanges();
+
+            db.tbTinNhans.Add(new tbTinNhan
+            {
+                noidung = $"💸 Rút tiền: -{soTien:N0}đ. Số dư mới: {user.vitien:N0}đ",
+                makh = sh.userid,
+                mashipper = sh.userid
+            });
+            db.SaveChanges();
+
+            TempData["RutTienSuccess"] = $"Yêu cầu rút {soTien:N0}đ đã được ghi nhận! Vui lòng chờ admin xử lý.";
+        }
+        return RedirectToAction("ViTien");
     }
 
     public async Task<ActionResult> OrderDetail(int? id)

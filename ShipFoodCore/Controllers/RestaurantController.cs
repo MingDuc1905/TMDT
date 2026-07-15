@@ -67,11 +67,71 @@ public class RestaurantController : BaseController
     {
         if (!checkLogin()) return RedirectToAction("Login", "Home");
         var QuanAn = getQuanAn();
+        var user = GetCurrentUser();
         // ponytail: Loại đơn "Đã hủy" khỏi tính doanh thu + hiển thị
         var donHangs = QuanAn.tbDonHang.Where(dh => dh.trangthai != "Đã hủy").ToList();
         ViewBag.donHangs = donHangs;
         ViewBag.soDu = Math.Round((double?)donHangs.Sum(dh => dh.tongtien) ?? 0, 1);
+        ViewBag.vitien = user?.vitien ?? 0;
+        ViewBag.WalletSuccess = TempData["WalletSuccess"];
+        ViewBag.WalletError = TempData["WalletError"];
         return View();
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public ActionResult NapTien(decimal soTien)
+    {
+        if (!checkLogin()) return Json(new { success = false });
+        var user = GetCurrentUser();
+
+        if (soTien < 10000)
+        {
+            TempData["WalletError"] = "Số tiền nạp tối thiểu là 10,000đ";
+            return RedirectToAction("Wallet");
+        }
+        if (soTien > 100000000)
+        {
+            TempData["WalletError"] = "Số tiền nạp tối đa là 100,000,000đ";
+            return RedirectToAction("Wallet");
+        }
+
+        var dbUser = db.tbUser.Find(user!.userid);
+        if (dbUser != null)
+        {
+            dbUser.vitien = (dbUser.vitien ?? 0) + soTien;
+            db.SaveChanges();
+            TempData["WalletSuccess"] = $"Nạp thành công {soTien:N0}đ vào ví!";
+        }
+        return RedirectToAction("Wallet");
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public ActionResult RutTien(decimal soTien)
+    {
+        if (!checkLogin()) return Json(new { success = false });
+        var user = GetCurrentUser();
+
+        if (soTien < 10000)
+        {
+            TempData["WalletError"] = "Số tiền rút tối thiểu là 10,000đ";
+            return RedirectToAction("Wallet");
+        }
+
+        var dbUser = db.tbUser.Find(user!.userid);
+        if (dbUser != null)
+        {
+            if ((dbUser.vitien ?? 0) < soTien)
+            {
+                TempData["WalletError"] = $"Số dư không đủ. Hiện tại: {dbUser.vitien:N0}đ";
+                return RedirectToAction("Wallet");
+            }
+            dbUser.vitien -= soTien;
+            db.SaveChanges();
+            TempData["WalletSuccess"] = $"Rút {soTien:N0}đ thành công. Số dư mới: {dbUser.vitien:N0}đ";
+        }
+        return RedirectToAction("Wallet");
     }
 
     public ActionResult Analytics()

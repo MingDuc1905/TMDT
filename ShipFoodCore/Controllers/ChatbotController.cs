@@ -30,6 +30,18 @@ public class ChatbotController : BaseController
         if (string.IsNullOrWhiteSpace(message))
             return Json(new { reply = "Vui lòng nhập câu hỏi!", quickReplies = new string[] { } });
 
+        // ponytail: security fix — giới hạn độ dài message
+        if (message.Length > 2000)
+            return Json(new { reply = "Tin nhắn quá dài. Vui lòng nhập ngắn hơn (tối đa 2000 ký tự).", quickReplies = new string[] { } });
+
+        // ponytail: security fix — yêu cầu ?ang nh?p d? chat v?i AI
+        var currentUser = GetCurrentUser();
+        if (currentUser == null && message.Contains("#"))
+        {
+            // N?u khách vãng lai h?i v? don hàng/invoice/stats, yêu c?u ?ang nh?p
+            return Json(new { reply = "🔒 Vui lòng đăng nhập để sử dụng tính năng tra cứu.", quickReplies = new[] { "Đăng nhập", "Gợi ý món ăn", "Phí ship thế nào?" } });
+        }
+
         var lowerMsg = message.ToLower().Trim();
 
         // 1. Xử lý các truy vấn cần database (tra cứu đơn hàng, gợi ý món ăn)
@@ -191,14 +203,13 @@ public class ChatbotController : BaseController
         var tongMon = db.tbMonAn.Count();
         var tongDon = db.tbDonHang.Count();
         var donThanhCong = db.tbDonHang.Count(d => d.trangthai == "Hoàn thành");
-        var tongNguoiDung = db.tbUser.Count();
+        // ponytail: security fix — không leak số lượng user (attacker estimate quy mô hệ thống)
 
         var replyText = "📊 **THỐNG KÊ FASTSHIP**\n"
             + $"- 🏪 Quán ăn: {tongQuan} quán\n"
             + $"- 🍽️ Món ăn: {tongMon} món\n"
             + $"- 📦 Tổng đơn hàng: {tongDon} đơn\n"
-            + $"- ✅ Đơn thành công: {donThanhCong} đơn\n"
-            + $"- 👥 Tài khoản: {tongNguoiDung} người dùng";
+            + $"- ✅ Đơn thành công: {donThanhCong} đơn";
 
         return new
         {
@@ -315,21 +326,27 @@ public class ChatbotController : BaseController
 
         int orderId = int.Parse(match.Groups[1].Value);
 
-        // ponytail: chi cho phep tra cuu don hang cua chinh nguoi dung
+        // ponytail: security fix — b?t bu?c ?ang nh?p d? tra c?u don hàng
         var user = GetCurrentUser();
+        if (user == null)
+        {
+            return new
+            {
+                reply = "🔒 Vui lòng đăng nhập để tra cứu đơn hàng.",
+                quickReplies = new[] { "Gợi ý món ăn", "Phí ship thế nào?", "Liên hệ hỗ trợ" }
+            };
+        }
         var donHang = db.tbDonHang
             .Include(d => d.tbQuanAn)
             .Include(d => d.tbThongTinDatHang)
             .Include(d => d.tbShipper)
-            .FirstOrDefault(d => d.madh == orderId && (user == null || d.tbThongTinDatHang == null || d.tbThongTinDatHang.userid == user.userid));
+            .FirstOrDefault(d => d.madh == orderId && d.tbThongTinDatHang != null && d.tbThongTinDatHang.userid == user.userid);
 
         if (donHang == null)
         {
             return new
             {
-                reply = user == null
-                    ? "🔒 Vui lòng đăng nhập để tra cứu đơn hàng."
-                    : "❌ Không tìm thấy đơn hàng mã #" + orderId + ". Vui lòng kiểm tra lại mã đơn hàng.",
+                reply = "❌ Không tìm thấy đơn hàng mã #" + orderId + ". Vui lòng kiểm tra lại mã đơn hàng.",
                 quickReplies = new[] { "Gợi ý món ăn", "Phí ship thế nào?", "Liên hệ hỗ trợ" }
             };
         }
@@ -359,6 +376,17 @@ public class ChatbotController : BaseController
     {
         bool isInvoiceQuery = ContainsAny(msg, "hóa đơn", "hoá đơn", "invoice", "vận đơn", "van don", "chứng từ", "chung tu", "e-invoice", "e-waybill");
         if (!isInvoiceQuery) return null;
+
+        // ponytail: security fix — ch? cho phép user ?ã ?ang nh?p tra c?u hóa don
+        var user = GetCurrentUser();
+        if (user == null)
+        {
+            return new
+            {
+                reply = "🔒 Vui lòng đăng nhập để tra cứu hóa đơn/vận đơn điện tử.",
+                quickReplies = new[] { "Đăng nhập", "Gợi ý món ăn", "Phí ship thế nào?" }
+            };
+        }
 
         // Tìm mã đơn hàng trong câu hỏi
         var orderMatch = Regex.Match(msg, @"(?:#|mã\s+|đơn\s+|order\s+|đơn hàng\s+)(\d{2,8})");
@@ -511,34 +539,53 @@ public class ChatbotController : BaseController
     }
 
     /// <summary>
-    /// Tóm tắt DB context để inject vào Gemini prompt — giúp AI trả lời câu hỏi cụ thể
+    /// Cache cho DB context summary — tránh query N+1 mỗi lần gửi tin nhắn
+    /// Được refresh mỗi 5 phút
+    /// </summary>
+    private static string? _cachedDbContext;
+    private static DateTime _lastDbContextRefresh = DateTime.MinValue;
+    private static readonly object _dbCacheLock = new();
+
+    /// <summary>
+    /// Tóm tắt DB context để inject vào Gemini prompt — cache 5 phút
     /// </summary>
     private string GetDBContextSummary()
     {
-        try
-        {
-            var tongQuan = db.tbQuanAn.Count();
-            var tongMon = db.tbMonAn.Count();
-            var tongDon = db.tbDonHang.Count();
-            var donThanhCong = db.tbDonHang.Count(d => d.trangthai == "Hoàn thành");
-            var topMon = db.tbChiTietDonHang
-                .Where(ct => ct.tbBienTheMonAn != null && ct.tbBienTheMonAn.tbMonAn != null)
-                .GroupBy(ct => ct.tbBienTheMonAn!.tbMonAn!.tenmon)
-                .Select(g => new { ten = g.Key, soLuong = g.Sum(ct => ct.soluong ?? 0) })
-                .OrderByDescending(g => g.soLuong)
-                .Take(5).Select(g => $"{g.ten}({g.soLuong})").ToList();
-            var listQuan = db.tbQuanAn.Select(q => q.tenquanan).Take(10).ToList();
+        // ponytail: cache 5 phút tránh query N+1 mỗi request
+        if (_cachedDbContext != null && (DateTime.Now - _lastDbContextRefresh).TotalMinutes < 5)
+            return _cachedDbContext;
 
-            return $"Số quán ăn: {tongQuan}. Số món: {tongMon}. Tổng đơn: {tongDon}. Đơn thành công: {donThanhCong}. "
-                + $"Top bán chạy: {string.Join(", ", topMon)}. "
-                + $"Quán: {string.Join(", ", listQuan)}. "
-                + "Phí ship cố định 15k, miễn phí ship từ 200k.";
-        }
-        catch (Exception ex)
+        lock (_dbCacheLock)
         {
-            // ponytail: Fix #9 — log l?i DB thay vì silent exception
-            _logger.LogWarning(ex, "GetDBContextSummary failed — fallback used");
-            return "Dữ liệu hệ thống FastShip: quán ăn, món ăn, đơn hàng.";
+            if (_cachedDbContext != null && (DateTime.Now - _lastDbContextRefresh).TotalMinutes < 5)
+                return _cachedDbContext;
+
+            try
+            {
+                var tongQuan = db.tbQuanAn.Count();
+                var tongMon = db.tbMonAn.Count();
+                var tongDon = db.tbDonHang.Count();
+                var donThanhCong = db.tbDonHang.Count(d => d.trangthai == "Hoàn thành");
+                var topMon = db.tbChiTietDonHang
+                    .Where(ct => ct.tbBienTheMonAn != null && ct.tbBienTheMonAn.tbMonAn != null)
+                    .GroupBy(ct => ct.tbBienTheMonAn!.tbMonAn!.tenmon)
+                    .Select(g => new { ten = g.Key, soLuong = g.Sum(ct => ct.soluong ?? 0) })
+                    .OrderByDescending(g => g.soLuong)
+                    .Take(5).Select(g => $"{g.ten}({g.soLuong})").ToList();
+                var listQuan = db.tbQuanAn.Select(q => q.tenquanan).Take(10).ToList();
+
+                _cachedDbContext = $"Số quán ăn: {tongQuan}. Số món: {tongMon}. Tổng đơn: {tongDon}. Đơn thành công: {donThanhCong}. "
+                    + $"Top bán chạy: {string.Join(", ", topMon)}. "
+                    + $"Quán: {string.Join(", ", listQuan)}. "
+                    + "Phí ship cố định 15k, miễn phí ship từ 200k.";
+                _lastDbContextRefresh = DateTime.Now;
+                return _cachedDbContext;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "GetDBContextSummary failed — fallback used");
+                return "Dữ liệu hệ thống FastShip: quán ăn, món ăn, đơn hàng.";
+            }
         }
     }
 }

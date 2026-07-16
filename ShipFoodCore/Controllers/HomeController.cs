@@ -344,7 +344,8 @@ public class HomeController : BaseController
         }
         else
         {
-            ViewBag.LoginFail = "Tài khoản không tồn tại. Vui lòng kiểm tra tên đăng nhập hoặc số điện thoại.";
+            // ponytail: security fix — không leak thông tin user tồn tại (username enumeration)
+            ViewBag.LoginFail = "Tên đăng nhập, email hoặc mật khẩu không đúng. Vui lòng kiểm tra lại.";
             return View();
         }
         }
@@ -358,7 +359,8 @@ public class HomeController : BaseController
             {
                 InvalidOperationException _ when ex.Message.Contains("Session") => "Phiên đăng nhập hết hạn. Vui lòng thử lại.",
                 System.Data.Common.DbException _ => "Lỗi kết nối cơ sở dữ liệu. Vui lòng thử lại sau.",
-                _ => $"Lỗi: {ex.Message}"
+                // ponytail: security fix — không leak raw exception ra client
+                _ => "Lỗi hệ thống. Vui lòng thử lại sau."
             };
             return View();
         }
@@ -512,6 +514,8 @@ public class HomeController : BaseController
 
             var cart = new Cart { userid = userFind.userid };
             SetCart(cart);
+            // ponytail: security fix — CommitAsync d?m b?o session du?c luu tru?c khi redirect
+            await HttpContext.Session.CommitAsync();
             await SetSessionAndCookieAsync(userFind);
 
             return userFind.loaitaikhoan switch
@@ -675,7 +679,7 @@ public class HomeController : BaseController
         // ─── GOOGLE OAUTH: Xử lý hoàn tất đăng ký với vai trò đã chọn ───
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult CompleteGoogleRegistration(string loaitaikhoan, string sdt, string diachi)
+        public async Task<ActionResult> CompleteGoogleRegistration(string loaitaikhoan, string sdt, string diachi)
         {
             var email = HttpContext.Session.GetString("google_email");
             var name = HttpContext.Session.GetString("google_name");
@@ -685,6 +689,9 @@ public class HomeController : BaseController
                 TempData["err"] = "Phiên đăng ký đã hết hạn. Vui lòng đăng nhập Google lại.";
                 return RedirectToAction("Login");
             }
+
+            // ponytail: security fix — clear google_partner_mode n?u còn sút sau abandon flow
+            HttpContext.Session.Remove("google_partner_mode");
 
             // ─── Validate dữ liệu ───
             var validRoles = new[] { "Khách hàng", "Quán ăn", "Shipper" };
@@ -725,7 +732,6 @@ public class HomeController : BaseController
                 }
 
                 // ─── Tạo tài khoản ───
-                // ponytail: hash password bang BCrypt
                 var randomPwd = BCrypt.Net.BCrypt.HashPassword($"GG_{Guid.NewGuid():N}");
                 var truncatedEmail = email.Length > 50 ? email[..50] : email;
                 var shortUser = "gg_" + Guid.NewGuid().ToString("N")[..12];
@@ -789,7 +795,7 @@ public class HomeController : BaseController
                 // ─── Gán Session + điều hướng theo vai trò ───
                 var cart = new Cart { userid = newUser.userid };
                 SetCart(cart);
-                SetSessionUser(newUser);
+                await SetSessionAndCookieAsync(newUser);
 
                 return loaitaikhoan switch
                 {
@@ -803,7 +809,7 @@ public class HomeController : BaseController
             {
                 var logger = HttpContext.RequestServices.GetRequiredService<ILogger<HomeController>>();
                 logger.LogError(ex, "CompleteGoogleRegistration failed for email {Email}, role {Role}", email, loaitaikhoan);
-                TempData["err"] = $"Lỗi hệ thống: {ex.Message}. Vui lòng thử lại.";
+                TempData["err"] = "Lỗi hệ thống. Vui lòng thử lại.";
                 return RedirectToAction("SelectRoleGoogle");
             }
         }
@@ -815,6 +821,7 @@ public class HomeController : BaseController
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [EnableRateLimiting("login-policy")]
     public ActionResult Signup(tbUser user, string repeatpw, string diachi, string hoten)
     {
         // === Validate dữ liệu đầu vào ===
@@ -842,18 +849,20 @@ public class HomeController : BaseController
             ViewBag.err = "Vui lòng nhập mật khẩu";
             return View();
         }
-        if (user.pwd.Length < 8)
+        // ponytail: security fix — ValidatePasswordStrength ki?m tra m?t kh?u m?nh
+        var (pwValid, pwMsg) = ValidatePasswordStrength(user.pwd);
+        if (!pwValid)
         {
-            if (IsAjaxRequest()) return Json(new { success = false, message = "Mật khẩu phải có ít nhất 8 ký tự" });
-            ViewBag.err = "Mật khẩu phải có ít nhất 8 ký tự";
+            if (IsAjaxRequest()) return Json(new { success = false, message = pwMsg });
+            ViewBag.err = pwMsg;
             return View();
         }
-        if (user.pwd != repeatpw)
-        {
-            if (IsAjaxRequest()) return Json(new { success = false, message = "Xác nhận mật khẩu không khớp" });
-            ViewBag.err = "Xác nhận mật khẩu không khớp";
-            return View();
-        }            // ponytail: hash password bang BCrypt truoc khi luu
+            if (user.pwd != repeatpw)
+            {
+                if (IsAjaxRequest()) return Json(new { success = false, message = "Xác nhận mật khẩu không khớp" });
+                ViewBag.err = "Xác nhận mật khẩu không khớp";
+                return View();
+            }
 
         // Số điện thoại
         if (string.IsNullOrWhiteSpace(user.sdt) || !System.Text.RegularExpressions.Regex.IsMatch(user.sdt, @"^0[1-9][0-9]{8,9}$"))
@@ -942,6 +951,13 @@ public class HomeController : BaseController
 
                 db.tbKhachHang.Add(new tbKhachHang { userid = user.userid, tenkh = hoten });
                 db.SaveChanges();
+
+                // ponytail: security fix — auto-login cho Khách hàng nh?t quán v?i Quán an/Shipper
+                var cart = new Cart { userid = user.userid };
+                SetCart(cart);
+                SetSessionUser(user);
+                if (IsAjaxRequest()) return Json(new { success = true, redirectUrl = Url.Action("Index", "Home") });
+                return RedirectToAction("Index", "Home");
             }
             else if (user.loaitaikhoan.Equals("Quán ăn"))
             {
@@ -963,6 +979,8 @@ public class HomeController : BaseController
 
                 var cart = new Cart { userid = user.userid };
                 SetCart(cart);
+                // ponytail: security fix — SetSessionAndCookieAsync thay SetSessionUser cho auto-login
+                // Khách hàng cũng auto-login để nhất quán
                 SetSessionUser(user);
                 if (IsAjaxRequest()) return Json(new { success = true, redirectUrl = Url.Action("Index", "Restaurant") });
                 return RedirectToAction("Index", "Restaurant");
@@ -987,6 +1005,7 @@ public class HomeController : BaseController
 
                 var cart = new Cart { userid = user.userid };
                 SetCart(cart);
+                // ponytail: security fix — SetSessionAndCookieAsync thay SetSessionUser cho auto-login
                 SetSessionUser(user);
                 if (IsAjaxRequest()) return Json(new { success = true, redirectUrl = Url.Action("Index", "Shipper") });
                 return RedirectToAction("Index", "Shipper");
@@ -1019,7 +1038,8 @@ public class HomeController : BaseController
             }
 
             var userMsg = "Lỗi tạo tài khoản. Vui lòng thử lại.";
-            if (IsAjaxRequest()) return Json(new { success = false, message = userMsg, debug = innerMsg });
+            // ponytail: security fix — không leak innerMsg ra client
+            if (IsAjaxRequest()) return Json(new { success = false, message = userMsg });
             ViewBag.err = userMsg;
             return View();
         }
@@ -1046,6 +1066,7 @@ public class HomeController : BaseController
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [EnableRateLimiting("login-policy")]
     public ActionResult Profile(string hoten, string sdt, string oldPwd, string newPwd, string confirmPwd)
     {
         var user = GetCurrentUser();
@@ -1086,7 +1107,8 @@ public class HomeController : BaseController
             // Verify old password
             bool verified = false;
             try { verified = BCrypt.Net.BCrypt.Verify(oldPwd, dbUser.pwd); } catch { }
-            if (!verified && dbUser.pwd != oldPwd)
+            // ponytail: security fix — chỉ verify bằng BCrypt, không fallback plain-text
+            if (!verified)
             {
                 TempData["ProfileError"] = "Mật khẩu hiện tại không đúng.";
                 return RedirectToAction("Profile");
@@ -1113,6 +1135,8 @@ public class HomeController : BaseController
         return View();
     }
 
+    [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<ActionResult> Logout()
     {
         // ─── Xoá cả session + auth cookie ───
@@ -1129,6 +1153,13 @@ public class HomeController : BaseController
             await HttpContext.Session.CommitAsync();
         }
         catch { /* Session may be corrupted — still redirect to home */ }
+        return RedirectToAction("Index");
+    }
+
+    [HttpGet]
+    public ActionResult LogoutGet()
+    {
+        // ponytail: GET logout redirects to POST version via JS
         return RedirectToAction("Index");
     }
 

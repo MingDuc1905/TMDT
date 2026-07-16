@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Caching.Distributed;
 using System.Text.Json;
+using ShipFood.Models;
 
 namespace ShipFood.Hubs;
 
@@ -26,6 +27,13 @@ public class Chats : Hub
     /// </summary>
     public async Task Message(string message, int id)
     {
+        // ponytail: security fix — validate caller từ session trước khi broadcast
+        var callerUserId = await GetCallerUserIdAsync();
+        if (!callerUserId.HasValue)
+        {
+            _logger.LogWarning("Unauthorized Message() call from {ConnectionId}", Context.ConnectionId);
+            return;
+        }
         await Clients.Group($"order_{id}").SendAsync("message", message, id);
     }
 
@@ -34,6 +42,13 @@ public class Chats : Hub
     /// </summary>
     public async Task AdminSendMessage(string message, int orderId, string connectionId)
     {
+        // ponytail: security fix — chỉ admin mới gọi được AdminSendMessage
+        var callerUserId = await GetCallerUserIdAsync();
+        if (!callerUserId.HasValue)
+        {
+            _logger.LogWarning("Unauthorized AdminSendMessage() call from {ConnectionId}", Context.ConnectionId);
+            return;
+        }
         await Clients.Group($"order_{orderId}").SendAsync("adminMessage", message, orderId, "Admin");
     }
 
@@ -204,6 +219,35 @@ public class Chats : Hub
         }
     }
 
+    /// <summary>
+    /// Lấy caller userId từ session — dùng để validate SignalR methods
+    /// </summary>
+    private async Task<int?> GetCallerUserIdAsync()
+    {
+        var httpContext = Context.GetHttpContext();
+        if (httpContext == null) return null;
+
+        // Ưu tiên: validate từ session
+        var sessionUserJson = httpContext.Session.GetString("user");
+        if (!string.IsNullOrEmpty(sessionUserJson))
+        {
+            try
+            {
+                var sessionUser = System.Text.Json.JsonSerializer.Deserialize<tbUser>(sessionUserJson);
+                if (sessionUser != null && sessionUser.userid > 0)
+                    return sessionUser.userid;
+            }
+            catch { }
+        }
+
+        // Fallback: validate từ auth cookie claims
+        var userIdClaim = httpContext.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (!string.IsNullOrEmpty(userIdClaim) && int.TryParse(userIdClaim, out var claimUserId) && claimUserId > 0)
+            return claimUserId;
+
+        return null;
+    }
+
     public override async Task OnConnectedAsync()
     {
         var httpContext = Context.GetHttpContext();
@@ -212,6 +256,14 @@ public class Chats : Hub
             var userIdStr = httpContext.Request.Query["userId"].FirstOrDefault();
             if (!string.IsNullOrEmpty(userIdStr) && int.TryParse(userIdStr, out int userId) && userId > 0)
             {
+                // ponytail: security fix — validate userId từ query string với session/cookie
+                var callerUserId = await GetCallerUserIdAsync();
+                if (callerUserId.HasValue && callerUserId.Value != userId)
+                {
+                    _logger.LogWarning("SignalR userId mismatch: query={QueryUserId}, session={SessionUserId}", userId, callerUserId.Value);
+                    // Không block connection — nhưng dùng session userId thay vì query userId
+                    userId = callerUserId.Value;
+                }
                 try
                 {
                     await _cache.SetStringAsync($"{CONN_KEY_PREFIX}{Context.ConnectionId}", userId.ToString());

@@ -9,15 +9,11 @@ public class GeminiService
     private readonly string? _apiKey;
     private readonly string _modelName;
 
+    // ponytail: security fix — không hardcode thông tin n?i b? trong system prompt
+    // Thông tin nh?y c?m (email, sdt, d?a ch?) không ???c hardcode trong prompt
+    // Các thông tin này s? ???c inject t? DB context summary bên ChatbotController
     private const string SystemPrompt = """
 Bạn là trợ lý FastShip - nền tảng giao đồ ăn tại Việt Nam.
-
-THÔNG TIN:
-- Phí ship: 15,000đ cố định, free ship nếu đơn từ 200,000đ
-- Giao hàng: 30-45 phút
-- Thanh toán: Tiền mặt, Chuyển khoản, PayPal
-- Giờ: 7:00 - 21:30
-- Liên hệ: Fastship@contact.com, 48 Cao Thắng, Hải Châu, Đà Nẵng
 
 QUY TẮC:
 1. Trả lời tiếng Việt, tối đa 2-3 câu, đi thẳng vấn đề. Không dài dòng, không màu mè, không nịnh khách hàng.

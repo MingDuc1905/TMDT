@@ -16,6 +16,9 @@ public class AdminChatController : BaseController
         _hubContext = hubContext;
     }
 
+    // ponytail: security fix — helper t?p trung cho generic error response gi? l?i n?i b?
+    private string SafeErrorMessage(string context) => "Hệ thống đang gặp lỗi. Vui lòng thử lại sau.";
+
     /// <summary>
     /// Trang chat admin - danh sách các cuộc hội thoại
     /// </summary>
@@ -77,13 +80,11 @@ public class AdminChatController : BaseController
             // Gửi qua SignalR đến group đơn hàng (không gửi lại cho admin)
             await _hubContext.Clients.Group($"order_{orderId}").SendAsync("adminMessage", message, orderId, "Admin");
 
-            return Json(new { success = true });
-        }
-        catch (Exception ex)
-        {
+            return Json(new { success = true });        } catch (Exception ex) {
             var logger = HttpContext.RequestServices.GetRequiredService<ILogger<AdminChatController>>();
             logger.LogError(ex, "SendMessage failed for order {OrderId}", orderId);
-            return Json(new { success = false, error = $"Lỗi gửi tin nhắn: {ex.Message}" });
+            // ponytail: security fix — không leak exception message ra client
+            return Json(new { success = false, error = SafeErrorMessage("SendMessage") });
         }
     }
 
@@ -133,36 +134,39 @@ public class AdminChatController : BaseController
             bool isAdmin = user.loaitaikhoan.Equals("Admin");
             bool isRestaurant = user.loaitaikhoan.Equals("Quán ăn");
 
-            // Xác ??nh customerId: t? tham s? targetUserId ho?c t? user hi?n t?i
-            int? customerId = isCustomer ? user.userid : targetUserId;
+            // ponytail: security fix — customer ch? ???c dùng user.id c?a chính h?, không dùng targetUserId
+            int? customerId;
+            if (isCustomer)
+            {
+                customerId = user.userid;
+            }
+            else if (targetUserId.HasValue && targetUserId.Value > 0)
+            {
+                // Ch? cho phép Admin/Shipper g?i tin nh?n v?i targetUserId c? th?
+                if (!isAdmin && !isShipper && !isRestaurant)
+                    return Json(new { success = false, error = "Không có quyền gửi tin nhắn." });
+                customerId = targetUserId;
+            }
+            else
+            {
+                customerId = null;
+            }
 
             // ═══ AUTO-LOCK: Ki?m tra n?u don hàng dã hoàn thành ho?c h?y quá 30 phút ═══
+            // ponytail: simplify logic — dùng ngaygiaohang ho?c ngaythanhtoan, n?u c? 2 null thì dùng current time
             if (orderId > 0)
             {
                 var order = await db.tbDonHang.FindAsync(orderId);
                 if (order != null)
                 {
                     bool isCompleted = order.trangthai == "Hoàn thành" || order.trangthai == "Đã hủy";
-                    if (isCompleted && order.ngaythanhtoan.HasValue)
-                    {
-                        var elapsed = DateTime.Now - order.ngaythanhtoan.Value;
-                        if (elapsed.TotalMinutes > 30)
-                        {
-                            return Json(new { success = false, error = "Đơn hàng đã hoàn thành/hủy hơn 30 phút. Chat đã bị khóa tự động." });
-                        }
-                    }
-                    else if (isCompleted && order.ngaygiaohang.HasValue)
-                    {
-                        var elapsed = DateTime.Now - order.ngaygiaohang.Value;
-                        if (elapsed.TotalMinutes > 30)
-                        {
-                            return Json(new { success = false, error = "Đơn hàng đã hoàn thành/hủy hơn 30 phút. Chat đã bị khóa tự động." });
-                        }
-                    }
-                    // Catch-all: n?u dã hoàn thành/h?y mà không có timestamp, v?n khóa chat
                     if (isCompleted)
                     {
-                        return Json(new { success = false, error = "Đơn hàng đã hoàn thành/hủy. Chat đã bị khóa tự động." });
+                        var lockTime = order.ngaygiaohang ?? order.ngaythanhtoan;
+                        if (!lockTime.HasValue || (DateTime.Now - lockTime.Value).TotalMinutes > 30)
+                        {
+                            return Json(new { success = false, error = "Đơn hàng đã hoàn thành/hủy hơn 30 phút. Chat đã bị khóa tự động." });
+                        }
                     }
                 }
             }
@@ -218,7 +222,8 @@ public class AdminChatController : BaseController
         {
             var logger = HttpContext.RequestServices.GetRequiredService<ILogger<AdminChatController>>();
             logger.LogError(ex, "CustomerSendMessage failed");
-            return Json(new { success = false, error = $"Lỗi gửi tin nhắn: {ex.Message}" });
+            // ponytail: security fix — không leak exception message ra client
+            return Json(new { success = false, error = SafeErrorMessage("CustomerSendMessage") });
         }
     }
 
@@ -314,7 +319,8 @@ public class AdminChatController : BaseController
                     userId = c.userId,
                     tenkh = kh?.tenkh ?? user?.username ?? "Khách",
                     username = user?.username ?? "",
-                    sdt = user?.sdt ?? "",
+                    // ponytail: security fix — không leak SDT ra admin chat (XSS risk)
+                    sdt = "***",
                     lastMessage = c.lastMessage.Length > 80 ? c.lastMessage.Substring(0, 80) + "..." : c.lastMessage,
                     messageCount = c.messageCount,
                     hasUnread = c.hasUnread
@@ -327,7 +333,7 @@ public class AdminChatController : BaseController
         {
             var logger = HttpContext.RequestServices.GetRequiredService<ILogger<AdminChatController>>();
             logger.LogError(ex, "GetConversations failed");
-            return Json(new { success = false, data = new object[0], message = ex.Message });
+            return Json(new { success = false, data = new object[0], message = SafeErrorMessage("GetConversations") });
         }
     }
 
@@ -370,7 +376,7 @@ public class AdminChatController : BaseController
         {
             var logger = HttpContext.RequestServices.GetRequiredService<ILogger<AdminChatController>>();
             logger.LogError(ex, "GetCustomerMessages failed for userId {UserId}", userId);
-            return Json(new { success = false, data = new object[0], message = ex.Message });
+            return Json(new { success = false, data = new object[0], message = SafeErrorMessage("GetCustomerMessages") });
         }
     }
 
@@ -417,7 +423,8 @@ public class AdminChatController : BaseController
         {
             var logger = HttpContext.RequestServices.GetRequiredService<ILogger<AdminChatController>>();
             logger.LogError(ex, "SendMessageToCustomer failed for user {UserId}", userId);
-            return Json(new { success = false, error = $"Lỗi gửi tin nhắn: {ex.Message}" });
+            // ponytail: security fix — không leak exception message ra client
+            return Json(new { success = false, error = SafeErrorMessage("SendMessageToCustomer") });
         }
     }
 

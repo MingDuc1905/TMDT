@@ -1135,16 +1135,17 @@ public class HomeController : BaseController
         return View();
     }
 
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<ActionResult> Logout()
+    /// <summary>
+    /// Shared logout logic — clear session + auth cookie
+    /// Dùng chung cho c? POST Logout() và GET LogoutGet()
+    /// </summary>
+    private async Task ClearSessionAndCookieAsync()
     {
-        // ─── Xoá cả session + auth cookie ───
         try
         {
             await HttpContext.SignOutAsync(Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme);
         }
-        catch { /* Auth cookie may be missing or invalid — still clear session */ }
+        catch { }
         try
         {
             HttpContext.Session.Remove("user");
@@ -1152,14 +1153,23 @@ public class HomeController : BaseController
             HttpContext.Session.Clear();
             await HttpContext.Session.CommitAsync();
         }
-        catch { /* Session may be corrupted — still redirect to home */ }
+        catch { }
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<ActionResult> Logout()
+    {
+        await ClearSessionAndCookieAsync();
         return RedirectToAction("Index");
     }
 
     [HttpGet]
-    public ActionResult LogoutGet()
+    public async Task<ActionResult> LogoutGet()
     {
-        // ponytail: GET logout redirects to POST version via JS
+        // ponytail: CSRF logout ch? gây annoyance (ph?i login l?i), không gây m?t d? li?u
+        // Nên GET logout v?n clear session thay vì redirect r?ng
+        await ClearSessionAndCookieAsync();
         return RedirectToAction("Index");
     }
 

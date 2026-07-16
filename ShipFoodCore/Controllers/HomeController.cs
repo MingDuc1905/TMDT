@@ -1139,21 +1139,13 @@ public class HomeController : BaseController
     }
 
     [HttpPost]
-    [ValidateAntiForgeryToken]
+    [HttpGet]
     public async Task<ActionResult> Logout()
     {
         await ClearSessionAndCookieAsync();
         return RedirectToAction("Index");
     }
 
-    [HttpGet]
-    public async Task<ActionResult> LogoutGet()
-    {
-        // ponytail: CSRF logout ch? gây annoyance (ph?i login l?i), không gây m?t d? li?u
-        // Nên GET logout v?n clear session thay vì redirect r?ng
-        await ClearSessionAndCookieAsync();
-        return RedirectToAction("Index");
-    }
 
     public ActionResult DanhMuc()
     {

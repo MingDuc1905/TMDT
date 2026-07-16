@@ -145,7 +145,23 @@
         }
 
         /* ── Sidebar ── */
-        .deznav { background: var(--admin-white) !important; }
+        /* ── Sidebar ── */
+        .deznav { background: var(--admin-white) !important; position: relative; transition: width .25s ease; }
+        .deznav .deznav-toggle {
+            position: absolute; top: 50%; right: -14px; transform: translateY(-50%);
+            width: 28px; height: 28px; border-radius: 50%;
+            background: var(--admin-green, #3CB815); color: #fff;
+            border: 2px solid #fff; cursor: pointer; z-index: 1060;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.12);
+            transition: transform .2s ease, background .2s ease;
+        }
+        .deznav .deznav-toggle:hover { background: #2ea310; transform: translateY(-50%) scale(1.1); }
+        /* Sidebar collapsed state */
+        .deznav.deznav-collapsed { width: 0 !important; min-width: 0 !important; padding: 0 !important; }
+        .deznav.deznav-collapsed .deznav-scroll { display: none; }
+        .deznav.deznav-collapsed .deznav-toggle { right: auto; left: 0; }
+        .deznav.deznav-collapsed .deznav-toggle i { transform: rotate(180deg); }
         .deznav .metismenu > li > a {
             border-radius: 8px !important;
             margin: 2px 8px; padding: 10px 16px;
@@ -343,7 +359,8 @@
         <!--**********************************
               Sidebar start
           ***********************************-->
-        <div class="deznav">
+        <div class="deznav" id="adminSidebar">
+            <div class="deznav-toggle" id="sidebarToggle" onclick="toggleAdminSidebar()" title="Thu gọn / Mở rộng"><i class="fas fa-chevron-left"></i></div>
             <div class="deznav-scroll">
                 <ul class="metismenu" id="menu">
                    <li>
@@ -437,6 +454,30 @@
     <!-- Apex Chart -->
     <!-- Chart piety plugin files -->
     <script src="~/Source/Admin/vendor/peity/jquery.peity.min.js"></script>
+    <!-- ═══ Admin sidebar toggle (collapse/expand) — lưu state vào localStorage ═══ -->
+    <script>
+    (function() {
+        var sidebar = document.getElementById('adminSidebar');
+        var toggle = document.getElementById('sidebarToggle');
+        // Khôi phục state từ localStorage
+        if (sidebar && localStorage.getItem('adminSidebarCollapsed') === 'true') {
+            sidebar.classList.add('deznav-collapsed');
+            if (toggle) toggle.querySelector('i').className = 'fas fa-chevron-right';
+        }
+    })();
+    function toggleAdminSidebar() {
+        var sidebar = document.getElementById('adminSidebar');
+        var toggleBtn = document.getElementById('sidebarToggle');
+        if (!sidebar) return;
+        sidebar.classList.toggle('deznav-collapsed');
+        var collapsed = sidebar.classList.contains('deznav-collapsed');
+        localStorage.setItem('adminSidebarCollapsed', collapsed);
+        if (toggleBtn) {
+            var icon = toggleBtn.querySelector('i');
+            if (icon) icon.className = collapsed ? 'fas fa-chevron-right' : 'fas fa-chevron-left';
+        }
+    }
+    </script>
     @RenderSection("Scripts", required: false)
 </body>
 </html>

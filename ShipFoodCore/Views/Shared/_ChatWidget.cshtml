@@ -579,12 +579,17 @@
             error: function(xhr) {
                 var errMsg = '❌ Lỗi gửi tin nhắn';
                 try { var r = JSON.parse(xhr.responseText); if (r && (r.error || r.message)) errMsg = '❌ ' + (r.error || r.message); } catch(e){}
-                if (xhr.status === 403 || xhr.status === 401) {
+                if (xhr.status === 401) {
                     errMsg = '❌ Phiên đăng nhập hết hạn. Đang chuyển hướng...';
                     addMsg('adminMsgs', errMsg, 'admin');
                     setTimeout(function() {
                         window.location.href = '@Url.Action("Login", "Home")?returnUrl=' + encodeURIComponent(window.location.pathname);
                     }, 1500);
+                    return;
+                }
+                if (xhr.status === 403) {
+                    errMsg = '❌ Bạn không có quyền thực hiện thao tác này.';
+                    addMsg('adminMsgs', errMsg, 'admin');
                     return;
                 }
                 if (xhr.status === 0) errMsg = '❌ Mất kết nối mạng.';

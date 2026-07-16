@@ -110,10 +110,11 @@ public class RoleGuardMiddleware
         }
 
         // ═══ Xác định role yêu cầu cho route hiện tại ═══
+        // ponytail: boundary check — "/admin" phải match "/admin/dashboard" NHƯNG KHÔNG match "/adminchat"
         string? requiredRole = null;
         foreach (var kvp in RouteRoleMap)
         {
-            if (path.StartsWith(kvp.Key, StringComparison.OrdinalIgnoreCase))
+            if (path == kvp.Key || path.StartsWith(kvp.Key + "/", StringComparison.OrdinalIgnoreCase))
             {
                 requiredRole = kvp.Value;
                 break;

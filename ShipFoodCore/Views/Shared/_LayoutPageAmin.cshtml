@@ -345,7 +345,7 @@
                                 <ul class="dropdown-menu dropdown-menu-right fs-dropdown-menu">
                                     <li><a class="dropdown-item fs-dropdown-item py-2" href="@Url.Action("Dashboard","Admin")"><i class="fas fa-chart-pie" style="color:var(--fs-green);" aria-hidden="true"></i> Dashboard</a></li>
                                     <li><hr class="dropdown-divider my-1"></li>
-                                    <li><form asp-action="Logout" asp-controller="Home" method="post" class="d-inline">@Html.AntiForgeryToken()<button type="submit" class="dropdown-item fs-dropdown-item py-2 text-danger" style="border:none;background:none;"><i class="fas fa-sign-out-alt" aria-hidden="true"></i> Đăng xuất</button></form></li>
+                                    <li><a href="/Home/Logout" class="dropdown-item fs-dropdown-item py-2 text-danger"><i class="fas fa-sign-out-alt" aria-hidden="true"></i> Đăng xuất</a></li>
                                 </ul>
                             </li>
                         </ul>

@@ -169,10 +169,10 @@ public class ShipperController : BaseController
         {
             existingUser.sdt = user.sdt;
             // Chỉ cập nhật password nếu có thay đổi (không rỗng)
-            // ponytail: hash password bang BCrypt truoc khi luu
+            // ponytail: plain-text password
             if (!string.IsNullOrEmpty(user.pwd))
             {
-                existingUser.pwd = BCrypt.Net.BCrypt.HashPassword(user.pwd);
+                existingUser.pwd = user.pwd;
             }
             db.SaveChanges();
         }

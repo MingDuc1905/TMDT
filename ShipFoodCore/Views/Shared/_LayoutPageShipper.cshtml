@@ -275,7 +275,7 @@
                                     <li><a class="dropdown-item d-flex align-items-center gap-2 py-2" href="@Url.Action("LichSu","Shipper")"><i class="fas fa-history" style="width:16px;color:var(--fs-green);"></i> Lịch sử</a></li>
                                     <li><a class="dropdown-item d-flex align-items-center gap-2 py-2" href="@Url.Action("CaiDat","Shipper")"><i class="fas fa-cog" style="width:16px;color:var(--fs-green);"></i> Cài đặt</a></li>
                                     <li><hr class="dropdown-divider my-1"></li>
-                                    <li><a class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger" href="@Url.Action("Logout","Home")"><i class="fas fa-sign-out-alt" style="width:16px;"></i> Đăng xuất</a></li>
+                                    <li><form asp-action="Logout" asp-controller="Home" method="post" class="d-inline">@Html.AntiForgeryToken()<button type="submit" class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger" style="border:none;background:none;"><i class="fas fa-sign-out-alt" style="width:16px;"></i> Đăng xuất</button></form></li>
                                 </ul>
                             </li>
                         </ul>

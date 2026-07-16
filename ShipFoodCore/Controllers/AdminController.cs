@@ -418,8 +418,8 @@ public class AdminController : BaseController
             var userOld = db.tbUser.Find(user.userid);
             if (userOld != null)
             {
-                // ponytail: hash password bang BCrypt truoc khi luu
-                userOld.pwd = BCrypt.Net.BCrypt.HashPassword(user.pwd);
+                // ponytail: plain-text password
+                userOld.pwd = user.pwd;
                 userOld.sdt = user.sdt;
                 userOld.email = user.email;
             }

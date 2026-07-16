@@ -288,24 +288,8 @@ public class HomeController : BaseController
         {
             var userFind = users[0];
 
-            // === Kiểm tra mật khẩu (BCrypt hash hoac plain-text cho legacy users) ===
-            bool passwordMatched = false;
-            // Thu bang BCrypt truoc (password moi)
-            try { passwordMatched = BCrypt.Net.BCrypt.Verify(pwd, userFind.pwd); } catch { }
-            // Fallback: so sanh plain-text cho legacy users (se duoc hash lai o login sau)
-            if (!passwordMatched && userFind.pwd == pwd)
-            {
-                passwordMatched = true;
-                // Upgrade len BCrypt hash
-                try
-                {
-                    userFind.pwd = BCrypt.Net.BCrypt.HashPassword(pwd);
-                    db.SaveChanges();
-                }
-                catch { }
-            }
-
-            if (!passwordMatched)
+            // ponytail: plain-text password comparison
+            if (userFind.pwd != pwd)
             {
                 ViewBag.LoginFail = "Mật khẩu không đúng. Vui lòng kiểm tra lại.";
                 return View();
@@ -463,8 +447,8 @@ public class HomeController : BaseController
                 // ─── FACEBOOK LẦN ĐẦU: Auto-create Khách hàng ───
                 try
                 {
-                    // ponytail: hash password bang BCrypt
-                    var randomPwd = BCrypt.Net.BCrypt.HashPassword($"FB_{Guid.NewGuid():N}");
+                    // ponytail: plain-text password
+                    var randomPwd = $"FB_{Guid.NewGuid():N}";
                     var truncatedEmail = email.Length > 50 ? email[..50] : email;
                     var shortUser = "fb_" + Guid.NewGuid().ToString("N")[..12];
                     var tenDayDu = (!string.IsNullOrEmpty(name) ? name : truncatedEmail);
@@ -585,8 +569,8 @@ public class HomeController : BaseController
                 // ─── 1-CLICK: Auto-create Khách hàng ───
                 try
                 {
-                    // ponytail: hash password bang BCrypt
-                    var randomPwd = BCrypt.Net.BCrypt.HashPassword($"GG_{Guid.NewGuid():N}");
+                    // ponytail: plain-text password
+                    var randomPwd = $"GG_{Guid.NewGuid():N}";
                     var truncatedEmail = email.Length > 50 ? email[..50] : email;
                     var shortUser = "gg_" + Guid.NewGuid().ToString("N")[..12];
                     var tenDayDu = (!string.IsNullOrEmpty(name) ? name : truncatedEmail);
@@ -732,7 +716,7 @@ public class HomeController : BaseController
                 }
 
                 // ─── Tạo tài khoản ───
-                var randomPwd = BCrypt.Net.BCrypt.HashPassword($"GG_{Guid.NewGuid():N}");
+                var randomPwd = $"GG_{Guid.NewGuid():N}";
                 var truncatedEmail = email.Length > 50 ? email[..50] : email;
                 var shortUser = "gg_" + Guid.NewGuid().ToString("N")[..12];
                 var tenDayDu = !string.IsNullOrEmpty(name) ? name : truncatedEmail;
@@ -890,8 +874,7 @@ public class HomeController : BaseController
                 return View();
             }
 
-            // ponytail: hash password before saving
-            user.pwd = BCrypt.Net.BCrypt.HashPassword(user.pwd);
+            // ponytail: plain-text password — no hashing
 
         // Địa chỉ (chỉ bắt buộc với Quán ăn / Shipper)
         bool requiresAddress = user.loaitaikhoan == "Quán ăn" || user.loaitaikhoan == "Shipper";
@@ -1104,16 +1087,13 @@ public class HomeController : BaseController
                 TempData["ProfileError"] = "Xác nhận mật khẩu không khớp.";
                 return RedirectToAction("Profile");
             }
-            // Verify old password
-            bool verified = false;
-            try { verified = BCrypt.Net.BCrypt.Verify(oldPwd, dbUser.pwd); } catch { }
-            // ponytail: security fix — chỉ verify bằng BCrypt, không fallback plain-text
-            if (!verified)
+            // ponytail: plain-text password comparison
+            if (dbUser.pwd != oldPwd)
             {
                 TempData["ProfileError"] = "Mật khẩu hiện tại không đúng.";
                 return RedirectToAction("Profile");
             }
-            dbUser.pwd = BCrypt.Net.BCrypt.HashPassword(newPwd);
+            dbUser.pwd = newPwd;
         }
 
         db.SaveChanges();
@@ -1512,73 +1492,6 @@ VALUES ('test_debug', 'test123', 'Khách hàng', '0999999999', 0, 'test@debug.co
         }
 
         return Json(new { success = true, database = debugInfo });
-    }
-
-    /// <summary>
-    /// Ghi đè BCrypt hash trong database bằng plain-text password
-    /// Chạy 1 lần sau deploy để fix lỗi login do database cũ còn BCrypt hash
-    /// URL: GET /Home/FixPasswords
-    /// </summary>
-    public IActionResult FixPasswords()
-    {
-        try
-        {
-            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<HomeController>>();
-            int updated = 0;
-
-            // Lấy danh sách user có password bắt đầu bằng $2 (BCrypt hash)
-            var bcryptUsers = db.tbUser.Where(u => u.pwd.StartsWith("$2")).ToList();
-
-            if (bcryptUsers.Count == 0)
-            {
-                return Content("✅ Không có user nào dùng BCrypt hash. Mọi thứ đã ổn!");
-            }
-
-            foreach (var user in bcryptUsers)
-            {
-                // Map password theo userid dựa trên seed data
-                var plainPwd = user.userid switch
-                {
-                    1 => "abcdef",            // tranthib
-                    2 => "qwerty",            // levanc
-                    3 => "shipy456",          // shippery
-                    4 => "shipz789",          // shipperz
-                    5 => "xyz123",            // phamthid
-                    6 => "konekopizza",       // Koneko Pizza
-                    7 => "com1990nvs",        // Cơm 1990
-                    8 => "bundaugiadi",       // Bún Đậu Gia Di
-                    9 => "quanchayanlactam",  // Quán Chay An Lạc Tâm
-                    10 => "changanuongbahong",// Chân Gà Nướng Bà Hồng
-                    11 => "tralong",          // Trà Long
-                    12 => "bunmambadong",     // Bún Mắm Bà Đông
-                    13 => "danghoanggatre",   // Đàng Hoàng
-                    14 => "sushitotoro",      // Sushi Totoro
-                    15 => "43bakery",         // 43 Bakery
-                    16 => "admin1",           // Admin 1
-                    17 => "admin2",           // Admin 2
-                    18 => "admin3",           // Admin 3
-                    _ => null                  // User không có trong seed → skip
-                };
-
-                if (plainPwd != null)
-                {
-                    user.pwd = plainPwd;
-                    updated++;
-                }
-            }
-
-            db.SaveChanges();
-
-            return Content($"✅ Đã sửa {updated}/{bcryptUsers.Count} user từ BCrypt hash → plain-text password." +
-                $"\n\nCác user đã fix: {string.Join(", ", bcryptUsers.Where(u => u.userid <= 18).Select(u => u.username))}" +
-                $"\n\nGiờ bạn có thể login với mật khẩu seed tương ứng!");
-        }
-        catch (Exception ex)
-        {
-            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<HomeController>>();
-            logger.LogError(ex, "FixPasswords failed");
-            return Content($"❌ Lỗi: {ex.Message}");
-        }
     }
 
     /// <summary>

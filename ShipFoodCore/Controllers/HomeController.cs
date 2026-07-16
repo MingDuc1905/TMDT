@@ -2102,4 +2102,49 @@ VALUES ('test_debug', 'test123', 'Khách hàng', '0999999999', 0, 'test@debug.co
         db.SaveChanges();
         return Json(new { success = true, message = "Cảm ơn bạn đã đánh giá!" });
     }
+
+    /// <summary>
+    /// TEMP: Reset ALL passwords to plain-text (BCrypt removed).
+    /// GET /Home/ResetPasswords
+    /// </summary>
+    public IActionResult ResetPasswords()
+    {
+        var passwords = new (int id, string user, string pwd)[]
+        {
+            (1,  "tranthib",          "abcdef"),
+            (2,  "levanc",            "qwerty"),
+            (3,  "shippery",          "shipy456"),
+            (4,  "shipperz",          "shipz789"),
+            (5,  "phamthid",          "xyz123"),
+            (6,  "konekopizza",       "konekopizza"),
+            (7,  "com1990nvs",        "com1990nvs"),
+            (8,  "bundaugiadi",       "bundaugiadi"),
+            (9,  "quanchayanlactam",  "quanchayanlactam"),
+            (10, "changanuongbahong", "changanuongbahong"),
+            (11, "tralong",           "tralong"),
+            (12, "bunmambadong",      "bunmambadong"),
+            (13, "danghoanggatre",    "danghoanggatre"),
+            (14, "sushitotoro",       "sushitotoro"),
+            (15, "43bakery",          "43bakery"),
+            (16, "admin1",            "admin1"),
+            (17, "admin2",            "admin2"),
+            (18, "admin3",            "admin3"),
+        };
+
+        int ok = 0, fail = 0;
+        foreach (var (id, user, pwd) in passwords)
+        {
+            try
+            {
+                db.Database.ExecuteSqlRaw(
+                    $"UPDATE \"tbUser\" SET \"pwd\" = @p0 WHERE \"userid\" = @p1", pwd, id);
+                ok++;
+            }
+            catch (Exception ex)
+            {
+                fail++;
+            }
+        }
+        return Content($"Reset done: {ok}/{ok + fail} users updated. Passwords are now plain-text.");
+    }
 }

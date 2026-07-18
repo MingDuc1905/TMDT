@@ -645,7 +645,7 @@ public class CartController : BaseController
             {
                 // ponytail: SePay format — "SEVQR FASTSHIP{OrderId}"
                 var memo = $"SEVQR FASTSHIP{donHang.madh}";
-                var qrUrl = $"https://img.vietqr.io/image/{BankVietQrBinCode}-{BankAccountNo}-compact2.png?amount={(long)(donHang.tongtien ?? 0)}&addInfo={Uri.EscapeDataString(memo)}&accountName={Uri.EscapeDataString(BankAccountName)}";
+                var qrUrl = $"https://img.vietqr.io/image/{BankVietQrBinCode}-{BankAccountNo}-print.png?amount={(long)(donHang.tongtien ?? 0)}&addInfo={Uri.EscapeDataString(memo)}&accountName={Uri.EscapeDataString(BankAccountName)}";
 
                 ViewBag.QrCodeUrl = qrUrl;
                 ViewBag.BankInfo = new

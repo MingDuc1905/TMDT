@@ -99,7 +99,7 @@ public class RestaurantController : BaseController
         // ponytail: Nap tien qua chuyen khoan — tao pending deposit, cho SePay xac nhan
         var depositCode = $"FASTSHIPNAP{user!.userid}_{DateTime.Now:yyyyMMddHHmmss}";
         TempData["WalletPending"] = $"Quét mã QR để chuyển {soTien:N0}đ vào ví.";
-        TempData["WalletQR"] = $"https://img.vietqr.io/image/970415-102878588446-compact2.png?amount={(long)soTien}&addInfo={Uri.EscapeDataString("SEVQR " + depositCode)}&accountName={Uri.EscapeDataString("BUI MINH DUC")}";
+        TempData["WalletQR"] = $"https://img.vietqr.io/image/970415-102878588446-print.png?amount={(long)soTien}&addInfo={Uri.EscapeDataString("SEVQR " + depositCode)}&accountName={Uri.EscapeDataString("BUI MINH DUC")}";
         return RedirectToAction("Wallet");
     }
 

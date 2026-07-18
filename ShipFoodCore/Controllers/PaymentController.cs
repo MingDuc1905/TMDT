@@ -446,7 +446,7 @@ public class PaymentController : BaseController
             if (isBankTransfer && !isPayPal)
             {
                 var memo = $"SEVQR FASTSHIP{firstOrderId}";
-                var qrUrl = $"https://img.vietqr.io/image/{BankVietQrBinCode}-{BankAccountNo}-compact2.png?amount={(long)totalAllOrders}&addInfo={Uri.EscapeDataString(memo)}&accountName={Uri.EscapeDataString(BankAccountName)}";
+                var qrUrl = $"https://img.vietqr.io/image/{BankVietQrBinCode}-{BankAccountNo}-print.png?amount={(long)totalAllOrders}&addInfo={Uri.EscapeDataString(memo)}&accountName={Uri.EscapeDataString(BankAccountName)}";
 
                 _logger.LogInformation("Bank transfer QR URL generated. Orders: {OrderIds}", string.Join(",", createdOrders));
 

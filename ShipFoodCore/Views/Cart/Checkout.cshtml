@@ -1,4 +1,4 @@
-﻿@{
+@{
     ViewBag.Title = "Checkout";
     Layout = "~/Views/Shared/_LayoutPageHome.cshtml";
     ShipFood.Models.Cart cart = ViewBag.cart;
@@ -538,7 +538,7 @@
         } else if (name.includes('Chuyển khoản') || name.includes('ngân hàng') || name.includes('bank')) {
             var bankBin = BANK_BIN, accNo = BANK_ACC_NO, accName = BANK_ACC_NAME;
             var previewTotal = @((cart?.tongTien ?? 0)) + SHIPPING_FEE;
-            var qrPreviewUrl = 'https://img.vietqr.io/image/' + bankBin + '-' + accNo + '-compact2.png?amount=' + Math.round(previewTotal) + '&accountName=' + encodeURIComponent(accName);
+            var qrPreviewUrl = 'https://img.vietqr.io/image/' + bankBin + '-' + accNo + '-print.png?amount=' + Math.round(previewTotal) + '&accountName=' + encodeURIComponent(accName);
             area.html('<div class="payment-detail-box"><div class="text-center mb-3"><div style="background:linear-gradient(135deg,#007bff,#17a2b8);width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 10px"><i class="fas fa-university text-white fa-lg"></i></div><strong style="color:#007bff;">Chuyển khoản ngân hàng</strong></div>'
                 + '<div style="text-align:center;margin-bottom:14px;"><img src="' + qrPreviewUrl + '" alt="QR NH" style="width:160px;height:160px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.08);" onerror="this.style.display=\'none\'" /></div>'                    + '<div class="d-flex justify-content-between mb-1"><span class="text-muted">Ngân hàng:</span><strong>' + BANK_DISPLAY + '</strong></div>'
                 + '<div class="d-flex justify-content-between mb-1"><span class="text-muted">Số TK:</span><strong style="color:#e74c3c;letter-spacing:1px;">' + accNo + '</strong></div>'

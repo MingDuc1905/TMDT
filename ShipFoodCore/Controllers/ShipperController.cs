@@ -220,7 +220,7 @@ public class ShipperController : BaseController
         
         var depositCode = $"FASTSHIPNAP{sh.userid}_{DateTime.Now:yyyyMMddHHmmss}";
         TempData["NapTienPending"] = $"Quét mã QR để chuyển {soTien:N0}đ vào ví.";
-        TempData["NapTienQR"] = $"https://img.vietqr.io/image/{binCode}-{bankAccountNo}-compact2.png?amount={(long)soTien}&addInfo={Uri.EscapeDataString("SEVQR " + depositCode)}&accountName={Uri.EscapeDataString(bankAccountName)}";
+        TempData["NapTienQR"] = $"https://img.vietqr.io/image/{binCode}-{bankAccountNo}-print.png?amount={(long)soTien}&addInfo={Uri.EscapeDataString("SEVQR " + depositCode)}&accountName={Uri.EscapeDataString(bankAccountName)}";
         TempData["NapTienSoTien"] = soTien.ToString();
         TempData["NapTienDepositCode"] = depositCode;
         return RedirectToAction("ViTien");

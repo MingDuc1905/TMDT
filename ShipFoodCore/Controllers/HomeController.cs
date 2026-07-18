@@ -1281,7 +1281,7 @@ public class HomeController : BaseController
         var bankAccountName = config["BANK_ACCOUNT_NAME"] ?? "FASTSHIP CO., LTD";
         var bankBin = Helpers.BankHelper.GetVietQrBinCode(bankId);
 
-        var qrUrl = $"https://img.vietqr.io/image/{bankBin}-{bankAccountNo}-compact2.png?amount={(long)soTien}&addInfo={Uri.EscapeDataString(memo)}&accountName={Uri.EscapeDataString(bankAccountName)}";
+        var qrUrl = $"https://img.vietqr.io/image/{bankBin}-{bankAccountNo}-print.png?amount={(long)soTien}&addInfo={Uri.EscapeDataString(memo)}&accountName={Uri.EscapeDataString(bankAccountName)}";
 
         // L?u pending deposit v?o tbTinNhan ?? webhook sau này xác nh?n
         try

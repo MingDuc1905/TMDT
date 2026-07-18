@@ -616,11 +616,18 @@ app.UseStaticFiles(new StaticFileOptions
 {
     OnPrepareResponse = ctx =>
     {
-        // ponytail: file có hash (VD: main.v123.js) → cache 1 n?m
-        var dotCount = ctx.File.Name.Count(c => c == '.');
-        var cacheMaxAge = dotCount >= 2 ? TimeSpan.FromDays(365) : TimeSpan.FromDays(1);
-        ctx.Context.Response.Headers.CacheControl = $"public, max-age={(int)cacheMaxAge.TotalSeconds}";
-        ctx.Context.Response.Headers.ETag = $"\"{ctx.File.LastModified:yyyyMMddHHmmss}\"";
+        // ponytail: Không cache sw.js để trình duyệt luôn cập nhật Service Worker
+        if (ctx.File.Name.Equals("sw.js", StringComparison.OrdinalIgnoreCase))
+        {
+            ctx.Context.Response.Headers.CacheControl = "no-cache, no-store, must-revalidate";
+        }
+        else
+        {
+            var dotCount = ctx.File.Name.Count(c => c == '.');
+            var cacheMaxAge = dotCount >= 2 ? TimeSpan.FromDays(365) : TimeSpan.FromDays(1);
+            ctx.Context.Response.Headers.CacheControl = $"public, max-age={(int)cacheMaxAge.TotalSeconds}";
+            ctx.Context.Response.Headers.ETag = $"\"{ctx.File.LastModified:yyyyMMddHHmmss}\"";
+        }
     }
 });
 

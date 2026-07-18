@@ -1,4 +1,4 @@
-﻿@using ShipFood.Models
+@using ShipFood.Models
 @inject ShipFood.Models.dbFoodyEntities _db
 @{
     var userJson = Context.Session.GetString("user");
@@ -260,7 +260,7 @@
                     List<tbDanhMuc> allDanhMuc = new List<tbDanhMuc>();
                     try { allDanhMuc = _db.tbDanhMuc.ToList(); } catch { /* DB unavailable — skip category filter */ }
                 }
-                <div class="fs-search-wrap d-none d-lg-flex">
+                <div class="fs-search-wrap d-none d-lg-flex mx-auto">
                     <form action="/Home" method="get" class="fs-search-form" role="search" aria-label="Tìm quán ăn">
                         <select name="idDM" aria-label="Chọn danh mục">
                             <option value="">Tất cả</option>
@@ -313,7 +313,7 @@
                         <a href="/Home/DanhMuc" class="nav-item nav-link">Menu ẩm thực</a>                            @if (user != null)
                             {                        
                             <!-- ═══ DESKTOP: user dropdown ═══ -->
-                            <div class="d-lg-flex align-items-center ms-2 dropdown">
+                            <div class="d-none d-lg-flex align-items-center ms-lg-2 dropdown">
                                 <button class="btn dropdown-toggle d-flex align-items-center gap-1 px-2 py-1 fs-user-dropdown-toggle" type="button"
                                         data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
                                     <span style="width:30px;height:30px;border-radius:50%;background:var(--fs-green);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;">@user.username.Substring(0,1).ToUpper()</span>
@@ -346,7 +346,7 @@
                         else
                         {
                             <!-- ═══ DESKTOP login button — visible tr?n desktop, ko mobile (fix P14/P15) ═══ -->
-                            <div class="d-lg-flex align-items-center gap-1 gap-lg-2">
+                            <div class="d-none d-lg-flex align-items-center gap-1 gap-lg-2">
                                 <a href="/Home/Login" class="nav-link" style="font-size:13.5px;font-weight:600;border:1.5px solid var(--fs-green);border-radius:24px;padding:6px 16px;color:var(--fs-green);transition:all .2s;"
                                    onmouseenter="this.style.background='var(--fs-green)';this.style.color='#fff'"
                                    onmouseleave="this.style.background='transparent';this.style.color='var(--fs-green)'">

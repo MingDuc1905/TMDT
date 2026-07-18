@@ -49,23 +49,23 @@ session_init:
 ### ⚠️ Tại sao cần IRON LAW này?
 
 > Rules đã có nhưng AI vẫn vi phạm. Vấn đề không phải rules — mà là cơ chế enforce.
-> IRON LAW 0.5 yêu cầu AI **CHỨNG MINH** đã scan + cân nhắc + quyết định dùng/ko dùng mọi skill/repo.
-> Nếu ko thể chứng minh → VI PHẠM. Không ngoại lệ.
+### 0.5.1 Bắt buộc tận dụng triệt để Hệ sinh thái Skills (Maximized Utilization)
 
-### 0.5.1 Mandatory Skill/Repo Inventory (Rút gọn)
+Trước khi xử lý bất kỳ yêu cầu nào, AI **PHẢI** quét qua toàn bộ kho tàng 190 skills (`.agents/skills/`) và 13 repos (`ShipFoodCore/Skills/`) để tìm ra tất cả những công cụ có thể kết hợp hỗ trợ cho task (ví dụ: dùng `systematic-debugging` để tìm lỗi, dùng `verification-before-completion` để build test, dùng `ui-ux-pro-max` nếu đụng tới giao diện, v.v.). **Tuyệt đối không được lười biếng bỏ qua các công cụ mạnh mẽ đã được cung cấp.**
 
-SAU log format (Section 0) và TRƯỚC khi làm bất cứ điều gì khác, PHẢI chèn khối sau để cho biết bạn sẽ dùng những skill nào:
+Tuy nhiên, để tránh làm phiền người dùng bằng các bảng biểu dài dòng, SAU log format (Section 0) và TRƯỚC khi làm bất cứ điều gì khác, bạn chỉ cần chèn khối sau để báo cáo những skill **thực sự được kích hoạt**:
 
 ```markdown
-## 🔍 SKILLS SỬ DỤNG
+## 🔍 SKILLS SỬ DỤNG (TẬN DỤNG TRIỆT ĐỂ)
 - **ponytail**: [Lý do ngắn gọn]
-- **[skill name]**: [Lý do ngắn gọn]
+- **[skill name 1]**: [Lý do ngắn gọn]
+- **[skill name 2]**: [Lý do ngắn gọn]
 ```
 
 **Rules**:
-1. Chỉ liệt kê những skill / repo **thực sự được sử dụng** trong response hoặc chuỗi task sắp tới.
-2. Không cần thiết lập bảng dài dòng hay giải thích lý do từ chối các skill không liên quan.
-3. Vẫn PHẢI có mục `## 🔍 SKILLS SỬ DỤNG` ở đầu mỗi response làm minh chứng.
+1. **Triệt để**: Phải cố gắng suy nghĩ xem có thể áp dụng thêm skill nào để làm kết quả tốt hơn không (vd: tự động build, tự động test, tự động kiểm tra convention).
+2. **Ngắn gọn**: Chỉ liệt kê những skill / repo **thực sự được sử dụng** trong response. Không giải thích lý do từ chối các skill không liên quan.
+3. Vẫn PHẢI có mục `## 🔍 SKILLS SỬ DỤNG...` ở đầu mỗi response làm minh chứng.
 
 ### 0.5.2 Cơ chế Auto-Fail
 

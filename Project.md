@@ -1,6 +1,7 @@
 # Fastship (ShipFood) — Nền tảng Giao Hàng Thức Ăn Online
 
 > **Cập nhật**: Dựa trên mã nguồn thực tế — ASP.NET Core 8 MVC + MySQL (Pomelo) + Bootstrap 5 + SignalR + Gemini AI + Google OAuth
+> **Live Demo**: [https://fastship-web.onrender.com/](https://fastship-web.onrender.com/)
 
 ---
 

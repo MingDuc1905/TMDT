@@ -260,6 +260,7 @@
     function loadAiHistory() {
         $.ajax({
             url: '@Url.Action("GetAiHistory", "Chatbot")', type: 'GET',
+            xhrFields: { withCredentials: true },
             success: function(res) {
                 if (!res.success || !res.history || res.history.length === 0) return;
                 var container = document.getElementById('aiMsgs');
@@ -278,6 +279,8 @@
 
     // ─── SỬA DỨT ĐIỂM LỖI KẸT CHAT: Event Delegation + class .active ───
     $(document).ready(function() {
+        loadAiHistory(); // Tự động load lịch sử AI khi mở trang
+
         // Dùng event delegation trên document để bọc toàn bộ
         $(document).on('click', '.chat-toggle', function(e) {
             e.stopPropagation();
@@ -323,6 +326,7 @@
         showTyping('aiMsgs');
         $.ajax({
             url: '@Url.Action("SendMessage", "Chatbot")', type: 'POST', data: { message: msg },
+            xhrFields: { withCredentials: true },
             headers: { 'RequestVerificationToken': getToken() },
             success: function(r) { hideTyping(); addBotMsg(r.reply, r.quickReplies); },
             error: function(xhr) {
@@ -387,6 +391,7 @@
     <text>
     $.ajax({
         url: '@Url.Action("GetUserOrders", "AdminChat")', type: 'GET',
+        xhrFields: { withCredentials: true },
         success: function(orders) {
             var sel = document.getElementById('adminOrderSelect');
             if (orders && orders.length) orders.forEach(function(o){
@@ -435,6 +440,7 @@
         if (adminUserId <= 0) return;
         $.ajax({
             url: '@Url.Action("GetUnreadCount", "AdminChat")', type: 'GET',
+            xhrFields: { withCredentials: true },
             success: function(res) { updateBadgeCount(res.count || 0); }
         });
     }
@@ -514,6 +520,7 @@
         $.ajax({
             url: '@Url.Action("GetMyMessages", "AdminChat")', type: 'GET',
             data: { orderId: adminOrderId },
+            xhrFields: { withCredentials: true },
             success: function(res) {
                 if (!res.success) return;
                 var container = document.getElementById('adminMsgs');
@@ -574,6 +581,7 @@
         $.ajax({
             url: '@Url.Action("CustomerSendMessage", "AdminChat")', type: 'POST',
             data: { orderId: adminOrderId, message: msg, __RequestVerificationToken: token },
+            xhrFields: { withCredentials: true },
             headers: { 'RequestVerificationToken': token },
             success: function(r) {
                 if (r && r.success === false) {

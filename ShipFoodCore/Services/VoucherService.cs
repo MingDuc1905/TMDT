@@ -10,6 +10,12 @@ namespace ShipFood.Services;
 public class VoucherService
 {
     private readonly dbFoodyEntities _db;
+
+    public VoucherService(dbFoodyEntities db)
+    {
+        _db = db;
+    }
+
     /// Lấy voucher gợi ý theo khung giờ hiện tại
     /// Trả về voucher phù hợp nhất với thời điểm hiện tại
     /// </summary>

@@ -1,8 +1,6 @@
-// ponytail: service worker cơ b?n — cache static assets, fallback network
-const CACHE_NAME = 'fastship-v1';
+// ponytail: service worker cơ bản — cache static assets
+const CACHE_NAME = 'fastship-v2'; // Đổi tên để xóa cache cũ
 const STATIC_URLS = [
-  '/',
-  '/Home',
   '/Source/Home/css/style.css',
   '/Source/Home/css/bootstrap.min.css',
   '/Source/Home/css/layout-sg.css',
@@ -18,6 +16,7 @@ self.addEventListener('install', function(event) {
       return cache.addAll(STATIC_URLS);
     })
   );
+  self.skipWaiting();
 });
 
 self.addEventListener('activate', function(event) {
@@ -29,12 +28,14 @@ self.addEventListener('activate', function(event) {
       );
     })
   );
+  self.clients.claim();
 });
 
 self.addEventListener('fetch', function(event) {
+  // Network-first strategy: Luôn lấy từ mạng để tránh lỗi dính account cũ
   event.respondWith(
-    caches.match(event.request).then(function(response) {
-      return response || fetch(event.request);
+    fetch(event.request).catch(function() {
+      return caches.match(event.request);
     })
   );
 });

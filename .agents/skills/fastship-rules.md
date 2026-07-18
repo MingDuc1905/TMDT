@@ -1,6 +1,266 @@
 # FastShip Development Rules
 
 > **Tự động áp dụng khi làm việc với dự án FastShip (ShipFood)**
+> *Bao gồm Self-Enforcement Rules (SER) — AI tự tuân theo, không có ngoại lệ*
+
+---
+
+## 📜 PHẦN 0: SELF-ENFORCEMENT RULES (SER) — LUẬT TỰ TUÂN THEO
+
+> **🔴 Các luật này do AI tự tạo ra và tự tuân theo. KHÔNG NGOẠI LỆ. KHÔNG SKIP.**
+> Mỗi lần vi phạm = DỪNG response hiện tại, thông báo cho user, làm lại.
+
+---
+
+### 🔴 SER-1️⃣: TIẾNG VIỆT & GIAO TIẾP
+
+```yaml
+vietnamese_rule:
+  rule: "Luôn giao tiếp bằng tiếng Việt — TRỪ KHI user hỏi bằng tiếng Anh"
+  reason: "User chính là người Việt, dự án Việt Nam"
+  exceptions:
+    - "Code comments trong file có thể để tiếng Anh (nếu convention hiện tại dùng tiếng Anh)"
+    - "Commit messages để tiếng Anh (theo conventional commits)"
+  penalty: "Dùng tiếng Anh không cần thiết → VI PHẠM → xin lỗi và viết lại"
+
+confirmation_rule:
+  rule: "TRƯỚC KHI LÀM BẤT CỨ ĐIỀU GÌ — phải xác nhận đã hiểu yêu cầu"
+  steps:
+    1: "Tóm tắt yêu cầu của user bằng 1-2 câu"
+    2: "Hỏi: 'Có đúng ý bạn không?'"
+    3: "CHỈ KHI user xác nhận → mới bắt đầu làm"
+  exception: "User nói rõ 'cứ làm đi' hoặc 'không cần hỏi'"
+  penalty: "Làm mà không confirm → VI PHẠM → dừng, hỏi lại"
+```
+
+---
+
+### 🔴 SER-2️⃣: ROOT CAUSE TRƯỚC KHI FIX
+
+```yaml
+root_cause_rule:
+  rule: "KHÔNG BAO GIỜ đề xuất fix khi chưa tìm ra ROOT CAUSE"
+  workflow:
+    1: "Đọc error message — ghi rõ line, file, error code"
+    2: "Reproduce bug — ghi rõ steps trigger"
+    3: "Check recent changes — git diff, git log -5"
+    4: "Trace data flow — từ input đến output"
+    5: "CHỈ SAU ĐÓ mới propose fix"
+  red_flags:
+    - "Quick fix for now" → VI PHẠM
+    - "I think it's X, let me fix" → VI PHẠM
+    - "Just try changing X" → VI PHẠM
+  penalty: "Fix mà không có root cause → VI PHẠM → load systematic-debugging, làm lại"
+```
+
+---
+
+### 🔴 SER-3️⃣: PLAN TRƯỚC KHI CODE
+
+```yaml
+plan_before_code:
+  rule: "KHÔNG CODE feature mới nếu chưa có PLAN"
+  workflow:
+    1: "Đọc tài liệu liên quan (Project.md, UI-UX.md, file hiện tại)"
+    2: "Spawn file-picker/code-searcher — tìm file liên quan"
+    3: "Viết plan ngắn: file nào cần sửa, thay đổi gì, ảnh hưởng gì"
+    4: "Dùng write_todos — đánh dấu các bước"
+    5: "CHỈ SAU ĐÓ mới code"
+  exception: "Fix bug đơn giản (1-2 dòng) hoặc user yêu cầu gấp"
+  penalty: "Code feature mà không có plan → VI PHẠM → dừng, viết plan"
+```
+
+---
+
+### 🔴 SER-4️⃣: VERIFY TRƯỚC KHI CLAIM
+
+```yaml
+verify_before_claim:
+  rule: "KHÔNG BAO GIỜ claim hoàn thành nếu chưa VERIFY"
+  workflow:
+    1: "Xác định lệnh verify — dotnet build, test, v.v."
+    2: "CHẠY LỆNH — fresh output, ko dùng kết quả cũ"
+    3: "ĐỌC OUTPUT — exit code, error count, warning count"
+    4: "CHỈ SAU ĐÓ mới claim hoàn thành"
+  forbidden_phrases:
+    - "Should work now" → VI PHẠM
+    - "Looks correct" → VI PHẠM
+    - "I'm confident" → VI PHẠM
+    - "Tests pass" (nếu chưa chạy) → VI PHẠM
+  penalty: "Claim mà không verify → VI PHẠM → xoá claim, chạy verify"
+```
+
+---
+
+### 🔴 SER-5️⃣: TỰ AUDIT MỖI RESPONSE
+
+```yaml
+self_audit:
+  rule: "CUỐI MỖI RESPONSE — tự audit compliance"
+  mode_full:  # Khi response có code changes
+    trigger: "Có file modification, addition, deletion"
+    checkboxes:
+      - "✅ IRON LAW 0: Session init marker còn hạn? (<30 phút)"
+      - "✅ IRON LAW 0.5: SKILL/REPO INVENTORY đủ format?"
+      - "✅ IRON LAW 1: Tool call đầu = skill?"
+      - "✅ IRON LAW 2: Compliance check đã pass?"
+      - "✅ IRON LAW 3: Hard gate đã pass?"
+      - "✅ IRON LAW 4: Skills/repos đã scan?"
+      - "✅ SER-1: Giao tiếp tiếng Việt?"
+      - "✅ SER-2: Root cause trước fix? (nếu bug)"
+      - "✅ SER-3: Plan trước code? (nếu feature)"
+      - "✅ SER-4: Verify trước claim?"
+      - "✅ SER-10: Code review spawned?"
+  mode_lite:  # Khi chỉ hỏi đáp, discussion
+    trigger: "Chỉ trả lời câu hỏi, không code"
+    checkboxes:
+      - "✅ IRON LAW 0: Session init còn hạn?"
+      - "✅ IRON LAW 1: Tool call đầu = skill?"
+      - "✅ IRON LAW 2: Compliance pass?"
+      - "✅ SER-1: Tiếng Việt?"
+  penalty: "Thiếu audit checkbox → VI PHẠM → thêm audit trước khi kết thúc"
+```
+
+---
+
+### 🔴 SER-6️⃣: HỌC TỪ SAI LẦM (Không lặp lại)
+
+```yaml
+learn_from_mistakes:
+  rule: "Khi bị user chỉ ra lỗi — phải GHI NHỚ và KHÔNG LẶP LẠI"
+  workflow:
+    1: "Thừa nhận lỗi — không biện minh"
+    2: "Ghi lại lỗi vào bộ nhớ session: mistake_log = [...]"
+    3: "Giải thích tại sao lỗi xảy ra"
+    4: "Hứa không lặp lại — và giữ lời"
+    5: "Check mistake_log trước mỗi quyết định tương tự"
+  mistake_log: []  # Danh sách lỗi đã mắc trong session này
+  note: "Không dùng penalty Reset Session vì sẽ xoá luôn mistake_log — gây phản tác dụng"
+  penalty: "Lặp lại lỗi cũ → VI PHẠM → thừa nhận, ghi log, user quyết định hướng giải quyết"
+```
+
+---
+
+### 🔴 SER-7️⃣: MINIMAL CHANGE — Chỉ thay đổi tối thiểu
+
+```yaml
+minimal_change:
+  rule: "LUÔN thay đổi ÍT NHẤT có thể — không thêm code vô ích"
+  ladder:
+    1: "Có thực sự cần thay đổi không? (YAGNI)"
+    2: "Đã có trong codebase? Reuse, đừng viết lại"
+    3: "Có thể dùng stdlib? Dùng stdlib"
+    4: "Có thể 1 dòng? Viết 1 dòng"
+    5: "Chỉ code tối thiểu hoạt động được"
+  rules:
+    - "Không thêm abstraction chưa cần (interface 1 impl, factory 1 product)"
+    - "Không thêm dependency mới nếu đã có sẵn"
+    - "Không boilerplate 'cho sau này'"
+    - "Xoá nhiều hơn thêm"
+  penalty: "Thêm code không cần thiết → VI PHẠM → xoá, chỉ giữ tối thiểu"
+```
+
+---
+
+### 🔴 SER-8️⃣: ASK BEFORE ASSUME — Khi không chắc thì hỏi
+
+```yaml
+ask_before_assume:
+  rule: "Khi không chắc về yêu cầu, kiến trúc, hay cách làm — PHẢI HỎI user"
+  must_ask_when:
+    - "Không hiểu rõ yêu cầu"
+    - "Có nhiều cách implement khác nhau"
+    - "Thay đổi ảnh hưởng đến nhiều file/module"
+    - "Xoá file hoặc component"
+    - "Thêm dependency mới"
+    - "Thay đổi thiết kế CSDL"
+  dont_ask_when:
+    - "Việc hiển nhiên (fix typo, đổi màu theo design token)"
+    - "User đã nói rõ trước đó"
+  penalty: "Tự quyết định khi không chắc → VI PHẠM → hỏi user trước khi tiếp tục"
+```
+
+---
+
+### 🔴 SER-9️⃣: TÔN TRỌNG CODEBASE HIỆN TẠI
+
+```yaml
+respect_codebase:
+  rule: "KHÔNG phá vỡ conventions, kiến trúc, design system hiện tại"
+  checks:
+    - "Kiểm tra coding convention hiện tại trước khi viết code mới"
+    - "Dùng design tokens có sẵn (--fs-*), không hardcode"
+    - "Dùng font Inter — không thêm font mới"
+    - "Dùng FA5 icons — không thêm icon library mới"
+    - "Tuân thủ kiến trúc MVC hiện tại"
+    - "Dùng helper/function có sẵn — không viết lại"
+  penalty: "Phá vỡ convention → VI PHẠM → sửa lại cho đúng"
+```
+
+---
+
+### 🔴 SER-🔟: SPAWN AGENT REVIEW CODE BẮT BUỘC
+
+```yaml
+mandatory_code_review:
+  rule: "SAU MỌI CODE CHANGE — spawn code-reviewer-deepseek-flash"
+  scope:
+    - "Feature mới: BẮT BUỘC"
+    - "Bug fix: BẮT BUỘC (trừ fix 1-2 dòng quá đơn giản)"
+    - "UI change: BẮT BUỘC"
+    - "Refactor: BẮT BUỘC"
+  penalty: "Không review → VI PHẠM → spawn review ngay, chỉ tiếp tục sau khi review OK"
+```
+
+---
+
+### 🔴 SER-1️⃣1️⃣: NGHIÊN CỨU TRƯỚC KHI ĐỀ XUẤT
+
+```yaml
+research_before_recommend:
+  rule: "KHI ĐỀ XUẤT công nghệ, thư viện, API — phải nghiên cứu trước"
+  workflow:
+    1: "Kiểm tra xem project đã dùng gì chưa? (Project.md, package.json, .csproj)"
+    2: "Nếu chưa có → dùng gravity_index để tìm options"
+    3: "Đọc docs của option tốt nhất (researcher-docs)"
+    4: "So sánh với codebase convention hiện tại"
+    5: "CHỈ SAU ĐÓ mới recommend"
+  dont_recommend_from_memory:
+    - "Không recommend library chỉ vì biết tên — phải check docs"
+    - "Không recommend service chưa verify pricing/tier"
+    - "Không recommend nếu đã có sẵn trong project"
+  penalty: "Đề xuất từ memory không verify → VI PHẠM → research lại"
+```
+
+---
+
+### 🔴 SER-1️⃣2️⃣: DÙNG TOOL ĐÚNG CÁCH
+
+```yaml
+tool_usage_guide:
+  rule: "CHỌN TOOL PHÙ HỢP với nhu cầu — không lạm dụng 1 tool"
+  tool_selection:
+    file_picker: "Fuzzy search — tìm file liên quan đến concept/feature (không biết chính xác tên file)"
+    code_searcher: "Exact pattern search — tìm function, class, variable, error cụ thể"
+    glob: "File name pattern — tìm *.cs, *.css, *test* theo tên"
+    read_files: "Đọc nội dung file cụ thể — PHẢI dùng sau khi biết file cần đọc"
+    read_subtree: "Xem cấu trúc thư mục — PHẢI dùng trước khi read_files nếu chưa rõ cấu trúc"
+    basher: "Chạy terminal command — verify build, test, compliance"
+    browser_use: "Test UI thực tế trên browser — verify render, click, form"
+    researcher_web: "Research online — tìm thông tin, docs"
+    gravity_index: "So sánh services — tìm options, so sánh pricing"
+  default_workflow:
+    1: "list_directory hoặc glob — explore cấu trúc"
+    2: "file_picker — tìm file liên quan"
+    3: "read_files — đọc file cần sửa"
+    4: "code_searcher — kiểm tra usage pattern"
+    5: "str_replace/write_file — thực hiện thay đổi"
+    6: "basher — verify build"
+    7: "spawn code-reviewer-deepseek-flash — review code"
+  penalty: "Dùng sai tool → VI PHẠM → dùng tool đúng"
+```
+
+---
 
 ## Nguyên tắc bắt buộc
 
@@ -45,16 +305,19 @@ required_reading:
 
 - MySQL + Pomelo EF Core (không SQL Server)
 - `EnsureCreated()` cho development, migrations cho production
-- BCrypt.Net-Next cho password (workFactor 12)
+- Password: Plain-text (so sánh `user.pwd == pwd`, không hash)
 - Session JSON trong HttpContext.Session
+- Redis distributed cache cho SignalR connection state
+- `tbChiTietDonHang.mamon` là FK → `tbBienTheMonAn.id` (không phải `tbMonAn.mamon`)
 
 ### 6. Kiến trúc
 
 - ASP.NET Core 8 MVC (không MVC 5)
 - Cookie + Session auth (không Identity Framework)
-- SignalR 8 cho real-time
+- SignalR 8 cho real-time (12 methods, 5 groups)
 - Chart.js cho charts
 - Leaflet.js + SignalR cho live tracking
+- Gemini AI gemini-3.5-flash (free tier)
 
 ### 7. Skill Routing & Usage Rules
 

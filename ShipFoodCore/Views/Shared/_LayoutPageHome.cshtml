@@ -232,7 +232,7 @@
                                     <li><a class="dropdown-item d-flex align-items-center gap-2 px-3 py-2" href="/Admin"><i class="fa fa-shield-alt" style="width:18px;color:#6b7280;"></i> Quản trị</a></li>
                                 }
                                 <li><hr class="dropdown-divider" style="margin:4px 16px;"></li>
-                                <li><a href="/Home/Logout" class="dropdown-item d-flex align-items-center gap-2 px-3 py-2" style="color:#ef4444;"><i class="fa fa-sign-out-alt" style="width:18px;"></i> Đăng xuất</a></li>
+                                <li><a href="/Home/Logout" onclick="sessionStorage.clear(); localStorage.clear();" class="dropdown-item d-flex align-items-center gap-2 px-3 py-2" style="color:#ef4444;"><i class="fa fa-sign-out-alt" style="width:18px;"></i> Đăng xuất</a></li>
                             </ul>
                         </div>
                     }
@@ -337,7 +337,7 @@
                                         <li><a class="dropdown-item d-flex align-items-center gap-2 px-3 py-2" href="/Admin"><i class="fa fa-shield-alt" style="width:18px;color:#6b7280;"></i> Quản trị</a></li>
                                     }
                                     <li><hr class="dropdown-divider" style="margin:4px 16px;"></li>
-                                    <li><a href="/Home/Logout" class="dropdown-item d-flex align-items-center gap-2 px-3 py-2" style="color:#ef4444;"><i class="fa fa-sign-out-alt" style="width:18px;"></i> Đăng xuất</a></li>
+                                    <li><a href="/Home/Logout" onclick="sessionStorage.clear(); localStorage.clear();" class="dropdown-item d-flex align-items-center gap-2 px-3 py-2" style="color:#ef4444;"><i class="fa fa-sign-out-alt" style="width:18px;"></i> Đăng xuất</a></li>
                                 </ul>
                             </div>
                         }
@@ -445,7 +445,7 @@
                             {
                                 <li><a href="/Cart/LichSuDatHang">Đơn hàng của tôi</a></li>
                                 <li><a href="/Home/Wallet">Ví tiền</a></li>
-                                <li><a href="/Home/Logout" class="btn btn-link text-danger p-0" style="font-size:inherit;text-decoration:none;">Đăng xuất</a></li>
+                                <li><a href="/Home/Logout" onclick="sessionStorage.clear(); localStorage.clear();" class="btn btn-link text-danger p-0" style="font-size:inherit;text-decoration:none;">Đăng xuất</a></li>
                             }
                         </ul>
                     </div>

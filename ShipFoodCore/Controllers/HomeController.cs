@@ -1127,8 +1127,9 @@ public class HomeController : BaseController
         {
             await HttpContext.SignOutAsync(Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme);
             // ponytail: Delete session and auth cookies explicitly to prevent concurrent AJAX requests from triggering RoleGuardMiddleware's auto-restore
-            HttpContext.Response.Cookies.Delete(".AspNetCore.Session");
-            HttpContext.Response.Cookies.Delete(".AspNetCore.Cookies");
+            var cookieOptions = new CookieOptions { Path = "/" };
+            HttpContext.Response.Cookies.Delete(".AspNetCore.Session", cookieOptions);
+            HttpContext.Response.Cookies.Delete(".AspNetCore.Cookies", cookieOptions);
         }
         catch { }
         try

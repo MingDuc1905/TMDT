@@ -139,7 +139,7 @@ public class RoleGuardMiddleware
         // ═══ Chưa đăng nhập → thử phục hồi từ auth cookie ═══
         if (user == null)
         {
-            if (context.User?.Identity?.IsAuthenticated == true)
+            if (context.User?.Identity?.IsAuthenticated == true && !path.Equals("/home/logout", StringComparison.OrdinalIgnoreCase))
             {
                 await RestoreSessionFromCookieAsync(context, db);
                 userJson = context.Session.GetString("user");

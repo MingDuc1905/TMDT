@@ -25,6 +25,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" onerror="var s=document.createElement('link');s.rel='stylesheet';s.href='https://use.fontawesome.com/releases/v5.10.0/css/all.css';document.head.appendChild(s);console.warn('FA CDN fallback');" />
     <!-- Global Design System v4.0 -->
     <link href="~/Source/Shared/css/fastship-design-tokens.css" rel="stylesheet" />
+    <link href="~/Source/Shared/css/fastship-animations.css" rel="stylesheet" />
     <style>
         /* ============================================================
            ADMIN UI — Modern Minimalist (v5.0)
@@ -146,7 +147,7 @@
 
         /* ── Sidebar ── */
         /* ── Sidebar ── */
-        .deznav { background: var(--admin-white) !important; position: relative; transition: width .25s ease; }
+        .deznav { background: var(--admin-white) !important; position: relative; transition: width var(--fs-transition-slow) var(--fs-ease-out-back); }
         .deznav .deznav-toggle {
             position: absolute; top: 50%; right: -14px; transform: translateY(-50%);
             width: 28px; height: 28px; border-radius: 50%;

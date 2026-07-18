@@ -25,6 +25,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" onerror="var s=document.createElement('link');s.rel='stylesheet';s.href='https://use.fontawesome.com/releases/v5.10.0/css/all.css';document.head.appendChild(s);console.warn('FA CDN fallback');" />
     <!-- Global Design System v4.0 -->
     <link href="~/Source/Shared/css/fastship-design-tokens.css" rel="stylesheet" />
+    <link href="~/Source/Shared/css/fastship-animations.css" rel="stylesheet" />
     <style>
         /* ============================================================
            RESTAURANT DASHBOARD — Modern Minimalist Override (v4.0)
@@ -72,6 +73,7 @@
             color: var(--fs-muted, #6b7280) !important;
             transition: all .2s ease;
         }
+          .deznav { background: var(--admin-white) !important; position: relative; transition: width var(--fs-transition-slow) var(--fs-ease-out-back); }
         .deznav .metismenu > li > a:hover {
             background: var(--fs-green-bg, rgba(60,184,21,.07)) !important;
             color: var(--fs-green, #3CB815) !important;

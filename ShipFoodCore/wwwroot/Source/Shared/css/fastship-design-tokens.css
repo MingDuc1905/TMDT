@@ -58,6 +58,8 @@
     --fs-transition: .2s ease;
     --fs-transition-slow: .35s ease;
     --fs-transition-fast: .15s ease;
+    --fs-ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    --fs-ease-out-back: cubic-bezier(0.34, 1.56, 0.64, 1);
 
     /* ─── Layout ─── */
     --fs-nav-h:      68px;

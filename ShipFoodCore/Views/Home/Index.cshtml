@@ -222,7 +222,7 @@
                     cardIdx++;
                     <div class="col-xl-3 col-lg-4 col-6 fs-reveal" style="--fs-i:@cardIdx">
                         <a href="@Url.Action("DetailRestaurant","Home", new { id = item.userid })" class="text-decoration-none" aria-label="Xem chi tiết @item.tenquanan">
-                            <div class="product-item">
+                            <div class="product-item hover-lift">
                                 <div class="product-img-wrap">
                                     <img src="@TinhToan.HinhAnhUrl(item.hinhanh)" alt="@item.tenquanan" loading="lazy" onerror="this.src='/Source/Home/img/pizza.jpg'" />
                                     <!-- Social proof: "Đang thịnh hành" badge -->
@@ -311,7 +311,7 @@
                     aiIdx++;
                     <div class="col-xl-2 col-lg-3 col-md-4 col-6 fs-reveal" style="--fs-i:@aiIdx">
                         <a href="@Url.Action("DetailRestaurant","Home", new { id = item.maquanan })" class="text-decoration-none">
-                            <div class="product-item">
+                            <div class="product-item hover-lift">
                                 <div class="product-img-wrap">
                                     <img src="@TinhToan.HinhAnhUrl(item.hinhanh)" alt="@item.tenmon" loading="lazy" onerror="this.src='/Source/Home/img/pizza.jpg'" />
                                     <div class="fs-ai-badge">

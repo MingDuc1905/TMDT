@@ -598,6 +598,25 @@
     // === Validate & Submit ===
     function validatePhone(sdt) { return /^0[1-9][0-9]{8,9}$/.test(sdt); }
 
+    function startPolling(orderId) {
+        var interval = setInterval(function () {
+            $.ajax({
+                url: '/Payment/CheckOrderStatus',
+                type: 'GET',
+                data: { orderId: orderId },
+                success: function (r) {
+                    if (r.success && r.status === 'Paid') {
+                        clearInterval(interval);
+                        if (r.redirectUrl) window.location.href = r.redirectUrl;
+                    }
+                },
+                error: function () {
+                    console.warn('check order status failed');
+                }
+            });
+        }, 5000); // 5 seconds polling
+    }
+
     function submitPayment(testResult) {
         var pttt = $('input[name="pttt"]:checked').val();
         if (!pttt) { showToast('error', 'Vui lòng chọn phương thức thanh toán'); return; }
@@ -609,7 +628,6 @@
             var mattdh = $('#selected-mattdh').val();
             if (!mattdh) { showToast('error', 'Vui lòng chọn một địa chỉ đã lưu'); return; }
             formData.mattdh = parseInt(mattdh);
-            // Lấy tên/SĐT từ địa chỉ đã chọn để gửi kèm (dù server không dùng khi mattdh != null)
             var selectedCard = $('.available-address-card.selected');
             formData.hoten = selectedCard.find('strong').first().text().trim() || 'Nguoi Nhan';
             formData.SDT = selectedCard.find('.text-muted').first().text().trim() || '0901234567';
@@ -631,7 +649,6 @@
             formData.quan = $('select[name="quan"]').val();
             formData.diachicuthe = diachi;
             formData.diachiadd = $('input[name="diachiadd"]').val();
-            // mattdh không set → sẽ là undefined → jQuery không gửi → server nhận null ✓
         }
 
         formData.note = $('textarea[name="note"]').val() || '';
@@ -640,8 +657,6 @@
         if (couponVal) formData.makhuyenmai = parseInt(couponVal);
         formData.testResult = testResult;
 
-        // ═══ 3b: Idempotency Lock — disable nút + spinner ═══
-        // Chặn hoàn toàn việc gửi request trùng lặp do người dùng click nhiều lần
         if (window._paymentInProgress) return;
         window._paymentInProgress = true;
 
@@ -655,9 +670,14 @@
             headers: { 'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() },
             success: function(r) {
                 if (r.success) {
-                    // ═══ FIX: Clear localStorage cart sau khi đặt hàng thành công ═══
                     if (typeof clearCartLocal === 'function') clearCartLocal();
-                    showResultPopup(true, 'Đặt hàng thành công!', r.message || '', r.orderId, r.qrCodeUrl, r.bankInfo, r.momoPayUrl, r.paypalApprovalUrl);
+                    
+                    if (r.paymentMethod === 'bank' && r.orderId) {
+                        startPolling(r.orderId);
+                        showResultPopup(true, 'Đặt hàng (Chờ chuyển khoản)', r.message || '', r.orderId, r.qrCodeUrl, r.bankInfo, r.momoPayUrl, r.paypalApprovalUrl);
+                    } else {
+                        showResultPopup(true, 'Đặt hàng thành công!', r.message || '', r.orderId, r.qrCodeUrl, r.bankInfo, r.momoPayUrl, r.paypalApprovalUrl);
+                    }
                 } else {
                     showResultPopup(false, 'Thanh toán thất bại', r.message || 'Đã xảy ra lỗi. Vui lòng thử lại.');
                 }

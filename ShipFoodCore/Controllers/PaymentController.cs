@@ -457,6 +457,7 @@ public class PaymentController : BaseController
                     orderId = firstOrderId,
                     orderIds = createdOrders,
                     trangthai = "Chờ thanh toán",
+                    paymentMethod = "bank",
                     qrCodeUrl = qrUrl,
                     bankInfo = new
                     {
@@ -964,5 +965,25 @@ public class PaymentController : BaseController
             TempData["OrderError"] = $"Lỗi: {ex.Message}";
             return RedirectToAction("OrderTracking", "Cart", new { id = orderId });
         }
+    }
+
+    [HttpGet]
+    public JsonResult CheckOrderStatus(int orderId)
+    {
+        var roleCheck = CheckRoleJson("Khách hàng");
+        if (roleCheck != null) return roleCheck;
+
+        var order = db.tbDonHang.Find(orderId);
+        if (order == null)
+            return Json(new { success = false, message = "Đơn hàng không tồn tại" });
+
+        var paid = order.trangthai.Equals("Đã thanh toán", StringComparison.OrdinalIgnoreCase) ||
+                   order.trangthai.Equals("Đã đặt", StringComparison.OrdinalIgnoreCase);
+
+        return Json(new {
+            success = true,
+            status  = paid ? "Paid" : order.trangthai,
+            redirectUrl = paid ? Url.Action("ChiTietDonHang", "Cart", new { id = order.madh }) : null
+        });
     }
 }

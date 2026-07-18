@@ -206,9 +206,12 @@
             <div class="profile-role">
                 <span class="status-dot @(shipper?.trangthai == "Đang hoạt động" ? "online" : "offline")"></span>
                 @(shipper?.trangthai ?? "Không hoạt động")
-                <a href="~/Shipper/updateStatus" class="btn btn-sm" style="background:rgba(255,255,255,.15);color:white;border-radius:8px;padding:4px 12px;font-size:11px;margin-left:auto;">
-                    @(shipper?.trangthai == "Đang hoạt động" ? "Tắt" : "Bật")
-                </a>
+                <form action="@Url.Action("updateStatus", "Shipper")" method="post" style="margin:0; padding:0; display:inline; margin-left:auto;">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-sm" style="background:rgba(255,255,255,.15);color:white;border-radius:8px;padding:4px 12px;font-size:11px;border:none;">
+                        @(shipper?.trangthai == "Đang hoạt động" ? "Tắt" : "Bật")
+                    </button>
+                </form>
             </div>
         </div>
 

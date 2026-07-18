@@ -1,4 +1,4 @@
-﻿@model List<ShipFood.Models.tbDanhMuc>
+@model List<ShipFood.Models.tbDanhMuc>
 
 <div class="app-card-body">
     <div class="table-responsive">
@@ -22,7 +22,11 @@
                         <td class="cell">@item.mota</td>
                         <td style="text-align: center;">
                             <a style="color: red" href="@Url.Action("EditCategory","Admin", new {id=item.madanhmuc })">Sửa</a> |
-                            <a style="color: red" href="@Url.Action("Category","Admin", new {id=item.madanhmuc })" onclick="return confirm('Bạn có chắc muốn xóa danh mục này? Nếu còn món ăn thuộc danh mục, hệ thống sẽ từ chối xóa.');">Xóa</a>
+                            <form action="@Url.Action("DeleteCategory", "Admin")" method="post" style="display:inline;">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@item.madanhmuc" />
+                                <button type="submit" style="color:red; background:none; border:none; padding:0; font: inherit; cursor: pointer;" onclick="return confirm('Bạn có chắc muốn xóa danh mục này? Nếu còn món ăn thuộc danh mục, hệ thống sẽ từ chối xóa.');">Xóa</button>
+                            </form>
                         </td>
                     </tr>
 

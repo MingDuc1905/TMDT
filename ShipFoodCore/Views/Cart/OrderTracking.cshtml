@@ -658,30 +658,6 @@ $(document).ready(function() {
                 btn.prop('disabled', false).html('<i class="fa fa-check-circle me-1"></i> Tôi đã chuyển khoản thành công');
             });
     };
-        var btn = $('#btnVerifyPayment');
-        var resultDiv = $('#verifyResult');
-        var indicator = $('#paymentWaitingIndicator');
-
-        btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Đang kiểm tra...');
-        resultDiv.html('');
-
-        $.get('/Payment/VerifyBankTransaction', { madh: orderId })
-            .done(function(res) {
-                if (res.success) {
-                    resultDiv.html('<div class="alert alert-success" style="padding:10px;border-radius:8px;font-size:13px;">✅ ' + res.message + ' <a href="/Cart/OrderTracking/' + orderId + '" class="alert-link">Tải lại trang</a></div>');
-                    // Ẩn QR card sau khi xác nhận thành công
-                    $('.bank-qr-card').fadeOut();
-                    btn.hide();
-                    indicator.html('<span style="color:#28a745;">✅ Thanh toán đã được xác nhận!</span>');
-                } else {
-                    resultDiv.html('<div class="alert alert-info" style="padding:10px;border-radius:8px;font-size:13px;">🕐 ' + res.message + '</div>');
-                    btn.prop('disabled', false).html('<i class="fa fa-check-circle me-1"></i> Tôi đã chuyển khoản thành công');
-                }
-            })
-            .fail(function() {
-                resultDiv.html('<div class="alert alert-danger" style="padding:10px;border-radius:8px;font-size:13px;">❌ Lỗi kết nối. Vui lòng thử lại sau.</div>');
-                btn.prop('disabled', false).html('<i class="fa fa-check-circle me-1"></i> Tôi đã chuyển khoản thành công');
-            });
     };
 
 });

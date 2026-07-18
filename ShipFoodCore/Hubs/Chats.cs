@@ -144,6 +144,15 @@ public class Chats : Hub
     }
 
     /// <summary>
+    /// Cập nhật vị trí trực tiếp của Shipper (Live Tracking)
+    /// </summary>
+    public async Task UpdateLocation(double lat, double lng, int orderId)
+    {
+        // Gửi tọa độ GPS cho group order để khách hàng nhận được trên bản đồ
+        await Clients.Group($"order_{orderId}").SendAsync("shipperLocationUpdate", orderId, lat, lng);
+    }
+
+    /// <summary>
     /// Gửi tín hiệu "có tin nhắn mới" đến một user cụ thể
     /// </summary>
     public async Task NotifyNewMessage(int userId, int count)

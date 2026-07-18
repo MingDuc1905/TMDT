@@ -164,7 +164,7 @@ public class ShipperController : BaseController
         var shipper = GetCurrentUser();
         if (shipper == null || !checkShipper()) return RedirectToAction("Login", "Home");
 
-        var existingUser = db.tbUser.Find(user.userid);
+        var existingUser = db.tbUser.Find(shipper.userid); // Fix IDOR: use session ID
         if (existingUser != null)
         {
             existingUser.sdt = user.sdt;
@@ -431,6 +431,8 @@ public class ShipperController : BaseController
         return Json(new { success = false, message = "Order status update failed" });
     }
 
+    [HttpPost]
+    [ValidateAntiForgeryToken]
     public ActionResult updateStatus()
     {
         var sh = GetCurrentUser();

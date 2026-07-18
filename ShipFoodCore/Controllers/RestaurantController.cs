@@ -374,6 +374,27 @@ public class RestaurantController : BaseController
                     logger.LogError(refundEx, "MoMo refund failed for order #{OrderId}", dh.madh);
                 }
             }
+            
+            // ─── Manual Refund Notification cho Bank Transfer (4) và PayPal (2) ───
+            bool isManualRefundPayment = dh.hinhthucthanhtoan == 2 || dh.hinhthucthanhtoan == 4;
+            if (isManualRefundPayment && dh.tongtien > 0 && (oldStatus == "Đã đặt" || oldStatus == "Đã xác nhận" || oldStatus == "Đã thanh toán"))
+            {
+                try
+                {
+                    // Gửi tin nhắn cho admin yêu cầu hoàn tiền thủ công
+                    db.tbTinNhans.Add(new tbTinNhan
+                    {
+                        madh = dh.madh,
+                        noidung = $"⚠️ Yêu cầu HOÀN TIỀN THỦ CÔNG cho đơn hàng #{dh.madh}. Khách hàng: {dh.tbThongTinDatHang?.userid}. Số tiền: {dh.tongtien:N0}đ. Hình thức: {(dh.hinhthucthanhtoan == 4 ? "Chuyển khoản (VietQR)" : "PayPal")}.",
+                        makh = dh.tbThongTinDatHang?.userid, // Admin có thể xem được tin nhắn theo madh
+                        mashipper = null
+                    });
+                    
+                    var logger = HttpContext.RequestServices.GetRequiredService<ILogger<RestaurantController>>();
+                    logger.LogWarning("Manual refund required for order #{OrderId}. Payment method: {PaymentMethod}", dh.madh, dh.hinhthucthanhtoan);
+                }
+                catch { }
+            }
 
             db.SaveChanges();
 
@@ -641,20 +662,19 @@ public class RestaurantController : BaseController
             db.tbBienTheMonAn.Add(new tbBienTheMonAn { mamon = mamon, size = size, giatien = gia });
     }
 
-    public ActionResult XoaMonAn(int? id)
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public ActionResult XoaMonAn(int id)
     {
         if (!checkLogin()) return RedirectToAction("Login", "Home");
-        if (id != null)
+        var monAn = db.tbMonAn.Find(id);
+        if (monAn != null)
         {
-            var monAn = db.tbMonAn.Find(id);
-            if (monAn != null)
-            {
-                // ⚠️ Soft delete: chỉ đánh dấu isDeleted = true, không xóa cứng
-                // Giúp bảo toàn lịch sử hóa đơn trong tbChiTietDonHang
-                monAn.isDeleted = true;
-            }
-            db.SaveChanges();
+            // ⚠️ Soft delete: chỉ đánh dấu isDeleted = true, không xóa cứng
+            // Giúp bảo toàn lịch sử hóa đơn trong tbChiTietDonHang
+            monAn.isDeleted = true;
         }
+        db.SaveChanges();
         return RedirectToAction("ProductList");
     }
 
@@ -721,6 +741,8 @@ public class RestaurantController : BaseController
         return user != null && user.loaitaikhoan.Equals("Quán ăn");
     }
 
+    [HttpPost]
+    [ValidateAntiForgeryToken]
     public ActionResult updateStatus()
     {
         var quanAn = db.tbQuanAn.Find(getQuanAn().userid);

@@ -59,16 +59,23 @@ public class Cart
         {
             if (i.mabienthe == item.mabienthe)
             {
-                i.soLuong += soLuong;
+                // Giới hạn max 20 phần mỗi món do không có hệ thống quản lý số lượng tồn kho
+                int allowedAdd = Math.Min(soLuong, 20 - i.soLuong);
+                if (allowedAdd <= 0) return; // Đã đạt giới hạn 20 phần
+
+                i.soLuong += allowedAdd;
                 // ponytail: Fix Item 14 — handle null price
-                tongTien = (tongTien ?? 0) + (i.giatien ?? 0) * soLuong;
+                tongTien = (tongTien ?? 0) + (i.giatien ?? 0) * allowedAdd;
                 return;
             }
         }
-        item.soLuong = soLuong;
+        
+        // Capping the initial add as well
+        int initialAdd = Math.Min(soLuong, 20);
+        item.soLuong = initialAdd;
         items.Add(item);
         // ponytail: Fix Item 14 — handle null price (decimal? + null = null)
-        tongTien = (tongTien ?? 0) + (item.giatien ?? 0) * soLuong;
+        tongTien = (tongTien ?? 0) + (item.giatien ?? 0) * initialAdd;
     }
 
     public void xoaMon(int mabienthe)

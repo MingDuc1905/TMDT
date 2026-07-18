@@ -1,4 +1,4 @@
-﻿@{
+@{
     ViewBag.Title = "ProductList";
     Layout = "~/Views/Shared/_LayoutPageRestaurant.cshtml";
     List<ShipFood.Models.DataAnalytic> datas = ViewBag.datas;
@@ -62,7 +62,11 @@
                                     </div>
                                 </div>
                                 <div style="display:flex">
-                                    <a style="margin:auto" href="~/Restaurant/XoaMonAn/@i.maMonAn"><button style="width:140px" type="submit" class="btn btn-warning">Xoá</button></a>
+                                    <form action="@Url.Action("XoaMonAn", "Restaurant")" method="post" style="margin:auto; display:inline;">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@i.maMonAn" />
+                                        <button style="width:140px" type="submit" class="btn btn-warning" onclick="return confirm('Bạn có chắc chắn muốn xóa món này?');">Xoá</button>
+                                    </form>
                                     <a style="margin:auto" href="~/Restaurant/ProductDetail/@i.maMonAn"><button style="width:140px" type="submit" class="btn btn-primary">Chỉnh sửa</button></a>
                                 </div>
                             </div>

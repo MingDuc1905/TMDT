@@ -27,14 +27,15 @@ public class AdminController : BaseController
         return View();
     }
 
-    public ActionResult Order()
+    public ActionResult Order(DateTime? tuNgay, DateTime? denNgay, int page = 1)
     {
         if (!checkLogin())
             return RedirectToAction("Login", "Home");
         // ponytail: pagination + date filter cho Admin Order list
-        var tuNgay = DateTime.Now.AddMonths(-1);
-        var denNgay = DateTime.Now;
-        int page = 1;
+        var filterTuNgay = tuNgay ?? DateTime.Now.AddMonths(-1);
+        var filterDenNgay = denNgay ?? DateTime.Now;
+        // Fix to include the entire day for denNgay
+        var filterDenNgayEnd = filterDenNgay.Date.AddDays(1).AddTicks(-1);
         int pageSize = 50;
         
         var query = db.tbDonHang
@@ -42,10 +43,11 @@ public class AdminController : BaseController
             .Include(d => d.tbShipper)
             .Include(d => d.tbQuanAn)
             .Include(d => d.tbThongTinDatHang)
-            .Where(d => d.ngaydathang >= tuNgay);
+            .Where(d => d.ngaydathang >= filterTuNgay && d.ngaydathang <= filterDenNgayEnd);
         
         var totalItems = query.Count();
         var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+        if (page < 1) page = 1;
         
         var litsdh = query
             .OrderByDescending(d => d.madh)
@@ -56,8 +58,8 @@ public class AdminController : BaseController
         ViewBag.TotalItems = totalItems;
         ViewBag.TotalPages = totalPages;
         ViewBag.CurrentPage = page;
-        ViewBag.TuNgay = tuNgay;
-        ViewBag.DenNgay = denNgay;
+        ViewBag.TuNgay = filterTuNgay;
+        ViewBag.DenNgay = filterDenNgay;
         return View(litsdh);
     }
 
@@ -134,29 +136,37 @@ public class AdminController : BaseController
         return RedirectToAction("Order");
     }
 
-    public ActionResult Category(int? id)
+    public ActionResult Category()
     {
         if (!checkLogin())
             return RedirectToAction("Login", "Home");
 
-        if (id.HasValue)
-        {
-            var bd = db.tbDanhMuc.Include(d => d.tbMonAns).FirstOrDefault(d => d.madanhmuc == id);
-            if (bd != null)
-            {
-                // Kiểm tra ràng buộc khóa ngoại trước khi xóa
-                if (bd.tbMonAns.Any())
-                {
-                    TempData["AdminError"] = "Không thể xóa danh mục này vì vẫn còn món ăn thuộc danh mục. Vui lòng xóa hoặc chuyển các món ăn sang danh mục khác trước.";
-                    return RedirectToAction("Category");
-                }
-                db.tbDanhMuc.Remove(bd);
-                db.SaveChanges();
-                TempData["AdminSuccess"] = "Xóa danh mục thành công";
-            }
-        }
         var listdm = db.tbDanhMuc.ToList();
         return View(listdm);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public ActionResult DeleteCategory(int id)
+    {
+        if (!checkLogin())
+            return RedirectToAction("Login", "Home");
+
+        var bd = db.tbDanhMuc.Include(d => d.tbMonAns).FirstOrDefault(d => d.madanhmuc == id);
+        if (bd != null)
+        {
+            // Kiểm tra ràng buộc khóa ngoại trước khi xóa
+            if (bd.tbMonAns.Any())
+            {
+                TempData["AdminError"] = "Không thể xóa danh mục này vì vẫn còn món ăn thuộc danh mục. Vui lòng xóa hoặc chuyển các món ăn sang danh mục khác trước.";
+                return RedirectToAction("Category");
+            }
+            db.tbDanhMuc.Remove(bd);
+            db.SaveChanges();
+            TempData["AdminSuccess"] = "Xóa danh mục thành công";
+        }
+        
+        return RedirectToAction("Category");
     }
 
     public ActionResult CreateCategory()

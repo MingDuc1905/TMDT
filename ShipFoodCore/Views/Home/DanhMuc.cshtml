@@ -18,33 +18,7 @@
 </div>
 <!-- Page Header End -->
 <!-- Product Start -->
-<style>
-    /* Page header mobile override */
-    @@media (max-width: 768px) {
-        .page-header {
-            padding-top: 6rem !important;
-            padding-bottom: 2.5rem !important;
-        }
-        .page-header h1 {
-            font-size: 1.5rem !important;
-        }
-    }
-    @@media (max-width: 576px) {
-        .product-item .text-center.p-4 {
-            padding: 8px 6px !important;
-        }
-        .product-item .text-center.p-4 .h5 {
-            font-size: 13px !important;
-        }
-        .page-header {
-            padding-top: 5rem !important;
-            padding-bottom: 2rem !important;
-        }
-        .page-header h1 {
-            font-size: 1.3rem !important;
-        }
-    }
-</style>
+<!-- Inline styles removed. Using fastship-design-tokens.css and fastship-animations.css for responsiveness and glassmorphism -->
 <div class="container-xxl py-5">
     <div class="container">
         <div class="row g-0 gx-5 align-items-end">
@@ -62,13 +36,16 @@
             <div class="row g-4">
                 @foreach (var item in Model)
                 {
-                    <div class="col-xl-3 col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.1s">                            <div class="product-item hover-lift">
-                            <div class="position-relative bg-light overflow-hidden category-card-img">
-                                <a href="@Url.Action("SanPham", "Home", new {id = item.madanhmuc })"><img class="img-fluid w-100" style="object-fit:cover;" src="@TinhToan.HinhAnhUrl(item.hinhanh)" alt="" onerror="this.src='/Source/Home/img/pizza.jpg'"></a>
-                                <div class="bg-secondary rounded text-white position-absolute start-0 top-0 m-4 py-1 px-3">New</div>
+                    <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-6 animate-fade-in-up" data-wow-delay="0.1s">
+                        <div class="fs-glass-card hover-lift h-100 d-flex flex-column" style="overflow:hidden;">
+                            <div class="position-relative bg-light" style="flex:1;">
+                                <a href="@Url.Action("SanPham", "Home", new {id = item.madanhmuc })">
+                                    <img class="img-fluid w-100" style="object-fit:cover; aspect-ratio: 1/1;" src="@TinhToan.HinhAnhUrl(item.hinhanh)" alt="" onerror="this.src='/Source/Home/img/pizza.jpg'">
+                                </a>
+                                <div class="bg-secondary rounded text-white position-absolute start-0 top-0 m-3 py-1 px-2" style="font-size:0.75rem;">New</div>
                             </div>
-                            <div class="text-center p-4">
-                                <a class="d-block h5 mb-2" href="@Url.Action("SanPham", "Home", new {id = item.madanhmuc })">@item.tendanhmuc</a>
+                            <div class="text-center p-3">
+                                <a class="d-block h6 mb-0 text-decoration-none text-dark fw-bold" href="@Url.Action("SanPham", "Home", new {id = item.madanhmuc })" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">@item.tendanhmuc</a>
                             </div>
                         </div>
                     </div>

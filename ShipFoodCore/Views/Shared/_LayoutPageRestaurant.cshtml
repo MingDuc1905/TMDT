@@ -265,11 +265,17 @@
                                     <label for="toggle" class="toggle-label">
                                         @if (QuanAn != null && QuanAn.trangthai.Equals("Đang mở cửa"))
                                         {
-                                            <a href="~/Restaurant/updateStatus"><span style="color:white" class="toggle-text">Đóng</span></a>
+                                            <form action="@Url.Action("updateStatus", "Restaurant")" method="post" style="margin:0; padding:0; display:inline;">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" style="color:white; background:none; border:none; padding:0; cursor:pointer;" class="toggle-text">Đóng</button>
+                                            </form>
                                         }
                                         @if (QuanAn != null && QuanAn.trangthai.Equals("Đóng cửa"))
                                         {
-                                            <a href="~/Restaurant/updateStatus"><span style=" border-radius: 25px; background: green;" class="toggle-text">Mở</span></a>
+                                            <form action="@Url.Action("updateStatus", "Restaurant")" method="post" style="margin:0; padding:0; display:inline;">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" style="border-radius: 25px; background: green; color:white; border:none; cursor:pointer;" class="toggle-text">Mở</button>
+                                            </form>
                                         }
                                         
 

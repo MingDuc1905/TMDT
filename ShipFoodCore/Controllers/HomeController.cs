@@ -1143,6 +1143,9 @@ public class HomeController : BaseController
     public async Task<ActionResult> Logout()
     {
         await ClearSessionAndCookieAsync();
+        Response.Headers["Cache-Control"] = "no-cache, no-store, must-revalidate";
+        Response.Headers["Pragma"] = "no-cache";
+        Response.Headers["Expires"] = "0";
         return RedirectToAction("Index");
     }
 

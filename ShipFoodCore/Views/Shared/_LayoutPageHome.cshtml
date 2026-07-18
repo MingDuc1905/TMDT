@@ -515,9 +515,14 @@
 
     <!-- ═══ PWA: Service Worker + Dark Mode Toggle ═══ -->
     <script>
-    // ponytail: register service worker (fail silent n?u ko h? tr?)
+    // ponytail: Tự động xoá Service Worker cũ rác và ép tải mới bằng timestamp để không bao giờ bị kẹt Cache 24h
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/sw.js').catch(function(err) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+            for(let registration of registrations) {
+                registration.unregister();
+            }
+        });
+        navigator.serviceWorker.register('/sw.js?v=' + new Date().getTime()).catch(function(err) {
             console.warn('SW registration failed:', err);
         });
     }

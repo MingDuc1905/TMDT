@@ -261,6 +261,7 @@ public class AdminChatController : BaseController
     /// - Shipper: xem h?i tho?i v?i khách hàng
     /// </summary>
     [HttpGet]
+    [HttpGet]
     public JsonResult GetConversations()
     {
         var currentUser = GetCurrentUser();
@@ -277,7 +278,6 @@ public class AdminChatController : BaseController
 
             if (isShipper)
             {
-                // Shipper ch? th?y tin nh?n t? khách hàng mà shipper ?ã t??ng tác
                 var shipperCustomerIds = db.tbTinNhans
                     .Where(t => t.mashipper == currentUser.userid && t.makh != null)
                     .Select(t => t.makh!.Value)
@@ -287,7 +287,6 @@ public class AdminChatController : BaseController
             }
             else if (!isAdmin)
             {
-                // Các role khác (khách hàng) không ???c xem danh sách h?i tho?i
                 return Json(new { success = false, data = new object[0] });
             }
 
@@ -300,7 +299,7 @@ public class AdminChatController : BaseController
                     lastMessage = g.OrderByDescending(t => t.matn).First().noidung ?? "",
                     lastTime = g.Max(t => t.matn),
                     messageCount = g.Count(),
-                    hasUnread = g.Any(t => t.mashipper == null && t.makh != null)
+                    hasUnread = g.Any(t => t.mashipper == null && t.makh != null && !(t.noidung ?? "").StartsWith("[ADMIN]"))
                 })
                 .OrderByDescending(x => x.lastTime)
                 .Take(50)
@@ -314,14 +313,14 @@ public class AdminChatController : BaseController
             {
                 var user = users.FirstOrDefault(u => u.userid == c.userId);
                 var kh = khachHangs.FirstOrDefault(k => k.userid == c.userId);
+                var displayMessage = c.lastMessage.StartsWith("[ADMIN]") ? c.lastMessage.Substring(7) : c.lastMessage;
                 return new
                 {
                     userId = c.userId,
                     tenkh = kh?.tenkh ?? user?.username ?? "Khách",
                     username = user?.username ?? "",
-                    // ponytail: security fix — không leak SDT ra admin chat (XSS risk)
                     sdt = "***",
-                    lastMessage = c.lastMessage.Length > 80 ? c.lastMessage.Substring(0, 80) + "..." : c.lastMessage,
+                    lastMessage = displayMessage.Length > 80 ? displayMessage.Substring(0, 80) + "..." : displayMessage,
                     messageCount = c.messageCount,
                     hasUnread = c.hasUnread
                 };
@@ -337,11 +336,6 @@ public class AdminChatController : BaseController
         }
     }
 
-    /// <summary>
-    /// API: L?y tin nh?n c?a m?t khách hàng (cho admin panel & shipper chat)
-    /// Cho phép c? Admin và Shipper truy c?p
-    /// FIX: Thêm sender role chính xác d?a trên d? li?u DB thay vì suy lu?n t? null
-    /// </summary>
     [HttpGet]
     public JsonResult GetCustomerMessages(int userId)
     {
@@ -361,11 +355,12 @@ public class AdminChatController : BaseController
             var messages = db.tbTinNhans
                 .Where(t => t.makh == userId)
                 .OrderBy(t => t.matn)
+                .ToList() // Load to memory before formatting strings
                 .Select(t => new
                 {
                     id = t.matn,
-                    content = t.noidung ?? "",
-                    sender = t.mashipper != null ? "Shipper" : (t.makh != null ? "Khách hàng" : "Admin"),
+                    content = (t.noidung ?? "").StartsWith("[ADMIN]") ? t.noidung!.Substring(7) : (t.noidung ?? ""),
+                    sender = (t.noidung ?? "").StartsWith("[ADMIN]") ? "Admin" : (t.mashipper != null ? "Shipper" : "Khách hàng"),
                     orderId = t.madh
                 })
                 .ToList();
@@ -380,10 +375,6 @@ public class AdminChatController : BaseController
         }
     }
 
-    /// <summary>
-    /// API: Admin g?i tin nh?n cho khách hàng
-    /// FIX B1: Không hardcode orderId=0 — dùng orderId gần nhất từ customer để broadcast đúng group
-    /// </summary>
     [HttpPost]
     public async Task<JsonResult> SendMessageToCustomer(int userId, string message)
     {
@@ -395,7 +386,6 @@ public class AdminChatController : BaseController
 
         try
         {
-            // Tìm orderId gần nhất của customer để broadcast vào group đúng
             var latestOrder = db.tbTinNhans
                 .Where(t => t.makh == userId && t.madh != null && t.madh > 0)
                 .OrderByDescending(t => t.matn)
@@ -404,15 +394,14 @@ public class AdminChatController : BaseController
 
             var tinNhan = new tbTinNhan
             {
-                madh = latestOrder, // Lưu với orderId thực tế thay vì null
-                noidung = message,
+                madh = latestOrder,
+                noidung = "[ADMIN]" + message, // Gắn cờ admin để phân biệt với khách hàng
                 makh = userId,
                 mashipper = null
             };
             db.tbTinNhans.Add(tinNhan);
             await db.SaveChangesAsync();
 
-            // Broadcast đến customer group + order group (nếu có) — ko hardcode 0
             await _hubContext.Clients.Group($"customer_{userId}").SendAsync("adminMessage", message, latestOrder ?? 0, "Admin");
             if (latestOrder.HasValue && latestOrder.Value > 0)
                 await _hubContext.Clients.Group($"order_{latestOrder.Value}").SendAsync("adminMessage", message, latestOrder.Value, "Admin");
@@ -423,14 +412,10 @@ public class AdminChatController : BaseController
         {
             var logger = HttpContext.RequestServices.GetRequiredService<ILogger<AdminChatController>>();
             logger.LogError(ex, "SendMessageToCustomer failed for user {UserId}", userId);
-            // ponytail: security fix — không leak exception message ra client
             return Json(new { success = false, error = SafeErrorMessage("SendMessageToCustomer") });
         }
     }
 
-    /// <summary>
-    /// API: Khách hàng l?y l?ch s? tin nh?n c?a chính h? (cho widget chat)
-    /// </summary>
     [HttpGet]
     public JsonResult GetMyMessages(int orderId = 0)
     {
@@ -445,11 +430,12 @@ public class AdminChatController : BaseController
 
         var messages = query
             .OrderBy(t => t.matn)
+            .ToList()
             .Select(t => new
             {
                 id = t.matn,
-                content = t.noidung ?? "",
-                sender = t.mashipper != null ? "Shipper" : (t.makh != null ? "Khách hàng" : "Admin"),
+                content = (t.noidung ?? "").StartsWith("[ADMIN]") ? t.noidung!.Substring(7) : (t.noidung ?? ""),
+                sender = (t.noidung ?? "").StartsWith("[ADMIN]") ? "Admin" : (t.mashipper != null ? "Shipper" : "Khách hàng"),
                 orderId = t.madh
             })
             .ToList();

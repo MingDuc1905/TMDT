@@ -336,11 +336,20 @@
         });
     }
 
-    function addMsg(containerId, text, type) {
+    function addMsg(containerId, text, senderType, quickReplies) {
         var c = document.getElementById(containerId);
-        var d = document.createElement('div'); d.className = 'msg ' + type;
+        if (!c) return;
+        var d = document.createElement('div'); d.className = 'msg ' + (senderType === 'shipper' ? 'admin' : senderType);
         var time = new Date().toLocaleTimeString('vi-VN', {hour:'2-digit',minute:'2-digit'});
-        d.innerHTML = escHtml(text).replace(/\n/g, '<br/>') + '<span class="msg-time">' + time + '</span>';
+        
+        if (senderType === 'admin') {
+            d.innerHTML = '<span class="label">FastShip</span>' + escHtml(text).replace(/\n/g, '<br/>');
+        } else if (senderType === 'shipper') {
+            d.innerHTML = '<span class="label" style="background:#f97316;color:#fff;">Shipper</span>' + escHtml(text).replace(/\n/g, '<br/>');
+        } else {
+            d.innerHTML = escHtml(text).replace(/\n/g, '<br/>');
+        }
+        d.innerHTML += '<span class="msg-time">' + time + '</span>';
         c.appendChild(d); c.scrollTop = c.scrollHeight;
     }
 
@@ -515,12 +524,13 @@
                         : '💬 Gửi yêu cầu hỗ trợ chung. Admin sẽ trả lời sớm!', 'admin');
                 } else {
                     res.data.forEach(function(msg) {
-                        var roleClass = msg.sender === "Khách hàng" || msg.sender === "Shipper" ? "customer" : "admin";
-                        var senderLabel = msg.sender === "Admin" ? "Admin" : "Bạn";
-                        var c = document.getElementById('adminMsgs');
-                        var d = document.createElement('div'); d.className = 'msg ' + roleClass;
-                        d.innerHTML = '<span class="label">' + senderLabel + '</span>' + escHtml(msg.content).replace(/\n/g, '<br/>');
-                        c.appendChild(d);
+                        if (msg.sender === "Khách hàng") {
+                            addMsg('adminMsgs', msg.content, 'user');
+                        } else if (msg.sender === "Shipper") {
+                            addMsg('adminMsgs', msg.content, 'shipper');
+                        } else {
+                            addMsg('adminMsgs', msg.content, 'admin');
+                        }
                     });
                     container.scrollTop = container.scrollHeight;
                 }

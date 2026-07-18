@@ -94,6 +94,16 @@ public class ChatbotController : BaseController
                     quickReplies = GetContextualQuickReplies(message)
                 });
             }
+            else
+            {
+                var errorReply = "❌ Xảy ra lỗi nội bộ khi kết nối đến AI. Vui lòng kiểm tra lại API key hoặc kết nối mạng.";
+                SaveToHistory(message, errorReply);
+                return Json(new
+                {
+                    reply = errorReply,
+                    quickReplies = new[] { "Thử lại sau" }
+                });
+            }
         }
 
         // 3. Nếu Gemini không khả dụng (chưa cấu hình API key), thông báo nhẹ nhàng

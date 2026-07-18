@@ -73,9 +73,6 @@
         .fs-user-dropdown-menu {
             border-radius: 12px; border: 1px solid #f0f0f0; padding: 6px 0;
             box-shadow: 0 8px 32px rgba(0,0,0,.12); z-index: 1070 !important;
-            max-height: none !important; 
-            overflow: visible !important;
-            transform: none !important;
         }
         .fs-user-dropdown-menu .dropdown-item { border-radius: 8px; margin: 0 6px; padding: 8px 12px; font-size: 14px; transition: background .15s; }
         .fs-user-dropdown-menu .dropdown-item:hover { background: rgba(60,184,21,.08); }
@@ -212,7 +209,7 @@
                         <!-- Avatar dropdown (mobile) -->
                         <div class="dropdown">
                             <button class="btn p-0 border-0 dropdown-toggle" type="button"
-                                    data-bs-toggle="dropdown" data-bs-display="static" data-bs-auto-close="true" aria-expanded="false"
+                                    data-bs-toggle="dropdown" data-bs-auto-close="true" aria-expanded="false"
                                     style="width:44px;height:44px;border-radius:50%;background:var(--fs-green);color:#fff;font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;box-shadow:none;">
                                 @user.username.Substring(0,1).ToUpper()
                             </button>
@@ -317,7 +314,7 @@
                             <!-- ═══ DESKTOP: user dropdown ═══ -->
                             <div class="d-none d-lg-flex align-items-center ms-lg-2 dropdown">
                                 <button class="btn dropdown-toggle d-flex align-items-center gap-1 px-2 py-1 fs-user-dropdown-toggle" type="button"
-                                        data-bs-toggle="dropdown" data-bs-display="static" data-bs-auto-close="outside" aria-expanded="false">
+                                        data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
                                     <span style="width:30px;height:30px;border-radius:50%;background:var(--fs-green);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;">@user.username.Substring(0,1).ToUpper()</span>
                                     <span class="d-none d-lg-inline" style="font-size:13px;font-weight:500;line-height:1;color:#1a1a2e;">@user.username</span>
                                 </button>

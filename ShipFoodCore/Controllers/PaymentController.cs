@@ -177,6 +177,14 @@ public class PaymentController : BaseController
                 {
                     return Json(new { success = false, message = $"Món '{item.tenmon}' không còn tồn tại hoặc đã thay đổi giá. Vui lòng tải lại giỏ hàng." });
                 }
+
+                // ═══ KIỂM TRA TỒN KHO TRƯỚC KHI TẠO ĐƠN ═══
+                var monAn = db.tbMonAn.Find(item.mamon);
+                if (monAn != null && monAn.conhang == false)
+                {
+                    return Json(new { success = false, message = $"Món '{item.tenmon}' đã hết hàng. Vui lòng xóa khỏi giỏ hàng trước khi thanh toán." });
+                }
+
                 item.giatien = bt.giatien;
                 tongTienMon += (bt.giatien ?? 0) * item.soLuong;
             }
@@ -230,6 +238,13 @@ public class PaymentController : BaseController
                     {
                         return Json(new { success = false, message = $"Món '{item.tenmon}' không còn tồn tại hoặc đã thay đổi giá. Vui lòng tải lại giỏ hàng." });
                     }
+
+                    var monAn = db.tbMonAn.Find(item.mamon);
+                    if (monAn != null && monAn.conhang == false)
+                    {
+                        return Json(new { success = false, message = $"Món '{item.tenmon}' đã hết hàng. Vui lòng xóa khỏi giỏ hàng trước khi thanh toán." });
+                    }
+
                     item.giatien = bt.giatien;
                     resTongTienMon += (bt.giatien ?? 0) * item.soLuong;
                 }

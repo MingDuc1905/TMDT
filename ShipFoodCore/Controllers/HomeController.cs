@@ -1325,9 +1325,20 @@ public class HomeController : BaseController
                 TempData["WalletError"] = $"Số dư không đủ. Hiện tại: {dbUser.vitien:N0}đ";
                 return RedirectToAction("Wallet");
             }
-            dbUser.vitien -= soTien;
-            db.SaveChanges();
-            TempData["WalletSuccess"] = $"Rút {soTien:N0}đ thành công. Số dư mới: {dbUser.vitien:N0}đ";
+
+            // ═══ CHỐNG RACE CONDITION BẰNG RAW SQL ═══
+            var rowsAffected = db.Database.ExecuteSqlInterpolated($"UPDATE tbUser SET vitien = vitien - {soTien} WHERE userid = {dbUser.userid} AND vitien >= {soTien}");
+            
+            if (rowsAffected > 0)
+            {
+                db.Entry(dbUser).Reload();
+                TempData["WalletSuccess"] = $"Rút {soTien:N0}đ thành công. Số dư mới: {dbUser.vitien:N0}đ";
+            }
+            else
+            {
+                db.Entry(dbUser).Reload();
+                TempData["WalletError"] = $"Rút tiền thất bại. Số dư hiện tại không đủ ({dbUser.vitien:N0}đ).";
+            }
         }
         return RedirectToAction("Wallet");
     }

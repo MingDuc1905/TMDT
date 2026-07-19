@@ -24,22 +24,22 @@ public class VnpayService
     {
         _logger = logger;
 
-        // ═══ Đọc 3 biến môi trường từ Render (viết hoa đúng tên) ═══
+        // ═══ Đọc 3 biến môi trường từ Render (viết hoa đúng tên, Trim để loại bỏ whitespace/newline) ═══
         // 1. Mã website VNPAY
-        _tmnCode = Environment.GetEnvironmentVariable("VNPAY_TMN_CODE")
+        _tmnCode = (Environment.GetEnvironmentVariable("VNPAY_TMN_CODE")
             ?? configuration["VNPAY:TMN_CODE"]
-            ?? "";
+            ?? "").Trim();
 
         // 2. Mã bảo mật (chuỗi bí mật HMAC-SHA512)
-        _hashSecret = Environment.GetEnvironmentVariable("VNPAY_HASH_SECRET")
+        _hashSecret = (Environment.GetEnvironmentVariable("VNPAY_HASH_SECRET")
             ?? configuration["VNPAY:HASH_SECRET"]
-            ?? "";
+            ?? "").Trim();
 
         // 3. URL cổng thanh toán VNPAY Sandbox
-        _vnpayUrl = Environment.GetEnvironmentVariable("VNPAY_API_URL")
+        _vnpayUrl = (Environment.GetEnvironmentVariable("VNPAY_API_URL")
             ?? Environment.GetEnvironmentVariable("VNPAY_URL")
             ?? configuration["VNPAY:URL"]
-            ?? _baseUrl;
+            ?? _baseUrl).Trim();
 
         if (string.IsNullOrEmpty(_tmnCode) || string.IsNullOrEmpty(_hashSecret))
         {
@@ -47,8 +47,8 @@ public class VnpayService
         }
         else
         {
-            _logger.LogInformation("VNPAYService initialized (TMN_CODE length: {CodeLen}, URL: {Url})",
-                _tmnCode.Length, _vnpayUrl);
+            _logger.LogInformation("VNPAYService initialized (TMN_CODE: {CodeLen} chars, HashSecret: {HashLen} chars, URL: {Url})",
+                _tmnCode.Length, _hashSecret.Length, _vnpayUrl);
         }
     }
 
@@ -88,7 +88,7 @@ public class VnpayService
             return "";
         }
 
-        var vnpParams = new SortedDictionary<string, string>(StringComparer.Ordinal)
+        var vnpParams = new SortedDictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
             { "vnp_Amount", (amount * 100).ToString() }, // VNPAY nhân 100
             { "vnp_Command", "pay" },
@@ -108,10 +108,13 @@ public class VnpayService
         var queryString = string.Join("&", vnpParams.Select(kvp =>
             $"{HttpUtility.UrlEncode(kvp.Key)}={HttpUtility.UrlEncode(kvp.Value)}"));
 
-        // Tạo chữ ký
+        // Tạo chữ ký — RAW data KHÔNG URL encode, chỉ sort + join
         var rawData = string.Join("&", vnpParams.Select(kvp =>
             $"{kvp.Key}={kvp.Value}"));
         var secureHash = ComputeHmacSha512(rawData);
+
+        _logger.LogInformation("VNPAY CreatePaymentUrl: TxnRef={TxnRef}, Amount={Amount}, RawDataLen={Len}",
+            orderId, amount, rawData.Length);
 
         // URL hoàn chỉnh
         var paymentUrl = $"{_vnpayUrl}?{queryString}&vnp_SecureHash={secureHash}";
@@ -143,8 +146,8 @@ public class VnpayService
         vnpParams.Remove("vnp_SecureHash");
         vnpParams.Remove("vnp_SecureHashType");
 
-        // Sắp xếp params theo alphabet
-        var sortedParams = new SortedDictionary<string, string>(vnpParams, StringComparer.Ordinal);
+        // Sắp xếp params theo alphabet (case-insensitive cho VNPay)
+        var sortedParams = new SortedDictionary<string, string>(vnpParams, StringComparer.OrdinalIgnoreCase);
         var rawData = string.Join("&", sortedParams.Select(kvp =>
             $"{kvp.Key}={kvp.Value}"));
 
@@ -155,8 +158,8 @@ public class VnpayService
         if (!isValid)
         {
             _logger.LogWarning(
-                "VNPAY signature verification FAILED. Computed: {Computed}, Received: {Received}",
-                computedHash, receivedHash);
+                "VNPAY signature verification FAILED. Computed({ComputedLen}): {Computed}, Received({ReceivedLen}): {Received}, RawData: {RawData}",
+                computedHash?.Length ?? 0, computedHash, receivedHash?.Length ?? 0, receivedHash, rawData);
         }
 
         return isValid;

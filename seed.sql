@@ -253,7 +253,8 @@ INSERT INTO "tbLoaiHinhThanhToan" ("mahttt", "tenhinhthuc", "mota") VALUES
 (2, 'Tài khoản ngân hàng', 'Liên kết tài khoản ngân hàng'),
 (3, 'ZaloPay', 'Tài khoản ZaloPay liên kết'),
 (4, 'Paypal', ''),
-(5, 'Momo', '');
+(5, 'Momo', ''),
+(6, 'VNPAY', 'Thanh toán qua cổng VNPAY (ATM, Visa, Mastercard)');
 
 -- ==================== tbThongTinDatHang ====================
 INSERT INTO "tbThongTinDatHang" ("sdt", "diachi", "toado", "tennguoinhan", "userid") VALUES

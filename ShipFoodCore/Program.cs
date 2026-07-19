@@ -491,6 +491,28 @@ try
         }
         logger.LogInformation("Auto-migration: ALTER TABLE columns checked");
 
+        // ═══ Auto-insert VNPAY payment method nếu chưa tồn tại ═══
+        // Đảm bảo luôn có phương thức VNPAY (mahttt=6) khi deploy lên Render
+        try
+        {
+            var vnpayExists = db.tbLoaiHinhThanhToan.Any(p => p.tenhinhthuc == "VNPAY");
+            if (!vnpayExists)
+            {
+                db.tbLoaiHinhThanhToan.Add(new tbLoaiHinhThanhToan
+                {
+                    mahttt = 6,
+                    tenhinhthuc = "VNPAY",
+                    mota = "Thanh toán qua cổng VNPAY (ATM, Visa, Mastercard)"
+                });
+                db.SaveChanges();
+                logger.LogInformation("Auto-seed: Inserted VNPAY payment method (mahttt=6)");
+            }
+        }
+        catch (Exception vnpayEx)
+        {
+            logger.LogWarning(vnpayEx, "Auto-seed VNPAY skipped");
+        }
+
         // ═══ Fix PostgreSQL sequence out-of-sync (prevent PK violation on signup) ═══
         // ponytail: Sau khi seed v?i userid explicit (1-18), sequence v?n ? 1 → signup b? l?i 23505
         // Reset sequence = max(userid) + 1 m?i l?n start (safe, nhanh)

@@ -75,7 +75,8 @@ public static class TestDbContextFactory
         var codMethod = new tbLoaiHinhThanhToan { mahttt = 1, tenhinhthuc = "Tiền mặt" };
         var bankMethod = new tbLoaiHinhThanhToan { mahttt = 2, tenhinhthuc = "Chuyển khoản ngân hàng" };
         var momoMethod = new tbLoaiHinhThanhToan { mahttt = 5, tenhinhthuc = "Ví MoMo" };
-        db.tbLoaiHinhThanhToan.AddRange(codMethod, bankMethod, momoMethod);
+        var vnpayMethod = new tbLoaiHinhThanhToan { mahttt = 6, tenhinhthuc = "VNPAY", mota = "Thanh toán qua cổng VNPAY (ATM, Visa, Mastercard)" };
+        db.tbLoaiHinhThanhToan.AddRange(codMethod, bankMethod, momoMethod, vnpayMethod);
         db.SaveChanges();
 
         // ─── Active voucher ───

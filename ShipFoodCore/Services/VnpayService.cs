@@ -24,22 +24,26 @@ public class VnpayService
     {
         _logger = logger;
 
-        // Ưu tiên Environment Variables → appsettings.json
+        // ═══ Đọc 3 biến môi trường từ Render (viết hoa đúng tên) ═══
+        // 1. Mã website VNPAY
         _tmnCode = Environment.GetEnvironmentVariable("VNPAY_TMN_CODE")
             ?? configuration["VNPAY:TMN_CODE"]
             ?? "";
 
+        // 2. Mã bảo mật (chuỗi bí mật HMAC-SHA512)
         _hashSecret = Environment.GetEnvironmentVariable("VNPAY_HASH_SECRET")
             ?? configuration["VNPAY:HASH_SECRET"]
             ?? "";
 
-        _vnpayUrl = Environment.GetEnvironmentVariable("VNPAY_URL")
+        // 3. URL cổng thanh toán VNPAY Sandbox
+        _vnpayUrl = Environment.GetEnvironmentVariable("VNPAY_API_URL")
+            ?? Environment.GetEnvironmentVariable("VNPAY_URL")
             ?? configuration["VNPAY:URL"]
             ?? _baseUrl;
 
         if (string.IsNullOrEmpty(_tmnCode) || string.IsNullOrEmpty(_hashSecret))
         {
-            _logger.LogWarning("VNPAY credentials not configured. Set VNPAY_TMN_CODE and VNPAY_HASH_SECRET env vars.");
+            _logger.LogWarning("VNPAY credentials not configured. Set VNPAY_TMN_CODE, VNPAY_HASH_SECRET, VNPAY_API_URL env vars on Render.");
         }
         else
         {

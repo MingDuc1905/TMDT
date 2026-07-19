@@ -88,7 +88,7 @@
                         <div class="header-left d-none d-md-flex align-items-center ps-3">
                             <nav aria-label="breadcrumb">
                                 <ol class="breadcrumb mb-0 bg-transparent p-0" style="font-size: 14px;">
-                                    <li class="breadcrumb-item"><a href="/Restaurant/Dashboard" class="text-muted"><i class="fas fa-home me-1"></i>Quản lý quán</a></li>
+                                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Restaurant")" class="text-muted"><i class="fas fa-home me-1"></i>Quản lý quán</a></li>
                                     @if (!string.IsNullOrEmpty(ViewBag.Title))
                                     {
                                         <li class="breadcrumb-item active" aria-current="page" style="color: var(--fs-green); font-weight: 500;">@ViewBag.Title</li>
@@ -191,6 +191,7 @@
                             <li><a href="~/Restaurant/Analytics">Phân tích</a></li>
                             <li><a href="~/Restaurant/Review">Đánh giá</a></li>
                             <li><a href="~/Restaurant/OrderList">Danh sách đơn hàng</a></li>
+                            <li><a href="~/Restaurant/Discount">Khuyến mãi</a></li>
                         </ul>
                     </li>
                     <li>
@@ -208,7 +209,7 @@
                                 </ul>
                             </li>
                             <li>
-                                <a href="~/edelivery/merchant-scan">
+                                <a href="~/edelivery/MerchantScan">
                                     <i class="fas fa-camera" style="margin-right:8px;"></i>
                                     <span class="nav-text">Quét mã QR</span>
                                 </a>

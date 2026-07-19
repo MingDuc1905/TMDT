@@ -737,6 +737,48 @@ public class CartController : BaseController
         return Json(new { success = true, redirect = Url.Action("Index") });
     }
 
+    // ─── HỦY ĐƠN: Khách hàng hủy đơn khi chưa thanh toán ───
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public JsonResult HuyDon(int id)
+    {
+        if (!CheckLogin())
+            return Json(new { success = false, message = "Vui lòng đăng nhập" });
+
+        var user = GetCurrentUser();
+        if (user == null)
+            return Json(new { success = false, message = "Không tìm thấy thông tin người dùng" });
+
+        var donHang = db.tbDonHang
+            .Include(d => d.tbThongTinDatHang)
+            .FirstOrDefault(d => d.madh == id);
+
+        if (donHang == null)
+            return Json(new { success = false, message = "Không tìm thấy đơn hàng" });
+
+        // Kiểm tra quyền: chỉ chủ đơn hàng mới được hủy
+        if (donHang.tbThongTinDatHang?.userid != user.userid)
+            return Json(new { success = false, message = "Bạn không có quyền hủy đơn hàng này" });
+
+        // Chỉ cho phép hủy khi đơn đang ở trạng thái "Chờ thanh toán"
+        if (donHang.trangthai != "Chờ thanh toán")
+            return Json(new { success = false, message = $"Không thể hủy đơn ở trạng thái '{donHang.trangthai}'" });
+
+        try
+        {
+            donHang.trangthai = "Đã hủy";
+            db.SaveChanges();
+
+            return Json(new { success = true, message = "Hủy đơn hàng thành công!" });
+        }
+        catch (Exception ex)
+        {
+            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<CartController>>();
+            logger.LogError(ex, "HuyDon failed for order {OrderId}", id);
+            return Json(new { success = false, message = "Lỗi khi hủy đơn hàng. Vui lòng thử lại." });
+        }
+    }
+
     public ActionResult FailureView() => View();
 
     // ─── MoMo Redirect Landing: Không tạo đơn mới, chỉ hiển thị kết quả ───

@@ -132,12 +132,21 @@
                                         <span class="order-badge @statusClass">@statusIcon @i.trangthai</span>
                                     </td>
                                     <td style="padding: 20px;">
-                                        <a href="~/Cart/ChiTietDonHang?id=@i.madh" class="btn btn-sm btn-outline-secondary">
-                                            <i class="fas fa-eye"></i> Chi tiết
-                                        </a>
-                                        <a href="~/Cart/OrderTracking?id=@i.madh" class="btn btn-sm btn-success mt-1" style="border-radius:8px;">
-                                            📍 Theo dõi
-                                        </a>
+                                        <div class="d-flex flex-column gap-1">
+                                            <a href="~/Cart/ChiTietDonHang?id=@i.madh" class="btn btn-sm btn-outline-secondary w-100">
+                                                <i class="fas fa-eye"></i> Chi tiết
+                                            </a>
+                                            <a href="~/Cart/OrderTracking?id=@i.madh" class="btn btn-sm btn-success w-100" style="border-radius:8px;">
+                                                📍 Theo dõi
+                                            </a>
+                                            @if (i.trangthai == "Chờ thanh toán")
+                                            {
+                                                <button type="button" class="btn btn-sm btn-outline-danger w-100" style="border-radius:8px;font-size:12px;"
+                                                        onclick="huyDon(@i.madh, '@Url.Action("HuyDon", "Cart")')">
+                                                    <i class="fas fa-times"></i> Hủy đơn
+                                                </button>
+                                            }
+                                        </div>
                                     </td>
                                 </tr>
                             }
@@ -148,9 +157,31 @@
         </div>
     }
 </div>
+@Html.AntiForgeryToken()
 <script src="~/Source/Restaurant/vendor/global/global.min.js"></script>
 <script src="~/Source/Restaurant/vendor/datatables/js/jquery.dataTables.min.js"></script>
 <script>
+    function huyDon(orderId, url) {
+        if (!confirm('Bạn có chắc muốn hủy đơn hàng #' + orderId + '?')) return;
+        $.ajax({
+            url: url,
+            type: 'POST',
+            data: { id: orderId },
+            headers: { 'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() },
+            success: function(res) {
+                if (res.success) {
+                    alert(res.message);
+                    location.reload();
+                } else {
+                    alert(res.message);
+                }
+            },
+            error: function() {
+                alert('Lỗi kết nối. Vui lòng thử lại.');
+            }
+        });
+    }
+
     $(function () {
         $('#orderTable').DataTable({
             searching: true,

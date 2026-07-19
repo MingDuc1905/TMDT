@@ -17,12 +17,14 @@ public class HomeController : BaseController
 {
     private readonly RecommendationService _recommendationService;
     private readonly ICompositeViewEngine _viewEngine;
+    private readonly VnpayService _vnpayService;
 
-    public HomeController(dbFoodyEntities context, RecommendationService recommendationService, ICompositeViewEngine viewEngine)
+    public HomeController(dbFoodyEntities context, RecommendationService recommendationService, ICompositeViewEngine viewEngine, VnpayService vnpayService)
     {
         db = context;
         _recommendationService = recommendationService;
         _viewEngine = viewEngine;
+        _vnpayService = vnpayService;
     }
 
     /// <summary>
@@ -1377,6 +1379,58 @@ public class HomeController : BaseController
         TempData["WalletPending"] = $"Vui lòng chuyển khoản {soTien:N0}đ theo mã QR để nạp tiền vào ví. Hệ thống sẽ tự động cập nhật sau khi nhận được chuyển khoản.";
 
         return RedirectToAction("Wallet");
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public JsonResult NapTienVnpay(decimal soTien)
+    {
+        var user = GetCurrentUser();
+        if (user == null || user.loaitaikhoan != "Khách hàng")
+            return Json(new { success = false, message = "Vui lòng đăng nhập" });
+
+        if (soTien < 10000)
+            return Json(new { success = false, message = "Số tiền nạp tối thiểu là 10,000đ" });
+        if (soTien > 100000000)
+            return Json(new { success = false, message = "Số tiền nạp tối đa là 100,000,000đ" });
+
+        try
+        {
+            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1";
+            var returnUrl = $"{Request.Scheme}://{Request.Host}/Payment/VnpayWalletReturn";
+            var orderInfo = $"FASTSHIP_WALLET_NAP{user.userid}_{DateTime.Now:yyyyMMddHHmmss}";
+
+            // Generate unique TxnRef = negative value to avoid collision with real orders
+            // Use timestamp-based unique ID
+            var txnRef = -Math.Abs(user.userid * 1000000 + (int)(DateTime.Now.Ticks % 1000000));
+
+            var vnpayUrl = _vnpayService.CreatePaymentUrl(
+                txnRef,
+                (long)soTien,
+                orderInfo,
+                ipAddress,
+                returnUrl
+            );
+
+            if (string.IsNullOrEmpty(vnpayUrl))
+            {
+                var logger = HttpContext.RequestServices.GetRequiredService<ILogger<HomeController>>();
+                logger.LogError("NapTienVnpay failed — VNPAY credentials not configured");
+                return Json(new { success = false, message = "Cổng thanh toán VNPAY chưa được cấu hình. Vui lòng liên hệ quản trị viên." });
+            }
+
+            var logger2 = HttpContext.RequestServices.GetRequiredService<ILogger<HomeController>>();
+            logger2.LogInformation("NapTienVnpay: Created VNPAY payment for user #{UserId}, amount={Amount}, txnRef={TxnRef}",
+                user.userid, soTien, txnRef);
+
+            return Json(new { success = true, vnpayUrl = vnpayUrl, message = "Chuyển hướng đến VNPAY..." });
+        }
+        catch (Exception ex)
+        {
+            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<HomeController>>();
+            logger.LogError(ex, "NapTienVnpay failed for user #{UserId}", user?.userid);
+            return Json(new { success = false, message = $"Lỗi: {ex.Message}" });
+        }
     }
 
     [HttpPost]

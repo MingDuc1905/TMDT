@@ -120,13 +120,43 @@
         <div class="modal-box">
             <h4>Nạp tiền</h4>
             <p>Nhập số tiền bạn muốn nạp vào ví (tối thiểu 10,000đ)</p>
-            <form method="post" action="@Url.Action("NapTien", "Home")">
+            <form id="depositForm">
                 @Html.AntiForgeryToken()
-                <input type="number" name="soTien" min="10000" max="100000000" step="10000"
-                       placeholder="Nhập số tiền..." required aria-label="Số tiền nạp" />
+                <input type="number" id="depositAmount" name="soTien" min="10000" max="100000000" step="10000"
+                       placeholder="Nhập số tiền..." required aria-label="Số tiền nạp"
+                       oninput="document.getElementById('depositAmountDisplay').textContent = this.value ? parseInt(this.value).toLocaleString('vi-VN') + '₫' : '0₫'" />
+                
+                <!-- Payment method selection -->
+                <div style="margin-top:16px;">
+                    <label style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:8px;">Phương thức nạp</label>
+                    <div style="display:flex;gap:10px;">
+                        <label class="payment-option" id="optBank" style="flex:1;border:2px solid #e5e7eb;border-radius:14px;padding:14px 12px;cursor:pointer;text-align:center;transition:all .2s;background:#f9fafb;"
+                               onclick="selectPayment('bank')">
+                            <input type="radio" name="paymentMethod" value="bank" checked style="display:none;">
+                            <div style="font-size:22px;margin-bottom:4px;">🏦</div>
+                            <div style="font-size:12px;font-weight:600;color:#374151;">Chuyển khoản</div>
+                            <div style="font-size:10px;color:#9ca3af;margin-top:2px;">Quét QR</div>
+                        </label>
+                        <label class="payment-option" id="optVnpay" style="flex:1;border:2px solid #e5e7eb;border-radius:14px;padding:12px;cursor:pointer;text-align:center;transition:all .2s;background:#fff;"
+                               onclick="selectPayment('vnpay')">
+                            <input type="radio" name="paymentMethod" value="vnpay" style="display:none;">
+                            <img src="~/images/payment/vnpay-logo.svg" alt="VNPay" style="height:26px;margin-bottom:4px;" />
+                            <div style="font-size:12px;font-weight:600;color:#F37920;">VNPAY</div>
+                            <div style="font-size:10px;color:#9ca3af;margin-top:2px;">ATM, Visa, MC</div>
+                        </label>
+                    </div>
+                </div>
+
+                <div id="depositAmountDisplay" style="text-align:center;font-size:24px;font-weight:700;color:#1a1a2e;margin:12px 0 4px;">0₫</div>
+
+                <div id="vnpaySpinner" style="display:none;text-align:center;padding:8px 0;">
+                    <div class="spinner-border spinner-border-sm text-warning me-2" role="status" style="width:18px;height:18px;"></div>
+                    <span style="font-size:13px;color:#6b7280;">Đang kết nối VNPAY...</span>
+                </div>
+
                 <div class="modal-actions">
                     <button type="button" class="btn-cancel" onclick="closeModal('depositModal')">Huỷ</button>
-                    <button type="submit" class="btn-confirm">Nạp tiền</button>
+                    <button type="submit" class="btn-confirm" id="depositSubmitBtn">Nạp tiền</button>
                 </div>
             </form>
         </div>
@@ -210,6 +240,69 @@
 function openModal(type) { document.getElementById(type + 'Modal').classList.add('active'); }
 function closeModal(id) { document.getElementById(id).classList.remove('active'); }
 window.onclick = function(e) { if (e.target.classList.contains('wallet-modal')) e.target.classList.remove('active'); }
+
+// Payment method selection
+function selectPayment(method) {
+    document.querySelectorAll('.payment-option').forEach(function(el) {
+        el.style.borderColor = '#e5e7eb';
+        el.style.background = '#fff';
+    });
+    if (method === 'bank') {
+        document.getElementById('optBank').style.borderColor = '#3CB815';
+        document.getElementById('optBank').style.background = '#f0fdf4';
+        document.querySelector('#optBank input').checked = true;
+        document.getElementById('depositForm').action = '@Url.Action("NapTien", "Home")';
+        document.getElementById('depositSubmitBtn').textContent = 'Nạp tiền';
+    } else {
+        document.getElementById('optVnpay').style.borderColor = '#F37920';
+        document.getElementById('optVnpay').style.background = '#fff7ed';
+        document.querySelector('#optVnpay input').checked = true;
+        document.getElementById('depositForm').action = '';
+        document.getElementById('depositSubmitBtn').textContent = 'Thanh toán VNPAY';
+    }
+}
+// Default bank selected
+selectPayment('bank');
+
+// Form submit handler
+document.getElementById('depositForm').addEventListener('submit', function(e) {
+    var amount = document.getElementById('depositAmount').value;
+    if (!amount || amount < 10000) { e.preventDefault(); alert('Số tiền nạp tối thiểu là 10,000đ'); return; }
+    
+    var method = document.querySelector('input[name="paymentMethod"]:checked').value;
+    if (method === 'vnpay') {
+        e.preventDefault();
+        var btn = document.getElementById('depositSubmitBtn');
+        var spinner = document.getElementById('vnpaySpinner');
+        btn.disabled = true;
+        spinner.style.display = 'block';
+        
+        $.ajax({
+            url: '@Url.Action("NapTienVnpay", "Home")',
+            type: 'POST',
+            data: {
+                soTien: amount,
+                __RequestVerificationToken: document.querySelector('input[name="__RequestVerificationToken"]').value
+            },
+            success: function(res) {
+                if (res.success && res.vnpayUrl) {
+                    window.location.href = res.vnpayUrl;
+                } else {
+                    spinner.style.display = 'none';
+                    btn.disabled = false;
+                    alert(res.message || 'Không thể tạo thanh toán VNPAY');
+                }
+            },
+            error: function() {
+                spinner.style.display = 'none';
+                btn.disabled = false;
+                alert('Lỗi kết nối. Vui lòng thử lại.');
+            }
+        });
+    }
+});
+
+// Toast auto-dismiss
 setTimeout(function() {
     var t = document.getElementById('walletToast');
     if (t) { t.style.transition = 'opacity .5s'; t.style.opacity = '0'; setTimeout(function(){ t.remove(); }, 500); }

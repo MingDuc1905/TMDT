@@ -1,11 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="120" height="40" viewBox="0 0 120 40">
   <defs>
-    <linearGradient id="vnpay-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#F37920"/>
-      <stop offset="100%" style="stop-color:#E05E0E"/>
+    <linearGradient id="vnpay-g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F37920"/>
+      <stop offset="100%" stop-color="#D35400"/>
     </linearGradient>
   </defs>
-  <rect x="0" y="0" width="40" height="40" rx="10" fill="url(#vnpay-grad)"/>
-  <text x="20" y="28" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="20" fill="white" text-anchor="middle" letter-spacing="-1">VN</text>
-  <text x="48" y="26" font-family="Arial, sans-serif" font-weight="700" font-size="18" fill="#F37920" letter-spacing="1">PAY</text>
+  <!-- Icon circle with gradient -->
+  <rect x="0" y="2" width="36" height="36" rx="8" fill="url(#vnpay-g)"/>
+  <text x="18" y="28" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="18" fill="#fff" text-anchor="middle">VN</text>
+  <!-- VNPAY wordmark -->
+  <text x="44" y="26" font-family="Arial Black, Arial, sans-serif" font-weight="800" font-size="16" fill="#F37920" letter-spacing="1.5">PAY</text>
+  <!-- Subtle pay underline accent -->
+  <line x1="44" y1="32" x2="98" y2="32" stroke="#F37920" stroke-width="2" stroke-linecap="round" opacity="0.3"/>
 </svg>

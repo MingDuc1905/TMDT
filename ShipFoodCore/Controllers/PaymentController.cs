@@ -700,6 +700,142 @@ public class PaymentController : BaseController
     }
 
     // ═══════════════════════════════════════════════════════════════
+    // VNPAY Wallet Deposit Return
+    // ═══════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// VNPAY Return URL cho nạp tiền ví — xác thực và cộng tiền vào ví
+    /// </summary>
+    [HttpGet]
+    [AllowAnonymous]
+    public async Task<IActionResult> VnpayWalletReturn()
+    {
+        var vnpParams = new Dictionary<string, string>();
+        foreach (var key in Request.Query.Keys)
+        {
+            if (!string.IsNullOrEmpty(key))
+            {
+                vnpParams[key] = Request.Query[key].ToString() ?? "";
+            }
+        }
+
+        if (vnpParams.Count == 0)
+        {
+            return RedirectToAction("Wallet", "Home");
+        }
+
+        vnpParams.TryGetValue("vnp_ResponseCode", out var responseCode);
+        vnpParams.TryGetValue("vnp_TxnRef", out var txnRef);
+        vnpParams.TryGetValue("vnp_Amount", out var amountStr);
+
+        // Xác thực chữ ký
+        bool isValid = _vnpayService.VerifySignature(vnpParams);
+
+        if (!isValid)
+        {
+            _logger.LogWarning("VnpayWalletReturn: Invalid signature for TxnRef={TxnRef}", txnRef);
+            TempData["WalletError"] = "Chữ ký không hợp lệ. Vui lòng liên hệ hỗ trợ.";
+            return RedirectToAction("Wallet", "Home");
+        }
+
+        if (responseCode != "00")
+        {
+            var errorMsg = responseCode switch
+            {
+                "01" => "Giao dịch chưa được xác thực.",
+                "02" => "Giao dịch bị từ chối.",
+                "09" => "Thẻ chưa đăng ký InternetBanking.",
+                "10" => "Xác thực thông tin sai quá 3 lần.",
+                "11" => "Hết hạn chờ thanh toán.",
+                "12" => "Thẻ/Tài khoản bị khóa.",
+                "13" => "Sai mật khẩu OTP.",
+                "24" => "Khách hàng hủy giao dịch.",
+                "51" => "Tài khoản không đủ số dư.",
+                "65" => "Vượt quá hạn mức giao dịch.",
+                "75" => "Ngân hàng đang bảo trì.",
+                _ => $"Lỗi không xác định (Mã: {responseCode})"
+            };
+            TempData["WalletError"] = $"Nạp tiền thất bại: {errorMsg}";
+            _logger.LogWarning("VnpayWalletReturn: Payment failed for TxnRef={TxnRef}, Code={Code}", txnRef, responseCode);
+            return RedirectToAction("Wallet", "Home");
+        }
+
+        // Thanh toán thành công — parse orderInfo để lấy userId
+        vnpParams.TryGetValue("vnp_OrderInfo", out var orderInfo);
+
+        try
+        {
+            int? userId = null;
+            // Parse userId từ orderInfo: FASTSHIP_WALLET_NAP{userId}_{timestamp}
+            if (!string.IsNullOrEmpty(orderInfo))
+            {
+                var match = System.Text.RegularExpressions.Regex.Match(orderInfo, @"FASTSHIP_WALLET_NAP([0-9]+)", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                if (match.Success)
+                {
+                    userId = int.Parse(match.Groups[1].Value);
+                }
+            }
+
+            if (userId == null || userId <= 0)
+            {
+                _logger.LogWarning("VnpayWalletReturn: Could not parse userId from orderInfo={OrderInfo}", orderInfo);
+                TempData["WalletError"] = "Không thể xác định tài khoản. Vui lòng liên hệ hỗ trợ.";
+                return RedirectToAction("Wallet", "Home");
+            }
+
+            var user = await db.tbUsers.FindAsync(userId.Value);
+            if (user == null)
+            {
+                _logger.LogWarning("VnpayWalletReturn: User #{UserId} not found", userId);
+                TempData["WalletError"] = "Tài khoản không tồn tại.";
+                return RedirectToAction("Wallet", "Home");
+            }
+
+            // Tính số tiền từ VNPAY (vnp_Amount gửi về * 100)
+            long amountVnd = 0;
+            if (!string.IsNullOrEmpty(amountStr) && long.TryParse(amountStr, out var vnpAmount))
+            {
+                amountVnd = vnpAmount / 100;
+            }
+
+            if (amountVnd <= 0)
+            {
+                _logger.LogWarning("VnpayWalletReturn: Invalid amount for user #{UserId}", userId);
+                TempData["WalletError"] = "Số tiền không hợp lệ.";
+                return RedirectToAction("Wallet", "Home");
+            }
+
+            // Cộng tiền vào ví
+            user.vitien = (user.vitien ?? 0) + amountVnd;
+            await db.SaveChangesAsync();
+
+            // Ghi log deposit
+            try
+            {
+                db.tbTinNhans.Add(new tbTinNhan
+                {
+                    noidung = $"VNPAY_DEPOSIT_SUCCESS|{txnRef}|{amountVnd}|{userId}",
+                    makh = userId.Value
+                });
+                await db.SaveChangesAsync();
+            }
+            catch { }
+
+            _logger.LogInformation("VnpayWalletReturn: Wallet deposit {Amount}đ for user #{UserId} via VNPAY (TxnRef={TxnRef})",
+                amountVnd, userId, txnRef);
+
+            TempData["WalletSuccess"] = $"Nạp tiền thành công! {amountVnd:N0}đ đã được cộng vào ví.";
+            return RedirectToAction("Wallet", "Home");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "VnpayWalletReturn: Error processing deposit for TxnRef={TxnRef}", txnRef);
+            TempData["WalletError"] = "Lỗi xử lý nạp tiền. Vui lòng liên hệ hỗ trợ.";
+            return RedirectToAction("Wallet", "Home");
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════
     // Bank Webhook (giữ lại cho backward compatibility)
     // ═══════════════════════════════════════════════════════════════
 

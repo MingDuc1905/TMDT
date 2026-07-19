@@ -26,223 +26,31 @@
     <!-- Global Design System v4.0 -->
     <link href="~/Source/Shared/css/fastship-design-tokens.css" rel="stylesheet" />
     <link href="~/Source/Shared/css/fastship-animations.css" rel="stylesheet" />
+    <link href="~/Source/Shared/css/fs-dashboard-overrides.css" rel="stylesheet" />
     <style>
-        /* ============================================================
-           ADMIN UI — Modern Minimalist (v5.0)
-           ============================================================ */
-
-        /* ── Design Tokens ── */
-        :root {
-            --admin-green: #3CB815;
-            --admin-green-bg: rgba(60,184,21,.07);
-            --admin-dark: #1a1a2e;
-            --admin-muted: #6b7280;
-            --admin-border: #e5e7eb;
-            --admin-border-soft: #f0f0f0;
-            --admin-light: #f8f9fa;
-            --admin-white: #fff;
-            --admin-radius: 12px;
-            --admin-shadow: 0 4px 20px rgba(0,0,0,.07);
-            --admin-font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-        }
-
-        /* ── KPI Cards ── */
-        .stat-card {
-            border: none !important;
-            border-radius: var(--admin-radius) !important;
-            box-shadow: var(--admin-shadow) !important;
-            transition: transform .2s ease, box-shadow .2s ease;
-            overflow: hidden;
-            background: var(--admin-white) !important;
-        }
-        .stat-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 12px 32px rgba(0,0,0,.1) !important;
-        }
-        .stat-card .card-body {
-            padding: 1.25rem 1.5rem;
-            display: flex; align-items: center; gap: 16px;
-        }
-        .stat-card .stat-icon {
-            width: 48px; height: 48px;
-            border-radius: var(--admin-radius) !important;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 20px; flex-shrink: 0;
-            background: var(--admin-green-bg) !important;
-            color: var(--admin-green) !important;
-        }
-        .stat-card .stat-value { font-size: 1.5rem; font-weight: 800; color: var(--admin-dark); }
-        .stat-card .stat-label {
-            font-size: 12px; font-weight: 600; text-transform: uppercase;
-            letter-spacing: .5px; color: var(--admin-muted);
-        }
-
-        /* ── Cards ── */
-        .card {
-            border: none !important;
-            border-radius: var(--admin-radius) !important;
-            box-shadow: var(--admin-shadow) !important;
-        }
-        .card .card-header {
-            background: transparent;
-            border-bottom: 1px solid var(--admin-border-soft);
-            padding: 16px 20px; font-weight: 700; font-size: 15px;
-        }
-        .card .card-body { padding: 20px; }
-
-        /* ── Tables ── */
-        .table { font-family: var(--admin-font) !important; margin-bottom: 0; }
-        .table thead th {
-            background: var(--admin-light) !important;
-            padding: 12px 16px !important;
-            font-weight: 600 !important; font-size: 12px !important;
-            text-transform: uppercase; letter-spacing: .5px;
-            color: var(--admin-muted) !important;
-            border-bottom: 1px solid var(--admin-border) !important;
-        }
-        .table tbody td {
-            padding: 12px 16px !important;
-            border-bottom: 1px solid var(--admin-border-soft) !important;
-            vertical-align: middle;
-        }
-        .table tbody tr:hover { background: var(--admin-green-bg) !important; }
-
-        /* ── Status Badges ── */
-        .badge-status {
-            display: inline-block;
-            padding: 4px 14px; border-radius: 20px;
-            font-size: 12px; font-weight: 600;
-        }
-        .badge-status.active { background: #f0fdf4; color: #16a34a; }
-        .badge-status.locked { background: #fef2f2; color: #dc2626; }
-        .badge-status.pending { background: #fefce8; color: #d97706; }
-
-        /* ── Buttons ── */
-        .btn {
-            border-radius: 10px !important;
-            font-family: var(--admin-font) !important;
-            font-weight: 600; padding: 8px 18px;
-            font-size: 13px;
-            transition: all .2s ease;
-        }
-        .btn-sm { padding: 5px 12px; font-size: 12px; }
-        .btn-success { background: var(--admin-green); border: none; color: white; }
-        .btn-success:hover { background: #2ea310; }
-        .btn-danger { background: #ef4444; border: none; color: white; }
-        .btn-danger:hover { background: #dc2626; }
-        .btn-outline { background: transparent; border: 1.5px solid var(--admin-border); color: var(--admin-muted); }
-        .btn-outline:hover { border-color: var(--admin-green); color: var(--admin-green); }
-
-        /* ── Form controls ── */
-        .form-control, .form-select {
-            border-radius: 10px !important;
-            border: 1.5px solid var(--admin-border);
-            font-family: var(--admin-font) !important;
-            padding: 8px 14px; font-size: 14px;
-        }
-        .form-control:focus, .form-select:focus {
-            border-color: var(--admin-green) !important;
-            box-shadow: 0 0 0 3px rgba(60,184,21,.12) !important;
-        }
-
-        /* ── Sidebar ── */
-        /* ── Sidebar ── */
-        .deznav { background: var(--admin-white) !important; position: relative; transition: width var(--fs-transition-slow) var(--fs-ease-out-back); }
+        /* ── Admin-only: Sidebar toggle button ── */
         .deznav .deznav-toggle {
             position: absolute; top: 50%; right: -14px; transform: translateY(-50%);
             width: 28px; height: 28px; border-radius: 50%;
-            background: var(--admin-green, #3CB815); color: #fff;
+            background: var(--fs-green, #3CB815); color: #fff;
             border: 2px solid #fff; cursor: pointer; z-index: 1060;
             display: flex; align-items: center; justify-content: center;
             font-size: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.12);
             transition: transform .2s ease, background .2s ease;
         }
         .deznav .deznav-toggle:hover { background: #2ea310; transform: translateY(-50%) scale(1.1); }
-        /* Sidebar collapsed state */
         .deznav.deznav-collapsed { width: 0 !important; min-width: 0 !important; padding: 0 !important; }
         .deznav.deznav-collapsed .deznav-scroll { display: none; }
         .deznav.deznav-collapsed .deznav-toggle { right: auto; left: 0; }
         .deznav.deznav-collapsed .deznav-toggle i { transform: rotate(180deg); }
-        .deznav .metismenu > li > a {
-            border-radius: 8px !important;
-            margin: 2px 8px; padding: 10px 16px;
-            font-weight: 500; font-size: 14px;
-            color: var(--admin-muted) !important;
-            transition: all .2s ease;
-            display: flex; align-items: center; gap: 10px;
-        }
-        .deznav .metismenu > li > a i { width: 18px; text-align: center; font-size: 15px; }
-        .deznav .metismenu > li > a:hover {
-            background: var(--admin-green-bg) !important;
-            color: var(--admin-green) !important;
-        }
-        .deznav .metismenu > li.mm-active > a {
-            background: var(--admin-green) !important;
-            color: var(--admin-white) !important;
-        }
-
-        /* ── Page Header ── */
-        .page-header {
-            display: flex; justify-content: space-between; align-items: center;
-            flex-wrap: wrap; gap: 12px;
-            margin-bottom: 24px;
-        }
-        .page-header h2 {
-            font-size: 22px; font-weight: 700; color: var(--admin-dark); margin: 0;
-        }
-        .page-header .breadcrumb {
-            background: transparent; padding: 0; margin: 0; font-size: 13px;
-        }
-        .page-header .breadcrumb a { color: var(--admin-muted); text-decoration: none; }
-        .page-header .breadcrumb a:hover { color: var(--admin-green); }
 
         /* ── Toolbar ── */
         .toolbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 
         /* ── Alerts ── */
-        .alert {
-            border-radius: 12px; border: none;
-            padding: 14px 18px; font-size: 14px;
-        }
+        .alert { border-radius: 12px; border: none; padding: 14px 18px; font-size: 14px; }
         .alert-success { background: #f0fdf4; color: #16a34a; }
         .alert-danger { background: #fef2f2; color: #dc2626; }
-
-        /* ── Responsive ── */
-        @@media (max-width: 768px) {
-            .table-responsive table,
-            .table-responsive thead,
-            .table-responsive tbody,
-            .table-responsive th,
-            .table-responsive td,
-            .table-responsive tr { display: block; }
-            .table-responsive thead { position: absolute; top: -9999px; left: -9999px; }
-            .table-responsive td {
-                position: relative;
-                padding-left: 50% !important;
-                border: none;
-                border-bottom: 1px solid #eee;
-                min-height: 44px;
-                display: flex;
-                align-items: center;
-            }
-            .table-responsive td:before {
-                content: attr(data-label);
-                position: absolute;
-                left: 12px;
-                width: 45%;
-                font-weight: 700;
-                color: #333;
-            }
-            .content-body { padding: 12px; }
-            .page-header { flex-direction: column; align-items: flex-start; }
-            .stat-card .card-body { padding: 1rem; }
-            .stat-value { font-size: 1.4rem; }
-            .btn, .nav-link, .dropdown-item { min-height: 44px; min-width: 44px; display: flex; align-items: center; }
-        }
-        @@media (max-width: 576px) {
-            .col-xl-3.col-lg-6.col-md-6 { flex: 0 0 100%; max-width: 100%; }
-            .col-lg-8, .col-lg-4 { flex: 0 0 100%; max-width: 100%; }
-        }
     </style>
 </head>
 

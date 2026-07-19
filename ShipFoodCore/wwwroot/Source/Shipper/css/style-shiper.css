@@ -10949,7 +10949,7 @@ a.active {
     position: fixed;
     bottom: 30px;
     right: 15px;
-    z-index: 999999;
+    z-index: 1045;
 }
 
 .support-ticket-btn {
@@ -11658,18 +11658,17 @@ a.active {
 
 .header {
     height: 7.5rem;
-    z-index: 1;
+    z-index: 3;
     position: relative;
     padding: 0rem;
     background-color: #fff;
-    z-index: 3;
     padding-left: 21.563rem;
     transition: all .2s ease;
 }
 
 @media only screen and (max-width: 1400px) {
     .header {
-        padding-left: 17rem;
+        padding-left: 21.563rem;
     }
 }
 
@@ -15013,7 +15012,7 @@ html[dir="rtl"] [direction="rtl"][data-sidebar-style="compact"]:not([data-layout
 
 @media only screen and (min-width: 1200px) and (max-width: 1400px) {
     .content-body {
-        margin-left: 17rem;
+        margin-left: 21.563rem;
     }
 }
 

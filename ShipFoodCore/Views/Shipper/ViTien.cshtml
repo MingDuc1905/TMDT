@@ -67,7 +67,7 @@
 
     /* ── Modal ── */
     .wallet-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0,0,0,.4); z-index: 9999; align-items: center; justify-content: center; }
+        background: rgba(0,0,0,.4); z-index: 1070; align-items: center; justify-content: center; }
     .wallet-modal.active { display: flex; }
     .wallet-modal .modal-box {
         background: #fff; border-radius: 20px; padding: 24px;
@@ -97,7 +97,7 @@
     }
     .wallet-modal .modal-box .modal-actions .btn-cancel:hover { background: #e5e7eb; }
     .wallet-toast {
-        position: fixed; top: 20px; right: 20px; z-index: 99999;
+        position: fixed; top: 20px; right: 20px; z-index: 1055;
         padding: 14px 20px; border-radius: 12px; font-size: 14px; font-weight: 500;
         box-shadow: 0 4px 20px rgba(0,0,0,.1);
         animation: slideIn .3s ease;
@@ -187,6 +187,7 @@
     .empty-wallet .icon { font-size: 48px; margin-bottom: 12px; }
 </style>
 
+<div class="content-body">
 <div class="wallet-page">
     <!-- ═══ Toast Messages ═══ -->
     @if (ViewBag.NapTienSuccess != null)
@@ -322,6 +323,7 @@
             <small style="color:#bbb;">Nhận đơn hàng để bắt đầu kiếm thu nhập</small>
         </div>
     }
+</div>
 </div>
 
 <script>

@@ -390,11 +390,13 @@ public class HomeController : BaseController
             var redirectUrl = Url.Action("GoogleResponse", "Home");
             var properties = new Microsoft.AspNetCore.Authentication.AuthenticationProperties { RedirectUri = redirectUrl };
             return Challenge(properties, Microsoft.AspNetCore.Authentication.Google.GoogleDefaults.AuthenticationScheme);
-        }    /// <summary>
+        }        /// <summary>
         /// Đăng nhập bằng Facebook - chuyển hướng đến Facebook OAuth (1-click, mặc định Khách hàng)
         /// </summary>
         public IActionResult FacebookLogin()
         {
+            try
+            {
             // Kiểm tra Facebook OAuth có được cấu hình không
             var fbAppId = HttpContext.RequestServices
                 .GetService<Microsoft.Extensions.Configuration.IConfiguration>()?
@@ -405,9 +407,23 @@ public class HomeController : BaseController
                 return View("Login");
             }
 
+            // ponytail: Log cấu hình trước khi redirect (không leak secret)
+            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<HomeController>>();
+            logger.LogInformation("FacebookLogin: Initiating OAuth challenge with AppId={AppId}, RedirectUri={RedirectUri}",
+                fbAppId.Length > 5 ? fbAppId[..5] + "..." : "???",
+                Url.Action("FacebookResponse", "Home"));
+
             var redirectUrl = Url.Action("FacebookResponse", "Home");
             var properties = new Microsoft.AspNetCore.Authentication.AuthenticationProperties { RedirectUri = redirectUrl };
             return Challenge(properties, Microsoft.AspNetCore.Authentication.Facebook.FacebookDefaults.AuthenticationScheme);
+            }
+            catch (Exception ex)
+            {
+                var logger = HttpContext.RequestServices.GetRequiredService<ILogger<HomeController>>();
+                logger.LogError(ex, "FacebookLogin CRASHED: {Message}", ex.Message);
+                ViewBag.LoginFail = "Đăng nhập Facebook gặp sự cố. Vui lòng thử lại hoặc dùng tài khoản thường.";
+                return View("Login");
+            }
         }
 
     /// <summary>
@@ -417,41 +433,81 @@ public class HomeController : BaseController
         {
             string? email = null;
             string? name = null;
+            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<HomeController>>();
 
             try
             {
-            // Đọc từ cookie (Facebook middleware tự động lưu vào cookie nhờ AddCookie)
-            var authenticateResult = await HttpContext.AuthenticateAsync(Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme);
-            if (!authenticateResult.Succeeded)
+            // ═══ Bước 1: Xác thực cookie từ Facebook middleware ═══
+            // ponytail: Facebook middleware x? lý callback /signin-facebook tr??c khi ??n ?ây
+            // N?u middleware th?t b?i (token exchange, API call), cookie s? không ???c set
+            var authenticateResult = await HttpContext.AuthenticateAsync(
+                Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme);
+
+            if (!authenticateResult.Succeeded || authenticateResult.Principal == null)
             {
-                ViewBag.LoginFail = "Đăng nhập Facebook thất bại. Vui lòng thử lại.";
+                var failureReason = authenticateResult.Failure?.Message ?? "Không rõ nguyên nhân";
+                logger.LogWarning(
+                    "Facebook OAuth: AuthenticateAsync FAILED. Reason={Reason}, Succeeded={Succeeded}",
+                    failureReason, authenticateResult.Succeeded);
+
+                // ponytail: Log ticket properties ?? debug (không leak token)
+                if (authenticateResult.Ticket != null)
+                {
+                    var authProps = authenticateResult.Ticket.Properties;
+                    logger.LogInformation(
+                        "Facebook OAuth: Ticket exists but Principal null. IssuedUtc={Issued}, ExpiresUtc={Expires}",
+                        authProps.IssuedUtc, authProps.ExpiresUtc);
+                }
+
+                ViewBag.LoginFail = $"Đăng nhập Facebook thất bại: {failureReason}. Vui lòng thử lại.";
                 return View("Login");
             }
 
-            // Lấy thông tin email từ Facebook
-            email = authenticateResult.Principal?.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
-            name = authenticateResult.Principal?.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value;
+            // ═══ Bước 2: Lấy thông tin từ claims ═══
+            // ponytail: Log t?t c? claims nh?n ???c t? Facebook ?? debug
+            var allClaims = authenticateResult.Principal.Claims
+                .Select(c => $"{c.Type} = {c.Value}").ToList();
+            logger.LogInformation("Facebook OAuth: Received {Count} claims: {Claims}",
+                allClaims.Count, string.Join("; ", allClaims));
+
+            email = authenticateResult.Principal.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+            name = authenticateResult.Principal.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value;
+
+            logger.LogInformation("Facebook OAuth: email='{Email}', name='{Name}'",
+                email ?? "(null)", name ?? "(null)");
 
             // Facebook có thể không trả email nếu user dùng SĐT để đăng ký
             // Fallback: dùng name + userId để tạo email giả
             if (string.IsNullOrEmpty(email))
             {
-                var fbId = authenticateResult.Principal?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                var fbId = authenticateResult.Principal.FindFirst(
+                    System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                // ponytail: ??m b?o fbId luôn có giá tr? — fallback ???c x? lý
                 email = $"fb_{fbId ?? Guid.NewGuid().ToString("N")}@facebook.com";
+                logger.LogInformation("Facebook OAuth: Email fallback used — fbId='{FbId}', generated email='{Email}'",
+                    fbId ?? "(null)", email);
+
                 if (string.IsNullOrEmpty(name))
-                    name = $"Facebook User";
+                    name = "Facebook User";
             }
 
-            // Tìm user theo email
-            var users = db.tbUser.Where(u => u.email == email).ToList();
+            // ═══ Bước 3: Tìm user theo email ═══
+            // ponytail: Trim email tr??c khi query ?? tránh l?i whitespace
+            var searchEmail = email.Trim();
+            if (searchEmail.Length > 50) searchEmail = searchEmail[..50];
+
+            var users = db.tbUser.Where(u => u.email == searchEmail).ToList();
+
             if (users.Count == 0)
             {
                 // ─── FACEBOOK LẦN ĐẦU: Auto-create Khách hàng ───
+                logger.LogInformation("Facebook OAuth: New user — auto-creating with email={Email}", searchEmail);
+
                 try
                 {
                     // ponytail: plain-text password
                     var randomPwd = $"FB_{Guid.NewGuid():N}";
-                    var truncatedEmail = email.Length > 50 ? email[..50] : email;
+                    var truncatedEmail = searchEmail.Length > 50 ? searchEmail[..50] : searchEmail;
                     var shortUser = "fb_" + Guid.NewGuid().ToString("N")[..12];
                     var tenDayDu = (!string.IsNullOrEmpty(name) ? name : truncatedEmail);
                     if (tenDayDu.Length > 50) tenDayDu = tenDayDu[..50];
@@ -467,42 +523,59 @@ public class HomeController : BaseController
                         trangthai    = 1
                     };
                     db.tbUser.Add(newUser);
-                    db.SaveChanges();
+                    await db.SaveChangesAsync();
 
                     db.tbKhachHang.Add(new tbKhachHang
                     {
                         userid = newUser.userid,
                         tenkh  = tenDayDu
                     });
-                    db.SaveChanges();
+                    await db.SaveChangesAsync();
+
+                    logger.LogInformation("Facebook OAuth: Created user ID={UserId}, username={Username}",
+                        newUser.userid, shortUser);
 
                     var newCart = new Cart { userid = newUser.userid };
                     SetCart(newCart);
                     await SetSessionAndCookieAsync(newUser);
 
+                    logger.LogInformation("Facebook OAuth: Auto-create SUCCESS for user {UserId}", newUser.userid);
                     return RedirectToAction("Index", "Home");
                 }
                 catch (Exception ex)
                 {
-                    var logger = HttpContext.RequestServices.GetRequiredService<ILogger<HomeController>>();
-                    logger.LogError(ex, "Auto-create Khách hàng from Facebook failed for {Email}", email);
+                    // ponytail: Ghi log ??y ?? inner exception
+                    var innerMsg = ex.InnerException?.Message ?? "(no inner)";
+                    logger.LogError(ex, "Facebook OAuth: Auto-create FAILED for email={Email}. Inner={Inner}",
+                        email, innerMsg);
                     ViewBag.LoginFail = "Không thể tạo tài khoản tự động. Vui lòng thử lại.";
                     return View("Login");
                 }
             }
 
+            // ═══ Bước 4: User đã tồn tại → kiểm tra trạng thái + login ═══
             var userFind = users[0];
+            logger.LogInformation("Facebook OAuth: Existing user ID={UserId}, role={Role}, status={Status}",
+                userFind.userid, userFind.loaitaikhoan, userFind.trangthai);
+
             if (userFind.trangthai == 2)
             {
+                logger.LogWarning("Facebook OAuth: User {UserId} is locked (trangthai=2)", userFind.userid);
                 ViewBag.LoginFail = "Tài khoản đã bị khóa";
                 return View("Login");
             }
 
+            // ponytail: Clear session c? tr??c khi set m?i
+            HttpContext.Session.Clear();
+
             var cart = new Cart { userid = userFind.userid };
             SetCart(cart);
-            // ponytail: security fix — CommitAsync d?m b?o session du?c luu tru?c khi redirect
+            // ponytail: CommitAsync ??m b?o session ???c ghi tr??c khi redirect
             await HttpContext.Session.CommitAsync();
             await SetSessionAndCookieAsync(userFind);
+
+            logger.LogInformation("Facebook OAuth: Login SUCCESS for user {UserId}, redirecting to {Role}",
+                userFind.userid, userFind.loaitaikhoan);
 
             return userFind.loaitaikhoan switch
             {
@@ -515,9 +588,12 @@ public class HomeController : BaseController
             }
             catch (Exception ex)
             {
-                var logger = HttpContext.RequestServices.GetRequiredService<ILogger<HomeController>>();
-                logger.LogError(ex, "Facebook OAuth callback failed for email {Email}", email ?? "null");
+                // ponytail: Ghi log ??y ?? — inner exception, stack trace, t?t c?
+                var innerMsg = ex.InnerException?.Message ?? "(no inner)";
+                logger.LogError(ex, "Facebook OAuth callback CRASHED. Email={Email}, Error={Error}, Inner={Inner}",
+                    email ?? "null", ex.Message, innerMsg);
 
+                // ponytail: Tr? v? trang Login thay vì ?? middleware global b?t (tránh redirect /Home/Error)
                 ViewBag.LoginFail = "Đăng nhập Facebook gặp sự cố. Vui lòng thử lại hoặc dùng tài khoản thường.";
                 return View("Login");
             }

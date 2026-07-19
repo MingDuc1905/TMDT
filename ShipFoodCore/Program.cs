@@ -388,7 +388,11 @@ if (!string.IsNullOrEmpty(fbAppId) && !string.IsNullOrEmpty(fbAppSecret))
         fbOptions.Fields.Add("name");
         fbOptions.Scope.Add("email");
         fbOptions.Scope.Add("public_profile");
-        fbOptions.SaveTokens = true;
+        // ponytail: T?t SaveTokens ?? tránh cookie quá l?n (Facebook access token có th? r?t dài)
+        // Cookie l?n gây l?i Set-Cookie header v??t quá gi?i h?n trình duy?t
+        fbOptions.SaveTokens = false;
+        // ponytail: Gi?m th?i gain cookie xu?ng 1 gi? — tránh l?i expired token
+        fbOptions.UsePkce = true;
     });
 }
 

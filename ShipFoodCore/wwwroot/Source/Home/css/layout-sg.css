@@ -714,36 +714,11 @@ body.fs-body-padded {
 }
 
 /* ============================================================
-   FOOTER — sweetgreen 4-column style
+   FOOTER v5 — clean 3-column + app download
    ============================================================ */
 .fs-footer {
-    background: #fff;
-    border-top: 1px solid var(--fs-border);
-    font-size: 14px;
-}
-
-/* Newsletter band */
-.fs-footer-newsletter {
     background: var(--fs-light);
-    border-bottom: 1px solid var(--fs-border);
-    padding: 28px 0;
-}
-.fs-newsletter-form .form-control {
-    border-radius: 24px 0 0 24px;
-    border: 1.5px solid var(--fs-border);
-    border-right: none;
-    height: 42px;
-    font-size: 14px;
-}
-.fs-newsletter-form .form-control:focus {
-    border-color: var(--fs-green);
-    box-shadow: none;
-}
-.fs-newsletter-form .btn {
-    border-radius: 0 24px 24px 0;
-    font-weight: 600;
-    padding: 0 22px;
-    height: 42px;
+    border-top: 1px solid var(--fs-border);
     font-size: 14px;
 }
 
@@ -775,6 +750,44 @@ body.fs-body-padded {
 }
 .fs-footer-links a:hover {
     color: var(--fs-green);
+}
+
+/* App download buttons */
+.fs-footer-apps {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.fs-footer-app-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--fs-dark);
+    color: var(--fs-white);
+    border-radius: var(--fs-radius-sm);
+    padding: 8px 14px;
+    text-decoration: none !important;
+    transition: background var(--fs-transition);
+    min-width: 130px;
+}
+.fs-footer-app-btn:hover {
+    background: var(--fs-green);
+}
+.fs-footer-app-btn i {
+    font-size: 22px;
+    line-height: 1;
+}
+.fs-footer-app-btn small {
+    display: block;
+    font-size: 10px;
+    color: rgba(255,255,255,.7);
+    line-height: 1.2;
+}
+.fs-footer-app-btn strong {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.2;
 }
 
 /* Contact list icons */
@@ -850,16 +863,9 @@ body.fs-body-padded {
     /* col-6 cards — ensure no overflow */
     .col-6 .product-item { min-width: 0; }
 
-    /* Footer newsletter stack */
-    .fs-newsletter-form .input-group { flex-direction: column; gap: 8px; }
-    .fs-newsletter-form .form-control {
-        border-radius: 24px !important;
-        border-right: 1.5px solid var(--fs-border) !important;
-    }
-    .fs-newsletter-form .btn {
-        border-radius: 24px !important;
-        width: 100%;
-    }
+    /* Footer: stack app buttons */
+    .fs-footer-apps { flex-direction: column; }
+    .fs-footer-app-btn { width: 100%; justify-content: center; }
 
     /* Stats row: 2 columns */
     .fs-stat-item { flex: 0 0 50%; }

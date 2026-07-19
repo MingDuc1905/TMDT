@@ -116,9 +116,12 @@ public class VnpayService
         // URL hoàn chỉnh
         var paymentUrl = $"{_vnpayUrl}?{queryString}&vnp_SecureHash={secureHash}";
 
+        var hashPreview = !string.IsNullOrEmpty(secureHash) && secureHash.Length >= 8
+            ? secureHash.Substring(0, 8)
+            : "N/A";
         _logger.LogInformation(
-            "VNPAY payment URL created: OrderId={OrderId}, Amount={Amount}, TxnRef={TxnRef}",
-            orderId, amount, orderId);
+            "VNPAY payment URL created: OrderId={OrderId}, Amount={Amount}, TxnRef={TxnRef}, HashLen={HashLen}, HashStart={HashStart}",
+            orderId, amount, orderId, secureHash?.Length ?? 0, hashPreview);
 
         return paymentUrl;
     }

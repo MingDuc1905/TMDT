@@ -1,7 +1,7 @@
 @model ShipFood.Models.tbDonHang
 @{
     ViewBag.Title = "Sửa đơn hàng";
-    Layout = "~/Views/Shared/_LayoutPageAmin.cshtml";
+    Layout = "~/Views/Shared/_LayoutPageAdmin.cshtml";
     var shippers = ViewBag.Shippers as List<ShipFood.Models.tbShipper> ?? new();
     var statusList = ViewBag.StatusList as string[] ?? new[] { "Đã đặt", "Đang xử lý", "Đang giao", "Đã lấy", "Hoàn thành", "Đã hủy" };
 }

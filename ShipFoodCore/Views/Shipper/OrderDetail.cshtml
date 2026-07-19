@@ -256,6 +256,7 @@
                                         <div class="full-map-area mb-4" id="live-map" style="height:300px; background:#f0f0f0; border-radius:12px;">
                                             <!-- Leaflet map will be initialized here -->
                                         </div>
+                                        <!-- Leaflet CSS/JS d???c load trong _LayoutPageShipper.cshtml (head + footer) -->
                                         <div class="d-flex mx-0 justify-content-between">
                                             <div class="iconbox">
                                                 <i class="fas fa-user"></i>
@@ -277,27 +278,45 @@
             </div>
             <div class="col-xl-12">
                 <div class="form-group d-flex justify-content-around align-items-center">
-                    <div class="col-lg-3">
-                        <a id="btnOrdered" class="btn btn-primary w-100 disabled">Đã đặt</a>
-                    </div>
-                    <div class="arrow" style="align-self:center">
-                        <i class="fas fa-arrow-right"></i>
-                    </div>
-                    <div class="col-lg-3">
-                        <a id="btnPickup" class="btn btn-primary w-100 @(dh.trangthai == "Đã lấy" || dh.trangthai == "Đang giao" || dh.trangthai == "Hoàn thành" ? "disabled" : " ")" onclick="updateOrderStatus('btnPickup', 'lh',@dh.madh)" >Lấy hàng</a>
-                    </div>
-                    <div class="arrow" style="align-self:center">
-                        <i class="fas fa-arrow-right"></i>
-                    </div>
-                    <div class="col-lg-3">
-                        <a id="btnDelivering" class="btn btn-primary w-100 @(dh.trangthai == "Đang giao" || dh.trangthai == "Hoàn thành" || dh.trangthai == "Đã đặt" || dh.trangthai == "Chờ shipper lấy hàng" ? "disabled" : " ")" onclick="updateOrderStatus('btnDelivering', 'dg',@dh.madh)" >Đang giao</a>
-                    </div>
-                    <div class="arrow" style="align-self:center">
-                        <i class="fas fa-arrow-right"></i>
-                    </div>
-                    <div class="col-lg-3">
-                        <a id="btnComplete" class="btn btn-primary w-100 @(dh.trangthai == "Hoàn thành" || dh.trangthai == "Đã đặt" || dh.trangthai == "Chờ shipper lấy hàng" || dh.trangthai == "Đã lấy" ? "disabled" : " ")" onclick="updateOrderStatus('btnComplete', 'ht',@dh.madh)" >Hoàn thành</a>
-                    </div>
+                    @if (dh.mashipper == null || dh.mashipper == 0)
+                    {
+                        <!-- ═══ FIX: Nút Nhận đơn (ClaimOrder POST) ═══ -->
+                        <div class="col-lg-6 text-center">
+                            <a id="btnClaim" class="btn btn-success w-100" style="padding:12px 24px;font-size:16px;font-weight:700;"
+                               onclick="claimOrder(@dh.madh)">
+                                <i class="fas fa-hand-paper me-2"></i>Nhận đơn này
+                            </a>
+                        </div>
+                        <div class="col-lg-6 text-center">
+                            <a href="@Url.Action("Index","Shipper")" class="btn btn-outline-secondary w-100" style="padding:12px 24px;font-size:16px;">
+                                <i class="fas fa-arrow-left me-2"></i>Quay lại
+                            </a>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="col-lg-3">
+                            <a id="btnOrdered" class="btn btn-primary w-100 disabled">Đã đặt</a>
+                        </div>
+                        <div class="arrow" style="align-self:center">
+                            <i class="fas fa-arrow-right"></i>
+                        </div>
+                        <div class="col-lg-3">
+                            <a id="btnPickup" class="btn btn-primary w-100 @(dh.trangthai == "Đã lấy" || dh.trangthai == "Đang giao" || dh.trangthai == "Hoàn thành" ? "disabled" : " ")" onclick="updateOrderStatus('btnPickup', 'lh',@dh.madh)" >Lấy hàng</a>
+                        </div>
+                        <div class="arrow" style="align-self:center">
+                            <i class="fas fa-arrow-right"></i>
+                        </div>
+                        <div class="col-lg-3">
+                            <a id="btnDelivering" class="btn btn-primary w-100 @(dh.trangthai == "Đang giao" || dh.trangthai == "Hoàn thành" || dh.trangthai == "Đã đặt" || dh.trangthai == "Chờ shipper lấy hàng" ? "disabled" : " ")" onclick="updateOrderStatus('btnDelivering', 'dg',@dh.madh)" >Đang giao</a>
+                        </div>
+                        <div class="arrow" style="align-self:center">
+                            <i class="fas fa-arrow-right"></i>
+                        </div>
+                        <div class="col-lg-3">
+                            <a id="btnComplete" class="btn btn-primary w-100 @(dh.trangthai == "Hoàn thành" || dh.trangthai == "Đã đặt" || dh.trangthai == "Chờ shipper lấy hàng" || dh.trangthai == "Đã lấy" ? "disabled" : " ")" onclick="updateOrderStatus('btnComplete', 'ht',@dh.madh)" >Hoàn thành</a>
+                        </div>
+                    }
                 </div>
             </div>
         </div>
@@ -306,11 +325,35 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
 <script>
+    // ═══ FIX: Nhận đơn (ClaimOrder POST) ═══
+    function claimOrder(id) {
+        if (!confirm('Xác nhận nhận đơn #' + id + ' này?')) return;
+        var token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+        $.ajax({
+            url: '@Url.Action("ClaimOrder", "Shipper")',
+            type: 'POST',
+            data: { id: id, __RequestVerificationToken: token },
+            success: function(res) {
+                if (res.success) {
+                    alert('✅ ' + res.message);
+                    location.reload();
+                } else {
+                    alert('❌ ' + res.message);
+                }
+            },
+            error: function(xhr) {
+                alert('❌ Lỗi kết nối. Vui lòng thử lại.');
+                console.error('ClaimOrder error:', xhr.responseText);
+            }
+        });
+    }
+
     function updateOrderStatus(buttonId, status, id) {
+        var token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
         $.ajax({
             url: '@Url.Action("UpdateDonHang", "Shipper")',
             type: 'POST',
-            data: { id: id, status: status },
+            data: { id: id, status: status, __RequestVerificationToken: token },
             success: function(response) {
                 if (response.success) {
                     var button = document.getElementById(buttonId);

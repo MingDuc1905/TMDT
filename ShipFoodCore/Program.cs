@@ -131,8 +131,8 @@ builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 
-    // Gemini chatbot: 5 requests/minute per user
-    options.AddFixedWindowLimiter("gemini-policy", opt =>
+    // OpenAI chatbot rate limit
+    options.AddFixedWindowLimiter("openai-policy", opt =>
     {
         // ponytail: Tang tu 5→20 de tranh 429 false positive khi user chat nhieu cau lien tuc
         opt.PermitLimit = 20;
@@ -283,18 +283,17 @@ builder.Services.AddScoped<ShipFood.Services.EDeliveryService>();
 // ponytail: AutoPreparingService da xoa — restaurant phai tu xac nhan mon an
 // Auto-cancel pending orders sau 15 phút
 builder.Services.AddHostedService<ShipFood.Services.AutoCancelPendingOrdersService>();
-// ponytail: AddSingleton để tránh mất/gãy API key do SignalR ChatHub tạo lại service liên tục
-builder.Services.AddSingleton<ShipFood.Services.GeminiService>(sp =>
+// ponytail: OpenAI Service (Singleton) — thay th? GeminiService
+// ??c t? bi?n môi tr??ng: OPENAI_API_KEY, OPENAI_API_BASE, OPENAI_MODEL
+builder.Services.AddSingleton<ShipFood.Services.OpenAIService>(sp =>
 {
     var configuration = sp.GetRequiredService<IConfiguration>();
-    // Ưu tiên đọc từ Environment Variable trước, fallback xuống appsettings.json
-    var apiKey = Environment.GetEnvironmentVariable("Gemini__ApiKey") ?? configuration["Gemini:ApiKey"];
-    var modelName = Environment.GetEnvironmentVariable("Gemini__Model") ?? configuration["Gemini:Model"];
+    var logger = sp.GetRequiredService<ILogger<ShipFood.Services.OpenAIService>>();
+    var apiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY") ?? configuration["OpenAI:ApiKey"];
     if (!string.IsNullOrEmpty(apiKey))
-        Log.Information("GeminiService initialized as Singleton (key source: {Source}, model: {Model})",
-            Environment.GetEnvironmentVariable("Gemini__ApiKey") != null ? "env var" : "appsettings",
-            modelName ?? "gemini-2.5-flash");
-    return new ShipFood.Services.GeminiService(apiKey, modelName);
+        Log.Information("OpenAIService initialized (key source: {Source})",
+            Environment.GetEnvironmentVariable("OPENAI_API_KEY") != null ? "env var" : "appsettings");
+    return new ShipFood.Services.OpenAIService(configuration, logger);
 });
 
 // Register ViewComponents

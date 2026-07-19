@@ -8,18 +8,18 @@ using ShipFood.Services;
 
 namespace ShipFood.Controllers;
 
-[EnableRateLimiting("gemini-policy")]
+[EnableRateLimiting("openai-policy")]
 public class ChatbotController : BaseController
 {
-    private readonly GeminiService _gemini;
+    private readonly OpenAIService _openAI;
     private readonly EDeliveryService _eDelivery;
     private readonly ILogger<ChatbotController> _logger;
     private const int MaxHistoryLength = 20; // Giữ tối đa 20 tin nhắn gần nhất cho hội thoại tự nhiên hơn
 
-    public ChatbotController(dbFoodyEntities context, GeminiService gemini, EDeliveryService eDelivery, ILogger<ChatbotController> logger)
+    public ChatbotController(dbFoodyEntities context, OpenAIService openAI, EDeliveryService eDelivery, ILogger<ChatbotController> logger)
     {
         db = context;
-        _gemini = gemini;
+        _openAI = openAI;
         _eDelivery = eDelivery;
         _logger = logger;
     }
@@ -53,12 +53,10 @@ public class ChatbotController : BaseController
             return Json(dbResult);
         }
 
-        // 2. Dùng Gemini AI trả lời TỰ DO - không bị giới hạn bởi kịch bản lập trình sẵn
-        if (_gemini.IsConfigured)
+        // 2. Dùng OpenAI-compatible AI trả lời TỰ DO
+        if (_openAI.IsConfigured)
         {
-            // ── Đồng bộ thời gian thực: query DB trước khi gửi lên Gemini ──
-            // Tránh lệch pha giữa trạng thái đơn hàng trong DB vs Progress Bar UI
-            // Lấy trạng thái mới nhất của đơn hàng nếu có đề cập trong message
+            // ── Đồng bộ thời gian thực: query DB trước khi gửi lên AI ──
             var orderMatch = Regex.Match(message, @"(?:#|mã\s+|đơn\s+|order\s+|tra\s+)(\d{2,8})");
             string? realtimeOrderStatus = null;
             if (orderMatch.Success)
@@ -76,7 +74,6 @@ public class ChatbotController : BaseController
             }
 
             var history = GetConversationHistory();
-            // Inject realtime context + DB stats vào message trước khi gửi lên Gemini
             var augmentedMessage = message;
             var dbContext = GetDBContextSummary();
             augmentedMessage = $"[BỐI CẢNH HỆ THỐNG FASTSHIP]\n{dbContext}\n\n[CÂU HỎI CỦA KHÁCH HÀNG] {message}";
@@ -84,13 +81,13 @@ public class ChatbotController : BaseController
             {
                 augmentedMessage += $"\n\n(Dữ liệu hệ thống: {realtimeOrderStatus})";
             }
-            var geminiReply = await _gemini.SendMessageAsync(augmentedMessage, history);
-            if (!string.IsNullOrEmpty(geminiReply))
+            var aiReply = await _openAI.SendMessageAsync(augmentedMessage, history);
+            if (!string.IsNullOrEmpty(aiReply))
             {
-                SaveToHistory(message, geminiReply);
+                SaveToHistory(message, aiReply);
                 return Json(new
                 {
-                    reply = geminiReply,
+                    reply = aiReply,
                     quickReplies = GetContextualQuickReplies(message)
                 });
             }
@@ -106,8 +103,8 @@ public class ChatbotController : BaseController
             }
         }
 
-        // 3. Nếu Gemini không khả dụng (chưa cấu hình API key), thông báo nhẹ nhàng
-        var configReply = "⚠️ **FastShip Chatbot cần được cấu hình API key để hoạt động.**\n\nVui lòng liên hệ quản trị viên để thiết lập kết nối Gemini AI.\n\nTrong lúc chờ, bạn có thể dùng các lệnh sau:\n- `#123` - Tra cứu đơn hàng\n- `gợi ý món ăn` - Xem món bán chạy\n- `phí ship` - Xem thông tin phí vận chuyển";
+        // 3. Nếu AI không khả dụng (chưa cấu hình API key), thông báo nhẹ nhàng
+        var configReply = "⚠️ **FastShip Chatbot cần được cấu hình API key để hoạt động.**\n\nVui lòng liên hệ quản trị viên để thiết lập kết nối OpenAI.\n\nTrong lúc chờ, bạn có thể dùng các lệnh sau:\n- `#123` - Tra cứu đơn hàng\n- `gợi ý món ăn` - Xem món bán chạy\n- `phí ship` - Xem thông tin phí vận chuyển";
         SaveToHistory(message, configReply);
         return Json(new
         {

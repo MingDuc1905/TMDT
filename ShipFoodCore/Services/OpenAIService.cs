@@ -1,0 +1,160 @@
+using System.ClientModel;
+using OpenAI;
+using OpenAI.Chat;
+
+namespace ShipFood.Services;
+
+/// <summary>
+/// Service kết nối đến OpenAI-compatible API (ZenMux) thông qua OpenAI .NET SDK.
+/// Đọc cấu hình từ biến môi trường: OPENAI_API_KEY và OPENAI_API_BASE.
+/// Thay thế hoàn toàn GeminiService cũ (Google Gemini API).
+/// </summary>
+public class OpenAIService
+{
+    private readonly ChatClient? _chatClient;
+    private readonly ILogger<OpenAIService> _logger;
+
+    // ponytail: System prompt gi? nguyên n?i dung g?c, ch? thay tên AI assistant
+    private const string SystemPrompt = """
+Bạn là trợ lý FastShip - nền tảng giao đồ ăn tại Việt Nam.
+
+QUY TẮC:
+1. Trả lời tiếng Việt, tối đa 2-3 câu, đi thẳng vấn đề. Không dài dòng, không màu mè, không nịnh khách hàng.
+2. Chỉ trả lời các câu hỏi liên quan đến FastShip (đặt món, giao hàng, thanh toán, khuyến mãi, quán ăn). Nếu hỏi ngoài chủ đề, từ chối nhẹ nhàng và gợi ý quay lại chủ đề FastShip.
+3. Nếu hỏi về đơn hàng: bảo họ gửi mã đơn (#123).
+4. Nếu muốn gợi ý món: bảo họ gõ "gợi ý món ăn".
+5. Giọng điệu: tự nhiên, dân dã, như người bình thường nói chuyện với nhau. Không khách sáo, không xu nịnh, không dùng từ hoa mỹ.
+""";
+
+    public OpenAIService(IConfiguration configuration, ILogger<OpenAIService> logger)
+    {
+        _logger = logger;
+
+        // ponytail: ??c bi?n môi tr??ng OPENAI_API_KEY và OPENAI_API_BASE (vi?t hoa) t? Render
+        var apiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY")
+                  ?? configuration["OpenAI:ApiKey"];
+        var baseUrl = Environment.GetEnvironmentVariable("OPENAI_API_BASE")
+                   ?? configuration["OpenAI:ApiBase"];
+        var modelName = Environment.GetEnvironmentVariable("OPENAI_MODEL")
+                     ?? configuration["OpenAI:Model"]
+                     ?? "gpt-4o-mini";
+
+        if (string.IsNullOrEmpty(apiKey) || apiKey == "YOUR_OPENAI_API_KEY")
+        {
+            _logger.LogWarning("OpenAIService: OPENAI_API_KEY not configured — AI chatbot disabled");
+            _chatClient = null;
+            return;
+        }
+
+        try
+        {
+            var credential = new ApiKeyCredential(apiKey);
+
+            if (!string.IsNullOrEmpty(baseUrl))
+            {
+                // ponytail: custom base URL (ZenMux ho?c b?t k? OpenAI-compatible endpoint nào)
+                var options = new OpenAIClientOptions
+                {
+                    Endpoint = new Uri(baseUrl)
+                };
+                _chatClient = new ChatClient(modelName, credential, options);
+
+                _logger.LogInformation(
+                    "OpenAIService initialized with custom endpoint: {BaseUrl}, model: {Model}",
+                    baseUrl, modelName);
+            }
+            else
+            {
+                // fallback: dùng endpoint m?c ??nh c?a OpenAI (api.openai.com)
+                _chatClient = new ChatClient(modelName, credential);
+
+                _logger.LogInformation(
+                    "OpenAIService initialized with default OpenAI endpoint, model: {Model}",
+                    modelName);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "OpenAIService failed to initialize");
+            _chatClient = null;
+        }
+    }
+
+    /// <summary>
+    /// Kiểm tra service đã được cấu hình đầy đủ chưa
+    /// </summary>
+    public bool IsConfigured => _chatClient != null;
+
+    /// <summary>
+    /// Gửi tin nhắn đến OpenAI-compatible API và nhận phản hồi.
+    /// Trả về null nếu chưa cấu hình hoặc có lỗi nghiêm trọng.
+    /// Trả về string thông báo lỗi thân thiện nếu gặp lỗi tạm thời.
+    /// history: danh sách tin nhắn user + bot xen kẽ để duy trì hội thoại.
+    /// </summary>
+    public async Task<string?> SendMessageAsync(string message, List<string>? history = null)
+    {
+        if (!IsConfigured) return null;
+
+        try
+        {
+            // ─── Xây d?ng danh sách tin nh?n ───
+            var messages = new List<ChatMessage>
+            {
+                // System prompt
+                new SystemChatMessage(SystemPrompt)
+            };
+
+            // Lịch sử hội thoại (user + assistant xen kẽ)
+            if (history != null)
+            {
+                for (int i = 0; i < history.Count; i++)
+                {
+                    if (i % 2 == 0)
+                        messages.Add(new UserChatMessage(history[i]));
+                    else
+                        messages.Add(new AssistantChatMessage(history[i]));
+                }
+            }
+
+            // Tin nhắn hiện tại
+            messages.Add(new UserChatMessage(message));
+
+            // ─── G?i API ───
+            var completionOptions = new ChatCompletionOptions
+            {
+                Temperature = 0.7f,
+                MaxOutputTokenCount = 800
+            };
+
+            var completion = await _chatClient!.CompleteChatAsync(messages, completionOptions);
+
+            var text = completion?.Value?.Content?.FirstOrDefault()?.Text;
+
+            return string.IsNullOrEmpty(text)
+                ? "Xin lỗi, tôi chưa thể trả lời câu hỏi này ngay. Bạn có thể thử hỏi lại nhé!"
+                : text;
+        }
+        catch (ClientResultException ex) when (ex.Status == 429)
+        {
+            _logger.LogWarning("OpenAI API 429 Too Many Requests: {Message}", ex.Message);
+            return "⚠️ Hệ thống AI đang quá tải do lượt truy cập cao vào giờ cao điểm, vui lòng thử lại sau 1 phút.";
+        }
+        catch (TaskCanceledException)
+        {
+            _logger.LogWarning("OpenAI API request timeout after 30s");
+            return "⏱️ Hệ thống AI phản hồi chậm do kết nối mạng, vui lòng thử lại sau vài giây.";
+        }
+        catch (ClientResultException ex)
+        {
+            _logger.LogError(ex, "OpenAI API client error (status {Status})", ex.Status);
+            if (ex.Message.Contains("401"))
+                return "🔑 API key không hợp lệ. Vui lòng liên hệ quản trị viên.";
+            return "🔌 Mất kết nối đến dịch vụ AI, vui lòng kiểm tra mạng và thử lại.";
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "OpenAI API unexpected error: {Message}", ex.Message);
+            return null; // Fallback: chatbot s? dùng rule-based
+        }
+    }
+}

@@ -760,9 +760,10 @@ public class CartController : BaseController
         if (donHang.tbThongTinDatHang?.userid != user.userid)
             return Json(new { success = false, message = "Bạn không có quyền hủy đơn hàng này" });
 
-        // Chỉ cho phép hủy khi đơn đang ở trạng thái "Chờ thanh toán"
-        if (donHang.trangthai != "Chờ thanh toán")
-            return Json(new { success = false, message = $"Không thể hủy đơn ở trạng thái '{donHang.trangthai}'" });
+        // ═══ FIX 3: Cho phép hủy cả "Chờ thanh toán" (VNPAY) và "Đã đặt" (COD) 
+        // Chỉ hủy được khi quán chưa nhận đơn (chưa chuyển sang "Đã xác nhận")
+        if (donHang.trangthai != "Chờ thanh toán" && donHang.trangthai != "Đã đặt")
+            return Json(new { success = false, message = $"Không thể hủy đơn ở trạng thái '{donHang.trangthai}'. Chỉ hủy được khi quán chưa nhận đơn." });
 
         try
         {

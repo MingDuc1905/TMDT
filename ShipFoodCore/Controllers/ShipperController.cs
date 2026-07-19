@@ -264,59 +264,78 @@ public class ShipperController : BaseController
         return RedirectToAction("ViTien");
     }
 
+    /// <summary>
+    /// ═══ FIX 1: OrderDetail CHỈ HIỂN THỊ — không claim đơn ═══
+    /// Shipper muốn nhận đơn phải bấm nút "Nhận đơn" riêng (POST ClaimOrder)
+    /// </summary>
     public async Task<ActionResult> OrderDetail(int? id)
     {
         var sh = GetCurrentUser();
         if (sh == null || !checkShipper()) return RedirectToAction("Login", "Home");
-        if (id == null) return RedirectToAction("Index");            // ─── RACE CONDITION FIX: Atomic SQL UPDATE để tránh 2 shipper nhận cùng 1 đơn ───
-            // Dùng ExecuteSqlRaw với WHERE mashipper IS NULL để đảm bảo chỉ 1 shipper claim thành công
-            // ponytail: PostgreSQL case-sensitive — dùng "" quotes cho table/column names
-            var updatedRows = db.Database.ExecuteSqlRaw(
-                @"UPDATE ""tbDonHang"" SET ""mashipper"" = {0}, ""trangthai"" = 'Chờ shipper lấy hàng'
-                  WHERE ""madh"" = {1} AND ""mashipper"" IS NULL
-                  AND (""trangthai"" = 'Đã xác nhận' OR ""trangthai"" = 'Chờ shipper lấy hàng')",
-                sh.userid, id);
+        if (id == null) return RedirectToAction("Index");
+
+        // Chỉ kiểm tra quyền xem — không claim
+        var dh = db.tbDonHang
+            .Include(l => l.tbQuanAn)
+            .Include(l => l.tbThongTinDatHang)
+            .FirstOrDefault(l => l.madh == id);
+
+        if (dh == null)
+        {
+            TempData["ShipperError"] = "Đơn hàng không tồn tại";
+            return RedirectToAction("Index");
+        }
+
+        var listctdh = db.tbChiTietDonHang
+            .Where(ct => ct.madh == id)
+            .Include(c => c.tbBienTheMonAn!).ThenInclude(b => b.tbMonAn!).ThenInclude(m => m.tbDanhMuc)
+            .ToList();
+        ViewBag.listctdh = listctdh;
+        ViewBag.dh = dh;
+        return View();
+    }
+
+    /// <summary>
+    /// ═══ FIX 1b: Action POST riêng ?? shipper nh?n ?n (không claim t? OrderDetail GET) ═══
+    /// </summary>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<JsonResult> ClaimOrder(int id)
+    {
+        if (!checkShipper())
+            return Json(new { success = false, message = "Vui lòng đăng nhập" });
+
+        var sh = GetCurrentUser();
+        if (sh == null)
+            return Json(new { success = false, message = "Không tìm thấy thông tin shipper" });
+
+        // ─── Atomic SQL: đảm bảo chỉ 1 shipper claim thành công ───
+        var updatedRows = db.Database.ExecuteSqlRaw(
+            @"UPDATE ""tbDonHang"" SET ""mashipper"" = {0}, ""trangthai"" = 'Chờ shipper lấy hàng'
+              WHERE ""madh"" = {1} AND ""mashipper"" IS NULL
+              AND (""trangthai"" = 'Đã xác nhận' OR ""trangthai"" = 'Chờ shipper lấy hàng')",
+            sh.userid, id);
 
         if (updatedRows == 0)
         {
-            // Kiểm tra nguyên nhân: shipper khác đã nhận, hoặc đơn ko ở trạng thái chờ
             var donhangCheck = db.tbDonHang.Find(id);
             if (donhangCheck == null)
-            {
-                TempData["ShipperError"] = "Đơn hàng không tồn tại";
-                return RedirectToAction("Index");
-            }
+                return Json(new { success = false, message = "Đơn hàng không tồn tại" });
             if (donhangCheck.mashipper != null && donhangCheck.mashipper != sh.userid)
-            {
-                TempData["ShipperError"] = "Đơn hàng đã được shipper khác tiếp nhận";
-                return RedirectToAction("Index");
-            }
+                return Json(new { success = false, message = "Đơn hàng đã được shipper khác tiếp nhận" });
             if (donhangCheck.trangthai != "Đã xác nhận" && donhangCheck.trangthai != "Chờ shipper lấy hàng")
-            {
-                TempData["ShipperError"] = "Đơn hàng không còn ở trạng thái chờ nhận";
-                return RedirectToAction("Index");
-            }
-            // Trường hợp chính shipper này đã claim rồi (reload trang) → cho qua
+                return Json(new { success = false, message = "Đơn hàng không còn ở trạng thái chờ nhận" });
+            // Đã claim rồi → cho qua
         }
 
-        // ═══ SignalR: Broadcast toàn bộ shippers rằng đơn đã được nhận ═══
+        // SignalR: broadcast cho các shipper khác
         try
         {
             await _hubContext.Clients.Group("shippers").SendAsync("orderAccepted", id, sh.userid);
         }
         catch { }
 
-        var listctdh = db.tbChiTietDonHang
-            .Where(ct => ct.madh == id)
-            .Include(c => c.tbBienTheMonAn!).ThenInclude(b => b.tbMonAn!).ThenInclude(m => m.tbDanhMuc)
-            .ToList();
-        var dh = db.tbDonHang
-            .Include(l => l.tbQuanAn)
-            .Include(l => l.tbThongTinDatHang)
-            .FirstOrDefault(l => l.madh == id);
-        ViewBag.listctdh = listctdh;
-        ViewBag.dh = dh;
-        return View();
+        return Json(new { success = true, message = "Nhận đơn thành công!" });
     }
 
     /// <summary>
@@ -347,6 +366,11 @@ public class ShipperController : BaseController
     {
         if (!checkShipper())
             return Json(new { success = false, message = "Không có quyền thực hiện" });
+
+        var sh = GetCurrentUser();
+        if (sh == null)
+            return Json(new { success = false, message = "Không tìm thấy thông tin shipper" });
+
         string? trangthai = null;
         if (status == "lh") trangthai = "Đã lấy";
         if (status == "ht") trangthai = "Hoàn thành";
@@ -355,6 +379,12 @@ public class ShipperController : BaseController
         if (trangthai != null)
         {
             var donhang = db.tbDonHang.Include(d => d.tbThongTinDatHang).FirstOrDefault(d => d.madh == id);
+
+            // ═══ FIX 2: Chỉ shipper được phân công mới được update ───
+            if (donhang != null && donhang.mashipper != sh.userid)
+            {
+                return Json(new { success = false, message = "Bạn không phải shipper phụ trách đơn hàng này" });
+            }
             if (donhang != null)
             {
                 // ponytail: Fix Item 9 — validate state transition

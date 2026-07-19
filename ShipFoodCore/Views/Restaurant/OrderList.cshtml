@@ -80,10 +80,23 @@
                                         <a href="~/Restaurant/nhandon/@i.madh"><span style="width: 115px; font-size: 13px; " class="btn btn-success light btn-secondary">Nhận đơn</span></a>
                                         <a href="~/Restaurant/huydon/@i.madh" onclick="return confirm('Bạn có chắc muốn huỷ đơn này?')"><span style="width: 115px; font-size: 13px;" class="btn btn-warning light btn-secondary">Huỷ đơn</span></a>
                                     }
+                                    else if (i.trangthai == "Chờ thanh toán")
+                                    {
+                                        <span style="width: 140px; font-size: 12px;" class="btn btn-secondary light btn-secondary" title="Đơn đang chờ khách thanh toán VNPAY">⏳ Chờ thanh toán</span>
+                                        <a href="~/Restaurant/huydon/@i.madh" onclick="return confirm('Bạn có chắc muốn huỷ đơn này?')"><span style="width: 115px; font-size: 13px;" class="btn btn-warning light btn-secondary">Huỷ đơn</span></a>
+                                    }
                                     else if (i.trangthai == "Đã xác nhận" || i.trangthai == "Đang chuẩn bị")
                                     {
                                         <a href="~/Restaurant/hoantatdon/@i.madh"><span style="width: 140px; font-size: 13px;" class="btn btn-primary btn-secondary">Chuẩn bị xong</span></a>
                                         <a href="~/Restaurant/huydon/@i.madh" onclick="return confirm('Bạn có chắc muốn huỷ đơn này?')"><span style="width: 115px; font-size: 13px;" class="btn btn-warning light btn-secondary">Huỷ đơn</span></a>
+                                    }
+                                    else if (i.trangthai == "Chờ shipper lấy hàng" || i.trangthai == "Đã lấy" || i.trangthai == "Đang giao")
+                                    {
+                                        <span style="width: 140px; font-size: 12px;" class="btn btn-info light btn-secondary">🚚 Đang giao</span>
+                                    }
+                                    else if (i.trangthai == "Hoàn thành")
+                                    {
+                                        <span style="width: 115px; font-size: 12px;" class="btn btn-success light btn-secondary">✅ Hoàn thành</span>
                                     }
                                     <a href="~/Cart/ChiTietDonHang?id=@i.madh"><span style="width:115px" class="btn btn-sm light btn-secondary fs-16">Chi tiết</span></a>
                                 </td>

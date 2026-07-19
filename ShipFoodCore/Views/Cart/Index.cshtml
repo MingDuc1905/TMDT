@@ -363,11 +363,34 @@
         var apiUrl = '@Url.Action("ApiXoaMon","Cart")?maMonAn=' + maMonAn;
         $.getJSON(apiUrl, function(res) {
             if (res.success) {
+                // ═══ FIX: Xóa localStorage đồng bộ với session (trước fadeOut) ═══
+                if (res.isEmpty) {
+                    if (window.FastShipCart && typeof FastShipCart.clear === 'function') {
+                        FastShipCart.clear();
+                    }
+                } else {
+                    // Lọc item khỏi localStorage ngay lập tức (không chờ DOM)
+                    if (window.FastShipCart && typeof FastShipCart.save === 'function') {
+                        try {
+                            var local = JSON.parse(localStorage.getItem('fastship_cart'));
+                            if (local && local.items) {
+                                local.items = local.items.filter(function(item) { return item.mamon !== maMonAn; });
+                                local.tongTien = parseFloat(res.cartTotal.replace(/[^0-9]/g,'')) || 0;
+                                FastShipCart.save(local);
+                            }
+                        } catch(e) { console.warn('Cart local sync error:', e); }
+                    }
+                }
+
                 $row.fadeOut(300, function() { 
                     $(this).remove(); 
                     var remaining = $('.cart-item').length;
                     if (remaining === 0) {
-                        location.reload();
+                        if (res.redirectUrl) {
+                            window.location.href = res.redirectUrl;
+                        } else {
+                            location.reload();
+                        }
                     } else {
                         // Cập nhật badge giỏ hàng nếu còn item
                         var badge = document.getElementById('navCartBadge');

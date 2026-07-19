@@ -146,14 +146,33 @@ QUY TẮC:
         }
         catch (ClientResultException ex)
         {
-            _logger.LogError(ex, "OpenAI API client error (status {Status})", ex.Status);
-            if (ex.Message.Contains("401"))
-                return "🔑 API key không hợp lệ. Vui lòng liên hệ quản trị viên.";
-            return "🔌 Mất kết nối đến dịch vụ AI, vui lòng kiểm tra mạng và thử lại.";
+            // ponytail: Log ??y ?? thông tin l?i ?? debug
+            var errorDetail = ex.Message ?? "(no message)";
+            var innerDetail = ex.InnerException?.Message ?? "(no inner)";
+            _logger.LogError(ex,
+                "OpenAI API client error (status {Status}). Message={Message}, Inner={Inner}",
+                ex.Status, errorDetail, innerDetail);
+
+            // ponytail: Phân lo?i l?i d?a trên status code
+            if (ex.Status == 400)
+                return "❌ API trả về lỗi 400 (Bad Request). Vui lòng kiểm tra cấu hình model và endpoint.";
+            if (ex.Status == 401)
+                return "🔑 API key không hợp lệ (401 Unauthorized). Vui lòng kiểm tra OPENAI_API_KEY.";
+            if (ex.Status == 403)
+                return "🔒 API key không có quyền truy cập model này (403 Forbidden).";
+            if (ex.Status == 404)
+                return "🔍 Endpoint hoặc model không tồn tại (404 Not Found). Vui lòng kiểm tra OPENAI_API_BASE và model name.";
+            if (ex.Status >= 500)
+                return "🔧 Dịch vụ AI đang gặp lỗi máy chủ (" + ex.Status + "). Vui lòng thử lại sau.";
+
+            // ponytail: Các l?i khác — log chi ti?t response body n?u có
+            return $"🔌 Không thể kết nối đến dịch vụ AI (HTTP {ex.Status}). Vui lòng kiểm tra OPENAI_API_KEY và OPENAI_API_BASE.";
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "OpenAI API unexpected error: {Message}", ex.Message);
+            _logger.LogError(ex,
+                "OpenAI API unexpected error: {Message}. Inner: {Inner}",
+                ex.Message, ex.InnerException?.Message ?? "(no inner)");
             return null; // Fallback: chatbot s? dùng rule-based
         }
     }

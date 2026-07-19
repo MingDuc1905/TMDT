@@ -8,6 +8,7 @@
     .order-status {
         display: inline-block; padding: 4px 14px; border-radius: 20px;
         font-size: 12px; font-weight: 600;
+        font-family: var(--fs-font, 'Inter', sans-serif);
     }
     .order-status.success { background: #f0fdf4; color: #16a34a; }
     .order-status.warning { background: #fefce8; color: #d97706; }
@@ -18,10 +19,10 @@
     @@media (max-width: 768px) {
         .order-table thead { position: absolute; top: -9999px; left: -9999px; }
         .order-table tr {
-            display: block; background: white; border-radius: 12px;
+            display: block; background: var(--fs-white); border-radius: var(--fs-radius);
             margin-bottom: 12px; padding: 16px;
-            box-shadow: 0 2px 8px rgba(0,0,0,.04);
-            border: 1px solid #f0f0f0;
+            box-shadow: var(--fs-shadow-sm);
+            border: 1px solid var(--fs-border-soft);
         }
         .order-table td {
             display: flex; align-items: center; padding: 6px 0 !important;
@@ -29,7 +30,7 @@
         }
         .order-table td:before {
             content: attr(data-label);
-            width: 100px; font-weight: 600; color: #6b7280;
+            width: 100px; font-weight: 600; color: var(--fs-muted);
             flex-shrink: 0;
         }
     }
@@ -38,9 +39,9 @@
 <div class="content-body">
     <div class="container-fluid">
         <div class="page-header">
-            <h2><i class="fas fa-shopping-cart" style="color:#3CB815;margin-right:8px;"></i>Danh sách đơn hàng</h2>
-            <span style="font-size:13px;color:#6b7280;background:#f3f4f6;padding:6px 14px;border-radius:20px;">
-                <i class="fas fa-info-circle"></i> Chỉ đơn có shipper mới xem được chi tiết
+            <h2><i class="fas fa-shopping-cart fs-text-green me-2"></i>Danh sách đơn hàng</h2>
+            <span class="fs-badge fs-badge-neutral">
+                <i class="fas fa-info-circle me-1"></i> Chỉ đơn có shipper mới xem được chi tiết
             </span>
         </div>
 
@@ -102,9 +103,10 @@
         </div>
         @if (!Model.Any())
         {
-            <div style="text-align:center;padding:60px 20px;color:#9ca3af;">
-                <div style="font-size:48px;margin-bottom:12px;"><i class="fas fa-box" style="color:#9ca3af;"></i></div>
-                <p>Chưa có đơn hàng nào</p>
+            <div class="fs-empty-state">
+                <span class="fs-empty-state-icon"><i class="fas fa-box"></i></span>
+                <h5>Chưa có đơn hàng</h5>
+                <p>Chưa có đơn hàng nào trong hệ thống.</p>
             </div>
         }
     </div>

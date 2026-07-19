@@ -35,79 +35,83 @@
         </div>
 
         <!-- Summary Cards with hover animations -->
+    <!-- Styles now use design tokens from fs-dashboard-overrides.css + fastship-design-tokens.css -->
     <style>
-        .stat-card { transition: all 0.3s ease; border: none; border-radius: 12px; overflow: hidden; }
-        .stat-card:hover { transform: translateY(-6px); box-shadow: 0 12px 30px rgba(0,0,0,0.12); }
-        .stat-card .card-body { padding: 1.5rem; }
-        .stat-card .stat-icon { width: 56px; height: 56px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 24px; color: white; transition: all 0.3s; }
-        .stat-card:hover .stat-icon { transform: scale(1.1) rotate(-5deg); }
-        .stat-value { font-size: 1.8rem; font-weight: 700; margin: 0; transition: all 0.3s; }
-        .stat-label { color: #6c757d; font-size: 0.9rem; margin: 0; }
-        .chart-container { border: none; border-radius: 14px; overflow: hidden; transition: all 0.3s; }
-        .chart-container:hover { box-shadow: 0 8px 25px rgba(0,0,0,0.08); }
-        .chart-container .card-header { background: white; border-bottom: 2px solid #f0f0f0; padding: 1rem 1.5rem; }
-        .chart-container .card-header h4 { margin: 0; font-size: 1.1rem; font-weight: 600; color: #333; }
-        .filter-bar { background: linear-gradient(145deg, #ffffff, #f8f9fa); border: none; border-radius: 14px; padding: 1.2rem 1.5rem; box-shadow: 0 2px 10px rgba(0,0,0,0.04); }
-        .apriori-card { background:linear-gradient(145deg,#f8f9fa,#fff);border-radius:12px;padding:16px 18px;border:1px solid #e9ecef;transition:all .3s; }
-        .apriori-card:hover { border-color:#17a2b8; box-shadow:0 4px 16px rgba(23,162,184,.15); }
+        .filter-bar {
+            background: var(--fs-white);
+            border: none; border-radius: var(--fs-radius);
+            padding: 1.2rem 1.5rem;
+            box-shadow: var(--fs-shadow-sm);
+        }
+        .apriori-card {
+            background: var(--fs-light);
+            border-radius: var(--fs-radius);
+            padding: 16px 18px;
+            border: 1px solid var(--fs-border);
+            transition: all .3s;
+        }
+        .apriori-card:hover {
+            border-color: #17a2b8;
+            box-shadow: 0 4px 16px rgba(23,162,184,.15);
+        }
     </style>
 
     <div class="row" id="summary-cards">
         <div class="col-xl-3 col-lg-6 col-md-6 mb-4">
-            <div class="card stat-card shadow-sm">
+            <div class="card fs-kpi-card">
                 <div class="card-body">
                     <div class="d-flex align-items-center">
-                        <div class="stat-icon me-3" style="background: linear-gradient(135deg, #28a745, #20c997);">
+                        <div class="fs-kpi-icon fs-kpi-icon-green me-3" style="width:56px;height:56px;font-size:24px;">
                             <i class="fas fa-dollar-sign"></i>
                         </div>
                         <div>
-                            <p class="stat-label">Tổng doanh thu</p>
-                            <h3 class="stat-value text-success" id="stat-doanhthu">0</h3>
+                            <p class="fs-kpi-label">Tổng doanh thu</p>
+                            <h3 class="fs-kpi-value text-success" id="stat-doanhthu">0</h3>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
         <div class="col-xl-3 col-lg-6 col-md-6 mb-4">
-            <div class="card stat-card shadow-sm">
+            <div class="card fs-kpi-card">
                 <div class="card-body">
                     <div class="d-flex align-items-center">
-                        <div class="stat-icon me-3" style="background: linear-gradient(135deg, #007bff, #17a2b8);">
+                        <div class="fs-kpi-icon fs-kpi-icon-blue me-3" style="width:56px;height:56px;font-size:24px;">
                             <i class="fas fa-shopping-cart"></i>
                         </div>
                         <div>
-                            <p class="stat-label">Tổng số đơn</p>
-                            <h3 class="stat-value text-primary" id="stat-sodon">0</h3>
+                            <p class="fs-kpi-label">Tổng số đơn</p>
+                            <h3 class="fs-kpi-value text-primary" id="stat-sodon">0</h3>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
         <div class="col-xl-3 col-lg-6 col-md-6 mb-4">
-            <div class="card stat-card shadow-sm">
+            <div class="card fs-kpi-card">
                 <div class="card-body">
                     <div class="d-flex align-items-center">
-                        <div class="stat-icon me-3" style="background: linear-gradient(135deg, #17a2b8, #6f42c1);">
+                        <div class="fs-kpi-icon fs-kpi-icon-blue me-3" style="width:56px;height:56px;font-size:24px;background:linear-gradient(135deg, #17a2b8, #6f42c1);color:#fff;">
                             <i class="fas fa-users"></i>
                         </div>
                         <div>
-                            <p class="stat-label">Khách hàng mới</p>
-                            <h3 class="stat-value text-info" id="stat-khachhang">0</h3>
+                            <p class="fs-kpi-label">Khách hàng mới</p>
+                            <h3 class="fs-kpi-value text-info" id="stat-khachhang">0</h3>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
         <div class="col-xl-3 col-lg-6 col-md-6 mb-4">
-            <div class="card stat-card shadow-sm">
+            <div class="card fs-kpi-card">
                 <div class="card-body">
                     <div class="d-flex align-items-center">
-                        <div class="stat-icon me-3" style="background: linear-gradient(135deg, #ffc107, #fd7e14);">
+                        <div class="fs-kpi-icon fs-kpi-icon-orange me-3" style="width:56px;height:56px;font-size:24px;">
                             <i class="fas fa-percent"></i>
                         </div>
                         <div>
-                            <p class="stat-label">Tỷ lệ hủy</p>
-                            <h3 class="stat-value text-warning" id="stat-tilehuy">0%</h3>
+                            <p class="fs-kpi-label">Tỷ lệ hủy</p>
+                            <h3 class="fs-kpi-value text-warning" id="stat-tilehuy">0%</h3>
                         </div>
                     </div>
                 </div>
@@ -119,7 +123,7 @@
         <!-- Charts Row 1: Line + Pie -->
         <div class="row">
             <div class="col-lg-8 mb-4">
-                <div class="card chart-container shadow-sm">
+                <div class="card fs-card shadow-sm">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h4><i class="fas fa-chart-line text-success me-2"></i>Doanh thu & Số đơn theo ngày</h4>
                         <span class="badge bg-success rounded-pill">Real-time</span>
@@ -130,7 +134,7 @@
                 </div>
             </div>
             <div class="col-lg-4 mb-4">
-                <div class="card chart-container shadow-sm">
+                <div class="card fs-card shadow-sm">
                     <div class="card-header">
                         <h4><i class="fas fa-chart-pie text-primary me-2"></i>Trạng thái đơn hàng</h4>
                     </div>

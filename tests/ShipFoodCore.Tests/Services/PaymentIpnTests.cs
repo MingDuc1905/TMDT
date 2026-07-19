@@ -1,147 +1,134 @@
-using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.SignalR;
 using Moq;
 using ShipFood.Controllers;
+using ShipFood.Hubs;
 using ShipFood.Models;
 using ShipFood.Services;
-using ShipFood.Hubs;
 using ShipFoodCore.Tests.Helpers;
 
 namespace ShipFoodCore.Tests.Services;
 
 /// <summary>
-/// Integration tests for PaymentController MoMo IPN callback.
-/// Tests verify that payment status is correctly updated in DB when MoMo sends IPN.
-/// CRITICAL: Fake IPN = free food. Wrong signature = fraud.
+/// Integration tests for PaymentController VNPAY IPN callback.
+/// Tests verify that payment status is correctly updated in DB when VNPAY sends IPN.
 /// </summary>
 public class PaymentIpnTests
 {
     [Fact]
-    public async Task MoMoIpn_InvalidSignature_ReturnsError()
+    public async Task VnpayIpn_ValidSignature_UpdatesOrderStatus()
+    {
+        // Arrange — create a pending order in DB
+        var (db, _, _, _, _) = TestDbContextFactory.CreateSeeded();
+        await using var _ = db;
+
+        var ttdh = new tbThongTinDatHang
+        {
+            userid = 2, sdt = "0900000002", diachi = "123 Test St", tennguoinhan = "Test User"
+        };
+        db.tbThongTinDatHang.Add(ttdh);
+        await db.SaveChangesAsync();
+
+        var order = new tbDonHang
+        {
+            maquan = 3, mattdh = ttdh.mattdh,
+            ngaydathang = DateTime.Now,
+            trangthai = "Chờ thanh toán",
+            tongtien = 50000,
+            hinhthucthanhtoan = 1
+        };
+        db.tbDonHang.Add(order);
+        await db.SaveChangesAsync();
+        var createdOrderId = order.madh;
+
+        var mockVnpayService = new Mock<VnpayService>(
+            new Mock<IConfiguration>().Object,
+            new Mock<ILogger<VnpayService>>().Object);
+        mockVnpayService.Setup(s => s.VerifySignature(It.IsAny<IDictionary<string, string>>()))
+            .Returns(true);
+
+        var mockHubContext = new Mock<IHubContext<Chats>>();
+        var mockEdelivery = new Mock<EDeliveryService>(db, new Mock<ILogger<EDeliveryService>>().Object);
+
+        var controller = new PaymentController(
+            db,
+            new Mock<ILogger<PaymentController>>().Object,
+            mockHubContext.Object,
+            mockVnpayService.Object,
+            new Mock<IConfiguration>().Object,
+            mockEdelivery.Object
+        );
+
+        // Simulate valid VNPAY IPN with query params
+        var httpContext = new DefaultHttpContext();
+        httpContext.Request.QueryString = new QueryString(
+            $"?vnp_ResponseCode=00&vnp_TxnRef={createdOrderId}&vnp_TransactionNo=123456&vnp_Amount=5000000&vnp_SecureHash=validhash");
+        controller.ControllerContext = new ControllerContext
+        {
+            HttpContext = httpContext
+        };
+
+        // Act — VNPAY sends valid IPN
+        var result = await controller.VnpayIPN();
+
+        // Assert — Order should now be "Đã đặt"
+        var updatedOrder = await db.tbDonHangs.FindAsync(createdOrderId);
+        Assert.NotNull(updatedOrder);
+        Assert.Equal("Đã đặt", updatedOrder.trangthai);
+        Assert.NotNull(updatedOrder.ngaythanhtoan);
+    }
+
+    [Fact]
+    public async Task VnpayIpn_InvalidSignature_ReturnsError()
     {
         // Arrange
         var (db, _, _, _, _) = TestDbContextFactory.CreateSeeded();
         await using var _ = db;
 
-        var mockMomoService = new Mock<MoMoService>(
+        var mockVnpayService = new Mock<VnpayService>(
             new Mock<IConfiguration>().Object,
-            new Mock<ILogger<MoMoService>>().Object,
-            new HttpClient());
-        mockMomoService.Setup(s => s.VerifyIpnSignature(It.IsAny<Dictionary<string, string>>()))
+            new Mock<ILogger<VnpayService>>().Object);
+        mockVnpayService.Setup(s => s.VerifySignature(It.IsAny<IDictionary<string, string>>()))
             .Returns(false);
 
         var mockHubContext = new Mock<IHubContext<Chats>>();
         var mockEdelivery = new Mock<EDeliveryService>(db, new Mock<ILogger<EDeliveryService>>().Object);
-        var mockConfig = new Mock<IConfiguration>();
 
         var controller = new PaymentController(
             db,
             new Mock<ILogger<PaymentController>>().Object,
             mockHubContext.Object,
-            mockMomoService.Object,
-            mockConfig.Object,
-            mockEdelivery.Object);
-
-        // Act — MoMo sends IPN with invalid signature
-        var body = System.Text.Json.JsonSerializer.Serialize(new
-        {
-            orderId = "FS1_20260715120000",
-            resultCode = 0,
-            signature = "invalid_signature_12345"
-        });
-
-        // Set up HttpContext for the controller
-        var httpContext = new Microsoft.AspNetCore.Http.DefaultHttpContext();
-        httpContext.Request.Body = new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes(body));
-        controller.ControllerContext = new Microsoft.AspNetCore.Mvc.ControllerContext
-        {
-            HttpContext = httpContext
-        };
-
-        // Act
-        var result = await controller.MoMoIpn();
-
-        // Assert — signature verification fails, should return error
-        // The controller checks VerifyIpnSignature first
-        mockMomoService.Verify(s => s.VerifyIpnSignature(It.IsAny<Dictionary<string, string>>()), Times.Once);
-    }
-
-    [Fact]
-    public async Task MoMoIpn_ValidSignature_UpdatesOrderStatus()
-    {
-        // Arrange
-        var (db, _, _, _, _) = TestDbContextFactory.CreateSeeded();
-        await using var _ = db;
-
-        // Create an order in "Chờ thanh toán" status
-        var ttdh = new tbThongTinDatHang
-        {
-            userid = 2, sdt = "0900000002", diachi = "123 Test St", tennguoinhan = "Test User"
-        };
-        db.tbThongTinDatHang.Add(ttdh);
-        await db.SaveChangesAsync();
-
-        var order = new tbDonHang
-        {
-            maquan = 3, mattdh = ttdh.mattdh,
-            ngaydathang = DateTime.Now, trangthai = "Chờ thanh toán",
-            tongtien = 100000, hinhthucthanhtoan = 5, phiship = 15000
-        };
-        db.tbDonHang.Add(order);
-        await db.SaveChangesAsync();
-
-        var mockMomoService = new Mock<MoMoService>(
+            mockVnpayService.Object,
             new Mock<IConfiguration>().Object,
-            new Mock<ILogger<MoMoService>>().Object,
-            new HttpClient());
-        mockMomoService.Setup(s => s.VerifyIpnSignature(It.IsAny<Dictionary<string, string>>()))
-            .Returns(true);
+            mockEdelivery.Object
+        );
 
-        var mockHubContext = new Mock<IHubContext<Chats>>();
-        var mockEdelivery = new Mock<EDeliveryService>(db, new Mock<ILogger<EDeliveryService>>().Object);
-        var mockConfig = new Mock<IConfiguration>();
-
-        var controller = new PaymentController(
-            db,
-            new Mock<ILogger<PaymentController>>().Object,
-            mockHubContext.Object,
-            mockMomoService.Object,
-            mockConfig.Object,
-            mockEdelivery.Object);
-
-        var ipnParams = new Dictionary<string, string>
-        {
-            { "orderId", $"FS{order.madh}_20260715120000" },
-            { "resultCode", "0" },
-            { "transId", "12345678" },
-            { "signature", "valid" }
-        };
-        var body = System.Text.Json.JsonSerializer.Serialize(ipnParams);
-
-        var httpContext = new Microsoft.AspNetCore.Http.DefaultHttpContext();
-        httpContext.Request.Body = new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes(body));
-        controller.ControllerContext = new Microsoft.AspNetCore.Mvc.ControllerContext
+        // Simulate VNPAY IPN with invalid signature
+        var httpContext = new DefaultHttpContext();
+        httpContext.Request.QueryString = new QueryString(
+            "?vnp_ResponseCode=00&vnp_TxnRef=1&vnp_SecureHash=invalid");
+        controller.ControllerContext = new ControllerContext
         {
             HttpContext = httpContext
         };
 
         // Act
-        var result = await controller.MoMoIpn();
+        var result = await controller.VnpayIPN();
 
-        // Assert — order status should be updated
-        var updatedOrder = await db.tbDonHangs.FindAsync(order.madh);
-        Assert.NotNull(updatedOrder);
-        Assert.Equal("Đã thanh toán", updatedOrder.trangthai);
-        Assert.NotNull(updatedOrder.ngaythanhtoan);
-        Assert.Equal("12345678", updatedOrder.momo_trans_id);
+        // Assert
+        var jsonResult = Assert.IsType<JsonResult>(result);
+        dynamic value = jsonResult.Value!;
+        string rspCode = value.GetType().GetProperty("RspCode")?.GetValue(value, null) as string;
+        Assert.Equal("97", rspCode);
     }
 
     [Fact]
-    public async Task MoMoIpn_FailedPayment_KeepsOrderPending()
+    public async Task VnpayIpn_DuplicateCallback_DoesNotDoubleProcess()
     {
-        // Arrange
+        // Arrange — create an already-paid order
         var (db, _, _, _, _) = TestDbContextFactory.CreateSeeded();
         await using var _ = db;
 
@@ -155,56 +142,48 @@ public class PaymentIpnTests
         var order = new tbDonHang
         {
             maquan = 3, mattdh = ttdh.mattdh,
-            ngaydathang = DateTime.Now, trangthai = "Chờ thanh toán",
-            tongtien = 100000, hinhthucthanhtoan = 5, phiship = 15000
+            ngaydathang = DateTime.Now,
+            trangthai = "Đã đặt",
+            tongtien = 50000,
+            hinhthucthanhtoan = 1
         };
         db.tbDonHang.Add(order);
         await db.SaveChangesAsync();
+        var createdOrderId = order.madh;
 
-        var mockMomoService = new Mock<MoMoService>(
+        var mockVnpayService = new Mock<VnpayService>(
             new Mock<IConfiguration>().Object,
-            new Mock<ILogger<MoMoService>>().Object,
-            new HttpClient());
-        mockMomoService.Setup(s => s.VerifyIpnSignature(It.IsAny<Dictionary<string, string>>()))
+            new Mock<ILogger<VnpayService>>().Object);
+        mockVnpayService.Setup(s => s.VerifySignature(It.IsAny<IDictionary<string, string>>()))
             .Returns(true);
 
         var mockHubContext = new Mock<IHubContext<Chats>>();
         var mockEdelivery = new Mock<EDeliveryService>(db, new Mock<ILogger<EDeliveryService>>().Object);
-        var mockConfig = new Mock<IConfiguration>();
 
         var controller = new PaymentController(
             db,
             new Mock<ILogger<PaymentController>>().Object,
             mockHubContext.Object,
-            mockMomoService.Object,
-            mockConfig.Object,
-            mockEdelivery.Object);
+            mockVnpayService.Object,
+            new Mock<IConfiguration>().Object,
+            mockEdelivery.Object
+        );
 
-        // resultCode != 0 means failed
-        var ipnParams = new Dictionary<string, string>
-        {
-            { "orderId", $"FS{order.madh}_20260715120000" },
-            { "resultCode", "7000" }, // MoMo error code
-            { "message", "Insufficient balance" },
-            { "transId", "" },
-            { "signature", "valid" }
-        };
-        var body = System.Text.Json.JsonSerializer.Serialize(ipnParams);
-
-        var httpContext = new Microsoft.AspNetCore.Http.DefaultHttpContext();
-        httpContext.Request.Body = new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes(body));
-        controller.ControllerContext = new Microsoft.AspNetCore.Mvc.ControllerContext
+        // Simulate duplicate VNPAY IPN
+        var httpContext = new DefaultHttpContext();
+        httpContext.Request.QueryString = new QueryString(
+            $"?vnp_ResponseCode=00&vnp_TxnRef={createdOrderId}&vnp_TransactionNo=999999&vnp_Amount=5000000&vnp_SecureHash=validhash");
+        controller.ControllerContext = new ControllerContext
         {
             HttpContext = httpContext
         };
 
-        // Act
-        var result = await controller.MoMoIpn();
+        // Act — duplicate IPN
+        var result = await controller.VnpayIPN();
 
-        // Assert — order should remain in "Chờ thanh toán"
-        var updatedOrder = await db.tbDonHangs.FindAsync(order.madh);
-        Assert.NotNull(updatedOrder);
-        Assert.Equal("Chờ thanh toán", updatedOrder.trangthai);
-        Assert.Null(updatedOrder.ngaythanhtoan);
+        // Assert — Order status should still be "Đã đặt"
+        var unchangedOrder = await db.tbDonHangs.FindAsync(createdOrderId);
+        Assert.NotNull(unchangedOrder);
+        Assert.Equal("Đã đặt", unchangedOrder.trangthai);
     }
 }

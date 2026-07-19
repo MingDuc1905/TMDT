@@ -13,24 +13,22 @@ public class PaymentController : BaseController
 {
     private readonly ILogger<PaymentController> _logger;
     private readonly IHubContext<Chats> _hubContext;
-    private readonly MoMoService _moMoService;
-    private readonly PayPalService _payPalService;
+    private readonly VnpayService _vnpayService;
     private readonly IConfiguration _configuration;
     private readonly EDeliveryService _eDelivery;
 
     public PaymentController(dbFoodyEntities context, ILogger<PaymentController> logger, IHubContext<Chats> hubContext,
-        MoMoService moMoService, PayPalService payPalService, IConfiguration configuration, EDeliveryService eDelivery)
+        VnpayService vnpayService, IConfiguration configuration, EDeliveryService eDelivery)
     {
         db = context;
         _logger = logger;
         _hubContext = hubContext;
-        _moMoService = moMoService;
-        _payPalService = payPalService;
+        _vnpayService = vnpayService;
         _configuration = configuration;
         _eDelivery = eDelivery;
     }
 
-    // ─── Bank transfer config (đọc từ env vars) ───
+    // ─── Bank transfer config (giữ lại cho BankWebhook backward compatibility) ───
     private string BankId => _configuration["BANK_ID"] ?? "970436";
     private string BankVietQrBinCode => BankHelper.GetVietQrBinCode(BankId);
     private string BankAccountNo => _configuration["BANK_ACCOUNT_NO"] ?? "1234567890";
@@ -89,7 +87,7 @@ public class PaymentController : BaseController
         {
             var user = GetCurrentUser();
 
-            // ═══ 1 PENDING ORDER PER USER: Không cho tạo đơn mới nếu đang có đơn "Chờ thanh toán" ═══
+            // ═══ 1 PENDING ORDER PER USER ═══
             var pendingOrder = db.tbDonHang
                 .Where(dh => dh.tbThongTinDatHang != null
                     && dh.tbThongTinDatHang.userid == user!.userid
@@ -106,7 +104,7 @@ public class PaymentController : BaseController
                 });
             }
 
-            // ═══ IDEMPOTENCY LOCK: Chống tạo đơn trùng trong 30 giây ═══
+            // ═══ IDEMPOTENCY LOCK ═══
             var recentOrderCount = db.tbDonHang
                 .Where(dh => dh.tbThongTinDatHang != null
                     && dh.tbThongTinDatHang.userid == user!.userid
@@ -122,7 +120,7 @@ public class PaymentController : BaseController
                 });
             }
 
-            // ═══ MULTI-DEVICE CHECK: Phát hiện giỏ hàng đã được xử lý trên thiết bị khác ═══
+            // ═══ MULTI-DEVICE CHECK ═══
             var recentMultiDeviceOrder = db.tbDonHang
                 .Where(dh => dh.tbThongTinDatHang != null
                     && dh.tbThongTinDatHang.userid == user!.userid
@@ -168,7 +166,7 @@ public class PaymentController : BaseController
                 db.SaveChanges();
             }
 
-            // ═══ 3a: BẮT BUỘC re-read giá từ DB ═══
+            // ═══ Re-read giá từ DB ═══
             decimal tongTienMon = 0;
             foreach (var item in cart.items)
             {
@@ -177,14 +175,11 @@ public class PaymentController : BaseController
                 {
                     return Json(new { success = false, message = $"Món '{item.tenmon}' không còn tồn tại hoặc đã thay đổi giá. Vui lòng tải lại giỏ hàng." });
                 }
-
-                // ═══ KIỂM TRA TỒN KHO TRƯỚC KHI TẠO ĐƠN ═══
                 var monAn = db.tbMonAn.Find(item.mamon);
                 if (monAn != null && monAn.conhang == false)
                 {
                     return Json(new { success = false, message = $"Món '{item.tenmon}' đã hết hàng. Vui lòng xóa khỏi giỏ hàng trước khi thanh toán." });
                 }
-
                 item.giatien = bt.giatien;
                 tongTienMon += (bt.giatien ?? 0) * item.soLuong;
             }
@@ -212,17 +207,14 @@ public class PaymentController : BaseController
                 }
             }
 
-            decimal tongCong = Math.Max(tongTienMon + phiShip - discountAmount, 0);
-
-            bool isBankTransfer = IsBankTransferMethod(pttt) || pttt == 5 || IsPayPalMethod(pttt);
-            bool isPayPal = IsPayPalMethod(pttt);
-            var trangThaiBanDau = isBankTransfer ? "Chờ thanh toán" : "Đã đặt";
+            // ═══ Xác định trạng thái ban đầu dựa trên phương thức thanh toán ═══
+            // COD (Tiền mặt) → "Đã đặt"
+            // VNPAY → "Chờ thanh toán" (chờ VNPAY IPN xác nhận)
+            bool isVnpay = IsVnpayMethod(pttt);
+            var trangThaiBanDau = isVnpay ? "Chờ thanh toán" : "Đã đặt";
 
             var createdOrders = new List<int>();
-            string? momoPayUrl = null;
-            bool momoSuccess = false;
             decimal totalAllOrders = 0;
-
             bool shipFeeApplied = false;
 
             foreach (var resId in restaurantIds)
@@ -238,13 +230,11 @@ public class PaymentController : BaseController
                     {
                         return Json(new { success = false, message = $"Món '{item.tenmon}' không còn tồn tại hoặc đã thay đổi giá. Vui lòng tải lại giỏ hàng." });
                     }
-
                     var monAn = db.tbMonAn.Find(item.mamon);
                     if (monAn != null && monAn.conhang == false)
                     {
                         return Json(new { success = false, message = $"Món '{item.tenmon}' đã hết hàng. Vui lòng xóa khỏi giỏ hàng trước khi thanh toán." });
                     }
-
                     item.giatien = bt.giatien;
                     resTongTienMon += (bt.giatien ?? 0) * item.soLuong;
                 }
@@ -287,7 +277,8 @@ public class PaymentController : BaseController
 
                 dh.phiship = resShipFee;
 
-                if (!isBankTransfer && trangThaiBanDau != "Chờ thanh toán")
+                // SignalR: thông báo cho quán nếu không phải chờ thanh toán (COD)
+                if (!isVnpay && trangThaiBanDau != "Chờ thanh toán")
                 {
                     try
                     {
@@ -301,61 +292,6 @@ public class PaymentController : BaseController
                         });
                     }
                     catch { }
-                }
-            }
-
-            // ─── MoMo Payment ───
-            if (pttt == 5 && momoPayUrl == null && createdOrders.Any())
-            {
-                var firstDh = createdOrders.First();
-                try
-                {
-                    int momoAmount = (int)totalAllOrders;
-                    if (momoAmount <= 0) momoAmount = 1000;
-
-                    var momoRequest = new MoMoCreatePaymentRequest
-                    {
-                        OrderId = $"FS{firstDh}_{DateTime.Now:yyyyMMddHHmmss}",
-                        OrderInfo = $"Thanh toan don hang FastShip #{firstDh}",
-                        Amount = momoAmount,
-                        RedirectUrl = $"{Request.Scheme}://{Request.Host}/Cart/SuccessView?orderId={firstDh}",
-                        IpnUrl = $"{Request.Scheme}://{Request.Host}/Payment/MoMoIpn",
-                        RequestType = "captureWallet",
-                        ExtraData = $"{firstDh}"
-                    };
-
-                    var momoResult = await _moMoService.CreatePaymentAsync(momoRequest);
-                    if (momoResult.IsSuccess)
-                    {
-                        momoPayUrl = momoResult.PayUrl;
-                        momoSuccess = true;
-                        _logger.LogInformation("MoMo payment URL created for order #{OrderId}: {PayUrl}, amount={Amount}", firstDh, momoPayUrl, momoAmount);
-                    }
-                    else
-                    {
-                        _logger.LogWarning("MoMo payment failed for order #{OrderId}: {Message}", firstDh, momoResult.Message);
-                    }
-                }
-                catch (Exception momoEx)
-                {
-                    _logger.LogError(momoEx, "MoMo payment creation failed for order #{OrderId}", firstDh);
-                }
-
-                // ponytail: Fix #1 — MoMo fail => xóa đơn, trả error
-                if (!momoSuccess && createdOrders.Any())
-                {
-                    _logger.LogWarning("MoMo creation FAILED — deleting {Count} orders", createdOrders.Count);
-                    try
-                    {
-                        var ordersToDelete = db.tbDonHang.Where(o => createdOrders.Contains(o.madh)).ToList();
-                        var detailIds = db.tbChiTietDonHang.Where(c => createdOrders.Contains((int)c.madh)).ToList();
-                        db.tbChiTietDonHang.RemoveRange(detailIds);
-                        db.tbDonHang.RemoveRange(ordersToDelete);
-                        await db.SaveChangesAsync();
-                    }
-                    catch (Exception delEx) { _logger.LogError(delEx, "Failed to delete orders after MoMo failure"); }
-
-                    return Json(new { success = false, message = "Không thể tạo thanh toán MoMo. Vui lòng thử lại sau.", keepCart = true });
                 }
             }
 
@@ -378,53 +314,44 @@ public class PaymentController : BaseController
 
             var firstOrderId = createdOrders.FirstOrDefault();
 
-            // ponytail: Fix #4 — xoa cart cho ca bank transfer, MoMo, PayPal success
-            if (!isBankTransfer && pttt != 5)
-            {
-                SetCart(new Cart());
-            }
-            else if (momoSuccess)
-            {
-                SetCart(new Cart());
-            }
-            else if (isBankTransfer)
-            {
-                // ponytail: Fix #4 — don da tao trong DB => xoa cart, user theo doi qua OrderTracking
-                SetCart(new Cart());
-            }
+            // Xóa giỏ hàng sau khi đặt thành công
+            SetCart(new Cart());
 
-            // ─── PayPal ───
-            if (isPayPal && createdOrders.Any())
+            // ─── VNPAY: Tạo URL thanh toán ───
+            if (isVnpay && firstOrderId > 0)
             {
-                var ppOrderId = createdOrders.First();
                 try
                 {
-                    var returnUrl = $"{Request.Scheme}://{Request.Host}/Payment/CapturePayPalOrder?orderId={ppOrderId}";
-                    var cancelUrl = $"{Request.Scheme}://{Request.Host}/Cart/OrderTracking?id={ppOrderId}";
+                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1";
+                    var returnUrl = $"{Request.Scheme}://{Request.Host}/Payment/VnpayReturn";
+                    var orderInfo = $"FastShip thanh toan don hang #{firstOrderId}";
 
-                    var ppResult = await _payPalService.CreateOrderAsync(ppOrderId.ToString(), totalAllOrders, returnUrl, cancelUrl);
-                    if (ppResult.Success)
+                    var vnpayUrl = _vnpayService.CreatePaymentUrl(
+                        firstOrderId,
+                        (long)totalAllOrders,
+                        orderInfo,
+                        ipAddress,
+                        returnUrl
+                    );
+
+                    if (!string.IsNullOrEmpty(vnpayUrl))
                     {
-                        HttpContext.Session.SetString($"paypal_order_{ppOrderId}", ppResult.PayPalOrderId ?? "");
-
-                        _logger.LogInformation("PayPal order created: OrderId={OrderId}, PayPalOrderId={PayPalOrderId}",
-                            ppOrderId, ppResult.PayPalOrderId);
-
+                        _logger.LogInformation("VNPAY payment URL created for order #{OrderId}", firstOrderId);
                         return Json(new
                         {
                             success = true,
-                            message = $"Đã tạo {createdOrders.Count} đơn hàng! Chuyển hướng đến PayPal...",
-                            orderId = ppOrderId,
+                            message = $"Đã tạo {createdOrders.Count} đơn hàng! Chuyển hướng đến VNPAY...",
+                            orderId = firstOrderId,
                             orderIds = createdOrders,
                             trangthai = "Chờ thanh toán",
-                            paypalApprovalUrl = ppResult.ApproveLink
+                            paymentMethod = "vnpay",
+                            vnpayUrl = vnpayUrl
                         });
                     }
                     else
                     {
-                        _logger.LogWarning("PayPal CreateOrder FAILED for order #{OrderId}: {Message}", ppOrderId, ppResult.Message);
-
-                        // ponytail: Fix #1 — PayPal fail => xóa đơn
+                        _logger.LogError("VNPAY payment URL creation failed for order #{OrderId} — missing credentials", firstOrderId);
+                        // Xóa đơn nếu VNPAY không được cấu hình
                         try
                         {
                             var ordersToDelete = db.tbDonHang.Where(o => createdOrders.Contains(o.madh)).ToList();
@@ -433,16 +360,14 @@ public class PaymentController : BaseController
                             db.tbDonHang.RemoveRange(ordersToDelete);
                             await db.SaveChangesAsync();
                         }
-                        catch (Exception delEx) { _logger.LogError(delEx, "Failed to delete orders after PayPal failure"); }
-
-                        return Json(new { success = false, message = "Không thể tạo thanh toán PayPal. Vui lòng thử lại sau.", keepCart = true });
+                        catch (Exception delEx) { _logger.LogError(delEx, "Failed to delete orders after VNPAY failure"); }
+                        return Json(new { success = false, message = "Cổng thanh toán VNPAY chưa được cấu hình. Vui lòng thử phương thức thanh toán khác.", keepCart = true });
                     }
                 }
-                catch (Exception ppEx)
+                catch (Exception vnpayEx)
                 {
-                    _logger.LogError(ppEx, "PayPal CreateOrder error for order #{OrderId}", ppOrderId);
-
-                    // Delete orders on PayPal exception
+                    _logger.LogError(vnpayEx, "VNPAY payment creation failed for order #{OrderId}", firstOrderId);
+                    // Xóa đơn nếu VNPAY exception
                     try
                     {
                         var ordersToDelete = db.tbDonHang.Where(o => createdOrders.Contains(o.madh)).ToList();
@@ -451,50 +376,21 @@ public class PaymentController : BaseController
                         db.tbDonHang.RemoveRange(ordersToDelete);
                         await db.SaveChangesAsync();
                     }
-                    catch (Exception delEx) { _logger.LogError(delEx, "Failed to delete orders after PayPal exception"); }
-
-                    return Json(new { success = false, message = "Lỗi kết nối PayPal. Vui lòng thử lại sau.", keepCart = true });
+                    catch (Exception delEx) { _logger.LogError(delEx, "Failed to delete orders after VNPAY exception"); }
+                    return Json(new { success = false, message = "Lỗi kết nối cổng thanh toán VNPAY. Vui lòng thử lại sau.", keepCart = true });
                 }
             }
 
-            // ─── Bank Transfer ───
-            if (isBankTransfer && !isPayPal)
-            {
-                var memo = $"SEVQR FASTSHIP{firstOrderId}";
-                var qrUrl = $"https://img.vietqr.io/image/{BankVietQrBinCode}-{BankAccountNo}-print.png?amount={(long)totalAllOrders}&addInfo={Uri.EscapeDataString(memo)}&accountName={Uri.EscapeDataString(BankAccountName)}";
-
-                _logger.LogInformation("Bank transfer QR URL generated. Orders: {OrderIds}", string.Join(",", createdOrders));
-
-                return Json(new
-                {
-                    success = true,
-                    message = $"Đã tạo {createdOrders.Count} đơn hàng! Vui lòng quét mã QR để chuyển khoản.",
-                    orderId = firstOrderId,
-                    orderIds = createdOrders,
-                    trangthai = "Chờ thanh toán",
-                    paymentMethod = "bank",
-                    qrCodeUrl = qrUrl,
-                    bankInfo = new
-                    {
-                        bankId = BankId,
-                        accountNo = BankAccountNo,
-                        accountName = BankAccountName,
-                        amount = (long)totalAllOrders,
-                        memo = memo
-                    }
-                });
-            }
-
-            _logger.LogInformation("Orders created successfully: {OrderIds}", string.Join(",", createdOrders));
-
+            // ─── COD Success ───
+            _logger.LogInformation("Orders created successfully (COD): {OrderIds}", string.Join(",", createdOrders));
             return Json(new
             {
                 success  = true,
                 message  = $"Đặt hàng thành công! Đã tạo {createdOrders.Count} đơn hàng.",
                 orderId  = firstOrderId,
                 orderIds = createdOrders,
-                trangthai = "Đang xử lý",
-                momoPayUrl = momoPayUrl,
+                trangthai = "Đã đặt",
+                paymentMethod = "cod"
             });
         }
         catch (Exception ex)
@@ -526,106 +422,287 @@ public class PaymentController : BaseController
         }
     }
 
-    // ─── MoMo IPN Callback ───
-    [HttpPost]
-    [AllowAnonymous]
-    public async Task<JsonResult> MoMoIpn()
-    {
-        try
-        {
-            using var reader = new System.IO.StreamReader(Request.Body);
-            var body = await reader.ReadToEndAsync();
-            var ipnParams = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(body);
-
-            if (ipnParams == null)
-                return Json(new { error = "Invalid IPN data" });
-
-            if (!_moMoService.VerifyIpnSignature(ipnParams))
-            {
-                _logger.LogWarning("MoMo IPN signature verification failed");
-                return Json(new { error = "Invalid signature" });
-            }
-
-            var resultCode = int.TryParse(ipnParams.GetValueOrDefault("resultCode"), out var code) ? code : -1;
-            var orderId = ipnParams.GetValueOrDefault("orderId") ?? "";
-            var transId = ipnParams.GetValueOrDefault("transId");
-
-            _logger.LogInformation("MoMo IPN received: OrderId={OrderId}, ResultCode={ResultCode}, TransId={TransId}",
-                orderId, resultCode, transId);
-
-            if (orderId.StartsWith("FS"))
-            {
-                var parts = orderId.Split('_');
-                if (parts.Length >= 2 && int.TryParse(parts[0].Substring(2), out var madh))
-                {
-                    var donHang = await db.tbDonHangs.FindAsync(madh);
-                    if (donHang != null)
-                    {
-                        if (resultCode == 0)
-                        {
-                            donHang.trangthai = "Đã thanh toán";
-                            donHang.ngaythanhtoan = DateTime.Now;
-                            donHang.momo_trans_id = transId;
-                            _logger.LogInformation("MoMo payment confirmed for order #{OrderId}, TransId={TransId}", madh, transId);
-
-                            try { await _eDelivery.GenerateEInvoice(madh); }
-                            catch (Exception edEx) { _logger.LogWarning(edEx, "E-Invoice generation failed for order #{OrderId}", madh); }
-
-                            try { await _hubContext.Clients.Group($"order_{madh}").SendAsync("paymentConfirmed", madh, donHang.tongtien); } catch { }
-                        }
-                        else
-                        {
-                            _logger.LogWarning("MoMo payment failed for order #{OrderId}: ResultCode={ResultCode}", madh, resultCode);
-                            donHang.trangthai = "Chờ thanh toán";
-                            try { await _hubContext.Clients.Group($"order_{madh}").SendAsync("paymentFailed", madh, ipnParams.GetValueOrDefault("message", "Thanh toán thất bại")); } catch { }
-                        }
-                        await db.SaveChangesAsync();
-                    }
-                }
-            }
-
-            return Json(new { error = 0 });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "MoMo IPN callback error");
-            return Json(new { error = -1, message = ex.Message });
-        }
-    }
-
-    private bool IsPayPalMethod(int pttt)
+    /// <summary>
+    /// Kiểm tra phương thức thanh toán có phải VNPAY không
+    /// </summary>
+    private bool IsVnpayMethod(int pttt)
     {
         try
         {
             var method = db.tbLoaiHinhThanhToan.Find(pttt);
             if (method == null) return false;
             var name = (method.tenhinhthuc ?? "").ToLowerInvariant();
-            return name.Contains("paypal");
+            return name.Contains("vnpay");
         }
         catch { return false; }
     }
 
-    private bool IsBankTransferMethod(int pttt)
+    // ═══════════════════════════════════════════════════════════════
+    // VNPAY Payment Integration
+    // ═══════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// API: Tạo link thanh toán VNPAY (gọi từ frontend sau khi tạo đơn)
+    /// </summary>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<JsonResult> CreateVnpayPayment(int orderId)
+    {
+        if (!CheckLogin())
+            return Json(new { success = false, message = "Vui lòng đăng nhập" });
+
+        try
+        {
+            var donHang = await db.tbDonHangs.FindAsync(orderId);
+            if (donHang == null)
+                return Json(new { success = false, message = "Đơn hàng không tồn tại" });
+
+            // Kiểm tra quyền sở hữu
+            var user = GetCurrentUser();
+            var ttdh = await db.tbThongTinDatHangs.FindAsync(donHang.mattdh);
+            if (ttdh?.userid != user?.userid)
+                return Json(new { success = false, message = "Không có quyền thanh toán đơn hàng này" });
+
+            if (donHang.trangthai != "Chờ thanh toán")
+                return Json(new { success = false, message = $"Đơn hàng ở trạng thái '{donHang.trangthai}', không thể thanh toán VNPAY" });
+
+            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1";
+            var returnUrl = $"{Request.Scheme}://{Request.Host}/Payment/VnpayReturn";
+            var orderInfo = $"FastShip thanh toan don hang #{orderId}";
+            var amount = (long)(donHang.tongtien ?? 0);
+
+            var vnpayUrl = _vnpayService.CreatePaymentUrl(orderId, amount, orderInfo, ipAddress, returnUrl);
+
+            if (string.IsNullOrEmpty(vnpayUrl))
+            {
+                _logger.LogError("VNPAY CreateVnpayPayment failed — credentials not configured");
+                return Json(new { success = false, message = "Cổng thanh toán VNPAY chưa được cấu hình. Vui lòng liên hệ quản trị viên." });
+            }
+
+            _logger.LogInformation("VNPAY payment URL created for order #{OrderId}, amount={Amount}", orderId, amount);
+            return Json(new { success = true, vnpayUrl = vnpayUrl, message = "Chuyển hướng đến VNPAY..." });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "CreateVnpayPayment failed for order #{OrderId}", orderId);
+            return Json(new { success = false, message = $"Lỗi: {ex.Message}" });
+        }
+    }
+
+    /// <summary>
+    /// API: VNPAY IPN Callback (VNPAY gọi POST để xác nhận kết quả thanh toán)
+    /// Xác thực chữ ký, cập nhật trạng thái đơn hàng + SignalR broadcast
+    /// </summary>
+    [HttpPost]
+    [AllowAnonymous]
+    public async Task<JsonResult> VnpayIPN()
     {
         try
         {
-            var method = db.tbLoaiHinhThanhToan.Find(pttt);
-            if (method == null) return false;
-            var name = RemoveDiacritics((method.tenhinhthuc ?? "").ToLowerInvariant());
-            return name.Contains("chuyen khoan") || name.Contains("ngan hang") || name.Contains("bank");
+            // Đọc tất cả tham số từ query string (VNPAY gửi IPN qua GET/POST params)
+            var vnpParams = new Dictionary<string, string>();
+            foreach (var key in Request.Query.Keys)
+            {
+                if (!string.IsNullOrEmpty(key))
+                {
+                    vnpParams[key] = Request.Query[key].ToString() ?? "";
+                }
+            }
+
+            // Nếu không có query params, thử đọc từ form body
+            if (vnpParams.Count == 0 && Request.HasFormContentType)
+            {
+                foreach (var key in Request.Form.Keys)
+                {
+                    if (!string.IsNullOrEmpty(key))
+                    {
+                        vnpParams[key] = Request.Form[key].ToString() ?? "";
+                    }
+                }
+            }
+
+            if (vnpParams.Count == 0)
+            {
+                _logger.LogWarning("VNPAY IPN received with no parameters");
+                return Json(new { RspCode = "01", Message = "No params" });
+            }
+
+            // Lấy các tham số quan trọng
+            vnpParams.TryGetValue("vnp_ResponseCode", out var responseCode);
+            vnpParams.TryGetValue("vnp_TxnRef", out var txnRef);
+            vnpParams.TryGetValue("vnp_TransactionNo", out var transactionNo);
+            vnpParams.TryGetValue("vnp_Amount", out var vnpAmountStr);
+            vnpParams.TryGetValue("vnp_OrderInfo", out var orderInfo);
+
+            _logger.LogInformation("VNPAY IPN received: TxnRef={TxnRef}, ResponseCode={ResponseCode}, TransactionNo={TransactionNo}",
+                txnRef, responseCode, transactionNo);
+
+            // Xác thực chữ ký
+            if (!_vnpayService.VerifySignature(vnpParams))
+            {
+                _logger.LogWarning("VNPAY IPN signature verification FAILED for TxnRef={TxnRef}", txnRef);
+                return Json(new { RspCode = "97", Message = "Invalid signature" });
+            }
+
+            // Parse mã đơn hàng
+            if (string.IsNullOrEmpty(txnRef) || !int.TryParse(txnRef, out var madh))
+            {
+                _logger.LogWarning("VNPAY IPN: Invalid TxnRef: {TxnRef}", txnRef);
+                return Json(new { RspCode = "01", Message = "Invalid TxnRef" });
+            }
+
+            var donHang = await db.tbDonHangs.FindAsync(madh);
+            if (donHang == null)
+            {
+                _logger.LogWarning("VNPAY IPN: Order #{OrderId} not found", madh);
+                return Json(new { RspCode = "01", Message = "Order not found" });
+            }
+
+            // Kiểm tra trạng thái đơn hàng — nếu đã xử lý rồi thì không xử lý lại
+            if (donHang.trangthai == "Đã đặt" || donHang.trangthai == "Đã xác nhận" || donHang.trangthai == "Hoàn thành")
+            {
+                _logger.LogInformation("VNPAY IPN: Order #{OrderId} already processed (status: {Status})", madh, donHang.trangthai);
+                return Json(new { RspCode = "02", Message = "Order already confirmed" });
+            }
+
+            // Nếu đơn đã hủy do auto-cancel nhưng khách vẫn thanh toán → reactivate
+            bool wasCancelled = donHang.trangthai == "Đã hủy";
+            if (wasCancelled)
+            {
+                _logger.LogWarning("VNPAY IPN: Order #{OrderId} was CANCELLED but payment received — reactivating", madh);
+            }
+
+            // Xử lý kết quả thanh toán
+            if (responseCode == "00")
+            {
+                // Thanh toán thành công
+                donHang.trangthai = "Đã đặt";
+                donHang.ngaythanhtoan = DateTime.Now;
+                donHang.momo_trans_id = transactionNo; // Tái sử dụng cột momo_trans_id để lưu VNPAY transactionNo
+                await db.SaveChangesAsync();
+
+                _logger.LogInformation("VNPAY payment confirmed for order #{OrderId}, TransactionNo={TransactionNo}", madh, transactionNo);
+
+                // Tạo e-invoice
+                try { await _eDelivery.GenerateEInvoice(madh); }
+                catch (Exception edEx) { _logger.LogWarning(edEx, "E-Invoice generation failed for order #{OrderId}", madh); }
+
+                // SignalR: thông báo real-time
+                try { await _hubContext.Clients.Group($"order_{madh}").SendAsync("paymentConfirmed", madh, donHang.tongtien); } catch { }
+                try { await _hubContext.Clients.Group($"order_{madh}").SendAsync("orderStatusChanged", madh, "Đã đặt", DateTime.Now.ToString("HH:mm")); } catch { }
+
+                if (donHang.maquan != null)
+                {
+                    try
+                    {
+                        await _hubContext.Clients.Group($"restaurant_{donHang.maquan}").SendAsync("newOrder", new
+                        {
+                            orderId = donHang.madh,
+                            status = "Đã đặt",
+                            time = DateTime.Now.ToString("HH:mm")
+                        });
+                    }
+                    catch { }
+                }
+
+                return Json(new { RspCode = "00", Message = "Confirm Success" });
+            }
+            else
+            {
+                // Thanh toán thất bại
+                _logger.LogWarning("VNPAY payment failed for order #{OrderId}: ResponseCode={ResponseCode}", madh, responseCode);
+
+                if (!wasCancelled)
+                {
+                    donHang.trangthai = "Chờ thanh toán";
+                    await db.SaveChangesAsync();
+                }
+
+                // SignalR: thông báo thất bại
+                try { await _hubContext.Clients.Group($"order_{madh}").SendAsync("paymentFailed", madh, "Thanh toán VNPAY thất bại"); } catch { }
+
+                return Json(new { RspCode = responseCode, Message = "Payment failed" });
+            }
         }
-        catch { return false; }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "VNPAY IPN callback error");
+            return Json(new { RspCode = "99", Message = "Internal error" });
+        }
     }
 
-    private static string RemoveDiacritics(string text)
+    /// <summary>
+    /// VNPAY Return URL — người dùng được redirect về đây sau khi thanh toán
+    /// </summary>
+    [HttpGet]
+    [AllowAnonymous]
+    public async Task<IActionResult> VnpayReturn()
     {
-        if (string.IsNullOrEmpty(text)) return text;
-        var normalized = text.Normalize(System.Text.NormalizationForm.FormD);
-        var chars = normalized.Where(c => System.Globalization.CharUnicodeInfo.GetUnicodeCategory(c) != System.Globalization.UnicodeCategory.NonSpacingMark).ToArray();
-        return new string(chars).Normalize(System.Text.NormalizationForm.FormC);
+        var vnpParams = new Dictionary<string, string>();
+        foreach (var key in Request.Query.Keys)
+        {
+            if (!string.IsNullOrEmpty(key))
+            {
+                vnpParams[key] = Request.Query[key].ToString() ?? "";
+            }
+        }
+
+        if (vnpParams.Count == 0)
+        {
+            return RedirectToAction("Index", "Cart");
+        }
+
+        vnpParams.TryGetValue("vnp_ResponseCode", out var responseCode);
+        vnpParams.TryGetValue("vnp_TxnRef", out var txnRef);
+
+        // Xác thực chữ ký
+        bool isValid = _vnpayService.VerifySignature(vnpParams);
+
+        if (!isValid)
+        {
+            TempData["OrderError"] = "Chữ ký không hợp lệ. Vui lòng liên hệ hỗ trợ.";
+            if (!string.IsNullOrEmpty(txnRef) && int.TryParse(txnRef, out var errId))
+                return RedirectToAction("OrderTracking", "Cart", new { id = errId });
+            return RedirectToAction("Index", "Cart");
+        }
+
+        if (responseCode == "00" && !string.IsNullOrEmpty(txnRef) && int.TryParse(txnRef, out var orderId))
+        {
+            TempData["OrderSuccess"] = $"Thanh toán VNPAY thành công! Mã đơn hàng: #{orderId}";
+            return RedirectToAction("ChiTietDonHang", "Cart", new { id = orderId });
+        }
+
+        // Thanh toán thất bại
+        var errorMsg = responseCode switch
+        {
+            "01" => "Giao dịch chưa được xác thực.",
+            "02" => "Giao dịch bị từ chối.",
+            "04" => "Giao dịch bị đóng băng.",
+            "07" => "Trừ tiền tài khoản thành công. Giao dịch bị nghi ngờ (liên quan tới lừa đảo).",
+            "09" => "Giao dịch thất bại do: Thẻ/Tài khoản của khách hàng chưa đăng ký dịch vụ InternetBanking.",
+            "10" => "Giao dịch thất bại do: Khách hàng xác thực thông tin thẻ/tài khoản không đúng quá 3 lần.",
+            "11" => "Giao dịch thất bại do: Đã hết hạn chờ thanh toán. Xin vui lòng thực hiện lại.",
+            "12" => "Giao dịch thất bại do: Thẻ/Tài khoản của khách hàng bị khóa.",
+            "13" => "Giao dịch thất bại do: Khách hàng nhập sai mật khẩu xác thực giao dịch (OTP).",
+            "24" => "Giao dịch thất bại do: Khách hàng hủy giao dịch.",
+            "51" => "Giao dịch thất bại do: Tài khoản của khách hàng không đủ số dư.",
+            "65" => "Giao dịch thất bại do: Tài khoản của khách hàng đã vượt quá hạn mức giao dịch trong ngày.",
+            "75" => "Ngân hàng thanh toán đang bảo trì.",
+            "79" => "Giao dịch thất bại do: KH nhập sai mật khẩu thanh toán quá số lần quy định.",
+            "99" => "Giao dịch thất bại do: Lỗi không xác định.",
+            _ => $"Lỗi không xác định (Mã: {responseCode})"
+        };
+
+        TempData["OrderError"] = $"Thanh toán VNPAY thất bại: {errorMsg}";
+        if (!string.IsNullOrEmpty(txnRef) && int.TryParse(txnRef, out var failId))
+            return RedirectToAction("OrderTracking", "Cart", new { id = failId });
+        return RedirectToAction("Index", "Cart");
     }
 
-    // ─── BANK WEBHOOK: Casso/SePay/PayOS — xác nhận chuyển khoản ───
+    // ═══════════════════════════════════════════════════════════════
+    // Bank Webhook (giữ lại cho backward compatibility)
+    // ═══════════════════════════════════════════════════════════════
+
     [HttpPost]
     [AllowAnonymous]
     [Route("Payment/BankWebhook")]
@@ -729,21 +806,19 @@ public class PaymentController : BaseController
                 var donHang = await db.tbDonHangs.FindAsync(madh);
                 if (donHang == null) return Json(new { error = "Order not found" });
 
-                // ponytail: Fix #5 — N?u don da hoan tat => skip (kh?i trùng l?p)
+                // Skip nếu đã xử lý rồi
                 if (donHang.trangthai == "Đã đặt" || donHang.trangthai == "Đã xác nhận" || donHang.trangthai == "Đã thanh toán" || donHang.trangthai == "Hoàn thành")
                 {
                     _logger.LogInformation("BankWebhook: Order #{OrderId} already processed (status: {Status})", madh, donHang.trangthai);
                     return Json(new { error = 0, message = "Already processed" });
                 }
 
-                // ponytail: Fix #5 — N?u don da bi auto-cancel nhung khach da chuy?n kho?n => kích ho?t l?i
                 bool wasCancelled = donHang.trangthai == "Đã hủy";
                 if (wasCancelled)
                 {
                     _logger.LogWarning("BankWebhook: Order #{OrderId} was CANCELLED but payment received — reactivating", madh);
                 }
 
-                // Kiểm tra số tiền (cho phép sai số ±1000đ do phí ngân hàng)
                 if (amount == null || Math.Abs(Convert.ToDecimal(amount.Value) - (donHang.tongtien ?? 0)) > 1000)
                 {
                     _logger.LogWarning("BankWebhook: Amount mismatch for order #{OrderId}. Expected: {Expected}, Received: {Received}",
@@ -777,11 +852,6 @@ public class PaymentController : BaseController
                     catch { }
                 }
 
-                string logMsg = wasCancelled
-                    ? $"BankWebhook: Order #{madh} REACTIVATED after auto-cancel — payment received"
-                    : $"BankWebhook: Order #{madh} approved normally";
-                _logger.LogInformation(logMsg);
-
                 return Json(new { error = 0, message = "Order approved" });
             }
             else
@@ -797,7 +867,7 @@ public class PaymentController : BaseController
         }
     }
 
-    // ─── Verify Bank Transaction: User nhấn "Tôi đã chuyển khoản" — kiểm tra trạng thái ───
+    // ─── Verify Bank Transaction ───
     [HttpGet]
     public async Task<JsonResult> VerifyBankTransaction(int madh)
     {
@@ -810,13 +880,11 @@ public class PaymentController : BaseController
             if (donHang == null)
                 return Json(new { success = false, message = "Đơn hàng không tồn tại" });
 
-            // ponytail: ownership check — user ch? xem ???c don c?a mình
             var user = GetCurrentUser();
             var ttdh = await db.tbThongTinDatHangs.FindAsync(donHang.mattdh);
             if (ttdh?.userid != user?.userid)
                 return Json(new { success = false, message = "Không có quyền kiểm tra đơn hàng này" });
 
-            // ponytail: Fix #2 — Ki?m tra tr?ng thái th?c t? t? DB
             bool daThanhToan = donHang.trangthai == "Đã đặt" || donHang.trangthai == "Đã xác nhận" || donHang.trangthai == "Đã thanh toán" || donHang.trangthai == "Hoàn thành";
             if (daThanhToan)
             {
@@ -867,118 +935,6 @@ public class PaymentController : BaseController
         {
             _logger.LogError(ex, "CheckPaymentStatus failed for order #{OrderId}", madh);
             return Json(new { success = false, message = $"Lỗi: {ex.Message}" });
-        }
-    }
-
-    [HttpGet]
-    public IActionResult MoMoReturn(int? orderId)
-    {
-        if (orderId.HasValue)
-        {
-            TempData["OrderSuccess"] = $"Thanh toán MoMo thành công! Mã đơn hàng: #{orderId}";
-            return RedirectToAction("ChiTietDonHang", "Cart", new { id = orderId });
-        }
-        return RedirectToAction("Index", "Cart");
-    }
-
-    // ═══════════════════════════════════════════════════════════════
-    // PayPal Payment Integration
-    // ═══════════════════════════════════════════════════════════════
-
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<JsonResult> CreatePayPalOrder(int orderId)
-    {
-        if (!CheckLogin())
-            return Json(new { success = false, message = "Vui lòng đăng nhập" });
-
-        try
-        {
-            var donHang = await db.tbDonHangs.FindAsync(orderId);
-            if (donHang == null)
-                return Json(new { success = false, message = "Đơn hàng không tồn tại" });
-
-            if (donHang.trangthai != "Chờ thanh toán")
-                return Json(new { success = false, message = $"Đơn hàng ở trạng thái '{donHang.trangthai}', không thể thanh toán PayPal" });
-
-            var returnUrl = $"{Request.Scheme}://{Request.Host}/Payment/CapturePayPalOrder?orderId={orderId}";
-            var cancelUrl = $"{Request.Scheme}://{Request.Host}/Cart/OrderTracking?id={orderId}";
-
-            var result = await _payPalService.CreateOrderAsync(orderId.ToString(), donHang.tongtien ?? 0, returnUrl, cancelUrl);
-
-            if (result.Success)
-            {
-                HttpContext.Session.SetString($"paypal_order_{orderId}", result.PayPalOrderId ?? "");
-                _logger.LogInformation("PayPal order created: OrderId={OrderId}, PayPalOrderId={PayPalOrderId}, Amount={Amount}USD",
-                    orderId, result.PayPalOrderId, Math.Round((donHang.tongtien ?? 0) / 25000m, 2));
-
-                return Json(new { success = true, approveLink = result.ApproveLink, paypalOrderId = result.PayPalOrderId, message = "Chuyển hướng đến PayPal..." });
-            }
-
-            _logger.LogWarning("PayPal CreateOrder failed for OrderId={OrderId}: {Message}", orderId, result.Message);
-            return Json(new { success = false, message = result.Message ?? "Không thể tạo thanh toán PayPal" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "CreatePayPalOrder error for OrderId={OrderId}", orderId);
-            return Json(new { success = false, message = $"Lỗi: {ex.Message}" });
-        }
-    }
-
-    [HttpGet]
-    public async Task<IActionResult> CapturePayPalOrder(int orderId, string? token = null)
-    {
-        if (!CheckLogin())
-            return RedirectToAction("Login", "Home");
-
-        try
-        {
-            var donHang = await db.tbDonHangs.FindAsync(orderId);
-            if (donHang == null)
-            {
-                TempData["OrderError"] = "Đơn hàng không tồn tại";
-                return RedirectToAction("OrderTracking", "Cart", new { id = orderId });
-            }
-
-            var paypalOrderId = HttpContext.Session.GetString($"paypal_order_{orderId}") ?? token ?? "";
-            if (string.IsNullOrEmpty(paypalOrderId))
-            {
-                TempData["OrderError"] = "Không tìm thấy giao dịch PayPal";
-                return RedirectToAction("OrderTracking", "Cart", new { id = orderId });
-            }
-
-            var result = await _payPalService.CaptureOrderAsync(paypalOrderId);
-
-            if (result.Success)
-            {
-                donHang.trangthai = "Đã đặt";
-                donHang.ngaythanhtoan = DateTime.Now;
-                donHang.momo_trans_id = result.CaptureId;
-                await db.SaveChangesAsync();
-                HttpContext.Session.Remove($"paypal_order_{orderId}");
-
-                _logger.LogInformation("PayPal capture success: OrderId={OrderId}, CaptureId={CaptureId}", orderId, result.CaptureId);
-
-                try { await _hubContext.Clients.Group($"order_{orderId}").SendAsync("paymentConfirmed", orderId, donHang.tongtien); } catch { }
-                try { await _hubContext.Clients.Group($"order_{orderId}").SendAsync("orderStatusChanged", orderId, "Đã đặt", DateTime.Now.ToString("HH:mm")); } catch { }
-                if (donHang.maquan != null)
-                {
-                    try { await _hubContext.Clients.Group($"restaurant_{donHang.maquan}").SendAsync("newOrder", new { orderId = donHang.madh, status = "Đã đặt", time = DateTime.Now.ToString("HH:mm") }); } catch { }
-                }
-
-                TempData["OrderSuccess"] = $"Thanh toán PayPal thành công! Mã đơn hàng: #{orderId}";
-                return RedirectToAction("OrderTracking", "Cart", new { id = orderId });
-            }
-
-            _logger.LogWarning("PayPal capture failed: OrderId={OrderId}, Status={Status}", orderId, result.Status);
-            TempData["OrderError"] = result.Message ?? "Thanh toán PayPal thất bại";
-            return RedirectToAction("OrderTracking", "Cart", new { id = orderId });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "CapturePayPalOrder error for OrderId={OrderId}", orderId);
-            TempData["OrderError"] = $"Lỗi: {ex.Message}";
-            return RedirectToAction("OrderTracking", "Cart", new { id = orderId });
         }
     }
 

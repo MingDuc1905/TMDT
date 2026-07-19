@@ -65,8 +65,12 @@ public class CartController : BaseController
             return RedirectToAction("Index");
         }
 
-        // Hiển thị tất cả phương thức thanh toán (bao gồm MoMo, ZaloPay, Paypal)
-        ViewBag.phuongthuctt = db.tbLoaiHinhThanhToan.ToList();
+        // Chỉ hiển thị 2 phương thức thanh toán: Tiền mặt (COD) và VNPAY
+        ViewBag.phuongthuctt = db.tbLoaiHinhThanhToan
+            .Where(pt => pt.tenhinhthuc.ToLower().Contains("vnpay") 
+                      || pt.tenhinhthuc.ToLower().Contains("tiền mặt") 
+                      || pt.tenhinhthuc.ToLower().Contains("cod"))
+            .ToList();
         // ═══ GROUP BY: deduplicate addresses by sdt + diachi + tennguoinhan ═══
         var allAddresses = db.tbThongTinDatHang.Where(tt => tt.userid == user!.userid).ToList();
         ViewBag.diachicosan = allAddresses

@@ -209,55 +209,54 @@
                     </div>
                 }
 
-                <!-- ═══ PayPal Payment Button ═══ -->
+                <!-- ═══ VNPAY Payment Button ═══ -->
                 @if (donHang.trangthai == "Chờ thanh toán" && donHang.tbLoaiHinhThanhToan != null && 
-                    donHang.tbLoaiHinhThanhToan.tenhinhthuc.ToLowerInvariant().Contains("paypal"))
+                    donHang.tbLoaiHinhThanhToan.tenhinhthuc.ToLowerInvariant().Contains("vnpay"))
                 {
-                    <div class="tracking-card" id="paypalPaymentCard">
+                    <div class="tracking-card" id="vnpayPaymentCard">
                         <div style="text-align:center;">
-                            <h6 style="font-weight:700;margin-bottom:16px;">💳 Thanh toán PayPal</h6>
-                            <div style="background:linear-gradient(135deg,#003087,#009cde);width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
-                                <i class="fab fa-cc-paypal fa-2x text-white"></i>
+                            <h6 style="font-weight:700;margin-bottom:16px;">💳 Thanh toán VNPAY</h6>
+                            <div style="background:linear-gradient(135deg,#F37920,#e05e0e);width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+                                <span style="color:#fff;font-weight:800;font-size:20px;">VN</span>
                             </div>
                             <p style="color:#666;font-size:14px;margin-bottom:16px;">
-                                Đơn hàng #@donHang.madh đang chờ thanh toán qua PayPal.
-                                Nhấn nút bên dưới để chuyển hướng đến PayPal hoàn tất thanh toán.
+                                Đơn hàng #@donHang.madh đang chờ thanh toán qua VNPAY.
+                                Nhấn nút bên dưới để chuyển hướng đến cổng thanh toán VNPAY.
                             </p>
                             <div style="margin-bottom:12px;">
                                 <span style="font-size:24px;font-weight:700;color:#e74c3c;">@((donHang.tongtien ?? 0).ToString("N0"))đ</span>
-                                <span style="color:#888;font-size:13px;"> (~ @Math.Round((donHang.tongtien ?? 0) / 25000m, 2) USD)</span>
                             </div>
-                            <button id="btnPayPal" class="btn btn-primary" style="padding:12px 32px;border-radius:12px;font-size:15px;font-weight:600;background:linear-gradient(135deg,#003087,#009cde);border:none;"
-                                    onclick="payWithPayPal(@donHang.madh)">
-                                <i class="fab fa-cc-paypal me-2"></i> Thanh toán PayPal
+                            <button id="btnVnpay" class="btn btn-primary" style="padding:12px 32px;border-radius:12px;font-size:15px;font-weight:600;background:linear-gradient(135deg,#F37920,#e05e0e);border:none;"
+                                    onclick="payWithVnpay(@donHang.madh)">
+                                <span style="font-weight:700;margin-right:6px;">VN</span>PAY Thanh toán
                             </button>
-                            <div id="paypalResult" style="margin-top:10px;font-size:13px;"></div>
+                            <div id="vnpayResult" style="margin-top:10px;font-size:13px;"></div>
                         </div>
                     </div>
 
                     <script>
-                        function payWithPayPal(orderId) {
-                            var btn = $('#btnPayPal');
-                            var resultDiv = $('#paypalResult');
-                            btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Đang kết nối PayPal...');
+                        function payWithVnpay(orderId) {
+                            var btn = $('#btnVnpay');
+                            var resultDiv = $('#vnpayResult');
+                            btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Đang kết nối VNPAY...');
                             resultDiv.html('');
 
                             $.ajax({
-                                url: '@Url.Action("CreatePayPalOrder", "Payment")',
+                                url: '@Url.Action("CreateVnpayPayment", "Payment")',
                                 type: 'POST',
                                 data: { orderId: orderId },
                                 headers: { 'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').first().val() },
                                 success: function(res) {
-                                    if (res.success && res.approveLink) {
-                                        window.location.href = res.approveLink;
+                                    if (res.success && res.vnpayUrl) {
+                                        window.location.href = res.vnpayUrl;
                                     } else {
-                                        resultDiv.html('<div class="alert alert-danger" style="padding:10px;border-radius:8px;font-size:13px;">❌ ' + (res.message || 'Không thể tạo thanh toán PayPal') + '</div>');
-                                        btn.prop('disabled', false).html('<i class="fab fa-cc-paypal me-2"></i> Thanh toán PayPal');
+                                        resultDiv.html('<div class="alert alert-danger" style="padding:10px;border-radius:8px;font-size:13px;">❌ ' + (res.message || 'Không thể tạo thanh toán VNPAY') + '</div>');
+                                        btn.prop('disabled', false).html('<span style="font-weight:700;margin-right:6px;">VN</span>PAY Thanh toán');
                                     }
                                 },
                                 error: function() {
                                     resultDiv.html('<div class="alert alert-danger" style="padding:10px;border-radius:8px;font-size:13px;">❌ Lỗi kết nối. Vui lòng thử lại sau.</div>');
-                                    btn.prop('disabled', false).html('<i class="fab fa-cc-paypal me-2"></i> Thanh toán PayPal');
+                                    btn.prop('disabled', false).html('<span style="font-weight:700;margin-right:6px;">VN</span>PAY Thanh toán');
                                 }
                             });
                         }

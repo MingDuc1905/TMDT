@@ -282,10 +282,7 @@
                     <div class="checkout-card">
                         <div class="section-title"><i class="fas fa-wallet"></i> Phương thức thanh toán</div>
                         @{
-                            // ─── Payment brand config: icons/logos cho từng phương thức ───
-                            // PayPal → Font Awesome brand icon
-                            // ZaloPay → inline styled brand (không có FA icon)
-                            // MoMo → inline styled brand (không có FA icon)
+                            // ─── Payment brand config: chỉ giữ COD + VNPAY ───
                             var paymentBrands = new Dictionary<string, Func<object>>(StringComparer.OrdinalIgnoreCase)
                             {
                                 ["Tiền mặt"] = () => Html.Raw(
@@ -294,21 +291,9 @@
                                 ["COD"] = () => Html.Raw(
                                     "<div style=\"width:44px;height:44px;background:linear-gradient(135deg,#28a745,#20c997);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px;\">" +
                                     "<i class='fas fa-money-bill-wave text-white'></i></div>"),
-                                ["Chuyển khoản"] = () => Html.Raw(
-                                    "<div style=\"width:44px;height:44px;background:linear-gradient(135deg,#007bff,#17a2b8);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px;\">" +
-                                    "<i class='fas fa-university text-white'></i></div>"),
-                                ["Paypal"] = () => Html.Raw(
-                                    "<div style=\"width:44px;height:44px;background:linear-gradient(135deg,#003087,#009cde);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:22px;\">" +
-                                    "<i class='fab fa-cc-paypal text-white'></i></div>"),
-                                ["ZaloPay"] = () => Html.Raw(
-                                    "<div style=\"width:44px;height:44px;background:linear-gradient(135deg,#0068ff,#00a3ff);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:800;font-size:10px;line-height:1.1;color:#fff;text-align:center;\">" +
-                                    "ZALO<br>PAY</div>"),
-                                ["Momo"] = () => Html.Raw(
-                                    "<div style=\"width:44px;height:44px;background:linear-gradient(135deg,#d82c7e,#a01e5f);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:800;font-size:13px;color:#fff;letter-spacing:-0.5px;\">" +
-                                    "M<small style='font-size:9px'>o</small>Mo</div>"),
-                                ["Tài khoản ngân hàng"] = () => Html.Raw(
-                                    "<div style=\"width:44px;height:44px;background:linear-gradient(135deg,#007bff,#17a2b8);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px;\">" +
-                                    "<i class='fas fa-university text-white'></i></div>")
+                                ["VNPAY"] = () => Html.Raw(
+                                    "<div style=\"width:44px;height:44px;background:linear-gradient(135deg,#F37920,#e05e0e);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:800;font-size:13px;color:#fff;letter-spacing:-0.5px;\">" +
+                                    "VN</div>")
                             };
                         }
                         @foreach (var pt in lhtt)
@@ -327,21 +312,9 @@
                                     {
                                         <div style="font-size:12px;color:#888;">Thanh toán khi nhận hàng</div>
                                     }
-                                    else if ((pt.tenhinhthuc ?? "").Contains("Chuyển khoản") || (pt.tenhinhthuc ?? "").Contains("ngân hàng"))
+                                    else if ((pt.tenhinhthuc ?? "").Contains("VNPAY") || (pt.tenhinhthuc ?? "").Contains("Vnpay"))
                                     {
-                                        <div style="font-size:12px;color:#888;">Chuyển khoản qua ngân hàng / QR</div>
-                                    }
-                                    else if ((pt.tenhinhthuc ?? "").Contains("Paypal"))
-                                    {
-                                        <div style="font-size:12px;color:#888;">Thanh toán quốc tế qua PayPal</div>
-                                    }
-                                    else if ((pt.tenhinhthuc ?? "").Contains("ZaloPay"))
-                                    {
-                                        <div style="font-size:12px;color:#888;">Ví điện tử ZaloPay</div>
-                                    }
-                                    else if ((pt.tenhinhthuc ?? "").Contains("Momo"))
-                                    {
-                                        <div style="font-size:12px;color:#888;">Ví MoMo - Quét mã QR</div>
+                                        <div style="font-size:12px;color:#888;">Thanh toán qua cổng VNPAY (ATM, Visa, Mastercard)</div>
                                     }
                                 </div>
                             </div>
@@ -535,17 +508,10 @@
             area.html('<div class="payment-detail-box text-center"><div style="background:linear-gradient(135deg,#28a745,#20c997);width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 10px"><i class="fas fa-money-bill-wave text-white fa-lg"></i></div><strong style="color:#28a745;">Thanh toán khi nhận hàng (COD)</strong><p class="text-muted small mt-1 mb-0">Chuẩn bị sẵn tiền mặt khi shipper giao hàng.</p></div>').show();
             testArea.hide();
             codBtn.show().html('<i class="fas fa-check-circle me-2"></i>Xác nhận đặt hàng');
-        } else if (name.includes('Chuyển khoản') || name.includes('ngân hàng') || name.includes('bank')) {
-            var bankBin = BANK_BIN, accNo = BANK_ACC_NO, accName = BANK_ACC_NAME;
-            var previewTotal = @((cart?.tongTien ?? 0)) + SHIPPING_FEE;
-            var qrPreviewUrl = 'https://img.vietqr.io/image/' + bankBin + '-' + accNo + '-print.png?amount=' + Math.round(previewTotal) + '&accountName=' + encodeURIComponent(accName);
-            area.html('<div class="payment-detail-box"><div class="text-center mb-3"><div style="background:linear-gradient(135deg,#007bff,#17a2b8);width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 10px"><i class="fas fa-university text-white fa-lg"></i></div><strong style="color:#007bff;">Chuyển khoản ngân hàng</strong></div>'
-                + '<div style="text-align:center;margin-bottom:14px;"><img src="' + qrPreviewUrl + '" alt="QR NH" style="width:160px;height:160px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.08);" onerror="this.style.display=\'none\'" /></div>'                    + '<div class="d-flex justify-content-between mb-1"><span class="text-muted">Ngân hàng:</span><strong>' + BANK_DISPLAY + '</strong></div>'
-                + '<div class="d-flex justify-content-between mb-1"><span class="text-muted">Số TK:</span><strong style="color:#e74c3c;letter-spacing:1px;">' + accNo + '</strong></div>'
-                + '<div class="d-flex justify-content-between mb-1"><span class="text-muted">Chủ TK:</span><strong>' + accName + '</strong></div>'
-                + '<div class="d-flex justify-content-between"><span class="text-muted">Nội dung CK:</span><strong style="color:#e74c3c;"><span id="dh-ref">FASTSHIP[Mã đơn]</span></strong></div></div>').show();
-            testArea.hide(); // ponytail: ?n test mode cho bank transfer th?t
-            codBtn.show().html('<i class="fas fa-university me-2"></i>Đặt hàng (Chờ chuyển khoản)');
+        } else if (name.includes('VNPAY') || name.includes('Vnpay') || name.includes('vnpay')) {
+            area.html('<div class="payment-detail-box text-center"><div style="background:linear-gradient(135deg,#F37920,#e05e0e);width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 10px"><span style="color:#fff;font-weight:800;font-size:22px;">VN</span></div><strong style="color:#F37920;">Thanh toán qua VNPAY</strong><p class="text-muted small mt-1 mb-0">Chuyển hướng đến cổng thanh toán VNPAY để thanh toán qua ATM, Visa, Mastercard.</p></div>').show();
+            testArea.hide();
+            codBtn.show().html('<i class="fas fa-credit-card me-2"></i>Đặt hàng (Thanh toán VNPAY)');
         } else {
             area.hide();
             testArea.hide();
@@ -672,11 +638,13 @@
                 if (r.success) {
                     if (typeof clearCartLocal === 'function') clearCartLocal();
                     
-                    if (r.paymentMethod === 'bank' && r.orderId) {
-                        startPolling(r.orderId);
-                        showResultPopup(true, 'Đặt hàng (Chờ chuyển khoản)', r.message || '', r.orderId, r.qrCodeUrl, r.bankInfo, r.momoPayUrl, r.paypalApprovalUrl);
+                    if (r.paymentMethod === 'vnpay' && r.vnpayUrl) {
+                        // ═══ VNPAY: redirect trực tiếp đến cổng thanh toán ═══
+                        window.location.href = r.vnpayUrl;
+                        return;
                     } else {
-                        showResultPopup(true, 'Đặt hàng thành công!', r.message || '', r.orderId, r.qrCodeUrl, r.bankInfo, r.momoPayUrl, r.paypalApprovalUrl);
+                        // ═══ COD: success bình thường ═══
+                        showResultPopup(true, 'Đặt hàng thành công!', r.message || '', r.orderId, null, null, null, null);
                     }
                 } else {
                     showResultPopup(false, 'Thanh toán thất bại', r.message || 'Đã xảy ra lỗi. Vui lòng thử lại.');
@@ -729,90 +697,17 @@
     // ════════════════════════════════════════════════════════════════
     // showResultPopup — Hiển thị popup kết quả thanh toán
     // ════════════════════════════════════════════════════════════════
-    // CẤU TRÚC if/else CHUẨN (không lồng sai như trước):
-    //   success = true  → QR code path OR COD/MoMo/PayPal path
-    //   success = false → failure path
-    // ════════════════════════════════════════════════════════════════
     function showResultPopup(success, title, detail, orderId, qrCodeUrl, bankInfo, momoPayUrl, paypalApprovalUrl) {
         $('#payment-popup-overlay').remove();
         var iconHtml, contentHtml, btnHtml, redirectUrl;
 
         if (success) {
-            // ═══ MoMo: redirect to MoMo payment page ═══
-            // ═══ PayPal: redirect to PayPal approval page ═══
-            if (paypalApprovalUrl) {
-                window.location.href = paypalApprovalUrl;
-                return;
-            }
-
-            if (momoPayUrl) {
-                window.location.href = momoPayUrl;
-                return;
-            }
-
-            if (qrCodeUrl) {
-                // ═══ Bank Transfer: show QR code + bank details ═══
-                bankInfo = bankInfo || {};
-                redirectUrl = '@Url.Action("OrderTracking","Cart")?id=' + orderId;
-                iconHtml = '<div style="width:80px;height:80px;background:linear-gradient(135deg,#007bff,#17a2b8);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;"><i class="fas fa-university fa-2x text-white"></i></div>';
-                contentHtml = '<h4 style="font-weight:700;margin-bottom:8px;">' + title + '</h4>'
-                    + '<p class="text-muted" style="font-size:14px;margin-bottom:16px;">' + detail + '</p>'
-                    + '<div style="background:#f0f8ff;border:1px solid #b8daff;border-radius:12px;padding:16px;margin-bottom:16px;text-align:left;">'
-                    + '<div style="margin-bottom:12px;text-align:center;">'
-                    + '<img src="' + qrCodeUrl + '" alt="VietQR" style="width:200px;height:200px;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.1);" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'block\';" />'
-                    + '<div style="display:none;padding:12px;background:#fff3cd;border-radius:8px;border:1px solid #ffc107;">'
-                    + '<div style="font-size:13px;color:#856404;"><i class="fas fa-exclamation-triangle me-1"></i><strong>Mã QR tạm thời không tải được</strong></div>'
-                    + '<div style="font-size:12px;color:#856404;margin-top:4px;">Vui lòng chuyển khoản thủ công theo thông tin bên dưới</div>'
-                    + '</div></div>'
-                    + '<div style="font-size:13px;">'
-                    + '<div class="d-flex justify-content-between mb-1"><span class="text-muted">Ngân hàng:</span><strong>' + escHtml(bankInfo.bankId || '') + '</strong></div>'
-                    + '<div class="d-flex justify-content-between mb-1"><span class="text-muted">Số TK:</span><strong style="letter-spacing:1px;">' + escHtml(bankInfo.accountNo || '') + ' <button type="button" onclick="navigator.clipboard.writeText(\'' + escHtml(bankInfo.accountNo || '') + '\');this.textContent=\'✓\';setTimeout(()=>this.textContent=\'📋\',1500)" style="background:none;border:none;cursor:pointer;font-size:12px;" title="Sao chép">📋</button></strong></div>'
-                    + '<div class="d-flex justify-content-between mb-1"><span class="text-muted">Chủ TK:</span><strong>' + escHtml(bankInfo.accountName || '') + '</strong></div>'
-                    + '<div class="d-flex justify-content-between mb-1"><span class="text-muted">Số tiền:</span><strong style="color:#e74c3c;">' + (bankInfo.amount ? Number(bankInfo.amount).toLocaleString('vi-VN') + ' đ' : '') + '</strong></div>'
-                    + '<div class="d-flex justify-content-between"><span class="text-muted">Nội dung CK:</span><strong class="text-danger" id="qr-memo">' + escHtml(bankInfo.memo || '') + ' <button type="button" onclick="navigator.clipboard.writeText(\'' + escHtml(bankInfo.memo || '') + '\');this.textContent=\'✓\';setTimeout(()=>this.textContent=\'📋\',1500)" style="background:none;border:none;cursor:pointer;font-size:12px;" title="Sao chép">📋</button></strong></div>'
-                    + '</div></div>'
-                    + '<p style="font-size:12px;color:#888;margin-bottom:16px;"><i class="fas fa-info-circle me-1"></i>Quét mã QR bằng app ngân hàng để chuyển khoản. Đơn hàng sẽ tự động được xác nhận sau khi nhận được tiền.</p>';
-                btnHtml = '<a href="' + redirectUrl + '" class="btn btn-primary px-4" style="border-radius:8px;font-weight:600;"><i class="fas fa-eye me-1"></i>Theo dõi đơn hàng</a>';
-
-                // ═══ QR: auto-cancel timer 15 phút ═══
-                if (window._qrCancelTimer) clearTimeout(window._qrCancelTimer);
-                window._qrCancelTimer = setTimeout(function() {
-                    var cancelMsg = '⏰ Đã hết thời gian thanh toán (15 phút). Đơn hàng đã được hủy tự động.';
-                    if (confirm(cancelMsg + '\n\nBạn có muốn đặt lại không?')) {
-                        window.location.href = '/';
-                    }
-                }, 15 * 60 * 1000);
-
-                // Countdown trên popup
-                var countdownEl = document.createElement('div');
-                countdownEl.id = 'qr-countdown';
-                countdownEl.style.cssText = 'text-align:center;font-size:12px;color:#dc3545;margin-top:8px;';
-                var remaining = 15 * 60;
-                countdownEl.innerHTML = '⏱️ Tự động hủy sau <strong id="qr-timer">15:00</strong>';
-                // ponytail: append countdown vao popup box (truoc button)
-                var popupBox = document.querySelector('.popup-box');
-                if (popupBox) popupBox.appendChild(countdownEl);
-                setTimeout(function updateTimer() {
-                    remaining--;
-                    if (remaining <= 0) return;
-                    var mins = Math.floor(remaining / 60);
-                    var secs = remaining % 60;
-                    var timerEl = document.getElementById('qr-timer');
-                    if (timerEl) timerEl.textContent = mins.toString().padStart(2,'0') + ':' + secs.toString().padStart(2,'0');
-                    setTimeout(updateTimer, 1000);
-                }, 1000);
-
-                window.addEventListener('beforeunload', function() {
-                    if (window._qrCancelTimer) clearTimeout(window._qrCancelTimer);
-                }, {once: true});
-            } else {
-                // ═══ COD/MoMo/PayPal: success bình thường ═══
-                redirectUrl = URL_CHI_TIET_DH + '?id=' + orderId;
-                iconHtml = '<div style="width:80px;height:80px;background:linear-gradient(135deg,#28a745,#20c997);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;"><i class="fas fa-check fa-2x text-white"></i></div>';
-                contentHtml = '<h4 style="font-weight:700;margin-bottom:8px;">' + title + '</h4>'
-                    + '<p class="text-muted" style="font-size:14px;margin-bottom:20px;">' + detail + '</p>';
-                btnHtml = '<a href="' + redirectUrl + '" class="btn btn-success px-5" style="border-radius:8px;">Xem chi tiết đơn hàng</a>';
-            }
+            // ═══ COD: success bình thường ═══
+            redirectUrl = URL_CHI_TIET_DH + '?id=' + orderId;
+            iconHtml = '<div style="width:80px;height:80px;background:linear-gradient(135deg,#28a745,#20c997);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;"><i class="fas fa-check fa-2x text-white"></i></div>';
+            contentHtml = '<h4 style="font-weight:700;margin-bottom:8px;">' + title + '</h4>'
+                + '<p class="text-muted" style="font-size:14px;margin-bottom:20px;">' + detail + '</p>';
+            btnHtml = '<a href="' + redirectUrl + '" class="btn btn-success px-5" style="border-radius:8px;">Xem chi tiết đơn hàng</a>';
         } else {
             // ═══ Failure path ═══
             iconHtml = '<div style="width:80px;height:80px;background:linear-gradient(135deg,#dc3545,#e74c3c);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;"><i class="fas fa-times fa-2x text-white"></i></div>';

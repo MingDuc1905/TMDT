@@ -300,11 +300,9 @@ builder.Services.AddSingleton<ShipFood.Services.GeminiService>(sp =>
 // Register ViewComponents
 builder.Services.AddScoped<ShipFood.ViewComponents.FilterBarViewComponent>();
 
-// Register MoMo Payment Service
-builder.Services.AddHttpClient<ShipFood.Services.MoMoService>();
-
-// Register PayPal Payment Service
-builder.Services.AddHttpClient<ShipFood.Services.PayPalService>();
+// Register VNPAY Payment Service
+builder.Services.AddSingleton<ShipFood.Services.VnpayService>();
+// MoMo và PayPal đã được thay thế bằng VNPAY
 
 // Add Antiforgery (hỗ trợ AJAX header token cho Mock Payment)
 builder.Services.AddAntiforgery(options =>

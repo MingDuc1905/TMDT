@@ -20,10 +20,9 @@ public class BankWebhookTests
 {
     private static PaymentController CreateController(dbFoodyEntities db)
     {
-        var mockMomoService = new Mock<MoMoService>(
+        var mockVnpayService = new Mock<VnpayService>(
             new Mock<IConfiguration>().Object,
-            new Mock<ILogger<MoMoService>>().Object,
-            new HttpClient());
+            new Mock<ILogger<VnpayService>>().Object);
         var mockHubContext = new Mock<IHubContext<Chats>>();
         var mockEdelivery = new Mock<EDeliveryService>(db, new Mock<ILogger<EDeliveryService>>().Object);
         var mockConfig = new Mock<IConfiguration>();
@@ -34,7 +33,7 @@ public class BankWebhookTests
             db,
             new Mock<ILogger<PaymentController>>().Object,
             mockHubContext.Object,
-            mockMomoService.Object,
+            mockVnpayService.Object,
             mockConfig.Object,
             mockEdelivery.Object);
     }

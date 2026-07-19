@@ -333,69 +333,7 @@ public class RestaurantController : BaseController
         var dh = db.tbDonHang.FirstOrDefault(d => d.madh == id && d.maquan == quanAn.userid);
         if (dh != null)
         {
-            var oldStatus = dh.trangthai;
             dh.trangthai = "Đã hủy";
-
-            // ─── MoMo Refund: Nếu đơn đã thanh toán qua MoMo, tự động hoàn tiền ───
-            bool isMoMoPayment = dh.hinhthucthanhtoan == 3 || dh.hinhthucthanhtoan == 5;
-            if (isMoMoPayment && dh.tongtien > 0 && (oldStatus == "Đã đặt" || oldStatus == "Đã xác nhận" || oldStatus == "Đã thanh toán"))
-            {
-                try
-                {
-                    var moMoService = HttpContext.RequestServices.GetRequiredService<ShipFood.Services.MoMoService>();
-                    // Đọc momo_trans_id đã lưu từ IPN callback (nếu có)
-                    long? transId = null;
-                    if (!string.IsNullOrEmpty(dh.momo_trans_id) && long.TryParse(dh.momo_trans_id, out var parsedTransId))
-                    {
-                        transId = parsedTransId;
-                    }
-                    // ponytail: Fix Item 11 — dung original orderId format cho refund
-                    // ponytail: Fix Item 11 — dung original orderId, xu ly nullable ngaydathang
-                    var refundOrderId = $"FS{dh.madh}_{dh.ngaydathang?.ToString("yyyyMMddHHmmss") ?? DateTime.Now.ToString("yyyyMMddHHmmss")}";
-                    var refundResult = await moMoService.RefundAsync(
-                        orderId: refundOrderId,
-                        amount: (long)(dh.tongtien * 1000),
-                        description: $"Hoàn tiền đơn hàng FastShip #{dh.madh}",
-                        transId: transId
-                    );
-                    var logger = HttpContext.RequestServices.GetRequiredService<ILogger<RestaurantController>>();
-                    if (refundResult.IsSuccess)
-                    {
-                        logger.LogInformation("MoMo refund successful for order #{OrderId}, amount: {Amount}", dh.madh, dh.tongtien);
-                    }
-                    else
-                    {
-                        logger.LogWarning("MoMo refund failed for order #{OrderId}: {Message}", dh.madh, refundResult.Message);
-                    }
-                }
-                catch (Exception refundEx)
-                {
-                    var logger = HttpContext.RequestServices.GetRequiredService<ILogger<RestaurantController>>();
-                    logger.LogError(refundEx, "MoMo refund failed for order #{OrderId}", dh.madh);
-                }
-            }
-            
-            // ─── Manual Refund Notification cho Bank Transfer (4) và PayPal (2) ───
-            bool isManualRefundPayment = dh.hinhthucthanhtoan == 2 || dh.hinhthucthanhtoan == 4;
-            if (isManualRefundPayment && dh.tongtien > 0 && (oldStatus == "Đã đặt" || oldStatus == "Đã xác nhận" || oldStatus == "Đã thanh toán"))
-            {
-                try
-                {
-                    // Gửi tin nhắn cho admin yêu cầu hoàn tiền thủ công
-                    db.tbTinNhans.Add(new tbTinNhan
-                    {
-                        madh = dh.madh,
-                        noidung = $"⚠️ Yêu cầu HOÀN TIỀN THỦ CÔNG cho đơn hàng #{dh.madh}. Khách hàng: {dh.tbThongTinDatHang?.userid}. Số tiền: {dh.tongtien:N0}đ. Hình thức: {(dh.hinhthucthanhtoan == 4 ? "Chuyển khoản (VietQR)" : "PayPal")}.",
-                        makh = dh.tbThongTinDatHang?.userid, // Admin có thể xem được tin nhắn theo madh
-                        mashipper = null
-                    });
-                    
-                    var logger = HttpContext.RequestServices.GetRequiredService<ILogger<RestaurantController>>();
-                    logger.LogWarning("Manual refund required for order #{OrderId}. Payment method: {PaymentMethod}", dh.madh, dh.hinhthucthanhtoan);
-                }
-                catch { }
-            }
-
             db.SaveChanges();
 
             // ═══ Auto-sinh tin nhắn khi hủy đơn ═══

@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
@@ -50,7 +49,7 @@ public class VnpayService
             return "";
         }
 
-        var vnpParams = new SortedList<string, string>(new VnPayCompare())
+        var vnpParams = new SortedList<string, string>(StringComparer.Ordinal)
         {
             { "vnp_Amount", (amount * 100).ToString() },
             { "vnp_Command", "pay" },
@@ -99,7 +98,7 @@ public class VnpayService
         vnpParams.Remove("vnp_SecureHash");
         vnpParams.Remove("vnp_SecureHashType");
 
-        var responseData = new SortedList<string, string>(new VnPayCompare());
+        var responseData = new SortedList<string, string>(StringComparer.Ordinal);
         foreach (var kv in vnpParams)
         {
             if (!string.IsNullOrEmpty(kv.Value))
@@ -141,17 +140,5 @@ public class VnpayService
         foreach (var theByte in hashValue)
             hash.Append(theByte.ToString("x2"));
         return hash.ToString();
-    }
-}
-
-public class VnPayCompare : IComparer<string>
-{
-    public int Compare(string? x, string? y)
-    {
-        if (x == y) return 0;
-        if (x == null) return -1;
-        if (y == null) return 1;
-        var vnpCompare = CompareInfo.GetCompareInfo("en-US");
-        return vnpCompare.Compare(x, y, CompareOptions.Ordinal);
     }
 }

@@ -287,7 +287,7 @@ public class RestaurantController : BaseController
     {
         if (!checkLogin()) return RedirectToAction("Login", "Home");
         var quanAn = getQuanAn();
-        ViewBag.donHangs = quanAn.tbDonHang.ToList();
+        ViewBag.donHangs = quanAn.tbDonHang.OrderByDescending(dh => dh.ngaydathang).ToList();
         ViewBag.restaurantId = quanAn.userid;
         return View();
     }

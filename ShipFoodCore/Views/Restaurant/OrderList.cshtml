@@ -13,33 +13,35 @@
         </div>
         <div class="toolbar">
             <div class="dropdown custom-dropdown">
-                <button type="button" class="btn btn-outline d-flex align-items-center" data-bs-toggle="dropdown">
+                <button type="button" class="btn btn-outline d-flex align-items-center" data-bs-toggle="dropdown" id="filterStatusBtn">
                     <i class="fas fa-filter me-1"></i>
-                    <span>Tất cả</span>
+                    <span id="filterStatusLabel">Tất cả</span>
                     <i class="fas fa-chevron-down ms-2"></i>
                 </button>
                 <div class="dropdown-menu dropdown-menu-right">
-                    <a class="dropdown-item" href="#">2020</a>
-                    <a class="dropdown-item" href="#">2019</a>
-                    <a class="dropdown-item" href="#">2018</a>
-                    <a class="dropdown-item" href="#">2017</a>
-                    <a class="dropdown-item" href="#">2016</a>
+                    <a class="dropdown-item filter-status" data-status="" href="#">📋 Tất cả</a>
+                    <a class="dropdown-item filter-status" data-status="Đã đặt" href="#">🆕 Đã đặt</a>
+                    <a class="dropdown-item filter-status" data-status="Chờ thanh toán" href="#">⏳ Chờ thanh toán</a>
+                    <a class="dropdown-item filter-status" data-status="Đã xác nhận" href="#">✅ Đã xác nhận</a>
+                    <a class="dropdown-item filter-status" data-status="Đang chuẩn bị" href="#">👨‍🍳 Đang chuẩn bị</a>
+                    <a class="dropdown-item filter-status" data-status="Chờ shipper lấy hàng" href="#">📦 Chờ lấy hàng</a>
+                    <a class="dropdown-item filter-status" data-status="Đang giao" href="#">🚀 Đang giao</a>
+                    <a class="dropdown-item filter-status" data-status="Hoàn thành" href="#">✅ Hoàn thành</a>
+                    <a class="dropdown-item filter-status" data-status="Đã hủy" href="#">❌ Đã hủy</a>
                 </div>
             </div>
             <div class="dropdown custom-dropdown">
-                <button type="button" class="btn btn-outline d-flex align-items-center" data-bs-toggle="dropdown">
+                <button type="button" class="btn btn-outline d-flex align-items-center" data-bs-toggle="dropdown" id="filterDateBtn">
                     <i class="fas fa-calendar me-1"></i>
-                    <span>Hôm nay</span>
+                    <span id="filterDateLabel">Hôm nay</span>
                     <i class="fas fa-chevron-down ms-2"></i>
                 </button>
                 <div class="dropdown-menu dropdown-menu-right">
-                    <a class="dropdown-item" href="#">Thứ hai</a>
-                    <a class="dropdown-item" href="#">Thứ ba</a>
-                    <a class="dropdown-item" href="#">Thứ tư</a>
-                    <a class="dropdown-item" href="#">Thứ năm</a>
-                    <a class="dropdown-item" href="#">Thứ sáu</a>
-                    <a class="dropdown-item" href="#">Thứ bảy</a>
-                    <a class="dropdown-item" href="#">Chủ nhật</a>
+                    <a class="dropdown-item filter-date" data-days="" href="#">📅 Tất cả thời gian</a>
+                    <a class="dropdown-item filter-date" data-days="0" href="#">📅 Hôm nay</a>
+                    <a class="dropdown-item filter-date" data-days="7" href="#">📅 7 ngày qua</a>
+                    <a class="dropdown-item filter-date" data-days="30" href="#">📅 30 ngày qua</a>
+                    <a class="dropdown-item filter-date" data-days="90" href="#">📅 3 tháng qua</a>
                 </div>
             </div>
         </div>
@@ -62,8 +64,8 @@
                         @foreach (var i in donHangs)
                         {
                             <tr>
-                                <td data-label="Ngày đặt">@i.ngaydathang.Value.ToString("dd/MM/yyyy HH:mm")</td>
-                                <td data-label="Khách hàng">@i.tbThongTinDatHang.tennguoinhan</td>
+                                <td data-label="Ngày đặt">@(i.ngaydathang?.ToString("dd/MM/yyyy HH:mm") ?? "N/A")</td>
+                                <td data-label="Khách hàng">@(i.tbThongTinDatHang?.tennguoinhan ?? "Khách")</td>
                                 <td data-label="Tổng tiền">@i.tongtien?.ToString("N0") VNĐ</td>
                                 @if (i.trangthai.Equals("Đã hủy"))
                                 {
@@ -106,9 +108,58 @@
             paging: true,
             select: false,
             lengthChange: false,
+            order: [[0, 'desc']], // M?c d?nh s?p x?p theo ngày d?t m?i nh?t
         });
         $('#example tbody').on('click', 'tr', function () {
             var data = table.row(this).data();
+        });
+
+        // ─── FILTER: L?c theo tr?ng thái ───
+        $('.filter-status').on('click', function(e) {
+            e.preventDefault();
+            var status = $(this).data('status');
+            $('#filterStatusLabel').text($(this).text().trim().replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim());
+            if (status === '') {
+                table.column(3).search('').draw();
+            } else {
+                table.column(3).search('^' + status.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', true, false).draw();
+            }
+        });
+
+        // ─── FILTER: L?c theo ngày ───
+        $('.filter-date').on('click', function(e) {
+            e.preventDefault();
+            var days = $(this).data('days');
+            var label = $(this).text().trim().replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim();
+            $('#filterDateLabel').text(label);
+            
+            if (days === '' || days === undefined) {
+                // Show all rows
+                $.fn.dataTable.ext.search = $.fn.dataTable.ext.search.filter(function(f) { return f !== dateFilter; });
+                table.draw();
+                return;
+            }
+            
+            days = parseInt(days);
+            var cutoff = new Date();
+            cutoff.setDate(cutoff.getDate() - days);
+            cutoff.setHours(0, 0, 0, 0);
+            
+            // Remove old date filter if exists
+            $.fn.dataTable.ext.search = $.fn.dataTable.ext.search.filter(function(f) { return f !== dateFilter; });
+            
+            // Add new date filter
+            window.dateFilter = function(settings, data, dataIndex) {
+                // Parse ngày VN format dd/MM/yyyy HH:mm
+                var parts = data[0].split(' ')[0].split('/');
+                if (parts.length === 3) {
+                    var rowDate = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+                    return rowDate >= cutoff;
+                }
+                return true;
+            };
+            $.fn.dataTable.ext.search.push(window.dateFilter);
+            table.draw();
         });
 
         // ── SignalR: Real-time đơn hàng mới ──

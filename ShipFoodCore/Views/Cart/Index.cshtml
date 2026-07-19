@@ -365,17 +365,30 @@
             if (res.success) {
                 $row.fadeOut(300, function() { 
                     $(this).remove(); 
-                    if ($('.cart-item').length === 0) location.reload();
+                    var remaining = $('.cart-item').length;
+                    if (remaining === 0) {
+                        location.reload();
+                    } else {
+                        // Cập nhật badge giỏ hàng nếu còn item
+                        var badge = document.getElementById('navCartBadge');
+                        if (badge) {
+                            var cartResponse = res;
+                            if (cartResponse.isEmpty) {
+                                badge.textContent = '';
+                                badge.style.display = 'none';
+                            }
+                        }
+                    }
                 });
                 $('#cart-total').text(res.cartTotal);
                 $('#cart-grandtotal').text(res.cartGrandTotal);
-                // Cập nhật badge
-                var badge = document.getElementById('navCartBadge');
-                if (badge) { badge.textContent = ''; badge.style.display = 'none'; }
             } else {
                 alert(res.message || 'Lỗi xóa món');
             }
-        }).fail(function() { alert('Lỗi kết nối'); });
+        }).fail(function() { 
+            alert('Lỗi kết nối. Vui lòng thử lại.');
+            $row.css('opacity', '1');
+        });
     };
 
     $(document).on('click', '.btn-tang, .btn-giam', function(e) {

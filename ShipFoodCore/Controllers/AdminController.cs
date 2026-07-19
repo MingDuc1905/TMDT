@@ -585,34 +585,31 @@ public class AdminController : BaseController
 
         // Tổng doanh thu (đơn hoàn thành)
         var tongDoanhThu = db.tbDonHang
-            .Where(dh => dh.ngaydathang >= tuNgay && dh.ngaydathang <= denNgay && dh.trangthai == "Hoàn thành")
+            .Where(dh => dh.ngaydathang != null && dh.ngaydathang >= tuNgay && dh.ngaydathang <= denNgay && dh.trangthai == "Hoàn thành")
             .Sum(dh => (decimal?)dh.tongtien) ?? 0;
 
-        // Tổng số đơn
+        // Tổng số đơn (không tính đơn đã hủy)
         var tongSoDon = db.tbDonHang
-            .Where(dh => dh.ngaydathang >= tuNgay && dh.ngaydathang <= denNgay)
+            .Where(dh => dh.ngaydathang != null && dh.ngaydathang >= tuNgay && dh.ngaydathang <= denNgay
+                && dh.trangthai != "Đã hủy")
             .Count();
 
-        // Số khách hàng mới đã đăng ký (lọc theo thời gian)
-        var khachHangMoi = db.tbUser
+        // Tổng khách hàng (không có ngày tạo trong DB → không filter theo ngày)
+        var tongKhachHang = db.tbUser
             .Count(u => u.loaitaikhoan == "Khách hàng" && u.trangthai == 1);
-
-        // Số quán ăn đã duyệt
-        var quanAnMoi = db.tbQuanAn.Count(qa => qa.tbUser != null && qa.tbUser.trangthai == 1);
 
         // Tỷ lệ hủy đơn
         var donHuy = db.tbDonHang
-            .Where(dh => dh.ngaydathang >= tuNgay && dh.ngaydathang <= denNgay && dh.trangthai == "Đã hủy")
+            .Where(dh => dh.ngaydathang != null && dh.ngaydathang >= tuNgay && dh.ngaydathang <= denNgay && dh.trangthai == "Đã hủy")
             .Count();
-        var tiLeHuy = tongSoDon > 0 ? Math.Round((double)donHuy / tongSoDon * 100, 1) : 0;
+        var tongDonTrongKy = tongSoDon + donHuy;
+        var tiLeHuy = tongDonTrongKy > 0 ? Math.Round((double)donHuy / tongDonTrongKy * 100, 1) : 0;
 
         return Json(new
         {
             tongDoanhThu = tongDoanhThu,
             tongSoDon = tongSoDon,
-            khachHangMoi = khachHangMoi,
-            quanAnMoi = quanAnMoi,
-            donHuy = donHuy,
+            tongKhachHang = tongKhachHang,
             tiLeHuy = tiLeHuy
         });
     }
@@ -627,11 +624,10 @@ public class AdminController : BaseController
         var denNgay = toDate ?? DateTime.Now;
 
         var donHangs = db.tbDonHang
-            .Where(dh => dh.ngaydathang >= tuNgay && dh.ngaydathang <= denNgay && dh.trangthai == "Hoàn thành")
+            .Where(dh => dh.ngaydathang != null && dh.ngaydathang >= tuNgay && dh.ngaydathang <= denNgay && dh.trangthai == "Hoàn thành")
             .ToList();
 
         var dailyData = donHangs
-            .Where(dh => dh.ngaydathang != null)
             .GroupBy(dh => dh.ngaydathang!.Value.Date)
             .Select(g => new
             {
@@ -646,13 +642,17 @@ public class AdminController : BaseController
     }
 
     [HttpGet]
-    public JsonResult GetTopRestaurants()
+    public JsonResult GetTopRestaurants(DateTime? fromDate, DateTime? toDate)
     {
         if (!checkLogin())
             return Json(new { error = "Unauthorized" });
 
+        var tuNgay = fromDate ?? DateTime.Now.AddDays(-30);
+        var denNgay = toDate ?? DateTime.Now;
+
         var topQuan = db.tbDonHang
-            .Where(dh => dh.trangthai == "Hoàn thành" && dh.tbQuanAn != null)
+            .Where(dh => dh.trangthai == "Hoàn thành" && dh.tbQuanAn != null
+                && dh.ngaydathang != null && dh.ngaydathang >= tuNgay && dh.ngaydathang <= denNgay)
             .GroupBy(dh => new { dh.maquan, ten = dh.tbQuanAn!.tenquanan })
             .Select(g => new
             {                    tenQuan = g.Key.ten,
@@ -683,14 +683,20 @@ public class AdminController : BaseController
     }
 
     [HttpGet]
-    public JsonResult GetOrderStatusPie()
+    public JsonResult GetOrderStatusPie(DateTime? fromDate, DateTime? toDate)
     {
         if (!checkLogin())
             return Json(new { error = "Unauthorized" });
 
-        var hoanThanh = db.tbDonHang.Count(dh => dh.trangthai == "Hoàn thành");
-        var daHuy = db.tbDonHang.Count(dh => dh.trangthai == "Đã hủy");
-        var dangXuLy = db.tbDonHang.Count(dh => dh.trangthai != "Hoàn thành" && dh.trangthai != "Đã hủy");
+        var tuNgay = fromDate ?? DateTime.Now.AddDays(-30);
+        var denNgay = toDate ?? DateTime.Now;
+
+        var hoanThanh = db.tbDonHang.Count(dh => dh.trangthai == "Hoàn thành"
+            && dh.ngaydathang != null && dh.ngaydathang >= tuNgay && dh.ngaydathang <= denNgay);
+        var daHuy = db.tbDonHang.Count(dh => dh.trangthai == "Đã hủy"
+            && dh.ngaydathang != null && dh.ngaydathang >= tuNgay && dh.ngaydathang <= denNgay);
+        var dangXuLy = db.tbDonHang.Count(dh => dh.trangthai != "Hoàn thành" && dh.trangthai != "Đã hủy"
+            && dh.ngaydathang != null && dh.ngaydathang >= tuNgay && dh.ngaydathang <= denNgay);
 
         return Json(new
         {
@@ -701,13 +707,17 @@ public class AdminController : BaseController
     }
 
     [HttpGet]
-    public JsonResult GetTopItems()
+    public JsonResult GetTopItems(DateTime? fromDate, DateTime? toDate)
     {
         if (!checkLogin())
             return Json(new { error = "Unauthorized" });
 
+        var tuNgay = fromDate ?? DateTime.Now.AddDays(-30);
+        var denNgay = toDate ?? DateTime.Now;
+
         var topItems = db.tbChiTietDonHang
             .Where(ct => ct.tbDonHang != null && ct.tbDonHang.trangthai == "Hoàn thành"
+                && ct.tbDonHang.ngaydathang != null && ct.tbDonHang.ngaydathang >= tuNgay && ct.tbDonHang.ngaydathang <= denNgay
                 && ct.tbBienTheMonAn != null && ct.tbBienTheMonAn.tbMonAn != null)
             .GroupBy(ct => new
             {
@@ -759,16 +769,20 @@ public class AdminController : BaseController
     }
 
     [HttpGet]
-    public JsonResult GetCategoryStats()
+    public JsonResult GetCategoryStats(DateTime? fromDate, DateTime? toDate)
     {
         if (!checkLogin())
             return Json(new { error = "Unauthorized" });
+
+        var tuNgay = fromDate ?? DateTime.Now.AddDays(-30);
+        var denNgay = toDate ?? DateTime.Now;
 
         // Thống kê danh mục theo doanh thu
         var stats = db.tbChiTietDonHang
             .Where(ct => ct.tbBienTheMonAn != null && ct.tbBienTheMonAn.tbMonAn != null
                 && ct.tbBienTheMonAn.tbMonAn.tbDanhMuc != null
-                && ct.tbDonHang != null && ct.tbDonHang.trangthai == "Hoàn thành")
+                && ct.tbDonHang != null && ct.tbDonHang.trangthai == "Hoàn thành"
+                && ct.tbDonHang.ngaydathang != null && ct.tbDonHang.ngaydathang >= tuNgay && ct.tbDonHang.ngaydathang <= denNgay)
             .GroupBy(ct => ct.tbBienTheMonAn.tbMonAn.tbDanhMuc.tendanhmuc)
             .Select(g => new
             {
@@ -793,7 +807,7 @@ public class AdminController : BaseController
         var todayEnd = todayStart.AddDays(1);
 
         var hourlyData = db.tbDonHang
-            .Where(d => d.ngaydathang >= todayStart && d.ngaydathang < todayEnd)
+            .Where(d => d.ngaydathang != null && d.ngaydathang >= todayStart && d.ngaydathang < todayEnd)
             .AsEnumerable()
             .GroupBy(d => d.ngaydathang!.Value.Hour)
             .Select(g => new

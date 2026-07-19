@@ -277,22 +277,20 @@ public class PaymentController : BaseController
 
                 dh.phiship = resShipFee;
 
-                // SignalR: thông báo cho quán nếu không phải chờ thanh toán (COD)
-                if (!isVnpay && trangThaiBanDau != "Chờ thanh toán")
+                // ═══ SignalR: Luôn thông báo cho quán khi có đơn mới (k? c? VNPAY) ═══
+                // Quán cần th?y d?n d? chu?n b?, dù dang ch? thanh toán
+                try
                 {
-                    try
+                    await _hubContext.Clients.Group($"restaurant_{resId}").SendAsync("newOrder", new
                     {
-                        await _hubContext.Clients.Group($"restaurant_{resId}").SendAsync("newOrder", new
-                        {
-                            orderId = dh.madh,
-                            customerName = hoten ?? "Khách",
-                            totalAmount = resTongCong,
-                            status = trangThaiBanDau,
-                            time = DateTime.Now.ToString("HH:mm")
-                        });
-                    }
-                    catch { }
+                        orderId = dh.madh,
+                        customerName = hoten ?? "Khách",
+                        totalAmount = resTongCong,
+                        status = trangThaiBanDau,
+                        time = DateTime.Now.ToString("HH:mm")
+                    });
                 }
+                catch { }
             }
 
             // ─── Coupon usage ───

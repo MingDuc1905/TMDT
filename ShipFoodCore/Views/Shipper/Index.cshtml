@@ -196,6 +196,7 @@
     }
 </style>
 
+<div class="content-body">
 <div class="shipper-split">
     <!-- ═══ LEFT PANEL ═══ -->
     <div class="left-panel">
@@ -247,7 +248,7 @@
     <!-- ═══ RIGHT PANEL ═══ -->
     <div class="right-panel">
         <div class="panel-header">
-            <h2>📋 Đơn hàng</h2>
+            <h2><i class="fas fa-clipboard-list"></i> Đơn hàng</h2>
             <div class="tab-group">
                 <button class="tab-btn active" onclick="switchTab('freepick')">FREE-PICK</button>
                 <button class="tab-btn" onclick="switchTab('orders')">ĐƠN HÀNG</button>
@@ -302,7 +303,7 @@
             else
             {
                 <div class="empty-state">
-                    <div class="icon">📭</div>
+                    <div class="icon"><i class="fas fa-inbox"></i></div>
                     <p>Không có đơn FREE-PICK nào đang chờ</p>
                     <small style="color:#bbb;">Khi có đơn mới, bạn sẽ nghe thấy âm báo</small>
                 </div>
@@ -347,7 +348,7 @@
             else
             {
                 <div class="empty-state">
-                    <div class="icon">📦</div>
+                    <div class="icon"><i class="fas fa-box-open"></i></div>
                     <p>Chưa có đơn hàng nào</p>
                 </div>
             }
@@ -360,6 +361,9 @@
             </a>
         </div>
     </div>
+</div>
+
+</div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>

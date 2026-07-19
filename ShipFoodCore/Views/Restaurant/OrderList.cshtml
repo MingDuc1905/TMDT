@@ -19,15 +19,15 @@
                     <i class="fas fa-chevron-down ms-2"></i>
                 </button>
                 <div class="dropdown-menu dropdown-menu-right">
-                    <a class="dropdown-item filter-status" data-status="" href="#">📋 Tất cả</a>
-                    <a class="dropdown-item filter-status" data-status="Đã đặt" href="#">🆕 Đã đặt</a>
-                    <a class="dropdown-item filter-status" data-status="Chờ thanh toán" href="#">⏳ Chờ thanh toán</a>
-                    <a class="dropdown-item filter-status" data-status="Đã xác nhận" href="#">✅ Đã xác nhận</a>
-                    <a class="dropdown-item filter-status" data-status="Đang chuẩn bị" href="#">👨‍🍳 Đang chuẩn bị</a>
-                    <a class="dropdown-item filter-status" data-status="Chờ shipper lấy hàng" href="#">📦 Chờ lấy hàng</a>
-                    <a class="dropdown-item filter-status" data-status="Đang giao" href="#">🚀 Đang giao</a>
-                    <a class="dropdown-item filter-status" data-status="Hoàn thành" href="#">✅ Hoàn thành</a>
-                    <a class="dropdown-item filter-status" data-status="Đã hủy" href="#">❌ Đã hủy</a>
+                    <a class="dropdown-item filter-status" data-status="" href="#"><i class="fas fa-list"></i> Tất cả</a>
+                    <a class="dropdown-item filter-status" data-status="Đã đặt" href="#"><i class="fas fa-clock"></i> Đã đặt</a>
+                    <a class="dropdown-item filter-status" data-status="Chờ thanh toán" href="#"><i class="fas fa-hourglass-half"></i> Chờ thanh toán</a>
+                    <a class="dropdown-item filter-status" data-status="Đã xác nhận" href="#"><i class="fas fa-check-circle"></i> Đã xác nhận</a>
+                    <a class="dropdown-item filter-status" data-status="Đang chuẩn bị" href="#"><i class="fas fa-fire"></i> Đang chuẩn bị</a>
+                    <a class="dropdown-item filter-status" data-status="Chờ shipper lấy hàng" href="#"><i class="fas fa-box"></i> Chờ lấy hàng</a>
+                    <a class="dropdown-item filter-status" data-status="Đang giao" href="#"><i class="fas fa-truck"></i> Đang giao</a>
+                    <a class="dropdown-item filter-status" data-status="Hoàn thành" href="#"><i class="fas fa-check-circle"></i> Hoàn thành</a>
+                    <a class="dropdown-item filter-status" data-status="Đã hủy" href="#"><i class="fas fa-times-circle"></i> Đã hủy</a>
                 </div>
             </div>
             <div class="dropdown custom-dropdown">
@@ -37,11 +37,11 @@
                     <i class="fas fa-chevron-down ms-2"></i>
                 </button>
                 <div class="dropdown-menu dropdown-menu-right">
-                    <a class="dropdown-item filter-date" data-days="" href="#">📅 Tất cả thời gian</a>
-                    <a class="dropdown-item filter-date" data-days="0" href="#">📅 Hôm nay</a>
-                    <a class="dropdown-item filter-date" data-days="7" href="#">📅 7 ngày qua</a>
-                    <a class="dropdown-item filter-date" data-days="30" href="#">📅 30 ngày qua</a>
-                    <a class="dropdown-item filter-date" data-days="90" href="#">📅 3 tháng qua</a>
+                    <a class="dropdown-item filter-date" data-days="" href="#"><i class="fas fa-calendar-alt"></i> Tất cả thời gian</a>
+                    <a class="dropdown-item filter-date" data-days="0" href="#"><i class="fas fa-calendar-alt"></i> Hôm nay</a>
+                    <a class="dropdown-item filter-date" data-days="7" href="#"><i class="fas fa-calendar-alt"></i> 7 ngày qua</a>
+                    <a class="dropdown-item filter-date" data-days="30" href="#"><i class="fas fa-calendar-alt"></i> 30 ngày qua</a>
+                    <a class="dropdown-item filter-date" data-days="90" href="#"><i class="fas fa-calendar-alt"></i> 3 tháng qua</a>
                 </div>
             </div>
         </div>
@@ -84,7 +84,7 @@
                                     }
                                     else if (i.trangthai == "Chờ thanh toán")
                                     {
-                                        <span style="width: 140px; font-size: 12px;" class="btn btn-secondary light btn-secondary" title="Đơn đang chờ khách thanh toán VNPAY">⏳ Chờ thanh toán</span>
+                                        <span style="width: 140px; font-size: 12px;" class="btn btn-secondary light btn-secondary" title="Đơn đang chờ khách thanh toán VNPAY"><i class="fas fa-hourglass-half"></i> Chờ thanh toán</span>
                                         <a href="~/Restaurant/huydon/@i.madh" onclick="return confirm('Bạn có chắc muốn huỷ đơn này?')"><span style="width: 115px; font-size: 13px;" class="btn btn-warning light btn-secondary">Huỷ đơn</span></a>
                                     }
                                     else if (i.trangthai == "Đã xác nhận" || i.trangthai == "Đang chuẩn bị")
@@ -94,11 +94,11 @@
                                     }
                                     else if (i.trangthai == "Chờ shipper lấy hàng" || i.trangthai == "Đã lấy" || i.trangthai == "Đang giao")
                                     {
-                                        <span style="width: 140px; font-size: 12px;" class="btn btn-info light btn-secondary">🚚 Đang giao</span>
+                                        <span style="width: 140px; font-size: 12px;" class="btn btn-info light btn-secondary"><i class="fas fa-truck"></i> Đang giao</span>
                                     }
                                     else if (i.trangthai == "Hoàn thành")
                                     {
-                                        <span style="width: 115px; font-size: 12px;" class="btn btn-success light btn-secondary">✅ Hoàn thành</span>
+                                        <span style="width: 115px; font-size: 12px;" class="btn btn-success light btn-secondary"><i class="fas fa-check-circle"></i> Hoàn thành</span>
                                     }
                                     <a href="~/Cart/ChiTietDonHang?id=@i.madh"><span style="width:115px" class="btn btn-sm light btn-secondary fs-16">Chi tiết</span></a>
                                 </td>

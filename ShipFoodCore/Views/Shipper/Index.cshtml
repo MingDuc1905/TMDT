@@ -289,9 +289,10 @@
                                 </div>
                             </div>
                             <div class="order-actions">
-                                <a href="@Url.Action("OrderDetail","Shipper", new { id = item.madh })" class="btn btn-accept">
-                                    <i class="fas fa-check"></i> Nhận đơn
-                                </a>
+                                <button onclick="event.preventDefault();claimOrder(@item.madh, this)" class="btn btn-accept">
+                                    <i class="fas fa-check"></i> <span class="btn-text">Nhận đơn</span>
+                                    <span class="btn-spinner" style="display:none;"><i class="fas fa-spinner fa-spin"></i></span>
+                                </button>
                                 <a href="@Url.Action("OrderDetail","Shipper", new { id = item.madh })" class="btn btn-detail">
                                     <i class="fas fa-eye"></i>
                                 </a>
@@ -376,6 +377,47 @@
         event.target.classList.add('active');
     }
 
+    // 🔵 FIX Bug #11: Loading state + disabled khi ClaimOrder (tránh double-click)
+    function claimOrder(orderId, btn) {
+        if (btn.disabled) return;
+        btn.disabled = true;
+        btn.querySelector('.btn-text').style.display = 'none';
+        btn.querySelector('.btn-spinner').style.display = 'inline';
+        btn.style.opacity = '0.6';
+
+        var token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+        $.ajax({
+            url: '@Url.Action("ClaimOrder", "Shipper")',
+            type: 'POST',
+            data: { id: orderId, __RequestVerificationToken: token },
+            success: function(res) {
+                if (res.success) {
+                    // Card biến mất mượt
+                    var card = btn.closest('.order-card');
+                    if (card) {
+                        card.style.transition = 'opacity 0.3s, transform 0.3s';
+                        card.style.opacity = '0';
+                        card.style.transform = 'translateX(40px)';
+                        setTimeout(() => { if (card.parentNode) card.parentNode.removeChild(card); }, 350);
+                    }
+                } else {
+                    alert('❌ ' + res.message);
+                    btn.disabled = false;
+                    btn.querySelector('.btn-text').style.display = 'inline';
+                    btn.querySelector('.btn-spinner').style.display = 'none';
+                    btn.style.opacity = '1';
+                }
+            },
+            error: function() {
+                alert('❌ Lỗi kết nối');
+                btn.disabled = false;
+                btn.querySelector('.btn-text').style.display = 'inline';
+                btn.querySelector('.btn-spinner').style.display = 'none';
+                btn.style.opacity = '1';
+            }
+        });
+    }
+
     // Leaflet map
     $(document).ready(function () {
         if (typeof L !== 'undefined' && document.getElementById('shipper-map')) {
@@ -403,7 +445,8 @@
             var conn = new signalR.HubConnectionBuilder()
                 .withUrl('/nhantin').withAutomaticReconnect().build();
 
-            conn.on('newPickupOrder', function () {
+            // 🔵 FIX Bug #12: Audio fallback - dùng Web Audio API + fallback im lặng
+            function playNotificationSound() {
                 try {
                     var ctx = new (window.AudioContext || window.webkitAudioContext)();
                     var osc = ctx.createOscillator();
@@ -413,7 +456,13 @@
                     gain.gain.setValueAtTime(0.3, ctx.currentTime);
                     gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
                     osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.5);
-                } catch (e) {}
+                } catch (e) {
+                    console.warn('Audio not supported, using visual notification');
+                }
+            }
+
+            conn.on('newPickupOrder', function () {
+                playNotificationSound();
                 setTimeout(function() { location.reload(); }, 1000);
             });
 
@@ -431,6 +480,17 @@
                 console.error('SignalR:', err);
             });
             window.shipperConn = conn;
+
+            // 🔵 FIX Bug #13: Clear geolocation watch khi rời page
+            window.addEventListener('beforeunload', function() {
+                if (window._geoWatchId !== undefined) {
+                    navigator.geolocation.clearWatch(window._geoWatchId);
+                    window._geoWatchId = undefined;
+                }
+                if (window.shipperConn) {
+                    window.shipperConn.stop();
+                }
+            });
         })();
     });
 </script>

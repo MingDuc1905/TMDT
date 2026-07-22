@@ -185,21 +185,30 @@
                 .withAutomaticReconnect()
                 .build();
 
-            conn.on('newOrder', function (data) {
-                // Phát âm thanh thông báo (Web Audio API)
+            // 🔵 FIX Bug #12: Audio notification với fallback visual
+            function playNewOrderSound() {
                 try {
                     var ctx = new (window.AudioContext || window.webkitAudioContext)();
                     var osc = ctx.createOscillator();
                     var gain = ctx.createGain();
                     osc.connect(gain);
                     gain.connect(ctx.destination);
-                    osc.frequency.value = 880; // Note A5
+                    osc.frequency.value = 880;
                     osc.type = 'sine';
                     gain.gain.setValueAtTime(0.3, ctx.currentTime);
                     gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
                     osc.start(ctx.currentTime);
                     osc.stop(ctx.currentTime + 0.4);
-                } catch (e) { /* Audio not supported */ }
+                } catch (e) {
+                    // Fallback: highlight page title
+                    var origTitle = document.title;
+                    document.title = '🆕 Đơn hàng mới!';
+                    setTimeout(function() { document.title = origTitle; }, 3000);
+                }
+            }
+
+            conn.on('newOrder', function (data) {
+                playNewOrderSound();
 
                 // Reload trang để lấy số liệu thật từ server (DataTable static, không có ajax source)
                 setTimeout(function() { location.reload(); }, 2000);

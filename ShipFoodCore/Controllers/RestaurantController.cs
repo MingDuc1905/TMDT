@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.SignalR;
 using ShipFood.Hubs;
 using ShipFood.Models;
 using ShipFood.Services;
+using ShipFood.Utils;
 
 namespace ShipFood.Controllers;
 
@@ -43,9 +44,9 @@ public class RestaurantController : BaseController
                 userids.Add(i.tbThongTinDatHang.userid);
         }
         ViewBag.soLuongKhachHang = userids.Count;
-        ViewBag.dhChuanBi = QuanAn.tbDonHang.Count(dh => dh.trangthai == "Đang chuẩn bị");
-        ViewBag.dhHoanThanh = QuanAn.tbDonHang.Count(dh => dh.trangthai == "Hoàn thành");
-        ViewBag.dhHuy = QuanAn.tbDonHang.Count(dh => dh.trangthai == "Đã huỷ");
+        ViewBag.dhChuanBi = QuanAn.tbDonHang.Count(dh => dh.trangthai == OrderStatus.DangChuanBi);
+        ViewBag.dhHoanThanh = QuanAn.tbDonHang.Count(dh => dh.trangthai == OrderStatus.HoanThanh);
+        ViewBag.dhHuy = QuanAn.tbDonHang.Count(dh => dh.trangthai == OrderStatus.DaHuy);
 
         // ─── Apriori: Phân tích cặp món bán chéo cho chủ quán ───
         // ponytail: try-catch để RecommendationService crash không làm hỏng dashboard
@@ -69,7 +70,7 @@ public class RestaurantController : BaseController
         var QuanAn = getQuanAn();
         var user = GetCurrentUser();
         // ponytail: Loại đơn "Đã hủy" khỏi tính doanh thu + hiển thị
-        var donHangs = QuanAn.tbDonHang.Where(dh => dh.trangthai != "Đã hủy").ToList();
+        var donHangs = QuanAn.tbDonHang.Where(dh => dh.trangthai != OrderStatus.DaHuy).ToList();
         ViewBag.donHangs = donHangs;
         ViewBag.soDu = Math.Round((double?)donHangs.Sum(dh => dh.tongtien) ?? 0, 1);
         ViewBag.vitien = user?.vitien ?? 0;
@@ -98,6 +99,22 @@ public class RestaurantController : BaseController
 
         // ponytail: Nap tien qua chuyen khoan — tao pending deposit, cho SePay xac nhan
         var depositCode = $"FASTSHIPNAP{user!.userid}_{DateTime.Now:yyyyMMddHHmmss}";
+        // 🔴 FIX Bug #5: Lưu deposit record vào DB
+        try
+        {
+            db.tbTinNhans.Add(new tbTinNhan
+            {
+                noidung = $"DEPOSIT|{soTien}|{depositCode}|Đang chờ xác nhận",
+                makh = user!.userid
+            });
+            db.SaveChanges();
+        }
+        catch (Exception ex)
+        {
+            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<RestaurantController>>();
+            logger.LogWarning(ex, "Failed to save deposit record for user {UserId}", user?.userid);
+        }
+
         TempData["WalletPending"] = $"Quét mã QR để chuyển {soTien:N0}đ vào ví.";
         TempData["WalletQR"] = $"https://img.vietqr.io/image/970415-102878588446-print.png?amount={(long)soTien}&addInfo={Uri.EscapeDataString("SEVQR " + depositCode)}&accountName={Uri.EscapeDataString("BUI MINH DUC")}";
         return RedirectToAction("Wallet");
@@ -211,7 +228,7 @@ public class RestaurantController : BaseController
         datas = datas.OrderByDescending(d => d.soLuongBanDuoc).ToList();
         ViewBag.datas = datas;
         // ponytail: Fix Item 15 — loai bo cancelled orders khoi doanh thu
-        ViewBag.doanhThu = (double?)quanAn.tbDonHang.Where(dh => dh.trangthai != "Đã hủy").Sum(dh => dh.tongtien) ?? 0;
+        ViewBag.doanhThu = (double?)quanAn.tbDonHang.Where(dh => dh.trangthai != OrderStatus.DaHuy).Sum(dh => dh.tongtien) ?? 0;
         ViewBag.dataDanhMucs = dataDanhMucs;
         return View();
     }
@@ -247,6 +264,7 @@ public class RestaurantController : BaseController
     }
 
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public ActionResult Discount(tbMonAnKhuyenMai monAnKhuyenMai)
     {
         if (!checkLogin()) return RedirectToAction("Login", "Home");
@@ -299,7 +317,7 @@ public class RestaurantController : BaseController
         var dh = db.tbDonHang.Include(d => d.tbThongTinDatHang).FirstOrDefault(d => d.madh == id && d.maquan == quanAn.userid);
         if (dh != null)
         {
-            dh.trangthai = "Đã xác nhận";
+            dh.trangthai = OrderStatus.DaXacNhan;
             db.SaveChanges();
 
             // ═══ Auto-sinh tin nhắn khi quán xác nhận đơn ═══
@@ -308,20 +326,28 @@ public class RestaurantController : BaseController
                 db.tbTinNhans.Add(new tbTinNhan
                 {
                     madh = dh.madh,
-                    noidung = "✅ Quán đã xác nhận đơn hàng! Đang chuẩn bị món.",
+                    noidung = OrderStatus.AutoMessages[OrderStatus.DaXacNhan],
                     makh = dh.tbThongTinDatHang?.userid,
                     mashipper = null
                 });
                 await db.SaveChangesAsync();
             }
-            catch { }
+            catch (Exception ex)
+            {
+                var logger = HttpContext.RequestServices.GetRequiredService<ILogger<RestaurantController>>();
+                logger.LogWarning(ex, "nhandon auto-message failed for order #{OrderId}", dh?.madh);
+            }
 
             // SignalR broadcast real-time đến khách hàng
             try
             {
-                await _hubContext.Clients.Group($"order_{id}").SendAsync("orderStatusChanged", id, "Đã xác nhận", DateTime.Now.ToString("HH:mm"));
+                await _hubContext.Clients.Group($"order_{id}").SendAsync("orderStatusChanged", id, OrderStatus.DaXacNhan, DateTime.Now.ToString("HH:mm"));
             }
-            catch { }
+            catch (Exception ex)
+            {
+                var logger = HttpContext.RequestServices.GetRequiredService<ILogger<RestaurantController>>();
+                logger.LogWarning(ex, "nhandon SignalR broadcast failed for order #{OrderId}", id);
+            }
         }
         return RedirectToAction("OrderList");
     }
@@ -333,30 +359,44 @@ public class RestaurantController : BaseController
         var dh = db.tbDonHang.FirstOrDefault(d => d.madh == id && d.maquan == quanAn.userid);
         if (dh != null)
         {
-            dh.trangthai = "Đã hủy";
+            dh.trangthai = OrderStatus.DaHuy;
             db.SaveChanges();
 
+            // 🔴 FIX Bug #4: Null check cho dh.mattdh trước khi dùng
             // ═══ Auto-sinh tin nhắn khi hủy đơn ═══
             try
             {
-                var ttdh = db.tbThongTinDatHangs.Find(dh.mattdh);
+                int? customerUserId = null;
+                if (dh.mattdh != null)
+                {
+                    var ttdh = db.tbThongTinDatHangs.Find(dh.mattdh);
+                    customerUserId = ttdh?.userid;
+                }
                 db.tbTinNhans.Add(new tbTinNhan
                 {
                     madh = dh.madh,
-                    noidung = "❌ Đơn hàng đã bị hủy.",
-                    makh = ttdh?.userid,
+                    noidung = OrderStatus.AutoMessages[OrderStatus.DaHuy],
+                    makh = customerUserId,
                     mashipper = null
                 });
                 await db.SaveChangesAsync();
             }
-            catch { }
+            catch (Exception ex)
+            {
+                var logger = HttpContext.RequestServices.GetRequiredService<ILogger<RestaurantController>>();
+                logger.LogWarning(ex, "huydon auto-message failed for order #{OrderId}", dh?.madh);
+            }
 
             // SignalR broadcast real-time đến khách hàng
             try
             {
-                await _hubContext.Clients.Group($"order_{id}").SendAsync("orderStatusChanged", id, "Đã hủy", DateTime.Now.ToString("HH:mm"));
+                await _hubContext.Clients.Group($"order_{id}").SendAsync("orderStatusChanged", id, OrderStatus.DaHuy, DateTime.Now.ToString("HH:mm"));
             }
-            catch { }
+            catch (Exception ex)
+            {
+                var logger = HttpContext.RequestServices.GetRequiredService<ILogger<RestaurantController>>();
+                logger.LogWarning(ex, "huydon SignalR broadcast failed for order #{OrderId}", id);
+            }
         }
         return RedirectToAction("OrderList");
     }
@@ -371,38 +411,52 @@ public class RestaurantController : BaseController
         var dh = db.tbDonHang.Find(id);
         if (dh == null) return RedirectToAction("OrderList");
 
-        dh.trangthai = "Chờ shipper lấy hàng";
+        dh.trangthai = OrderStatus.ChoShipper;
         db.SaveChanges();
 
         // ═══ Auto-sinh tin nhắn khi quán chuẩn bị xong ═══
         try
         {
-            var ttdh = db.tbThongTinDatHangs.Find(dh.mattdh);
+            int? customerUserId = null;
+            if (dh.mattdh != null)
+            {
+                var ttdh = db.tbThongTinDatHangs.Find(dh.mattdh);
+                customerUserId = ttdh?.userid;
+            }
             db.tbTinNhans.Add(new tbTinNhan
             {
                 madh = dh.madh,
-                noidung = "👨‍🍳 Quán đã chuẩn bị xong món! Đang chờ shipper đến lấy.",
-                makh = ttdh?.userid,
+                noidung = OrderStatus.AutoMessages[OrderStatus.ChoShipper],
+                makh = customerUserId,
                 mashipper = null
             });
             db.SaveChanges();
         }
-        catch { }
+        catch (Exception ex)
+        {
+            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<RestaurantController>>();
+            logger.LogWarning(ex, "hoantatdon auto-message failed for order #{OrderId}", dh?.madh);
+        }
 
         // Load thông tin quán để gửi broadcast
-        var quanAn = getQuanAn();            try
+        var quanAn = getQuanAn();
+        try
+        {
+            await _hubContext.Clients.Group("shippers").SendAsync("newPickupOrder", new
             {
-                await _hubContext.Clients.Group("shippers").SendAsync("newPickupOrder", new
-                {
-                    orderId = dh.madh,
-                    restaurantName = quanAn?.tenquanan ?? "Quán ăn",
-                    pickupAddress = quanAn?.diachi ?? ""
-                });
+                orderId = dh.madh,
+                restaurantName = quanAn?.tenquanan ?? "Quán ăn",
+                pickupAddress = quanAn?.diachi ?? ""
+            });
 
-                // Phase 4: Broadcast real-time đến khách hàng
-                await _hubContext.Clients.Group($"order_{dh.madh}").SendAsync("orderStatusChanged", dh.madh, "Chờ shipper lấy hàng", DateTime.Now.ToString("HH:mm"));
-            }
-            catch { /* SignalR broadcast không ảnh hưởng đến luồng chính */ }
+            // Broadcast real-time đến khách hàng
+            await _hubContext.Clients.Group($"order_{dh.madh}").SendAsync("orderStatusChanged", dh.madh, OrderStatus.ChoShipper, DateTime.Now.ToString("HH:mm"));
+        }
+        catch (Exception ex)
+        {
+            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<RestaurantController>>();
+            logger.LogWarning(ex, "hoantatdon SignalR broadcast failed for order #{OrderId}", dh?.madh);
+        }
 
         return RedirectToAction("OrderList");
     }
@@ -424,6 +478,7 @@ public class RestaurantController : BaseController
     }
 
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public ActionResult Profile(tbQuanAn quanAn, IFormFile? fileAnh, string? pwd)
     {
         if (!checkLogin()) return RedirectToAction("Login", "Home");
@@ -506,6 +561,7 @@ public class RestaurantController : BaseController
     }
 
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public ActionResult PostMonAn(tbMonAn monAn, IFormFile? fileAnh,
         decimal? giatien, string? sizeM, decimal? giaM,
         string? sizeL, decimal? giaL,
@@ -640,6 +696,7 @@ public class RestaurantController : BaseController
 
     // ─── Task 2c: AJAX Toggle 1-Click Hết hàng nhanh ───
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<JsonResult> ToggleConHang(int mamon)
     {
         var roleCheck = CheckRoleJson("Quán ăn");
@@ -686,7 +743,7 @@ public class RestaurantController : BaseController
         var quanAn = db.tbQuanAn.Find(getQuanAn().userid);
         if (quanAn != null)
         {
-            quanAn.trangthai = quanAn.trangthai == "Đóng cửa" ? "Đang mở cửa" : "Đóng cửa";
+            quanAn.trangthai = quanAn.trangthai == OrderStatus.DongCua ? OrderStatus.DangMoCua : OrderStatus.DongCua;
             db.SaveChanges();
         }
         return RedirectToAction("Index");

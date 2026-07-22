@@ -282,10 +282,12 @@
                     {
                         <!-- ═══ FIX: Nút Nhận đơn (ClaimOrder POST) ═══ -->
                         <div class="col-lg-6 text-center">
-                            <a id="btnClaim" class="btn btn-success w-100" style="padding:12px 24px;font-size:16px;font-weight:700;"
-                               onclick="claimOrder(@dh.madh)">
-                                <i class="fas fa-hand-paper me-2"></i>Nhận đơn này
-                            </a>
+                            <button id="btnClaim" class="btn btn-success w-100" style="padding:12px 24px;font-size:16px;font-weight:700;border:none;"
+                               onclick="claimOrder(@dh.madh, this)">
+                                <i class="fas fa-hand-paper me-2"></i>
+                                <span class="btn-text">Nhận đơn này</span>
+                                <span class="btn-spinner" style="display:none;"><i class="fas fa-spinner fa-spin"></i></span>
+                            </button>
                         </div>
                         <div class="col-lg-6 text-center">
                             <a href="@Url.Action("Index","Shipper")" class="btn btn-outline-secondary w-100" style="padding:12px 24px;font-size:16px;">
@@ -325,9 +327,17 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
 <script>
-    // ═══ FIX: Nhận đơn (ClaimOrder POST) ═══
-    function claimOrder(id) {
-        if (!confirm('Xác nhận nhận đơn #' + id + ' này?')) return;
+    // ═══ FIX: Nhận đơn (ClaimOrder POST) — có loading state ═══
+    function claimOrder(id, btn) {
+        if (btn && btn.disabled) return;
+        if (btn) {
+            btn.disabled = true;
+            var text = btn.querySelector('.btn-text');
+            var spinner = btn.querySelector('.btn-spinner');
+            if (text) text.style.display = 'none';
+            if (spinner) spinner.style.display = 'inline';
+            btn.style.opacity = '0.6';
+        }
         var token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
         $.ajax({
             url: '@Url.Action("ClaimOrder", "Shipper")',
@@ -339,11 +349,27 @@
                     location.reload();
                 } else {
                     alert('❌ ' + res.message);
+                    if (btn) {
+                        btn.disabled = false;
+                        var text = btn.querySelector('.btn-text');
+                        var spinner = btn.querySelector('.btn-spinner');
+                        if (text) text.style.display = 'inline';
+                        if (spinner) spinner.style.display = 'none';
+                        btn.style.opacity = '1';
+                    }
                 }
             },
             error: function(xhr) {
                 alert('❌ Lỗi kết nối. Vui lòng thử lại.');
                 console.error('ClaimOrder error:', xhr.responseText);
+                if (btn) {
+                    btn.disabled = false;
+                    var text = btn.querySelector('.btn-text');
+                    var spinner = btn.querySelector('.btn-spinner');
+                    if (text) text.style.display = 'inline';
+                    if (spinner) spinner.style.display = 'none';
+                    btn.style.opacity = '1';
+                }
             }
         });
     }
@@ -464,10 +490,13 @@
                             console.error('UpdateLocation error:', err);
                         });
                 }
-            }
-
-            function startGeolocation() {
+            }                    function startGeolocation() {
                 if (!navigator.geolocation) return;
+
+                // 🔵 FIX Bug #13: Clear old watch before creating new one
+                if (window._geoWatchId !== undefined) {
+                    navigator.geolocation.clearWatch(window._geoWatchId);
+                }
 
                 // Watch position continuously for real-time tracking
                 window._geoWatchId = navigator.geolocation.watchPosition(

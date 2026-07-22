@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using ShipFood.Hubs;
 using ShipFood.Models;
 using ShipFood.Services;
+using ShipFood.Utils;
 
 namespace ShipFood.Controllers;
 
@@ -79,7 +80,7 @@ public class ShipperController : BaseController
 
         var todayOrders = db.tbDonHang.Count(dh => dh.mashipper == sh.userid && dh.ngaydathang >= todayStart);
         var todayIncome = db.tbDonHang
-            .Where(dh => dh.mashipper == sh.userid && dh.ngaythanhtoan >= todayStart && dh.trangthai == "Hoàn thành")
+            .Where(dh => dh.mashipper == sh.userid && dh.ngaythanhtoan >= todayStart && dh.trangthai == OrderStatus.HoanThanh)
             .Sum(dh => (decimal?)dh.phiship) ?? 0;
         ViewBag.TodayOrders = todayOrders;
         ViewBag.TodayIncome = todayIncome;
@@ -99,13 +100,13 @@ public class ShipperController : BaseController
         var shipper = db.tbUser.Find(sh.userid);
 
         var listdh30 = db.tbDonHang.Where(dh => dh.mashipper == sh.userid && dh.ngaythanhtoan >= thirtyDaysAgo && dh.ngaythanhtoan <= currentDate).ToList();
-        var listdhhoanthanh30 = listdh30.Where(l => l.trangthai == "Hoàn thành").ToList();
+        var listdhhoanthanh30 = listdh30.Where(l => l.trangthai == OrderStatus.HoanThanh).ToList();
         var thunhap30 = listdhhoanthanh30.Sum(list => list.phiship) ?? 0;
         int dh30 = listdh30.Count;
 
         var listdhhn = db.tbDonHang.Where(dh => dh.mashipper == sh.userid && dh.ngaythanhtoan >= todayStart && dh.ngaythanhtoan < todayEnd).ToList();
-        var listdhhthn = listdhhn.Where(l => l.trangthai == "Hoàn thành").ToList();
-        var listdhdhhn = listdhhn.Where(l => l.trangthai == "Đã hủy").ToList();
+        var listdhhthn = listdhhn.Where(l => l.trangthai == OrderStatus.HoanThanh).ToList();
+        var listdhdhhn = listdhhn.Where(l => l.trangthai == OrderStatus.DaHuy).ToList();
         var thunhaphn = listdhhthn.Sum(list => list.phiship) ?? 0;
         var dhhthn = listdhhthn.Count;
         var dhdhhn = listdhdhhn.Count;
@@ -136,9 +137,10 @@ public class ShipperController : BaseController
     {
         var sh = GetCurrentUser();
         if (sh == null || !checkShipper()) return RedirectToAction("Login", "Home");
-        // ponytail: pagination cho LichSu
-        int page = 1;
+        // 🔴 FIX Bug #3: Pagination — dùng tham số page từ querystring, ko hardcode
         int pageSize = 50;
+        int page = Request.Query.TryGetValue("page", out var pageVal) && int.TryParse(pageVal, out var p) ? p : 1;
+        if (page < 1) page = 1;
         var listdh = db.tbDonHang
             .Where(dh => dh.mashipper == sh.userid)
             .Include(d => d.tbThongTinDatHang)
@@ -146,6 +148,8 @@ public class ShipperController : BaseController
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToList();
+        ViewBag.CurrentPage = page;
+        ViewBag.TotalPages = (int)Math.Ceiling((double)db.tbDonHang.Count(dh => dh.mashipper == sh.userid) / pageSize);
         return View(listdh);
     }
 
@@ -311,9 +315,9 @@ public class ShipperController : BaseController
 
         // ─── Atomic SQL: đảm bảo chỉ 1 shipper claim thành công ───
         var updatedRows = db.Database.ExecuteSqlRaw(
-            @"UPDATE ""tbDonHang"" SET ""mashipper"" = {0}, ""trangthai"" = 'Chờ shipper lấy hàng'
+            @"UPDATE ""tbDonHang"" SET ""mashipper"" = {0}, ""trangthai"" = '" + OrderStatus.ChoShipper + @"'
               WHERE ""madh"" = {1} AND ""mashipper"" IS NULL
-              AND (""trangthai"" = 'Đã xác nhận' OR ""trangthai"" = 'Chờ shipper lấy hàng')",
+              AND (""trangthai"" = '" + OrderStatus.DaXacNhan + @"' OR ""trangthai"" = '" + OrderStatus.ChoShipper + @"')",
             sh.userid, id);
 
         if (updatedRows == 0)
@@ -323,9 +327,30 @@ public class ShipperController : BaseController
                 return Json(new { success = false, message = "Đơn hàng không tồn tại" });
             if (donhangCheck.mashipper != null && donhangCheck.mashipper != sh.userid)
                 return Json(new { success = false, message = "Đơn hàng đã được shipper khác tiếp nhận" });
-            if (donhangCheck.trangthai != "Đã xác nhận" && donhangCheck.trangthai != "Chờ shipper lấy hàng")
+            if (donhangCheck.trangthai != OrderStatus.DaXacNhan && donhangCheck.trangthai != OrderStatus.ChoShipper)
                 return Json(new { success = false, message = "Đơn hàng không còn ở trạng thái chờ nhận" });
-            // Đã claim rồi → cho qua
+        }
+
+        // 🔴 FIX Bug #2: Auto-message cho customer khi shipper claim đơn
+        try
+        {
+            var dh = db.tbDonHang.Include(d => d.tbThongTinDatHang).FirstOrDefault(d => d.madh == id);
+            if (dh?.tbThongTinDatHang?.userid != null)
+            {
+                db.tbTinNhans.Add(new tbTinNhan
+                {
+                    madh = id,
+                    noidung = OrderStatus.AutoMessages[OrderStatus.DaNhan],
+                    makh = dh.tbThongTinDatHang.userid,
+                    mashipper = null // system message
+                });
+                await db.SaveChangesAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<ShipperController>>();
+            logger.LogWarning(ex, "ClaimOrder auto-message failed for order #{OrderId}", id);
         }
 
         // SignalR: broadcast cho các shipper khác
@@ -333,7 +358,11 @@ public class ShipperController : BaseController
         {
             await _hubContext.Clients.Group("shippers").SendAsync("orderAccepted", id, sh.userid);
         }
-        catch { }
+        catch (Exception ex)
+        {
+            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<ShipperController>>();
+            logger.LogWarning(ex, "SignalR orderAccepted broadcast failed for order #{OrderId}", id);
+        }
 
         return Json(new { success = true, message = "Nhận đơn thành công!" });
     }
@@ -372,9 +401,9 @@ public class ShipperController : BaseController
             return Json(new { success = false, message = "Không tìm thấy thông tin shipper" });
 
         string? trangthai = null;
-        if (status == "lh") trangthai = "Đã lấy";
-        if (status == "ht") trangthai = "Hoàn thành";
-        if (status == "dg") trangthai = "Đang giao";
+        if (status == "lh") trangthai = OrderStatus.DaLay;
+        if (status == "ht") trangthai = OrderStatus.HoanThanh;
+        if (status == "dg") trangthai = OrderStatus.DangGiao;
 
         if (trangthai != null)
         {
@@ -387,50 +416,63 @@ public class ShipperController : BaseController
             }
             if (donhang != null)
             {
-                // ponytail: Fix Item 9 — validate state transition
-                var allowedTransitions = new Dictionary<string, string[]>
-                {
-                    ["Đã lấy"] = new[] { "Đã xác nhận", "Chờ shipper lấy hàng", "Đang giao" },
-                    ["Đang giao"] = new[] { "Đã lấy" },
-                    ["Hoàn thành"] = new[] { "Đang giao", "Đã lấy" }
-                };
-                if (allowedTransitions.TryGetValue(trangthai, out var validPrev) && !validPrev.Contains(donhang.trangthai))
-                {
-                    return Json(new { success = false, message = $"Không thể chuyển từ '{donhang.trangthai}' sang '{trangthai}'" });
-                }
-
-                // ponytail: Fix Item 4 — luu oldStatus TRUOC khi set
+                // 🟡 FIX Bug #9: Dùng OrderStatus constants + transition map
                 var oldStatus = donhang.trangthai;
-                donhang.trangthai = trangthai;
-                if (trangthai == "Hoàn thành" && oldStatus != "Hoàn thành")
+                if (!OrderStatus.IsValidTransition(trangthai, oldStatus))
                 {
-                    donhang.ngaythanhtoan = DateTime.Now;
-                    // Cộng phí ship vào ví shipper — chỉ 1 lần
-                    if (donhang.phiship > 0)
-                    {
-                        var shipperUser = db.tbUser.Find(donhang.mashipper);
-                        if (shipperUser != null)
-                        {
-                            shipperUser.vitien += donhang.phiship;
-                        }
-                    }
-                    // ─── E-Delivery: Auto-sinh E-Waybill khi giao hàng thành công ───
-                    // ponytail: EDeliveryService log internal, silent catch here
-                    try { await _eDelivery.GenerateEWaybill(id); } catch { }
+                    return Json(new { success = false, message = $"Không thể chuyển từ '{oldStatus}' sang '{trangthai}'" });
                 }
-                db.SaveChanges();
 
-                // ═══ FIX: Auto-sinh tin nhắn khi chuyển trạng thái (ShopeeFood-style) ═══
-                // Mỗi lần shipper cập nhật trạng thái, tự động tạo tin nhắn trong hệ thống
+                donhang.trangthai = trangthai;
+
+                // 🔴 FIX Bug #1: Dùng transaction + kiểm tra trạng thái để tránh race condition
+                if (trangthai == OrderStatus.HoanThanh && oldStatus != OrderStatus.HoanThanh)
+                {
+                    using var transaction = db.Database.BeginTransaction();
+                    try
+                    {
+                        donhang.ngaythanhtoan = DateTime.Now;
+
+                        // Chỉ cộng tiền nếu chưa hoàn thành trước đó (tránh double-credit)
+                        var prevCheck = db.tbDonHang.AsNoTracking().FirstOrDefault(d => d.madh == id);
+                        if (prevCheck != null && prevCheck.trangthai != OrderStatus.HoanThanh)
+                        {
+                            if (donhang.phiship > 0)
+                            {
+                                var shipperUser = db.tbUser.Find(donhang.mashipper);
+                                if (shipperUser != null)
+                                {
+                                    shipperUser.vitien += donhang.phiship;
+                                }
+                            }
+                        }
+
+                        db.SaveChanges();
+                        transaction.Commit();
+                    }
+                    catch
+                    {
+                        transaction.Rollback();
+                        throw;
+                    }
+
+                    // ─── E-Delivery: Auto-sinh E-Waybill ───
+                    try { await _eDelivery.GenerateEWaybill(id); }
+                    catch (Exception ex)
+                    {
+                        var logger = HttpContext.RequestServices.GetRequiredService<ILogger<ShipperController>>();
+                        logger.LogWarning(ex, "E-Waybill generation failed for order #{OrderId}", id);
+                    }
+                }
+                else
+                {
+                    db.SaveChanges();
+                }
+
+                // ═══ Auto-sinh tin nhắn khi chuyển trạng thái ═══
                 try
                 {
-                    var statusMessages = new Dictionary<string, string>
-                    {
-                        ["Đã lấy"] = "📦 Shipper đã lấy hàng từ quán! Đang trên đường giao đến bạn.",
-                        ["Đang giao"] = "🚚 Đơn hàng đang được giao đến bạn!",
-                        ["Hoàn thành"] = "✅ Đơn hàng đã giao thành công! Cảm ơn bạn đã sử dụng FastShip."
-                    };
-                    if (statusMessages.TryGetValue(trangthai, out var autoMsg))
+                    if (OrderStatus.AutoMessages.TryGetValue(trangthai, out var autoMsg))
                     {
                         db.tbTinNhans.Add(new tbTinNhan
                         {
@@ -453,9 +495,13 @@ public class ShipperController : BaseController
                 {
                     await _hubContext.Clients.Group($"order_{id}").SendAsync("orderStatusChanged", id, trangthai, DateTime.Now.ToString("HH:mm"));
                 }
-                catch { }
+                catch (Exception ex)
+                {
+                    var logger = HttpContext.RequestServices.GetRequiredService<ILogger<ShipperController>>();
+                    logger.LogWarning(ex, "SignalR broadcast failed for order #{OrderId}", id);
+                }
 
-                return Json(new { success = true, message = "Order status updated successfully" });
+                return Json(new { success = true, message = "Cập nhật trạng thái thành công!" });
             }
         }
         return Json(new { success = false, message = "Order status update failed" });
@@ -471,7 +517,7 @@ public class ShipperController : BaseController
         var shipper = db.tbShipper.Find(sh.userid);
         if (shipper != null)
         {
-            shipper.trangthai = shipper.trangthai == "Không hoạt động" ? "Đang hoạt động" : "Không hoạt động";
+            shipper.trangthai = shipper.trangthai == OrderStatus.KhongHoatDong ? OrderStatus.DangHoatDong : OrderStatus.KhongHoatDong;
             db.SaveChanges();
         }
         return RedirectToAction("Index");

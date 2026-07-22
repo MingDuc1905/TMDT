@@ -90,6 +90,16 @@
 .chat-msgs .msg .label {
     font-size: 10px; opacity: .65; display: block; margin-bottom: 2px;
 }
+/* 🔵 FIX Bug #14: Phân biệt auto-message (system) vs real message */
+.chat-msgs .msg.system {
+    background: #fef9e7; border: 1px solid #fdebd0;
+    margin: 4px auto; max-width: 75%; text-align: center;
+    font-size: 11px; color: #6b7280; border-radius: 8px;
+}
+.chat-msgs .msg.system .label {
+    color: #f39c12; font-size: 9px; text-transform: uppercase;
+    letter-spacing: 0.5px; font-weight: 600; opacity: 0.8;
+}
 .chat-msgs .msg .quick-btn {
     display: inline-block; padding: 4px 10px; margin: 2px;
     background: var(--fs-green-bg, rgba(60,184,21,.07)); color: var(--fs-green, #3CB815);
@@ -340,20 +350,25 @@
         });
     }
 
+    // 🔵 FIX Bug #14: Thêm senderType 'system' cho auto-messages
     function addMsg(containerId, text, senderType, quickReplies) {
         var c = document.getElementById(containerId);
         if (!c) return;
-        var d = document.createElement('div'); d.className = 'msg ' + (senderType === 'shipper' ? 'admin' : senderType);
+        var cssClass = senderType;
+        if (senderType === 'shipper') cssClass = 'admin'; // fallback về admin style
+        var d = document.createElement('div'); d.className = 'msg ' + cssClass;
         var time = new Date().toLocaleTimeString('vi-VN', {hour:'2-digit',minute:'2-digit'});
         
-        if (senderType === 'admin') {
-            d.innerHTML = '<span class="label">FastShip</span>' + escHtml(text).replace(/\n/g, '<br/>');
+        if (senderType === 'system') {
+            // Auto-message: icon + background vàng nhạt, căn giữa
+            d.innerHTML = '<span class="label">📢 Hệ thống</span>' + escHtml(text).replace(/\n/g, '<br/>') + '<span class="msg-time">' + time + '</span>';
+        } else if (senderType === 'admin') {
+            d.innerHTML = '<span class="label">FastShip</span>' + escHtml(text).replace(/\n/g, '<br/>') + '<span class="msg-time">' + time + '</span>';
         } else if (senderType === 'shipper') {
-            d.innerHTML = '<span class="label" style="background:#f97316;color:#fff;">Shipper</span>' + escHtml(text).replace(/\n/g, '<br/>');
+            d.innerHTML = '<span class="label" style="background:#f97316;color:#fff;">Shipper</span>' + escHtml(text).replace(/\n/g, '<br/>') + '<span class="msg-time">' + time + '</span>';
         } else {
-            d.innerHTML = escHtml(text).replace(/\n/g, '<br/>');
+            d.innerHTML = escHtml(text).replace(/\n/g, '<br/>') + '<span class="msg-time">' + time + '</span>';
         }
-        d.innerHTML += '<span class="msg-time">' + time + '</span>';
         c.appendChild(d); c.scrollTop = c.scrollHeight;
     }
 
@@ -531,7 +546,11 @@
                         : '💬 Gửi yêu cầu hỗ trợ chung. Admin sẽ trả lời sớm!', 'admin');
                 } else {
                     res.data.forEach(function(msg) {
-                        if (msg.sender === "Khách hàng") {
+                        // 🔵 FIX Bug #14: Phân biệt auto-message (system) vs real message
+                        var isSystem = msg.isSystem || msg.sender === 'Hệ thống' || msg.sender === 'System' || !msg.sender;
+                        if (isSystem) {
+                            addMsg('adminMsgs', msg.content, 'system');
+                        } else if (msg.sender === "Khách hàng") {
                             addMsg('adminMsgs', msg.content, 'user');
                         } else if (msg.sender === "Shipper") {
                             addMsg('adminMsgs', msg.content, 'shipper');

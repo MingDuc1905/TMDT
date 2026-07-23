@@ -104,7 +104,7 @@ public class AdminChatController : BaseController
             {
                 id = t.matn,
                 content = t.noidung,
-                sender = t.mashipper != null ? "Shipper" : (t.makh != null ? "Khách hàng" : "Admin"),
+                sender = (t.noidung ?? "").StartsWith("[SYSTEM]") ? "Hệ thống" : (t.mashipper != null ? "Shipper" : (t.makh != null ? "Khách hàng" : "Admin")),
                 orderId = t.madh
             })
             .ToList();
@@ -313,7 +313,9 @@ public class AdminChatController : BaseController
             {
                 var user = users.FirstOrDefault(u => u.userid == c.userId);
                 var kh = khachHangs.FirstOrDefault(k => k.userid == c.userId);
-                var displayMessage = c.lastMessage.StartsWith("[ADMIN]") ? c.lastMessage.Substring(7) : c.lastMessage;
+                var displayMessage = c.lastMessage;
+                if (displayMessage.StartsWith("[SYSTEM]")) displayMessage = displayMessage.Substring(8).Trim();
+                else if (displayMessage.StartsWith("[ADMIN]")) displayMessage = displayMessage.Substring(7);
                 return new
                 {
                     userId = c.userId,
@@ -360,7 +362,7 @@ public class AdminChatController : BaseController
                 {
                     id = t.matn,
                     content = (t.noidung ?? "").StartsWith("[ADMIN]") ? t.noidung!.Substring(7) : (t.noidung ?? ""),
-                    sender = (t.noidung ?? "").StartsWith("[ADMIN]") ? "Admin" : (t.mashipper != null ? "Shipper" : "Khách hàng"),
+                    sender = (t.noidung ?? "").StartsWith("[SYSTEM]") ? "Hệ thống" : ((t.noidung ?? "").StartsWith("[ADMIN]") ? "Admin" : (t.mashipper != null ? "Shipper" : "Khách hàng")),
                     orderId = t.madh
                 })
                 .ToList();
@@ -435,7 +437,7 @@ public class AdminChatController : BaseController
             {
                 id = t.matn,
                 content = (t.noidung ?? "").StartsWith("[ADMIN]") ? t.noidung!.Substring(7) : (t.noidung ?? ""),
-                sender = (t.noidung ?? "").StartsWith("[ADMIN]") ? "Admin" : (t.mashipper != null ? "Shipper" : "Khách hàng"),
+                sender = (t.noidung ?? "").StartsWith("[SYSTEM]") ? "Hệ thống" : ((t.noidung ?? "").StartsWith("[ADMIN]") ? "Admin" : (t.mashipper != null ? "Shipper" : "Khách hàng")),
                 orderId = t.madh
             })
             .ToList();

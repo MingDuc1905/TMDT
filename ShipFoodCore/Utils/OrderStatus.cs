@@ -46,16 +46,16 @@ public static class OrderStatus
         DaDat, DaXacNhan, DangChuanBi, ChoShipper, DaLay, DangGiao, HoanThanh
     };
 
-    // ─── Auto-message templates ───
+    // ─── Auto-message templates (prefixed with [SYSTEM] for sender detection) ───
     public static readonly Dictionary<string, string> AutoMessages = new()
     {
-        [DaXacNhan] = "✅ Quán đã xác nhận đơn hàng! Đang chuẩn bị món.",
-        [ChoShipper] = "👨‍🍳 Quán đã chuẩn bị xong món! Đang chờ shipper đến lấy.",
-        [DaNhan] = "🛵 Shipper đã nhận đơn! Đang đến quán lấy hàng.",
-        [DaLay] = "📦 Shipper đã lấy hàng từ quán! Đang trên đường giao đến bạn.",
-        [DangGiao] = "🚚 Đơn hàng đang được giao đến bạn!",
-        [HoanThanh] = "✅ Đơn hàng đã giao thành công! Cảm ơn bạn đã sử dụng FastShip.",
-        [DaHuy] = "❌ Đơn hàng đã bị hủy.",
+        [DaXacNhan] = "[SYSTEM] ✅ Quán đã xác nhận đơn hàng! Đang chuẩn bị món.",
+        [ChoShipper] = "[SYSTEM] 👨‍🍳 Quán đã chuẩn bị xong món! Đang chờ shipper đến lấy.",
+        [DaNhan] = "[SYSTEM] 🛵 Shipper đã nhận đơn! Đang đến quán lấy hàng.",
+        [DaLay] = "[SYSTEM] 📦 Shipper đã lấy hàng từ quán! Đang trên đường giao đến bạn.",
+        [DangGiao] = "[SYSTEM] 🚚 Đơn hàng đang được giao đến bạn!",
+        [HoanThanh] = "[SYSTEM] ✅ Đơn hàng đã giao thành công! Cảm ơn bạn đã sử dụng FastShip.",
+        [DaHuy] = "[SYSTEM] ❌ Đơn hàng đã bị hủy.",
     };
 
     /// <summary>

@@ -120,11 +120,11 @@
 <div class="delivery-wrapper">
     <div class="page-header">
         <h2>
-            <i class="fas fa-qrcode" style="color:#7c3aed;"></i>
+            <i class="fas fa-qrcode" style="color:#7c3aed;" aria-hidden="true"></i>
             Giám sát vận đơn điện tử
         </h2>
         <a href="javascript:location.reload()" class="btn" style="background:#f3f4f6;color:#4b5563;border:1px solid #e5e7eb;border-radius:10px;padding:8px 20px;font-size:13px;">
-            <i class="fas fa-sync-alt"></i> Làm mới
+            <i class="fas fa-sync-alt" aria-hidden="true"></i> Làm mới
         </a>
     </div>
 
@@ -154,11 +154,11 @@
         var pendingScan = Model.Count(o => o.trangthai == "Đã xác nhận" || o.trangthai == "Chờ shipper lấy hàng");
     }
     <div class="delivery-stats" id="deliveryStats">
-        <div class="stat-card" id="stat-total"><div class="stat-icon"><i class="fas fa-clipboard-list"></i></div><p class="stat-value">@totalOrders</p><p class="stat-label">Tổng đơn</p></div>
-        <div class="stat-card" id="stat-scanned"><div class="stat-icon"><i class="fas fa-camera"></i></div><p class="stat-value">@scannedOrders</p><p class="stat-label">Đã quét</p></div>
-        <div class="stat-card" id="stat-delivering"><div class="stat-icon"><i class="fas fa-truck"></i></div><p class="stat-value">@deliveringOrders</p><p class="stat-label">Đang giao</p></div>
-        <div class="stat-card" id="stat-completed"><div class="stat-icon"><i class="fas fa-check-circle"></i></div><p class="stat-value">@completedOrders</p><p class="stat-label">Hoàn thành</p></div>
-        <div class="stat-card" id="stat-pending" style="border-color:#f59e0b;"><div class="stat-icon"><i class="fas fa-hourglass-half"></i></div><p class="stat-value">@pendingScan</p><p class="stat-label">Chờ quét</p></div>
+        <div class="stat-card" id="stat-total"><div class="stat-icon"><i class="fas fa-clipboard-list" aria-hidden="true"></i></div><p class="stat-value">@totalOrders</p><p class="stat-label">Tổng đơn</p></div>
+        <div class="stat-card" id="stat-scanned"><div class="stat-icon"><i class="fas fa-camera" aria-hidden="true"></i></div><p class="stat-value">@scannedOrders</p><p class="stat-label">Đã quét</p></div>
+        <div class="stat-card" id="stat-delivering"><div class="stat-icon"><i class="fas fa-truck" aria-hidden="true"></i></div><p class="stat-value">@deliveringOrders</p><p class="stat-label">Đang giao</p></div>
+        <div class="stat-card" id="stat-completed"><div class="stat-icon"><i class="fas fa-check-circle" aria-hidden="true"></i></div><p class="stat-value">@completedOrders</p><p class="stat-label">Hoàn thành</p></div>
+        <div class="stat-card" id="stat-pending" style="border-color:#f59e0b;"><div class="stat-icon"><i class="fas fa-hourglass-half" aria-hidden="true"></i></div><p class="stat-value">@pendingScan</p><p class="stat-label">Chờ quét</p></div>
     </div>
 
     <!-- Delivery Logs Table -->
@@ -196,11 +196,11 @@
                                 <td data-label="Shipper">@(item.tbShipper?.tenshipper ?? "—")</td>
                                 <td data-label="Trạng thái">
                                     <span class="pastel-badge @badgeClass">
-                                        @if (item.trangthai == "Đã lấy") { <text><i class="fas fa-camera" style="margin-right:4px;"></i>@item.trangthai</text> }
-                                        else if (item.trangthai == "Hoàn thành") { <text><i class="fas fa-check-circle" style="margin-right:4px;"></i>@item.trangthai</text> }
-                                        else if (item.trangthai == "Đã hủy") { <text><i class="fas fa-times-circle" style="margin-right:4px;"></i>@item.trangthai</text> }
-                                        else if (item.trangthai == "Đang giao") { <text><i class="fas fa-truck" style="margin-right:4px;"></i>@item.trangthai</text> }
-                                        else { <text><i class="fas fa-hourglass-half" style="margin-right:4px;"></i>@item.trangthai</text> }
+                                        @if (item.trangthai == "Đã lấy") { <text><i class="fas fa-camera" style="margin-right:4px;" aria-hidden="true"></i>@item.trangthai</text> }
+                                        else if (item.trangthai == "Hoàn thành") { <text><i class="fas fa-check-circle" style="margin-right:4px;" aria-hidden="true"></i>@item.trangthai</text> }
+                                        else if (item.trangthai == "Đã hủy") { <text><i class="fas fa-times-circle" style="margin-right:4px;" aria-hidden="true"></i>@item.trangthai</text> }
+                                        else if (item.trangthai == "Đang giao") { <text><i class="fas fa-truck" style="margin-right:4px;" aria-hidden="true"></i>@item.trangthai</text> }
+                                        else { <text><i class="fas fa-hourglass-half" style="margin-right:4px;" aria-hidden="true"></i>@item.trangthai</text> }
                                     </span>
                                 </td>
                                 <td data-label="Ngày" style="color:#6b7280;font-size:12px;">@item.ngaydathang?.ToString("dd/MM HH:mm")</td>
@@ -209,10 +209,10 @@
                                     {
                                         <div style="display:flex;gap:6px;justify-content:center;">
                                             <button class="btn-bypass" onclick="openBypassModal(@item.madh, '@(item.trangthai ?? "Đã xác nhận")')">
-                                                <i class="fas fa-hard-hat"></i> XỬ LÝ THỦ CÔNG
+                                                <i class="fas fa-hard-hat" aria-hidden="true"></i> XỬ LÝ THỦ CÔNG
                                             </button>
-                                            <a href="@Url.Action("OrderDetail","Admin", new { id = item.madh })" class="btn" style="padding:6px 10px;border-radius:8px;font-size:11px;border:1px solid #e5e7eb;background:#fff;">
-                                                <i class="fas fa-eye"></i>
+                                            <a href="@Url.Action("OrderDetail","Admin", new { id = item.madh })" class="btn" style="padding:6px 10px;border-radius:8px;font-size:11px;border:1px solid #e5e7eb;background:#fff;" aria-label="Xem chi tiết đơn hàng #@item.madh">
+                                                <i class="fas fa-eye" aria-hidden="true"></i>
                                             </a>
                                         </div>
                                     }
@@ -232,7 +232,7 @@
     @if (!Model.Any())
     {
         <div style="text-align:center;padding:60px 20px;color:#9ca3af;">
-            <div style="font-size:48px;margin-bottom:12px;"><i class="fas fa-inbox" style="color:#9ca3af;"></i></div>
+            <div style="font-size:48px;margin-bottom:12px;"><i class="fas fa-inbox" style="color:#9ca3af;" aria-hidden="true"></i></div>
             <p>Chưa có đơn hàng nào</p>
         </div>
     }
@@ -242,7 +242,7 @@
 <div class="bypass-modal-backdrop" id="bypassModal">
     <div class="bypass-modal">
         <h3>
-            <i class="fas fa-hard-hat" style="color:#f59e0b;"></i>
+            <i class="fas fa-hard-hat" style="color:#f59e0b;" aria-hidden="true"></i>
             Xử lý thủ công
         </h3>
         <p id="bypassModalDesc">Bạn có chắc chắn muốn chuyển trạng thái đơn hàng <strong>#<span id="bypassOrderId"></span></strong>?</p>

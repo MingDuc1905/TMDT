@@ -247,8 +247,8 @@
                         <div class="input-group mb-3">
                             <input type="text" class="form-control" id="coupon-code" placeholder="Nhập mã giảm giá" style="background:#f8f9fa;">
                             <button type="button" class="btn btn-success px-3" id="btn-apply-coupon" style="font-weight:600;">Áp dụng</button>
-                            <button type="button" class="btn btn-outline-danger px-2" id="btn-remove-coupon" title="Bỏ chọn mã" style="display:none;">
-                                <i class="fas fa-times"></i>
+                            <button type="button" class="btn btn-outline-danger px-2" id="btn-remove-coupon" title="Bỏ chọn mã" aria-label="Bỏ chọn mã giảm giá" style="display:none;">
+                                <i class="fas fa-times" aria-hidden="true"></i>
                             </button>
                         </div>
                         <div id="coupon-result" class="mt-1" style="display:none;font-size:13px;"></div>
@@ -897,11 +897,8 @@
                     <i class="fas fa-tag text-success me-1"></i>Chọn mã giảm giá
                 </h5>
                 <small style="color:#888;font-size:12px;">Chọn một mã để áp dụng vào đơn hàng</small>
-            </div>
-            <button type="button" class="coupon-popup-close" style="width:36px;height:36px;border-radius:50%;border:none;background:#e5e7eb;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:#666;transition:all .15s;"
-                    style="transition:all .15s;"                     class="fs-hover-danger"
-                     style="transition:all .15s;">
-                <i class="fas fa-times"></i>
+            </div>                            <button type="button" class="coupon-popup-close fs-coupon-close-btn" aria-label="Đóng bảng chọn mã giảm giá">
+                <i class="fas fa-times" aria-hidden="true"></i>
             </button>
         </div>
         <!-- Body -->

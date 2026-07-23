@@ -676,6 +676,13 @@
 
 @section scripts {
     <script>
+        // ponytail: Server-side login state (không dùng document.cookie vì HttpOnly)
+        @{
+            var _userJson = Context.Session.GetString("user");
+            var _isLoggedIn = !string.IsNullOrEmpty(_userJson);
+        }
+        var isLoggedIn = @(_isLoggedIn ? "true" : "false");
+
         function validateCartForm(form) {
             var soLuong = parseInt(form.querySelector('input[name="soLuong"]').value);
             if (isNaN(soLuong) || soLuong <= 0) {
@@ -696,8 +703,9 @@
             var soLuong = parseInt(form.find('input[name="soLuong"]').val()) || 1;
             
             // ═══ Anonymous mode: nếu chưa login, lưu vào localStorage ═══
-            var hasAuthCookie = document.cookie.indexOf('.AspNetCore.Cookies') !== -1;
-            if (!hasAuthCookie && typeof FastShipCart !== 'undefined' && FastShipCart.addUnauth) {
+            // ponytail: Không dùng document.cookie (HttpOnly) — dùng server-side isLoggedIn
+            if (typeof isLoggedIn === 'undefined') { var isLoggedIn = false; }
+            if (!isLoggedIn && typeof FastShipCart !== 'undefined' && FastShipCart.addUnauth) {
                 // Lấy thông tin món từ DOM
                 var itemRow = $btn.closest('.item-restaurant-row');
                 var tenmon = itemRow.find('.item-restaurant-name').text().trim();

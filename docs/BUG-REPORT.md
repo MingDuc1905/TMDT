@@ -510,7 +510,46 @@ Co the delete AJAX handler khong trigger DOM remove, hoac selector khong match.
 
 ---
 
-## VI. ANH CHUP MAN HINH
+## VI. BUGS DA DUOC FIX (Commit Jul 2026)
+
+Sau dot test ngay 2026-07-19, cac bugs sau da duoc fix trong 2 commit:
+
+### Fix batch 1 — `b4b07ac` (14 bugs)
+
+| Bug goc | Fix | File |
+|---------|-----|------|
+| `ClaimOrder` thieu auto-message cho customer | Them `tbTinNhan.Add()` khi shipper nhan don | `ShipperController.cs` |
+| Race condition cong tien shipper (double-credit) | Wrap trong transaction + status check | `ShipperController.cs` |
+| Pagination LichSu bi hardcode page=1 | Sua thanh `Request.Query["page"]` | `ShipperController.cs` |
+| Magic strings cho trang thai don hang | Tao `OrderStatus.cs` constants class (10 status) | `Utils/OrderStatus.cs` (NEW) |
+| allowedTransitions thieu dong bo | Dung `OrderStatus.IsValidTransition()` | `ShipperController.cs` |
+| NullReferenceException trong `huydon()` | Them null check `dh.mattdh != null` | `RestaurantController.cs` |
+| `NapTien` khong luu giao dich | Them `db.tbTinNhans.Add(...)` + `SaveChanges()` | `RestaurantController.cs` |
+| Thieu `[ValidateAntiForgeryToken]` | Them vao 4 POST actions | `RestaurantController.cs` |
+| Catch rong khong logging | Them `ILogger.Warning()` vao catch blocks | Ca 2 controllers |
+| Loading state ClaimOrder thieu | Spinner + disabled button | `Views/Shipper/Index.cshtml` |
+| Audio notification khong fallback | Web Audio API + page title flash | `Views/Shipper/Index.cshtml`, `Views/Restaurant/OrderList.cshtml` |
+| Geolocation watch khong cleanup | `beforeunload` + `clearWatch()` | `Views/Shipper/OrderDetail.cshtml`, `Index.cshtml` |
+| Auto-message vs real message cung style | CSS class `.msg.system` + icon 📢 + bg vang | `Views/Shared/_ChatWidget.cshtml` |
+
+### Fix batch 2 — `4f001f5` (3 fixes)
+
+| Bug goc | Fix | File |
+|---------|-----|------|
+| ProcessPayment thieu transaction — don orphan khi loi | Wrap trong `using var transaction` + `Commit()` | `PaymentController.cs` |
+| Restaurant `OrderList` + `Wallet` thieu null check | Them guard `if (quanAn == null) return RedirectToAction("Logout")` | `RestaurantController.cs` |
+| Thieu diagnostic logging khi tao don | Log chi tiet `orderId, maquan, userId, restaurantIds` | `PaymentController.cs` |
+
+### Buoc tiep theo can fix:
+- BUG-01: Search tra ket qua sai (fuzzy matching qua rong)
+- BUG-03: Restaurant menu search broken
+- BUG-09: OrderTracking progress bar + map khong render
+- BUG-11: Restaurant Analytics 500 error
+- BUG-15: Delete item khong xoa khoi DOM
+
+---
+
+## VII. ANH CHUP MAN HINH
 
 Moi fail test deu tao screenshot tai `test-results/`:
 

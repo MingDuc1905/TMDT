@@ -1,6 +1,6 @@
 # Fastship (ShipFood) — UI/UX Documentation (Full)
 
-> **Phiên bản**: 5.6 — Bố cục UI/UX chi tiết: ChiTietSanPham, Restaurant/Shipper Dashboard, ChiTietDonHang  
+> **Phiên bản**: 5.7 — Chat auto-message distinction, loading states, audio notifications, geolocation cleanup  
 > **Cập nhật**: Tháng 7, 2026  
 > **Mô tả**: Tài liệu thiết kế giao diện & trải nghiệm người dùng toàn diện cho nền tảng đặt đồ ăn Fastship  
 > **Tài liệu liên quan**: Project.md — Tổng quan kiến trúc & phát triển

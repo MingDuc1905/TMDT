@@ -1,7 +1,7 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/Fastship-v5.4-3CB815?style=for-the-badge&logo=dotnet&logoColor=white&labelColor=111">
-    <img src="https://img.shields.io/badge/Fastship-v5.1-3CB815?style=for-the-badge&logo=dotnet&logoColor=white&labelColor=fff" alt="Fastship v5.4">
+    <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/Fastship-v5.6-3CB815?style=for-the-badge&logo=dotnet&logoColor=white&labelColor=111">
+    <img src="https://img.shields.io/badge/Fastship-v5.6-3CB815?style=for-the-badge&logo=dotnet&logoColor=white&labelColor=fff" alt="Fastship v5.6">
   </picture>
 </p>
 
@@ -97,7 +97,7 @@
       </td>
       <td align="center" width="25%">
         <b>🧠 ML Recommendation</b><br>
-        <sub>4 thuật toán<br>gợi ý thông minh</sub>
+        <sub>8 thuật toán<br>gợi ý thông minh</sub>
       </td>
       <td align="center" width="25%">
         <b>🗺️ Live Tracking</b><br>
@@ -170,7 +170,9 @@
         • FREE-PICK đơn chưa có shipper<br>
         • Cập nhật: Đã lấy → Hoàn thành<br>
         • 💰 Thống kê thu nhập 30 ngày<br>
-        • 🗺️ Live location streaming
+        • 🗺️ Live location streaming<br>
+        • ✅ Auto-message khi nhận đơn<br>
+        • ✅ Loading state chống double-click
       </td>
       <td><code>/Shipper/*</code><br>Bảng đơn + Map + Ví</td>
     </tr>
@@ -376,6 +378,7 @@ TMDT-master/
 ├── ShipFoodCore/              # 📦 Main web application
 │   ├── Controllers/           # 9 controllers
 │   ├── Models/                # 19 EF models + DbContext
+│   ├── Utils/                 # **OrderStatus.cs** — state machine constants
 │   ├── Services/              # Gemini AI + Recommendation
 │   ├── Hubs/                  # SignalR Chat hub
 │   ├── Views/                 # 6 areas, 25+ views, 5 layouts
@@ -416,6 +419,24 @@ TMDT-master/
 - [x] 🛒 Cart JSON API (ApiTangSoLuong / ApiGiamSoLuong)
 - [x] 🗺️ Leaflet.js live order tracking + SignalR coordinate streaming
 - [x] 📱 Responsive stacked cards UI (data-label, touch targets ≥44px)
+
+</details>
+
+<details>
+<summary><b>✅ v5.6 — Đã hoàn thành (Tháng 7, 2026)</b></summary>
+
+- [x] 📦 **OrderStatus constants class** — centralized state machine, transition validation, auto-message templates
+- [x] 🔒 **Atomic transaction ProcessPayment** — wrap order creation trong transaction, rollback nếu lỗi giữa chừng
+- [x] 💰 **Fix race condition cộng tiền shipper** — transaction + status check, chống double-credit
+- [x] 💬 **Auto-message chat system** — tự động tạo tin nhắn khi shipper nhận đơn, phân biệt system vs user message
+- [x] 🔄 **Fix pagination LichSu** — page parameter hoạt động đúng
+- [x] 🛡️ **Thêm [ValidateAntiForgeryToken]** — 4 POST actions trong RestaurantController
+- [x] 🎯 **Fix NullReferenceException** — null checks cho huydon + getQuanAn()
+- [x] 📝 **Diagnostic logging** — log chi tiết orderId, maquan, userId khi tạo đơn
+- [x] ⚡ **Loading state ClaimOrder** — spinner + disabled button chống double-click
+- [x] 🔊 **Audio notification fallback** — Web Audio API + page title flash
+- [x] 🗺️ **Geolocation cleanup** — beforeunload + clearWatch()
+- [x] 💬 **Phân biệt auto-message vs real message** — CSS class + icon khác biệt
 
 </details>
 

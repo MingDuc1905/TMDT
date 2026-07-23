@@ -1,7 +1,7 @@
 # BÁO CÁO KIỂM THỬ TOÀN DIỆN — FASTSHIP (ShipFood)
 
-> Ngày tạo: 2026-07-19
-> Phiên bản: 2.0
+> Ngày tạo: 2026-07-19 (cập nhật: 2026-07-23)
+> Phiên bản: 2.1
 > URL: https://fastship-web.onrender.com
 > Mục đích: Kiểm thử toàn diện UI/UX, chức năng, hình ảnh, nội dung, giao diện, hiệu suất — KHÔNG bao gồm bảo mật
 
@@ -408,8 +408,10 @@ npx playwright test --update-snapshots
 
 ## VII. CÁC BƯỚC TIẾP THEO
 
-1. Sửa lỗi ứng dụng — Ưu tiên Critical → High → Medium (xem BUG-REPORT.md)
-2. Sửa cơ sở kiểm thử — addItemToCartByIndex page object thiếu fallback
-3. Chạy baseline — Chụp ảnh chụp cho đánh giá hình ảnh
-4. Chạy batch 18 mobile — Nếu cần test responsive
-5. Chạy lại tất cả — Sau khi sửa để xác minh
+1. ✅ ~~Sửa lỗi ứng dụng~~ — **Đã fix 17 bugs** trong 2 commit (xem BUG-REPORT.md §VI)
+   - `b4b07ac`: 14 bugs (race condition, auto-message, pagination, nullref, CSRF, loading states, audio, geolocation, chat distinction)
+   - `4f001f5`: 3 bugs (atomic transaction, null guards, diagnostic logging)
+2. ⬜ Sửa cơ sở kiểm thử — addItemToCartByIndex page object thiếu fallback
+3. ⬜ Chạy baseline — Chụp ảnh chụp cho đánh giá hình ảnh
+4. ⬜ Chạy batch 18 mobile — Nếu cần test responsive
+5. ⬜ **Chạy lại tất cả** — Sau khi deploy để verify fixes

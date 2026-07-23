@@ -68,6 +68,13 @@ public class RestaurantController : BaseController
     {
         if (!checkLogin()) return RedirectToAction("Login", "Home");
         var QuanAn = getQuanAn();
+        // ═══ FIX 2: Null check — tránh crash nếu user không có tbQuanAn record ═══
+        if (QuanAn == null)
+        {
+            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<RestaurantController>>();
+            logger.LogWarning("Wallet: No tbQuanAn record found for userId {UserId}", GetCurrentUser()?.userid);
+            return RedirectToAction("Logout", "Home");
+        }
         var user = GetCurrentUser();
         // ponytail: Loại đơn "Đã hủy" khỏi tính doanh thu + hiển thị
         var donHangs = QuanAn.tbDonHang.Where(dh => dh.trangthai != OrderStatus.DaHuy).ToList();
@@ -305,6 +312,13 @@ public class RestaurantController : BaseController
     {
         if (!checkLogin()) return RedirectToAction("Login", "Home");
         var quanAn = getQuanAn();
+        // ═══ FIX 2: Null check — tránh crash nếu user không có tbQuanAn record ═══
+        if (quanAn == null)
+        {
+            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<RestaurantController>>();
+            logger.LogWarning("OrderList: No tbQuanAn record found for userId {UserId}", GetCurrentUser()?.userid);
+            return RedirectToAction("Logout", "Home");
+        }
         ViewBag.donHangs = quanAn.tbDonHang.OrderByDescending(dh => dh.ngaydathang).ToList();
         ViewBag.restaurantId = quanAn.userid;
         return View();

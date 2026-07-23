@@ -87,6 +87,9 @@ public class PaymentController : BaseController
         {
             var user = GetCurrentUser();
 
+            // ═══ FIX 1: Atomic transaction — đảm bảo order + details được save hoặc rollback cùng nhau ═══
+            using var transaction = db.Database.BeginTransaction();
+
             // ═══ 1 PENDING ORDER PER USER ═══
             var pendingOrder = db.tbDonHang
                 .Where(dh => dh.tbThongTinDatHang != null
@@ -273,7 +276,11 @@ public class PaymentController : BaseController
                 db.SaveChanges();
 
                 createdOrders.Add(dh.madh);
-                _logger.LogInformation("Order #{OrderId} (Restaurant #{ResId}) placed by user {UserId}", dh.madh, resId, user!.userid);
+                // ═══ FIX 3: Diagnostic logging chi tiết để debug order không hiển thị ═══
+                _logger.LogInformation("Order #{OrderId} created: maquan={ResId}, maKhach={Userid}, trangthai={Status}, "
+                    + "ttdh={TtdhId}, restaurantIds=[{RestaurantIds}], createdOrderIds=[{CreatedIds}]",
+                    dh.madh, resId, user!.userid, trangThaiBanDau,
+                    ttdh.mattdh, string.Join(",", restaurantIds), string.Join(",", createdOrders.Concat(new[] { dh.madh })));
 
                 dh.phiship = resShipFee;
 
@@ -311,6 +318,9 @@ public class PaymentController : BaseController
             }
 
             var firstOrderId = createdOrders.FirstOrDefault();
+
+            // ✅ Commit transaction — tất cả saves đều thành công
+            transaction.Commit();
 
             // Xóa giỏ hàng sau khi đặt thành công
             SetCart(new Cart());

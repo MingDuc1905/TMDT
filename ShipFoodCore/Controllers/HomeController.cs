@@ -82,6 +82,11 @@ public class HomeController : BaseController
         // Không hiển thị quán đã bị admin khoá (trangthai == 2)
         var quanAns = db.tbQuanAn.Include(q => q.tbUser).Include(q => q.tbMonAns).ThenInclude(m => m.tbBienTheMonAns)
             .Where(q => q.tbUser != null && q.tbUser.trangthai == 1).ToList();
+        // ponytail: filter conhang + isDeleted ở client-side (đơn giản, không cần Include filter phức tạp)
+        foreach (var qa in quanAns)
+        {
+            qa.tbMonAns = qa.tbMonAns.Where(m => m.conhang && !m.isDeleted).ToList();
+        }
         if (!string.IsNullOrEmpty(txtSearch))
         {
             string searchKeyNormalized = RemoveDiacritics(txtSearch.ToLower());

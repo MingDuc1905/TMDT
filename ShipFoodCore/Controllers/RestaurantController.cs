@@ -166,13 +166,6 @@ public class RestaurantController : BaseController
     {
         if (!checkLogin()) return RedirectToAction("Login", "Home");
         var quanAn = getQuanAn();
-        // ponytail: null check — tránh crash nếu user không có tbQuanAn record
-        if (quanAn == null)
-        {
-            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<RestaurantController>>();
-            logger.LogWarning("Analytics: No tbQuanAn record found for userId {UserId}", GetCurrentUser()?.userid);
-            return RedirectToAction("Logout", "Home");
-        }
         var datas = new List<DataAnalytic>();
         var dataDanhMucs = new List<DataAnalyticDanhMuc>();
         var idDanhMucs = new List<int>();
@@ -315,7 +308,7 @@ public class RestaurantController : BaseController
         return RedirectToAction("Discount");
     }
 
-    public ActionResult OrderList(DateTime? fromDate, DateTime? toDate)
+    public ActionResult OrderList()
     {
         if (!checkLogin()) return RedirectToAction("Login", "Home");
         var quanAn = getQuanAn();
@@ -326,18 +319,8 @@ public class RestaurantController : BaseController
             logger.LogWarning("OrderList: No tbQuanAn record found for userId {UserId}", GetCurrentUser()?.userid);
             return RedirectToAction("Logout", "Home");
         }
-
-        // ─── Lọc theo ngày (FromDate/ToDate) ───
-        var query = quanAn.tbDonHang.AsQueryable();
-        if (fromDate.HasValue)
-            query = query.Where(dh => dh.ngaydathang >= fromDate.Value.Date);
-        if (toDate.HasValue)
-            query = query.Where(dh => dh.ngaydathang <= toDate.Value.Date.AddDays(1));
-
-        ViewBag.donHangs = query.OrderByDescending(dh => dh.ngaydathang).ToList();
+        ViewBag.donHangs = quanAn.tbDonHang.OrderByDescending(dh => dh.ngaydathang).ToList();
         ViewBag.restaurantId = quanAn.userid;
-        ViewBag.fromDate = fromDate?.ToString("yyyy-MM-dd");
-        ViewBag.toDate = toDate?.ToString("yyyy-MM-dd");
         return View();
     }
 

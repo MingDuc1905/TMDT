@@ -11,8 +11,7 @@
             <h2 class="mb-0">Đơn đặt hàng</h2>
             <p class="mb-0 text-muted small">Danh sách đơn đặt hàng</p>
         </div>
-        <div class="toolbar d-flex flex-wrap gap-2">
-            <!-- Bộ lọc trạng thái -->
+        <div class="toolbar">
             <div class="dropdown custom-dropdown">
                 <button type="button" class="btn btn-outline d-flex align-items-center" data-bs-toggle="dropdown" id="filterStatusBtn">
                     <i class="fas fa-filter me-1"></i>
@@ -31,14 +30,20 @@
                     <a class="dropdown-item filter-status" data-status="Đã hủy" href="#"><i class="fas fa-times-circle"></i> Đã hủy</a>
                 </div>
             </div>
-            <!-- Bộ lọc ngày: FromDate → ToDate -->
-            <form method="get" action="@Url.Action("OrderList")" class="d-flex align-items-center gap-2 flex-wrap" id="dateFilterForm">
-                <input type="date" class="form-control form-control-sm fs-input" style="width:140px;" name="fromDate" id="fromDate" value="@ViewBag.fromDate" title="Từ ngày" />
-                <span class="text-muted">→</span>
-                <input type="date" class="form-control form-control-sm fs-input" style="width:140px;" name="toDate" id="toDate" value="@ViewBag.toDate" title="Đến ngày" />
-                <button type="submit" class="btn btn-sm btn-success"><i class="fas fa-search me-1"></i>Lọc</button>
-                <a href="@Url.Action("OrderList")" class="btn btn-sm btn-outline-secondary" title="Xoá bộ lọc"><i class="fas fa-times"></i></a>
-            </form>
+            <div class="dropdown custom-dropdown">
+                <button type="button" class="btn btn-outline d-flex align-items-center" data-bs-toggle="dropdown" id="filterDateBtn">
+                    <i class="fas fa-calendar me-1"></i>
+                    <span id="filterDateLabel">Hôm nay</span>
+                    <i class="fas fa-chevron-down ms-2"></i>
+                </button>
+                <div class="dropdown-menu dropdown-menu-right">
+                    <a class="dropdown-item filter-date" data-days="" href="#"><i class="fas fa-calendar-alt"></i> Tất cả thời gian</a>
+                    <a class="dropdown-item filter-date" data-days="0" href="#"><i class="fas fa-calendar-alt"></i> Hôm nay</a>
+                    <a class="dropdown-item filter-date" data-days="7" href="#"><i class="fas fa-calendar-alt"></i> 7 ngày qua</a>
+                    <a class="dropdown-item filter-date" data-days="30" href="#"><i class="fas fa-calendar-alt"></i> 30 ngày qua</a>
+                    <a class="dropdown-item filter-date" data-days="90" href="#"><i class="fas fa-calendar-alt"></i> 3 tháng qua</a>
+                </div>
+            </div>
         </div>
     </div>
     <div class="row">

@@ -129,7 +129,8 @@ TMDT-master/
 │   │   └── AutoPreparingService.cs  # BackgroundService: 10s polling → SignalR broadcast
 │   │
 │   ├── Utils/                       # Helper utilities
-│   │   └── TinhToan.cs             # Shipping fee calculation, image URL helper
+│   │   ├── TinhToan.cs             # Shipping fee calculation, image URL helper
+│   │   └── OrderStatus.cs          # **NEW** Order status constants, transition validation, auto-message templates
 │   │
 │   ├── Views/                       # Razor views (50+ views, 6 layouts)
 │   │   ├── Home/                   # Customer-facing pages (11 views)
@@ -624,6 +625,21 @@ APP_DOMAIN=https://fastship-web.onrender.com
 - [x] ✅ **ChiTietSanPham view rebuild** — trang chi tiết sản phẩm hoàn chỉnh (ảnh, giá, size, review)
 - [x] ✅ **Scroll-reveal animation** — IntersectionObserver + fs-reveal + stagger + counter
 - [x] ✅ **DetailRestaurant view fix** — sửa `item.giatien` → navigation đúng, null-safe `(int)(diemdanhgia ?? 0)`
+- [x] ✅ **OrderStatus constants class** — xoá magic strings, centralized transition map + auto-message templates
+- [x] ✅ **Atomic transaction ProcessPayment** — wrap order creation + details trong transaction, rollback nếu lỗi giữa chừng
+- [x] ✅ **Fix race condition cộng tiền shipper** — transaction + status check trước khi cộng, chống double-credit
+- [x] ✅ **Auto-message ClaimOrder** — tự động tạo tbTinNhan khi shipper nhận đơn, customer nhận thông báo real-time
+- [x] ✅ **Fix pagination LichSu** — sửa `int page = 1` cứng → đọc từ query parameter
+- [x] ✅ **Fix NullReferenceException huydon** — null check `dh.mattdh` trước khi `Find()`
+- [x] ✅ **NapTien lưu deposit record** — thêm db.SaveChanges() + tạo giao dịch nạp tiền
+- [x] ✅ **Thêm [ValidateAntiForgeryToken]** — 4 POST actions trong RestaurantController
+- [x] ✅ **Fix catch rỗng** — thêm ILogger.Warning vào tất cả catch blocks rỗng
+- [x] ✅ **Loading state ClaimOrder** — spinner + disabled button chống double-click
+- [x] ✅ **Audio notification fallback** — Web Audio API → page title flash
+- [x] ✅ **Geolocation cleanup** — beforeunload + clearWatch() xoá theo dõi vị trí
+- [x] ✅ **Phân biệt auto-message vs real message** — CSS class `.msg.system` + icon 📢 + bg khác biệt
+- [x] ✅ **Null guard RestaurantController** — check `getQuanAn()` null trong OrderList + Wallet
+- [x] ✅ **Diagnostic logging ProcessPayment** — log chi tiết orderId, maquan, userId, restaurantIds
 - [ ] **⚠️ Filter/Search quá phức tạp** — MenuSearch dynamic SQL + Bottom Sheet + Dual Filter Bar cần đơn giản hoá
 - [ ] Real payment (Stripe/PayPal/ZaloPay)
 
@@ -722,7 +738,7 @@ Dự án mã nguồn mở — phát triển bởi đội ngũ ShipFood.
 
 ---
 
-> **Phiên bản**: 5.5 — ChiTietSanPham rebuild, PostgreSQL migration, scroll-reveal animation  
+> **Phiên bản**: 5.6 — 14 bug fixes, OrderStatus constants, atomic transaction, null guards, chat improvements  
 > **Ngôn ngữ**: C# 12, HTML5, CSS3, JavaScript ES6  
 > **Kiến trúc**: ASP.NET Core MVC n-tier  
 > **Database**: PostgreSQL 15+ (Npgsql)  

@@ -85,7 +85,7 @@
             width: 56px;
             height: 56px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #3CB815, #2ea310);
+            background: linear-gradient(135deg, var(--fs-green), var(--fs-green-dark));
             color: var(--fs-white);
             border: none;
             box-shadow: 0 4px 16px rgba(60,184,21,.35);
@@ -261,6 +261,97 @@
             background: #3CB815;
             color: var(--fs-white);
         }
+        /* ============================================================
+           UTILITY CLASSES — replace 99 inline styles with design system
+           ============================================================ */
+        /* ── Item Card ── */
+        .fs-item-name { font-size:15px;font-weight:700;color:var(--fs-dark); }
+        .fs-item-desc { font-size:13px;color:var(--fs-muted);margin:2px 0 4px;line-height:1.4;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical; }
+        .fs-item-total { font-size:11px;color:var(--fs-muted-soft); }
+        .fs-item-total i { color:var(--fs-green); }
+        .fs-badge-da-mua { font-size:10px;background:var(--fs-danger);color:var(--fs-white);padding:1px 7px;border-radius:4px;font-weight:600;white-space:nowrap; }
+
+        /* ── Price ── */
+        .fs-price-current { font-size:17px;font-weight:700; }
+        .fs-price-old { text-decoration:line-through;color:var(--fs-muted-soft);font-size:12px; }
+        .fs-price-sup { font-size:11px;top:-0.4em; }
+
+        /* ── Add-to-cart ── */
+        .fs-qty-input { width:48px;height:32px;padding:2px 4px;border:1.5px solid var(--fs-border);border-radius:8px;font-size:13px;font-weight:600;text-align:center; }
+        .fs-btn-cart { height:32px;padding:4px 16px;font-size:13px;font-weight:600;border-radius:8px;white-space:nowrap; }
+
+        /* ── Badges ── */
+        .fs-badge-corner { position:absolute;top:-2px;left:-2px;padding:3px 8px;font-size:10px;font-weight:700;border-radius:10px 0 10px 0;box-shadow:0 2px 6px rgba(231,76,60,.4);display:flex;align-items:center;gap:3px;color:var(--fs-white); }
+        .fs-badge-chayhang { background:#e74c3c; }
+        .fs-badge-discount { background:var(--fs-danger); }
+        .fs-badge-fire { font-size:9px; }
+
+        /* ── Recommendations ── */
+        .fs-recommend-item { display:flex;align-items:center;padding:10px 0;border-bottom:1px solid var(--fs-border-soft); }
+        .fs-recommend-img { width:50px;height:50px;margin-right:12px; }
+        .fs-recommend-img img { width:50px;height:50px;border-radius:8px;object-fit:cover; }
+        .fs-recommend-info { flex:1; }
+        .fs-recommend-price { color:var(--fs-danger);font-weight:600; }
+
+        /* ── Trending ── */
+        .fs-trending-item { min-width:160px;border:1px solid var(--fs-border);border-radius:10px;padding:12px;text-align:center; }
+        .fs-trending-img { width:80px;height:80px;border-radius:8px;object-fit:cover; }
+        .fs-trending-name { margin-top:8px; }
+        .fs-trending-name strong { font-size:14px; }
+
+        /* ── Search Bar ── */
+        .fs-search-bar { display:flex;align-items:center;gap:0;border:1.5px solid var(--fs-border);border-radius:10px;overflow:hidden;background:#fff; }
+        .fs-search-icon { padding:0 0 0 12px;display:flex;align-items:center;color:var(--fs-muted-soft);font-size:13px; }
+        .fs-search-input { flex:1;border:none;padding:9px 10px;font-size:14px;outline:none;background:transparent; }
+        .fs-search-btn { padding:9px 20px;background:var(--fs-green);color:#fff;border:none;font-size:13px;font-weight:600;cursor:pointer;transition:background .15s; }
+        .fs-search-btn:hover { background:var(--fs-green-dark); }
+        .fs-mb-16 { margin-bottom:16px; }
+
+        /* ── Reviews Section ── */
+        .fs-reviews-wrap { background:#fff;border-radius:16px;padding:32px;box-shadow:0 2px 16px rgba(0,0,0,.07); }
+        .fs-review-header { display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:24px; }
+        .fs-review-stats { display:flex;align-items:center;gap:20px; }
+        .fs-avg-score { font-size:40px;font-weight:800;color:var(--fs-warning);line-height:1; }
+        .fs-review-loadmore { text-align:center;margin-top:20px; }
+
+        /* ── Review Form ── */
+        .fs-review-form-wrap { margin-top:28px;border-top:2px solid var(--fs-border-soft);padding-top:24px; }
+        .fs-review-form-box { background:var(--fs-light);border-radius:12px;padding:20px; }
+
+        /* ── Toast ── */
+        .fs-toast { position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 20px;border-radius:8px;z-index:99999;font-size:14px;box-shadow:0 4px 12px rgba(0,0,0,0.2); }
+
+        /* ── Button Submit Review ── */
+        .fs-btn-submit-review { padding:10px 28px;background:linear-gradient(135deg,#3CB815,#27a001);color:var(--fs-white);border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:14px; }
+        .fs-btn-submit-review:hover { background:linear-gradient(135deg,#27a001,#1e8a01); }
+
+        /* ── Avatar Circle ── */
+        .fs-avatar-circle { width:44px;height:44px;border-radius:50%;color:var(--fs-white);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;flex-shrink:0; }
+
+        /* ── Login Prompt ── */
+        .fs-login-prompt { text-align:center;padding:20px;background:var(--fs-light);border-radius:12px; }
+        .fs-empty-state-text { font-size:16px;font-weight:600; }
+
+        /* ── Common inline-style replacements ── */
+        .fs-flex-center { display:flex;align-items:center; }
+        .fs-flex-gap-6 { display:flex;align-items:center;gap:6px; }
+        .fs-flex-gap-8 { display:flex;align-items:center;gap:8px; }
+        .fs-flex-wrap { display:flex;align-items:center;gap:6px;flex-wrap:wrap; }
+        .fs-text-center { text-align:center; }
+        .fs-text-right { text-align:right; }
+        .fs-mt-20 { margin-top:20px; }
+        .fs-mt-28 { margin-top:28px; }
+        .fs-mb-12 { margin-bottom:12px; }
+        .fs-mb-16 { margin-bottom:16px; }
+        .fs-p-20 { padding:20px; }
+        .fs-p-40 { padding:40px; }
+        .fs-img-72 { width:72px;height:72px;border-radius:10px;object-fit:cover;display:block; }
+        .fs-border-bottom { border-bottom:2px solid var(--fs-border-soft); }
+        .fs-food-label { font-weight:600;font-size:14px; }
+
+        /* ── Section spacing ── */
+        .fs-section-gap { margin-top:30px; }
+        .fs-section-gap-sm { margin-top:20px; }
     </style>
 }
 
@@ -357,21 +448,19 @@
                             <div class="menu-restaurant-detail" style="width:78%">
                                 <div class="menu-restaurant-list">
                                     <div class="search-items">
-                                        <form action="~/Home/DetailRestaurant" style="margin-bottom:16px;">
+                                        <form action="~/Home/DetailRestaurant" class="fs-mb-16">
                                             <input type="hidden" name="id" value="@ViewBag.maquan"/>
-                                            <div style="display:flex;align-items:center;gap:0;border:1.5px solid var(--fs-border);border-radius:10px;overflow:hidden;background:#fff;">
-                                                <span style="padding:0 0 0 12px;display:flex;align-items:center;color:var(--fs-muted-soft);font-size:13px;">
+                                            <div class="fs-search-bar">
+                                                <span class="fs-search-icon">
                                                     <i class="fas fa-search"></i>
                                                 </span>
-                                                <input type="text" name="searchKey" placeholder="Tìm món..." value="@ViewBag.searchKey"
-                                                       style="flex:1;border:none;padding:9px 10px;font-size:14px;outline:none;background:transparent;" />
-                                                <button type="submit"
-                                                        style="padding:9px 20px;background:var(--fs-green);color:#fff;border:none;font-size:13px;font-weight:600;cursor:pointer;transition:background .15s;">Tìm</button>
+                                                <input type="text" name="searchKey" placeholder="Tìm món..." value="@ViewBag.searchKey" class="fs-search-input" />
+                                                <button type="submit" class="fs-search-btn">Tìm</button>
                                             </div>
                                         </form>
                                     </div>
-                                    <div class="menu-group" id="section-group-menu--1" style="height: auto; left: 0px; position: relative; top: 0px; width: 100%; padding-bottom: 8px;">
-                                        <div class="title-menu" style="display: flex; justify-content: space-between; align-items: center;">
+                                    <div class="menu-group" style="padding-bottom:8px;">
+                                        <div class="title-menu fs-flex-center" style="justify-content:space-between;">
                                             <strong>Danh sách món</strong>
                                             @{
                                                 var daMuaMonAnIds = ViewBag.DaMuaMonAnIds as HashSet<int>;
@@ -381,7 +470,7 @@
                                             @if (isLoggedIn && daMuaMonAnIds != null && daMuaMonAnIds.Any())
                                             {                                                    <label style="font-size:13px;cursor:pointer;user-select:none;">
                                                         <input type="checkbox" id="filter-da-mua" onchange="toggleDaMuaFilter()" />
-                                                        <span style="color:var(--fs-danger);">❤ Đã mua</span>
+                                                        <span class="fs-text-danger">❤ Đã mua</span>
                                                 </label>
                                             }
                                         </div>
@@ -401,50 +490,47 @@
                                         var firstVariantId = allVariants.Count > 0 ? allVariants[0].id : (int?)item.mamon;
                                         // ponytail: item row keys for consistent flex layout
                                         var rowItemId = "item-" + item.mamon;
-                                        <div class="item-restaurant-row @(daMua ? "item-da-mua" : "")" id="@rowItemId" style="display:block;position:relative;width:100%;margin-bottom:20px;">
-                                            <div class="row" style="flex-wrap:nowrap;align-items:flex-start;gap:0;">
+                                        <div class="item-restaurant-row @(daMua ? "item-da-mua" : "")" id="@rowItemId">
+                                            <div class="row" style="flex-wrap:nowrap;align-items:flex-start;">
                                                 <!-- Column 1: Image + badge -->
-                                                <div class="col-auto item-restaurant-img" style="position:relative;flex-shrink:0;padding-right:0;">
+                                                <div class="col-auto item-restaurant-img" style="position:relative;flex-shrink:0;">
                                                     <button class="inline" style="padding:0;border:none;background:none;@(!item.conhang ? "filter:grayscale(1);opacity:.7;" : "")">
-                                                        <img src="@TinhToan.HinhAnhUrl(item.hinhanh)" alt="@item.tenmon"
-                                                             style="width:72px;height:72px;border-radius:10px;object-fit:cover;display:block;"
+                                                        <img src="@TinhToan.HinhAnhUrl(item.hinhanh)" alt="@item.tenmon" class="fs-img-72"
                                                              loading="lazy" onerror="this.src='/Source/Home/img/pizza.jpg'" />
                                                     </button>
                                                     @if (!item.conhang)
                                                     {
-                                                        <span style="position:absolute;top:-2px;left:-2px;background:#e74c3c;color:var(--fs-white);padding:3px 8px;font-size:10px;font-weight:700;border-radius:10px 0 10px 0;box-shadow:0 2px 6px rgba(231,76,60,.4);display:flex;align-items:center;gap:3px;">
-                                                            🔥 Cháy hàng
-                                                        </span>
+                                                        <span class="fs-badge-corner fs-badge-chayhang">🔥 Cháy hàng</span>
                                                     }
                                                     else if (khuyenMai != null)
                                                     {
-                                                        <span style="position:absolute;top:-2px;left:-2px;background:var(--fs-danger);color:var(--fs-white);padding:3px 8px;font-size:10px;font-weight:700;border-radius:10px 0 10px 0;box-shadow:0 2px 6px rgba(231,76,60,.4);display:flex;align-items:center;gap:3px;">
-                                                            <i class="fa fa-fire" style="font-size:9px;"></i>-@khuyenMai.phantramgiam%
+                                                        <span class="fs-badge-corner fs-badge-discount">
+                                                            <i class="fa fa-fire fs-badge-fire"></i>-@khuyenMai.phantramgiam%
                                                         </span>
                                                     }
                                                 </div>
                                                 <!-- Column 2: Info (flex-shrink) -->
-                                                <div class="col item-restaurant-info" style="min-width:0;flex:1;padding-left:14px;padding-right:12px;">
-                                                    <h2 class="item-restaurant-name" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-                                                        <span style="font-size:15px;font-weight:700;color:var(--fs-dark);">@item.tenmon</span>
+                                                <div class="col item-restaurant-info" style="flex:1;padding-left:14px;">
+                                                    <h2 class="item-restaurant-name fs-flex-wrap">
+                                                        <span class="fs-item-name">@item.tenmon</span>
                                                         @if (daMua)
                                                         {
-                                                            <span style="font-size:10px;background:var(--fs-danger);color:var(--fs-white);padding:1px 7px;border-radius:4px;font-weight:600;white-space:nowrap;">Đã mua</span>
+                                                            <span class="fs-badge-da-mua">Đã mua</span>
                                                         }
                                                     </h2>
-                                                    <div class="item-restaurant-desc" style="font-size:13px;color:var(--fs-muted);margin:2px 0 4px;line-height:1.4;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">@item.mota</div>
-                                                    <div class="item-restaurant-total" style="font-size:11px;color:var(--fs-muted-soft);">Đã được đặt <strong>100+</strong> lần&nbsp;|&nbsp;<i class="fa fa-thumbs-up" style="color:var(--fs-green);"></i>&nbsp;3</div>
+                                                    <div class="fs-item-desc">@item.mota</div>
+                                                    <div class="fs-item-total">Đã được đặt <strong>100+</strong> lần&nbsp;|&nbsp;<i class="fa fa-thumbs-up"></i>&nbsp;3</div>
                                                 </div>
                                                 <!-- Column 3: Price + Size + Add-to-cart (right-aligned block) -->
-                                                <div class="col-auto item-restaurant-more" style="flex-shrink:0;display:flex;flex-direction:column;align-items:flex-end;gap:8px;padding-left:0;min-width:140px;">
+                                                <div class="col-auto item-restaurant-more" style="flex-shrink:0;display:flex;flex-direction:column;align-items:flex-end;gap:8px;min-width:140px;">
                                                     <!-- Price -->
-                                                    <div class="product-price" style="text-align:right;line-height:1.1;">
+                                                    <div class="product-price fs-text-right" style="line-height:1.1;">
                                                         @if (khuyenMai != null && khuyenMai.phantramgiam > 0)
                                                         {
-                                                            <div class="old-price" style="text-decoration:line-through;color:var(--fs-muted-soft);font-size:12px;">@giaGoc?.ToString("N0")<sup style="font-size:9px;top:-0.3em;">đ</sup></div>
+                                                            <div class="fs-price-old">@giaGoc?.ToString("N0")<sup class="fs-price-sup">đ</sup></div>
                                                         }
-                                                        <div class="current-price current-price-@item.mamon" style="color:@(khuyenMai != null ? "var(--fs-danger)" : "var(--fs-dark)");font-size:17px;font-weight:700;">
-                                                            @(khuyenMai != null ? giaKhuyenMai?.ToString("N0") : item.tbBienTheMonAns?.FirstOrDefault()?.giatien?.ToString("N0"))<sup style="font-size:11px;top:-0.4em;">đ</sup>
+                                                        <div class="current-price current-price-@item.mamon fs-price-current" style="color:@(khuyenMai != null ? "var(--fs-danger)" : "var(--fs-dark)");">
+                                                            @(khuyenMai != null ? giaKhuyenMai?.ToString("N0") : item.tbBienTheMonAns?.FirstOrDefault()?.giatien?.ToString("N0"))<sup class="fs-price-sup">đ</sup>
                                                         </div>
                                                     </div>
                                                     <!-- Size chips (multi-variant) -->
@@ -469,16 +555,14 @@
                                                         </div>
                                                     }
                                                     <!-- Quantity + Add to cart -->
-                                                    <div class="adding-food-cart" style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
-                                                        <form action="~/Cart/ThemMonAn" method="get" onsubmit="return validateCartForm(this)" style="display:flex;align-items:center;gap:6px;margin:0;">
-                                                            <input name="soLuong" type="number" value="1" min="1"
-                                                                   style="width:48px;height:32px;padding:2px 4px;border:1.5px solid var(--fs-border);border-radius:8px;font-size:13px;font-weight:600;text-align:center;" />
+                                                    <div class="adding-food-cart fs-flex-gap-6" style="flex-shrink:0;">
+                                                        <form action="~/Cart/ThemMonAn" method="get" onsubmit="return validateCartForm(this)" class="fs-flex-gap-6" style="margin:0;">
+                                                            <input name="soLuong" type="number" value="1" min="1" class="fs-qty-input" />
                                                             <input name="maMonAn" type="hidden" value="@firstVariantId" class="maMonAnInput-@item.mamon" />
-                                                            <button type="submit" class="btn @(item.conhang ? "btn-success" : "btn-secondary") add-to-cart-btn"
+                                                            <button type="submit" class="btn @(item.conhang ? "btn-success" : "btn-secondary") add-to-cart-btn fs-btn-cart"
                                                                     data-mamon="@item.mamon"
                                                                     data-soluong="1"
                                                                     onclick="return @(item.conhang ? "optimisticAddToCart(this, event)" : "false")"
-                                                                    style="height:32px;padding:4px 16px;font-size:13px;font-weight:600;border-radius:8px;white-space:nowrap;"
                                                                     @(!item.conhang ? "disabled" : "")>@(item.conhang ? "Thêm" : "Hết hàng")</button>
                                                         </form>
                                                     </div>
@@ -490,17 +574,17 @@
                                     <!-- Recommendation: Thường được mua kèm -->
                                     @if (muaKem != null && muaKem.Any())
                                     {
-                                        <div class="menu-group" style="margin-top: 30px;">
-                                            <div class="title-menu"><strong><i class="fas fa-shopping-cart" style="color:#3CB815;"></i> Thường được mua kèm</strong></div>
+                                        <div class="menu-group fs-section-gap">
+                                            <div class="title-menu"><strong><i class="fas fa-shopping-cart fs-text-green"></i> Thường được mua kèm</strong></div>
                                             @foreach (var item in muaKem)
                                             {
-                                                <div class="item-restaurant-row" style="display:flex;align-items:center;padding:10px 0;border-bottom:1px solid var(--fs-border-soft);">
-                                                    <div style="width:50px;height:50px;margin-right:12px;">
-                                                        <img src="@TinhToan.HinhAnhUrl(item.hinhanh)" alt="@item.tenmon" style="width:50px;height:50px;border-radius:8px;object-fit:cover;" loading="lazy" onerror="this.src='/Source/Home/img/pizza.jpg'" />
+                                                <div class="fs-recommend-item">
+                                                    <div class="fs-recommend-img">
+                                                        <img src="@TinhToan.HinhAnhUrl(item.hinhanh)" alt="@item.tenmon" loading="lazy" onerror="this.src='/Source/Home/img/pizza.jpg'" />
                                                     </div>
-                                                    <div style="flex:1;">
+                                                    <div class="fs-recommend-info">
                                                         <strong>@item.tenmon</strong>
-                                                        <div style="color:var(--fs-danger);font-weight:600;">@item.tbBienTheMonAns?.FirstOrDefault()?.giatien?.ToString("N0")đ</div>
+                                                        <div class="fs-recommend-price">@item.tbBienTheMonAns?.FirstOrDefault()?.giatien?.ToString("N0")đ</div>
                                                     </div>
                                                     <div>
                                                         <a href="@Url.Action("DetailRestaurant", new { id = item.maquanan })" class="btn btn-sm btn-outline-success">Xem</a>
@@ -513,15 +597,15 @@
                                     <!-- Recommendation: Gợi ý theo khung giờ -->
                                     @if (trendingNow != null && trendingNow.Any())
                                     {
-                                        <div class="menu-group" style="margin-top: 20px;">
-                                            <div class="title-menu"><strong><i class="fas fa-clock" style="color:#f39c12;"></i> Gợi ý cho khung giờ này</strong></div>
-                                            <div style="display: flex; gap: 12px; overflow-x: auto; padding: 10px 0;">
+                                        <div class="menu-group fs-section-gap-sm">
+                                            <div class="title-menu"><strong><i class="fas fa-clock fs-text-orange"></i> Gợi ý cho khung giờ này</strong></div>
+                                            <div style="display:flex;gap:12px;overflow-x:auto;padding:10px 0;">
                                                 @foreach (var item in trendingNow)
                                                 {
-                                                    <div style="min-width:160px;border:1px solid var(--fs-border);border-radius:10px;padding:12px;text-align:center;">
-                                                        <img src="@TinhToan.HinhAnhUrl(item.hinhanh)" alt="@item.tenmon" style="width:80px;height:80px;border-radius:8px;object-fit:cover;" loading="lazy" onerror="this.src='/Source/Home/img/pizza.jpg'" />
-                                                        <div style="margin-top: 8px;"><strong>@item.tenmon</strong></div>
-                                                        <div style="color:var(--fs-danger);font-weight:600;">@item.tbBienTheMonAns?.FirstOrDefault()?.giatien?.ToString("N0")đ</div>
+                                                    <div class="fs-trending-item">
+                                                        <img src="@TinhToan.HinhAnhUrl(item.hinhanh)" alt="@item.tenmon" class="fs-trending-img" loading="lazy" onerror="this.src='/Source/Home/img/pizza.jpg'" />
+                                                        <div class="fs-trending-name"><strong>@item.tenmon</strong></div>
+                                                        <div class="fs-recommend-price">@item.tbBienTheMonAns?.FirstOrDefault()?.giatien?.ToString("N0")đ</div>
                                                         <a href="@Url.Action("DetailRestaurant", new { id = item.maquanan })" class="btn btn-sm btn-success mt-2">Đặt ngay</a>
                                                     </div>
                                                 }
@@ -557,17 +641,18 @@
                 <!-- Populated by JavaScript -->
             </div>
         </div>        <!-- ========== CUSTOMER REVIEWS SECTION ========== -->
-        <div class="container" style="margin-top: 40px; margin-bottom: 60px;">
-            <div id="reviews-section" style="background:#fff; border-radius:16px; padding:32px; box-shadow:0 2px 16px rgba(0,0,0,.07);">
+        <div class="container" style="margin:40px 0 60px;">
+            <div id="reviews-section" class="fs-reviews-wrap">
 
                 <!-- Header + Stats -->
-                <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:24px;">
-                    <div>                                        <h3 style="font-weight:700;margin:0;color:var(--fs-dark);">⭐ Đánh giá từ khách hàng</h3>
-                        <p style="color:var(--fs-muted);font-size:14px;margin:4px 0 0;">Nhận xét thực tế từ những người đã đặt hàng</p>
+                <div class="fs-review-header">
+                    <div>
+                        <h3 style="font-weight:700;margin:0;color:var(--fs-dark);">⭐ Đánh giá từ khách hàng</h3>
+                        <p class="text-muted" style="font-size:14px;margin:4px 0 0;">Nhận xét thực tế từ những người đã đặt hàng</p>
                     </div>
-                    <div id="review-stats" style="display:flex;align-items:center;gap:20px;">
-                        <div style="text-align:center;">
-                            <div id="avg-score" style="font-size:40px;font-weight:800;color:var(--fs-warning);line-height:1;">—</div>
+                    <div id="review-stats" class="fs-review-stats">
+                        <div class="fs-text-center">
+                            <div id="avg-score" class="fs-avg-score">—</div>
                             <div id="star-display" style="color:var(--fs-warning);font-size:18px;letter-spacing:2px;">☆☆☆☆☆</div>
                             <div id="total-reviews" style="font-size:12px;color:var(--fs-muted);">Đang tải...</div>
                         </div>
@@ -576,16 +661,15 @@
 
                 <!-- Review cards -->
                 <div id="review-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;">
-                    <div style="text-align:center;padding:40px;color:var(--fs-muted-soft);grid-column:1/-1;">
+                    <div class="fs-text-center fs-p-40" style="color:var(--fs-muted-soft);grid-column:1/-1;">
                         <div style="font-size:32px;margin-bottom:8px;">⏳</div>
                         Đang tải đánh giá...
                     </div>
                 </div>
 
                 <!-- Load more -->
-                <div id="load-more-wrap" style="text-align:center;margin-top:20px;display:none;">
-                    <button id="btn-load-more" onclick="loadMoreReviews()"
-                        style="padding:10px 32px;border:2px solid var(--fs-green);background:var(--fs-white);color:var(--fs-green);border-radius:30px;font-weight:600;cursor:pointer;transition:all .2s;">
+                <div id="load-more-wrap" class="fs-review-loadmore" style="display:none;">
+                    <button id="btn-load-more" onclick="loadMoreReviews()" class="fs-load-more-btn">
                         Xem thêm đánh giá
                     </button>
                 </div>
@@ -601,17 +685,17 @@
                 }
                 @if (canReview)
                 {
-                    <div style="margin-top:28px;border-top:2px solid var(--fs-border-soft);padding-top:24px;">
+                    <div class="fs-review-form-wrap">
                         <h4 style="font-weight:700;margin-bottom:16px;color:var(--fs-dark);">✍️ Viết đánh giá của bạn</h4>
-                        <div style="background:var(--fs-light);border-radius:12px;padding:20px;">
-                            <div style="margin-bottom:12px;">
-                                <label style="font-weight:600;font-size:14px;">Chọn món muốn đánh giá:</label>
+                        <div class="fs-review-form-box">
+                            <div class="fs-mb-12">
+                                <label class="fs-food-label">Chọn món muốn đánh giá:</label>
                                 <select id="review-mactdh" class="form-select mt-1" style="max-width:400px;">
                                     <option value="">-- Chọn món đã mua --</option>
                                 </select>
                             </div>
-                            <div style="margin-bottom:12px;">
-                                <label style="font-weight:600;font-size:14px;">Điểm đánh giá:</label>
+                            <div class="fs-mb-12">
+                                <label class="fs-food-label">Điểm đánh giá:</label>
                                 <div id="star-picker" style="display:flex;gap:6px;margin-top:8px;font-size:28px;cursor:pointer;">
                                     <span class="star-opt" data-val="1">☆</span>
                                     <span class="star-opt" data-val="2">☆</span>
@@ -621,14 +705,13 @@
                                 </div>
                                 <input type="hidden" id="review-diem" value="0">
                             </div>
-                            <div style="margin-bottom:16px;">
-                                <label style="font-weight:600;font-size:14px;">Nhận xét (tuỳ chọn):</label>
-                                <textarea id="review-nhanxet" class="form-control mt-1" rows="3" placeholder="Chia sẻ cảm nhận của bạn..." maxlength="500" style="border-radius:8px;"></textarea>
+                            <div class="fs-mb-16">
+                                <label class="fs-food-label">Nhận xét (tuỳ chọn):</label>
+                                <textarea id="review-nhanxet" class="form-control mt-1" rows="3" placeholder="Chia sẻ cảm nhận của bạn..." maxlength="500"></textarea>
                                 <div style="font-size:11px;color:var(--fs-muted-soft);text-align:right;margin-top:2px;"><span id="char-count">0</span>/500</div>
                             </div>
                             <div id="review-feedback" style="display:none;margin-bottom:12px;font-size:14px;padding:10px 14px;border-radius:8px;"></div>
-                            <button onclick="submitReview()"
-                                style="padding:10px 28px;background:linear-gradient(135deg,#3CB815,#27a001);color:var(--fs-white);border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:14px;">
+                            <button onclick="submitReview()" class="fs-btn-submit-review">
                                 Gửi đánh giá
                             </button>
                         </div>
@@ -636,9 +719,9 @@
                 }
                 else if (!isLoggedInReview)
                 {
-                    <div style="margin-top:20px;text-align:center;padding:20px;background:var(--fs-light);border-radius:12px;">
-                        <p style="color:var(--fs-muted);margin-bottom:12px;">Đăng nhập để viết đánh giá</p>
-                        <a href="@Url.Action("Login","Home")" class="fs-btn fs-btn-primary" style="padding:10px 24px;border-radius:8px;">Đăng nhập</a>
+                    <div class="fs-login-prompt" style="margin-top:20px;">
+                        <p class="text-muted" style="margin-bottom:12px;">Đăng nhập để viết đánh giá</p>
+                        <a href="@Url.Action("Login","Home")" class="fs-btn fs-btn-primary">Đăng nhập</a>
                     </div>
                 }
             </div>

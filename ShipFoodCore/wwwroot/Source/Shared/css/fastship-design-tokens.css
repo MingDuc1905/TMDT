@@ -18,6 +18,8 @@
     --fs-green-bg:   rgba(60,184,21,.07);
     --fs-orange:     #F65005;
     --fs-orange-bg:  rgba(246,80,5,.08);
+    --fs-danger:     #e74c3c;
+    --fs-warning:    #f39c12;
 
     /* ─── Neutral Palette ─── */
     --fs-dark:       #1a1a2e;
@@ -119,6 +121,10 @@ table, th, td, li, a,
 .fs-text-green  { color: var(--fs-green) !important; }
 .fs-text-orange { color: var(--fs-orange) !important; }
 .fs-text-muted  { color: var(--fs-muted) !important; }
+.fs-text-danger { color: var(--fs-danger) !important; }
+.fs-text-warning { color: var(--fs-warning) !important; }
+.fs-text-dark   { color: var(--fs-dark) !important; }
+.fs-text-white  { color: var(--fs-white) !important; }
 .fs-bg-green    { background: var(--fs-green) !important; }
 .fs-bg-orange   { background: var(--fs-orange) !important; }
 .fs-bg-light    { background: var(--fs-light) !important; }

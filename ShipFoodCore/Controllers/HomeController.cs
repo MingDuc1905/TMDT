@@ -97,6 +97,12 @@ public class HomeController : BaseController
             quanAns = quanAns.Where(qa => qa.tbMonAn.Where(ma => ma.madanhmuc == idDM).Any()).ToList();
             ViewBag.idDM = idDM;
         }
+        // ═══ Lọc món đã xoá (isDeleted) và hết hàng (!conhang) ═══
+        // ponytail: Filter in-memory vì data đã load qua Include — tránh query DB riêng
+        foreach (var qa in quanAns)
+        {
+            qa.tbMonAns = qa.tbMonAns.Where(m => !m.isDeleted && m.conhang).ToList();
+        }
         ViewBag.quanAns = quanAns;
 
         // ponytail: load danh mục ở controller thay vì query DB trực tiếp trong view (Index.cshtml line ~230)

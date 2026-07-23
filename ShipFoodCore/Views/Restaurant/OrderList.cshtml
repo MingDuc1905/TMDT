@@ -30,20 +30,13 @@
                     <a class="dropdown-item filter-status" data-status="Đã hủy" href="#"><i class="fas fa-times-circle"></i> Đã hủy</a>
                 </div>
             </div>
-            <div class="dropdown custom-dropdown">
-                <button type="button" class="btn btn-outline d-flex align-items-center" data-bs-toggle="dropdown" id="filterDateBtn">
-                    <i class="fas fa-calendar me-1"></i>
-                    <span id="filterDateLabel">Hôm nay</span>
-                    <i class="fas fa-chevron-down ms-2"></i>
-                </button>
-                <div class="dropdown-menu dropdown-menu-right">
-                    <a class="dropdown-item filter-date" data-days="" href="#"><i class="fas fa-calendar-alt"></i> Tất cả thời gian</a>
-                    <a class="dropdown-item filter-date" data-days="0" href="#"><i class="fas fa-calendar-alt"></i> Hôm nay</a>
-                    <a class="dropdown-item filter-date" data-days="7" href="#"><i class="fas fa-calendar-alt"></i> 7 ngày qua</a>
-                    <a class="dropdown-item filter-date" data-days="30" href="#"><i class="fas fa-calendar-alt"></i> 30 ngày qua</a>
-                    <a class="dropdown-item filter-date" data-days="90" href="#"><i class="fas fa-calendar-alt"></i> 3 tháng qua</a>
-                </div>
-            </div>
+            <form action="@Url.Action("OrderList")" method="GET" class="d-flex align-items-center gap-2">
+                <input type="date" name="fromDate" id="fromDateInput" class="form-control form-control-sm" style="width:140px;" value="@ViewBag.fromDate" />
+                <span class="text-muted">→</span>
+                <input type="date" name="toDate" id="toDateInput" class="form-control form-control-sm" style="width:140px;" value="@ViewBag.toDate" />
+                <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-filter me-1"></i>Lọc</button>
+                <a href="@Url.Action("OrderList")" class="btn btn-outline-secondary btn-sm"><i class="fas fa-times"></i></a>
+            </form>
         </div>
     </div>
     <div class="row">
@@ -137,42 +130,6 @@
             } else {
                 table.column(3).search('^' + status.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', true, false).draw();
             }
-        });
-
-        // ─── FILTER: L?c theo ngày ───
-        $('.filter-date').on('click', function(e) {
-            e.preventDefault();
-            var days = $(this).data('days');
-            var label = $(this).text().trim().replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim();
-            $('#filterDateLabel').text(label);
-            
-            if (days === '' || days === undefined) {
-                // Show all rows
-                $.fn.dataTable.ext.search = $.fn.dataTable.ext.search.filter(function(f) { return f !== dateFilter; });
-                table.draw();
-                return;
-            }
-            
-            days = parseInt(days);
-            var cutoff = new Date();
-            cutoff.setDate(cutoff.getDate() - days);
-            cutoff.setHours(0, 0, 0, 0);
-            
-            // Remove old date filter if exists
-            $.fn.dataTable.ext.search = $.fn.dataTable.ext.search.filter(function(f) { return f !== dateFilter; });
-            
-            // Add new date filter
-            window.dateFilter = function(settings, data, dataIndex) {
-                // Parse ngày VN format dd/MM/yyyy HH:mm
-                var parts = data[0].split(' ')[0].split('/');
-                if (parts.length === 3) {
-                    var rowDate = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
-                    return rowDate >= cutoff;
-                }
-                return true;
-            };
-            $.fn.dataTable.ext.search.push(window.dateFilter);
-            table.draw();
         });
 
         // ── SignalR: Real-time đơn hàng mới ──

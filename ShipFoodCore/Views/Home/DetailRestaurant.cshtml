@@ -405,12 +405,18 @@
                                             <div class="row" style="flex-wrap:nowrap;align-items:flex-start;gap:0;">
                                                 <!-- Column 1: Image + badge -->
                                                 <div class="col-auto item-restaurant-img" style="position:relative;flex-shrink:0;padding-right:0;">
-                                                    <button class="inline" style="padding:0;border:none;background:none;">
+                                                    <button class="inline" style="padding:0;border:none;background:none;@(!item.conhang ? "filter:grayscale(1);opacity:.7;" : "")">
                                                         <img src="@TinhToan.HinhAnhUrl(item.hinhanh)" alt="@item.tenmon"
                                                              style="width:72px;height:72px;border-radius:10px;object-fit:cover;display:block;"
                                                              loading="lazy" onerror="this.src='/Source/Home/img/pizza.jpg'" />
                                                     </button>
-                                                    @if (khuyenMai != null)
+                                                    @if (!item.conhang)
+                                                    {
+                                                        <span style="position:absolute;top:-2px;left:-2px;background:#e74c3c;color:var(--fs-white);padding:3px 8px;font-size:10px;font-weight:700;border-radius:10px 0 10px 0;box-shadow:0 2px 6px rgba(231,76,60,.4);display:flex;align-items:center;gap:3px;">
+                                                            🔥 Cháy hàng
+                                                        </span>
+                                                    }
+                                                    else if (khuyenMai != null)
                                                     {
                                                         <span style="position:absolute;top:-2px;left:-2px;background:var(--fs-danger);color:var(--fs-white);padding:3px 8px;font-size:10px;font-weight:700;border-radius:10px 0 10px 0;box-shadow:0 2px 6px rgba(231,76,60,.4);display:flex;align-items:center;gap:3px;">
                                                             <i class="fa fa-fire" style="font-size:9px;"></i>-@khuyenMai.phantramgiam%
@@ -468,11 +474,12 @@
                                                             <input name="soLuong" type="number" value="1" min="1"
                                                                    style="width:48px;height:32px;padding:2px 4px;border:1.5px solid var(--fs-border);border-radius:8px;font-size:13px;font-weight:600;text-align:center;" />
                                                             <input name="maMonAn" type="hidden" value="@firstVariantId" class="maMonAnInput-@item.mamon" />
-                                                            <button type="submit" class="btn btn-success add-to-cart-btn"
+                                                            <button type="submit" class="btn @(item.conhang ? "btn-success" : "btn-secondary") add-to-cart-btn"
                                                                     data-mamon="@item.mamon"
                                                                     data-soluong="1"
-                                                                    onclick="return optimisticAddToCart(this, event)"
-                                                                    style="height:32px;padding:4px 16px;font-size:13px;font-weight:600;border-radius:8px;white-space:nowrap;">Thêm</button>
+                                                                    onclick="return @(item.conhang ? "optimisticAddToCart(this, event)" : "false")"
+                                                                    style="height:32px;padding:4px 16px;font-size:13px;font-weight:600;border-radius:8px;white-space:nowrap;"
+                                                                    @(!item.conhang ? "disabled" : "")>@(item.conhang ? "Thêm" : "Hết hàng")</button>
                                                         </form>
                                                     </div>
                                                 </div>

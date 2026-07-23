@@ -166,6 +166,12 @@ public class RestaurantController : BaseController
     {
         if (!checkLogin()) return RedirectToAction("Login", "Home");
         var quanAn = getQuanAn();
+        if (quanAn == null)
+        {
+            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<RestaurantController>>();
+            logger.LogWarning("Analytics: No tbQuanAn record found for userId {UserId}", GetCurrentUser()?.userid);
+            return RedirectToAction("Logout", "Home");
+        }
         var datas = new List<DataAnalytic>();
         var dataDanhMucs = new List<DataAnalyticDanhMuc>();
         var idDanhMucs = new List<int>();
@@ -308,7 +314,8 @@ public class RestaurantController : BaseController
         return RedirectToAction("Discount");
     }
 
-    public ActionResult OrderList()
+    // ponytail: Accept FromDate/ToDate query params for server-side date filtering
+    public ActionResult OrderList(DateTime? fromDate, DateTime? toDate)
     {
         if (!checkLogin()) return RedirectToAction("Login", "Home");
         var quanAn = getQuanAn();
@@ -319,8 +326,19 @@ public class RestaurantController : BaseController
             logger.LogWarning("OrderList: No tbQuanAn record found for userId {UserId}", GetCurrentUser()?.userid);
             return RedirectToAction("Logout", "Home");
         }
-        ViewBag.donHangs = quanAn.tbDonHang.OrderByDescending(dh => dh.ngaydathang).ToList();
+
+        var donHangs = quanAn.tbDonHang.AsEnumerable();
+
+        // Server-side date filter (in-memory, data already loaded via Include)
+        if (fromDate.HasValue)
+            donHangs = donHangs.Where(dh => dh.ngaydathang >= fromDate.Value.Date);
+        if (toDate.HasValue)
+            donHangs = donHangs.Where(dh => dh.ngaydathang <= toDate.Value.Date.AddDays(1));
+
+        ViewBag.donHangs = donHangs.OrderByDescending(dh => dh.ngaydathang).ToList();
         ViewBag.restaurantId = quanAn.userid;
+        ViewBag.fromDate = fromDate?.ToString("yyyy-MM-dd");
+        ViewBag.toDate = toDate?.ToString("yyyy-MM-dd");
         return View();
     }
 

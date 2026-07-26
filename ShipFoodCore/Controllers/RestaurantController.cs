@@ -406,31 +406,36 @@ public class RestaurantController : BaseController
         return RedirectToAction("Discount");
     }
 
-    // ponytail: Accept FromDate/ToDate query params for server-side date filtering
-    public ActionResult OrderList(DateTime? fromDate, DateTime? toDate)
+    // ponytail: Accept FromDate/ToDate + status query params for server-side filtering
+    // ponytail: fix — thêm status ? server-side ?? b? l?c còn ?úng sau reload
+    public ActionResult OrderList(DateTime? fromDate, DateTime? toDate, string? status)
     {
         if (!checkLogin()) return RedirectToAction("Login", "Home");
-        var quanAn = getQuanAn();
-        // ═══ FIX 2: Null check — tránh crash nếu user không có tbQuanAn record ═══
-        if (quanAn == null)
-        {
-            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<RestaurantController>>();
-            logger.LogWarning("OrderList: No tbQuanAn record found for userId {UserId}", GetCurrentUser()?.userid);
-            return RedirectToAction("Logout", "Home");
-        }
+        var user = GetCurrentUser();
+        if (user == null) return RedirectToAction("Login", "Home");
 
-        var donHangs = quanAn.tbDonHang.AsEnumerable();
+        // ponytail: direct query — không dùng getQuanAn() (tránh load ALL monAns)
+        var query = db.tbDonHang
+            .Include(d => d.tbThongTinDatHang)
+            .Where(dh => dh.maquan == user.userid)
+            .AsQueryable();
 
-        // Server-side date filter (in-memory, data already loaded via Include)
+        // Date filter (server-side SQL WHERE)
         if (fromDate.HasValue)
-            donHangs = donHangs.Where(dh => dh.ngaydathang >= fromDate.Value.Date);
+            query = query.Where(dh => dh.ngaydathang >= fromDate.Value.Date);
         if (toDate.HasValue)
-            donHangs = donHangs.Where(dh => dh.ngaydathang <= toDate.Value.Date.AddDays(1));
+            query = query.Where(dh => dh.ngaydathang <= toDate.Value.Date.AddDays(1));
 
-        ViewBag.donHangs = donHangs.OrderByDescending(dh => dh.ngaydathang).ToList();
-        ViewBag.restaurantId = quanAn.userid;
+        // ═══ Status filter (server-side) — trước ?ây ch? l?c client-side DataTable ═══
+        // ponytail: filter server ?? b?o toàn b? l?c sau reload, ko m?t filter khi submit date
+        if (!string.IsNullOrEmpty(status))
+            query = query.Where(dh => dh.trangthai == status);
+
+        ViewBag.donHangs = query.OrderByDescending(dh => dh.ngaydathang).ToList();
+        ViewBag.restaurantId = user.userid;
         ViewBag.fromDate = fromDate?.ToString("yyyy-MM-dd");
         ViewBag.toDate = toDate?.ToString("yyyy-MM-dd");
+        ViewBag.currentStatus = status ?? "";
         return View();
     }
 

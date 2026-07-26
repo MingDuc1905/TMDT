@@ -2,134 +2,295 @@
     ViewBag.Title = "OrderList";
     Layout = "~/Views/Shared/_LayoutPageRestaurant.cshtml";
     List<ShipFood.Models.tbDonHang> donHangs = ViewBag.donHangs;
+    var currentStatus = ViewBag.currentStatus as string ?? "";
+    var statusList = new Dictionary<string, (string label, string icon)>
+    {
+        { "", ("Tất cả", "fas fa-list") },
+        { "Đã đặt", ("Đã đặt", "fas fa-clock") },
+        { "Chờ thanh toán", ("Chờ thanh toán", "fas fa-hourglass-half") },
+        { "Đã xác nhận", ("Đã xác nhận", "fas fa-check-circle") },
+        { "Đang chuẩn bị", ("Đang chuẩn bị", "fas fa-fire") },
+        { "Chờ shipper lấy hàng", ("Chờ lấy hàng", "fas fa-box") },
+        { "Đang giao", ("Đang giao", "fas fa-truck") },
+        { "Hoàn thành", ("Hoàn thành", "fas fa-check-double") },
+        { "Đã hủy", ("Đã hủy", "fas fa-times-circle") }
+    };
+    // ponytail: build URL helper — gi? status hi?n t?i khi submit date filter
+    string FilterUrl(string? s) => Url.Action("OrderList", new { status = s ?? currentStatus, fromDate = ViewBag.fromDate, toDate = ViewBag.toDate });
+    string ClearUrl() => Url.Action("OrderList");
 }
 
-<!-- row -->
+<style>
+    /* ─── OrderList design tokens overrides ─── */
+    .fs-order-header { margin-bottom: 1.5rem; }
+    .fs-order-header h2 { font-size: 1.5rem; font-weight: 700; color: var(--fs-dark); margin: 0; }
+    .fs-order-header p { margin: 0; font-size: 0.85rem; color: var(--fs-muted); }
+    .fs-order-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; }
+    .fs-order-toolbar .dropdown-toggle-btn {
+        display: inline-flex; align-items: center; gap: 6px;
+        padding: 0.45rem 1rem; border: 1.5px solid var(--fs-border); border-radius: 10px;
+        background: var(--fs-white); color: var(--fs-dark); font-size: 0.85rem; font-weight: 500;
+        cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .fs-order-toolbar .dropdown-toggle-btn:hover { border-color: var(--fs-green); box-shadow: 0 0 0 3px rgba(60,184,21,0.1); }
+    .fs-order-toolbar .dropdown-toggle-btn i { color: var(--fs-green); }
+    .fs-order-toolbar .dropdown-menu {
+        border-radius: 12px; border: 1px solid var(--fs-border);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08); min-width: 200px; padding: 6px;
+    }
+    .fs-order-toolbar .dropdown-item {
+        border-radius: 8px; padding: 0.5rem 0.75rem; font-size: 0.85rem;
+        transition: background 0.12s; display: flex; align-items: center; gap: 8px;
+    }
+    .fs-order-toolbar .dropdown-item:hover { background: #f0fff0; }
+    .fs-order-toolbar .dropdown-item.active { background: #e8fae8; font-weight: 600; color: var(--fs-green); }
+    .fs-order-toolbar .dropdown-item i { width: 16px; text-align: center; }
+
+    /* Date inputs */
+    .fs-order-toolbar input[type="date"] {
+        padding: 0.4rem 0.6rem; border: 1.5px solid var(--fs-border); border-radius: 8px;
+        font-size: 0.85rem; color: var(--fs-dark); background: var(--fs-white);
+        transition: border-color 0.15s; width: 140px;
+    }
+    .fs-order-toolbar input[type="date"]:focus { outline: none; border-color: var(--fs-green); box-shadow: 0 0 0 3px rgba(60,184,21,0.1); }
+    .fs-order-toolbar .date-sep { color: var(--fs-muted-soft); font-size: 0.85rem; }
+
+    /* Buttons */
+    .fs-order-toolbar .btn-filter {
+        padding: 0.4rem 1rem; background: var(--fs-green); color: var(--fs-white);
+        border: none; border-radius: 8px; font-size: 0.85rem; font-weight: 600;
+        cursor: pointer; transition: background 0.15s;
+    }
+    .fs-order-toolbar .btn-filter:hover { background: var(--fs-green-dark); }
+    .fs-order-toolbar .btn-clear {
+        padding: 0.4rem 0.6rem; background: transparent; color: var(--fs-muted);
+        border: 1.5px solid var(--fs-border); border-radius: 8px; font-size: 0.85rem;
+        cursor: pointer; transition: all 0.15s; text-decoration: none; display: inline-flex; align-items: center;
+    }
+    .fs-order-toolbar .btn-clear:hover { border-color: var(--fs-danger); color: var(--fs-danger); }
+
+    /* Status badges */
+    .fs-status-badge {
+        display: inline-flex; align-items: center; gap: 4px;
+        padding: 0.2rem 0.7rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600;
+        white-space: nowrap;
+    }
+    .fs-status-badge i { font-size: 0.75rem; }
+    .fs-status-badge.pending { background: #fff3e0; color: #e65100; }
+    .fs-status-badge.confirmed { background: #e3f2fd; color: #0d47a1; }
+    .fs-status-badge.preparing { background: #fce4ec; color: #880e4f; }
+    .fs-status-badge.shipping { background: #e8f5e9; color: #1b5e20; }
+    .fs-status-badge.delivered { background: #f1f8e9; color: #33691e; }
+    .fs-status-badge.cancelled { background: #ffebee; color: #b71c1c; }
+    .fs-status-badge.waitpay { background: #f3e5f5; color: #4a148c; }
+    .fs-status-badge.waitpickup { background: #e0f2f1; color: #004d40; }
+    .fs-status-badge.picked { background: #fff8e1; color: #f57f17; }
+
+    /* Action buttons */
+    .fs-action-btn {
+        padding: 0.3rem 0.8rem; border-radius: 8px; font-size: 0.8rem; font-weight: 600;
+        border: none; cursor: pointer; transition: all 0.12s; text-decoration: none;
+        display: inline-flex; align-items: center; gap: 4px;
+    }
+    .fs-action-btn.accept { background: var(--fs-green); color: var(--fs-white); }
+    .fs-action-btn.accept:hover { background: var(--fs-green-dark); }
+    .fs-action-btn.cancel { background: var(--fs-light); color: var(--fs-danger); border: 1.5px solid var(--fs-border); }
+    .fs-action-btn.cancel:hover { background: #ffebee; border-color: var(--fs-danger); }
+    .fs-action-btn.ready { background: var(--fs-warning); color: var(--fs-white); }
+    .fs-action-btn.ready:hover { background: #e67e22; }
+    .fs-action-btn.detail { background: transparent; color: var(--fs-muted); border: 1.5px solid var(--fs-border); }
+    .fs-action-btn.detail:hover { border-color: var(--fs-green); color: var(--fs-green); }
+    .fs-action-btn.disabled { background: var(--fs-border); color: var(--fs-muted-soft); cursor: default; }
+
+    /* Table */
+    .fs-order-table { min-width: 845px; }
+    .fs-order-table thead th {
+        padding: 0.75rem 0.5rem; font-size: 0.75rem; font-weight: 600;
+        text-transform: uppercase; letter-spacing: 0.5px; color: var(--fs-muted);
+        border-bottom: 2px solid var(--fs-border);
+    }
+    .fs-order-table tbody td { padding: 0.75rem 0.5rem; font-size: 0.85rem; vertical-align: middle; border-bottom: 1px solid var(--fs-border-soft); }
+    .fs-order-table tbody tr:hover { background: #fafff8; }
+    .fs-order-table .cell-actions { display: flex; flex-wrap: wrap; gap: 4px; }
+
+    /* Empty state */
+    .fs-empty { text-align: center; padding: 3rem 1rem; color: var(--fs-muted-soft); }
+    .fs-empty i { font-size: 2.5rem; margin-bottom: 0.75rem; display: block; }
+
+    /* ponytail: responsive overrides — minimum viable mobile */
+    @@media (max-width: 768px) {
+        .fs-order-toolbar { flex-direction: column; align-items: stretch; }
+        .fs-order-toolbar input[type="date"] { width: 100%; }
+        .fs-order-toolbar .date-sep { display: none; }
+        .fs-order-toolbar form { flex-wrap: wrap; }
+        .fs-order-table { min-width: 0; }
+        .fs-order-table thead { display: none; }
+        .fs-order-table tbody td {
+            display: flex; justify-content: space-between; padding: 0.5rem;
+        }
+        .fs-order-table tbody td::before {
+            content: attr(data-label); font-weight: 600; color: var(--fs-muted);
+            font-size: 0.75rem; text-transform: uppercase;
+        }
+        .fs-order-table tbody td:first-child { padding-top: 0.75rem; }
+        .fs-order-table tbody td:last-child { padding-bottom: 0.75rem; border-bottom: 2px solid var(--fs-border); }
+        .fs-order-table tbody tr:last-child td:last-child { border-bottom: 1px solid var(--fs-border-soft); }
+    }
+</style>
+
 <div class="container-fluid">
-    <div class="page-header mb-3">
+    <!-- Header -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between fs-order-header">
         <div>
-            <h2 class="mb-0">Đơn đặt hàng</h2>
-            <p class="mb-0 text-muted small">Danh sách đơn đặt hàng</p>
-        </div>
-        <div class="toolbar">
-            <div class="dropdown custom-dropdown">
-                <button type="button" class="btn btn-outline d-flex align-items-center" data-bs-toggle="dropdown" id="filterStatusBtn">
-                    <i class="fas fa-filter me-1"></i>
-                    <span id="filterStatusLabel">Tất cả</span>
-                    <i class="fas fa-chevron-down ms-2"></i>
-                </button>
-                <div class="dropdown-menu dropdown-menu-right">
-                    <a class="dropdown-item filter-status" data-status="" href="#"><i class="fas fa-list"></i> Tất cả</a>
-                    <a class="dropdown-item filter-status" data-status="Đã đặt" href="#"><i class="fas fa-clock"></i> Đã đặt</a>
-                    <a class="dropdown-item filter-status" data-status="Chờ thanh toán" href="#"><i class="fas fa-hourglass-half"></i> Chờ thanh toán</a>
-                    <a class="dropdown-item filter-status" data-status="Đã xác nhận" href="#"><i class="fas fa-check-circle"></i> Đã xác nhận</a>
-                    <a class="dropdown-item filter-status" data-status="Đang chuẩn bị" href="#"><i class="fas fa-fire"></i> Đang chuẩn bị</a>
-                    <a class="dropdown-item filter-status" data-status="Chờ shipper lấy hàng" href="#"><i class="fas fa-box"></i> Chờ lấy hàng</a>
-                    <a class="dropdown-item filter-status" data-status="Đang giao" href="#"><i class="fas fa-truck"></i> Đang giao</a>
-                    <a class="dropdown-item filter-status" data-status="Hoàn thành" href="#"><i class="fas fa-check-circle"></i> Hoàn thành</a>
-                    <a class="dropdown-item filter-status" data-status="Đã hủy" href="#"><i class="fas fa-times-circle"></i> Đã hủy</a>
-                </div>
-            </div>
-            <form action="@Url.Action("OrderList")" method="GET" class="d-flex align-items-center gap-2">
-                <input type="date" name="fromDate" id="fromDateInput" class="form-control form-control-sm" style="width:140px;" value="@ViewBag.fromDate" />
-                <span class="text-muted">→</span>
-                <input type="date" name="toDate" id="toDateInput" class="form-control form-control-sm" style="width:140px;" value="@ViewBag.toDate" />
-                <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-filter me-1"></i>Lọc</button>
-                <a href="@Url.Action("OrderList")" class="btn btn-outline-secondary btn-sm" aria-label="Xoá bộ lọc"><i class="fas fa-times" aria-hidden="true"></i></a>
-            </form>
+            <h2>Đơn đặt hàng</h2>
+            <p>Danh sách đơn đặt hàng của quán</p>
         </div>
     </div>
-    <div class="row">
-        <div class="col-12">
-            <div class="table-responsive">
-                <table id="example5" class="display mb-4 dataTablesCard" style="min-width: 845px">
-                    <thead>
-                        <tr>
-                            <th>Ngày đặt</th>
-                            <th>Khách hàng</th>
-                            <th>Tổng tiền</th>
-                            <th>Trạng thái</th>
-                            <th>Ghi chú</th>
-                            <th style=" width: 40px;">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var i in donHangs)
+
+    <!-- Toolbar: Status filter + Date filter -->
+    <div class="fs-order-toolbar mb-3">
+        <!-- Status dropdown (server-side GET) -->
+        <div class="dropdown">
+            <button class="dropdown-toggle-btn" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fas fa-filter"></i>
+                <span>@(statusList.TryGetValue(currentStatus, out var stt) ? stt.label : "Tất cả")</span>
+                <i class="fas fa-chevron-down" style="font-size:0.7rem;color:var(--fs-muted);"></i>
+            </button>
+            <ul class="dropdown-menu">
+                @foreach (var s in statusList)
+                {
+                    <li>                            <a class="dropdown-item@(s.Key == currentStatus ? " active" : "")" href="@FilterUrl(s.Key)">
+                            <i class="@s.Value.icon"></i> @s.Value.label
+                        </a>
+                    </li>
+                }
+            </ul>
+        </div>
+
+        <!-- Date filter form (gi? status hi?n t?i) -->
+        <form action="@Url.Action("OrderList")" method="GET" class="d-flex align-items-center gap-2">
+            <input type="hidden" name="status" value="@currentStatus" />
+            <input type="date" name="fromDate" value="@ViewBag.fromDate" aria-label="Từ ngày" />
+            <span class="date-sep">→</span>
+            <input type="date" name="toDate" value="@ViewBag.toDate" aria-label="Đến ngày" />
+            <button type="submit" class="btn-filter" aria-label="Lọc"><i class="fas fa-filter me-1"></i>Lọc</button>
+            <a href="@ClearUrl()" class="btn-clear" aria-label="Xoá bộ lọc"><i class="fas fa-times"></i></a>
+        </form>
+    </div>
+
+    <!-- Orders table -->
+    <div class="table-responsive">
+        <table class="display mb-4 dataTablesCard fs-order-table" id="orderTable">
+            <thead>
+                <tr>
+                    <th>Ngày đặt</th>
+                    <th>Khách hàng</th>
+                    <th>Tổng tiền</th>
+                    <th>Trạng thái</th>
+                    <th>Ghi chú</th>
+                    <th>Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!donHangs.Any())
+                {
+                    <tr>
+                        <td colspan="6">
+                            <div class="fs-empty">
+                                <i class="fas fa-inbox"></i>
+                                <div>Không có đơn hàng nào</div>
+                            </div>
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    foreach (var i in donHangs)
+                    {
+                        // ponytail: determine status badge class
+                        var badgeClass = i.trangthai switch
                         {
-                            <tr>
-                                <td data-label="Ngày đặt">@(i.ngaydathang?.ToString("dd/MM/yyyy HH:mm") ?? "N/A")</td>
-                                <td data-label="Khách hàng">@(i.tbThongTinDatHang?.tennguoinhan ?? "Khách")</td>
-                                <td data-label="Tổng tiền">@i.tongtien?.ToString("N0") VNĐ</td>
-                                @if (i.trangthai.Equals("Đã hủy"))
-                                {
-                                    <td data-label="Trạng thái"><span class="btn btn-sm light btn-danger fs-16">@i.trangthai</span></td>
-                                }
-                                @if (!i.trangthai.Equals("Đã hủy"))
-                                {
-                                    <td data-label="Trạng thái"><span class="btn btn-sm light btn-success fs-16">@i.trangthai</span></td>
-                                }
-                                <td data-label="Ghi chú">@i.ghichu</td>
-                                <td data-label="Action" style="padding:20px">
+                            "Đã đặt" => "pending",
+                            "Chờ thanh toán" => "waitpay",
+                            "Đã xác nhận" => "confirmed",
+                            "Đang chuẩn bị" => "preparing",
+                            "Chờ shipper lấy hàng" => "waitpickup",
+                            "Đã lấy" => "picked",
+                            "Đang giao" => "shipping",
+                            "Hoàn thành" => "delivered",
+                            "Đã hủy" => "cancelled",
+                            _ => "pending"
+                        };
+                        <tr>
+                            <td data-label="Ngày đặt">@(i.ngaydathang?.ToString("dd/MM/yyyy HH:mm") ?? "—")</td>
+                            <td data-label="Khách hàng">@(i.tbThongTinDatHang?.tennguoinhan ?? "Khách")</td>
+                            <td data-label="Tổng tiền"><strong>@i.tongtien?.ToString("N0") đ</strong></td>
+                            <td data-label="Trạng thái">
+                                <span class="fs-status-badge @badgeClass">
+                                    @if (i.trangthai == "Đã đặt") {<i class="fas fa-clock"></i>}
+                                    else if (i.trangthai == "Chờ thanh toán") {<i class="fas fa-hourglass-half"></i>}
+                                    else if (i.trangthai == "Đã xác nhận") {<i class="fas fa-check-circle"></i>}
+                                    else if (i.trangthai == "Đang chuẩn bị") {<i class="fas fa-fire"></i>}
+                                    else if (i.trangthai == "Chờ shipper lấy hàng") {<i class="fas fa-box"></i>}
+                                    else if (i.trangthai == "Đã lấy") {<i class="fas fa-hand-paper"></i>}
+                                    else if (i.trangthai == "Đang giao") {<i class="fas fa-truck"></i>}
+                                    else if (i.trangthai == "Hoàn thành") {<i class="fas fa-check-double"></i>}
+                                    else if (i.trangthai == "Đã hủy") {<i class="fas fa-times-circle"></i>}
+                                    @i.trangthai
+                                </span>
+                            </td>
+                            <td data-label="Ghi chú">@(string.IsNullOrEmpty(i.ghichu) ? "—" : i.ghichu)</td>
+                            <td data-label="Thao tác">
+                                <div class="cell-actions">
                                     @if (i.trangthai == "Đã đặt")
                                     {
-                                        <a href="~/Restaurant/nhandon/@i.madh"><span style="width: 115px; font-size: 13px; " class="btn btn-success light btn-secondary">Nhận đơn</span></a>
-                                        <a href="~/Restaurant/huydon/@i.madh" onclick="return confirm('Bạn có chắc muốn huỷ đơn này?')"><span style="width: 115px; font-size: 13px;" class="btn btn-warning light btn-secondary">Huỷ đơn</span></a>
+                                        <a href="~/Restaurant/nhandon/@i.madh" class="fs-action-btn accept" title="Nhận đơn"><i class="fas fa-check"></i> Nhận</a>
+                                        <a href="~/Restaurant/huydon/@i.madh" class="fs-action-btn cancel" onclick="return confirm('Bạn có chắc muốn huỷ đơn này?')" title="Huỷ đơn"><i class="fas fa-times"></i> Huỷ</a>
                                     }
                                     else if (i.trangthai == "Chờ thanh toán")
                                     {
-                                        <span style="width: 140px; font-size: 12px;" class="btn btn-secondary light btn-secondary" title="Đơn đang chờ khách thanh toán VNPAY"><i class="fas fa-hourglass-half"></i> Chờ thanh toán</span>
-                                        <a href="~/Restaurant/huydon/@i.madh" onclick="return confirm('Bạn có chắc muốn huỷ đơn này?')"><span style="width: 115px; font-size: 13px;" class="btn btn-warning light btn-secondary">Huỷ đơn</span></a>
+                                        <span class="fs-action-btn disabled" title="Đơn đang chờ khách thanh toán"><i class="fas fa-hourglass-half"></i> Chờ TT</span>
+                                        <a href="~/Restaurant/huydon/@i.madh" class="fs-action-btn cancel" onclick="return confirm('Bạn có chắc muốn huỷ đơn này?')" title="Huỷ đơn"><i class="fas fa-times"></i> Huỷ</a>
                                     }
                                     else if (i.trangthai == "Đã xác nhận" || i.trangthai == "Đang chuẩn bị")
                                     {
-                                        <a href="~/Restaurant/hoantatdon/@i.madh"><span style="width: 140px; font-size: 13px;" class="btn btn-primary btn-secondary">Chuẩn bị xong</span></a>
-                                        <a href="~/Restaurant/huydon/@i.madh" onclick="return confirm('Bạn có chắc muốn huỷ đơn này?')"><span style="width: 115px; font-size: 13px;" class="btn btn-warning light btn-secondary">Huỷ đơn</span></a>
+                                        <a href="~/Restaurant/hoantatdon/@i.madh" class="fs-action-btn ready" title="Chuẩn bị xong"><i class="fas fa-check-double"></i> Sẵn sàng</a>
+                                        <a href="~/Restaurant/huydon/@i.madh" class="fs-action-btn cancel" onclick="return confirm('Bạn có chắc muốn huỷ đơn này?')" title="Huỷ đơn"><i class="fas fa-times"></i> Huỷ</a>
                                     }
                                     else if (i.trangthai == "Chờ shipper lấy hàng" || i.trangthai == "Đã lấy" || i.trangthai == "Đang giao")
                                     {
-                                        <span style="width: 140px; font-size: 12px;" class="btn btn-info light btn-secondary"><i class="fas fa-truck"></i> Đang giao</span>
+                                        <span class="fs-action-btn disabled"><i class="fas fa-truck"></i> Đang giao</span>
                                     }
                                     else if (i.trangthai == "Hoàn thành")
                                     {
-                                        <span style="width: 115px; font-size: 12px;" class="btn btn-success light btn-secondary"><i class="fas fa-check-circle"></i> Hoàn thành</span>
+                                        <span class="fs-action-btn disabled"><i class="fas fa-check-circle"></i> Xong</span>
                                     }
-                                    <a href="~/Cart/ChiTietDonHang?id=@i.madh"><span style="width:115px" class="btn btn-sm light btn-secondary fs-16">Chi tiết</span></a>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        </div>
+                                    <a href="~/Cart/ChiTietDonHang?id=@i.madh" class="fs-action-btn detail" title="Chi tiết"><i class="fas fa-eye"></i></a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
     </div>
-</div>    <!-- Datatable -->
-    <script src="~/Source/Restaurant/vendor/datatables/js/jquery.dataTables.min.js"></script>
+</div>
+
+<!-- Datatable -->
+<script src="~/Source/Restaurant/vendor/datatables/js/jquery.dataTables.min.js"></script>
 <!-- SignalR -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
 
 <script>
     (function ($) {
-        var table = $('#example5').DataTable({
+        // ponytail: removed searching:false — no longer needed (filter is server-side)
+        // ponytail: searching: false — filter da la server-side, ko can o DataTable
+        var table = $('#orderTable').DataTable({
             searching: false,
             paging: true,
             select: false,
             lengthChange: false,
-            order: [[0, 'desc']], // M?c d?nh s?p x?p theo ngày d?t m?i nh?t
-        });
-        $('#example tbody').on('click', 'tr', function () {
-            var data = table.row(this).data();
-        });
-
-        // ─── FILTER: L?c theo tr?ng thái ───
-        $('.filter-status').on('click', function(e) {
-            e.preventDefault();
-            var status = $(this).data('status');
-            $('#filterStatusLabel').text($(this).text().trim().replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim());
-            if (status === '') {
-                table.column(3).search('').draw();
-            } else {
-                table.column(3).search('^' + status.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', true, false).draw();
-            }
+            order: [[0, 'desc']],
         });
 
         // ── SignalR: Real-time đơn hàng mới ──
@@ -142,7 +303,6 @@
                 .withAutomaticReconnect()
                 .build();
 
-            // 🔵 FIX Bug #12: Audio notification với fallback visual
             function playNewOrderSound() {
                 try {
                     var ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -157,7 +317,6 @@
                     osc.start(ctx.currentTime);
                     osc.stop(ctx.currentTime + 0.4);
                 } catch (e) {
-                    // Fallback: highlight page title
                     var origTitle = document.title;
                     document.title = '🆕 Đơn hàng mới!';
                     setTimeout(function() { document.title = origTitle; }, 3000);
@@ -166,8 +325,6 @@
 
             conn.on('newOrder', function (data) {
                 playNewOrderSound();
-
-                // Reload trang để lấy số liệu thật từ server (DataTable static, không có ajax source)
                 setTimeout(function() { location.reload(); }, 2000);
             });
 

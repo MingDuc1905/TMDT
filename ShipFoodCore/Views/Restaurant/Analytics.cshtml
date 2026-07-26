@@ -54,8 +54,9 @@
                         <div style="font-size:11px;color:#888;font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Danh gia</div>
                         <div style="font-size:26px;font-weight:800;color:var(--fs-dark);margin-top:2px;">
                             @{
-                                var ratings = datas.Where(d => d.soDanhGia > 0).Select(d => d.diemDanhGia).ToList();
-                                var avg = ratings.Any() ? ratings.Average().Value.ToString("0.0") : "-";
+                                // ponytail: fix null .Value — filter HasValue truoc, Select Value de Average() tra ve double ko nullable
+                                var ratings = datas.Where(d => d.soDanhGia > 0 && d.diemDanhGia.HasValue).Select(d => d.diemDanhGia!.Value).ToList();
+                                var avg = ratings.Any() ? ratings.Average().ToString("0.0") : "-";
                             }
                             @avg <span style="font-size:14px;color:#888;font-weight:400;">/ 5</span>
                         </div>

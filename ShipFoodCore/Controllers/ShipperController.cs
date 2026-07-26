@@ -126,17 +126,27 @@ public class ShipperController : BaseController
         DateTime thirtyDaysAgo = todayStart.AddDays(-30);
         var shipper = db.tbUser.Find(sh.userid);
 
-        var listdh30 = db.tbDonHang.Where(dh => dh.mashipper == sh.userid && dh.ngaythanhtoan >= thirtyDaysAgo && dh.ngaythanhtoan <= currentDate).ToList();
-        var listdhhoanthanh30 = listdh30.Where(l => l.trangthai == OrderStatus.HoanThanh).ToList();
-        var thunhap30 = listdhhoanthanh30.Sum(list => list.phiship) ?? 0;
+        // ponytail: 1 query duy nh?t cho t?t c? don trong 30 ngày — filter in-memory cho hôm nay
+        // Thay vì 2 queries riêng (30 ngày + hôm nay), g?p chung 1 l?n
+        var listdh30 = db.tbDonHang
+            .Where(dh => dh.mashipper == sh.userid
+                && dh.ngaythanhtoan >= thirtyDaysAgo
+                && dh.ngaythanhtoan <= currentDate)
+            .ToList();
+
+        // Filter trong RAM — không query thêm DB
+        var listdhhn = listdh30
+            .Where(dh => dh.ngaythanhtoan >= todayStart && dh.ngaythanhtoan < todayEnd)
+            .ToList();
+
+        // 30 ngày
+        var thunhap30 = listdh30.Where(l => l.trangthai == OrderStatus.HoanThanh).Sum(l => l.phiship) ?? 0;
         int dh30 = listdh30.Count;
 
-        var listdhhn = db.tbDonHang.Where(dh => dh.mashipper == sh.userid && dh.ngaythanhtoan >= todayStart && dh.ngaythanhtoan < todayEnd).ToList();
-        var listdhhthn = listdhhn.Where(l => l.trangthai == OrderStatus.HoanThanh).ToList();
-        var listdhdhhn = listdhhn.Where(l => l.trangthai == OrderStatus.DaHuy).ToList();
-        var thunhaphn = listdhhthn.Sum(list => list.phiship) ?? 0;
-        var dhhthn = listdhhthn.Count;
-        var dhdhhn = listdhdhhn.Count;
+        // Hôm nay
+        var thunhaphn = listdhhn.Where(l => l.trangthai == OrderStatus.HoanThanh).Sum(l => l.phiship) ?? 0;
+        var dhhthn = listdhhn.Count(l => l.trangthai == OrderStatus.HoanThanh);
+        var dhdhhn = listdhhn.Count(l => l.trangthai == OrderStatus.DaHuy);
 
         ViewBag.thunhap30 = thunhap30;
         ViewBag.dh30 = dh30;

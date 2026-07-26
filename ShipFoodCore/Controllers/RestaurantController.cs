@@ -25,6 +25,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Caching.Memory;
 using ShipFood.Hubs;
 using ShipFood.Models;
 using ShipFood.Services;
@@ -37,13 +38,15 @@ public class RestaurantController : BaseController
     private readonly IWebHostEnvironment _env;
     private readonly IHubContext<Chats> _hubContext;
     private readonly RecommendationService _recommendationService;
+    private readonly IMemoryCache _cache;
 
-    public RestaurantController(dbFoodyEntities context, IWebHostEnvironment env, IHubContext<Chats> hubContext, RecommendationService recommendationService)
+    public RestaurantController(dbFoodyEntities context, IWebHostEnvironment env, IHubContext<Chats> hubContext, RecommendationService recommendationService, IMemoryCache cache)
     {
         db = context;
         _env = env;
         _hubContext = hubContext;
         _recommendationService = recommendationService;
+        _cache = cache;
     }
 
     public async Task<ActionResult> Index()
@@ -91,20 +94,18 @@ public class RestaurantController : BaseController
     public ActionResult Wallet()
     {
         if (!checkLogin()) return RedirectToAction("Login", "Home");
-        var QuanAn = getQuanAn();
-        // ═══ FIX 2: Null check — tránh crash nếu user không có tbQuanAn record ═══
-        if (QuanAn == null)
-        {
-            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<RestaurantController>>();
-            logger.LogWarning("Wallet: No tbQuanAn record found for userId {UserId}", GetCurrentUser()?.userid);
-            return RedirectToAction("Logout", "Home");
-        }
         var user = GetCurrentUser();
-        // ponytail: Loại đơn "Đã hủy" khỏi tính doanh thu + hiển thị
-        var donHangs = QuanAn.tbDonHang.Where(dh => dh.trangthai != OrderStatus.DaHuy).ToList();
+        if (user == null) return RedirectToAction("Login", "Home");
+
+        // ponytail: direct query tbDonHang — không dùng getQuanAn() (tránh load ALL monAns + ALL orders)
+        // ponytail: không Take() — wallet ph?i hi?n t?t c? don (không m?t don)
+        var donHangs = db.tbDonHang
+            .Where(dh => dh.maquan == user.userid && dh.trangthai != OrderStatus.DaHuy)
+            .OrderByDescending(dh => dh.ngaydathang)
+            .ToList();
         ViewBag.donHangs = donHangs;
         ViewBag.soDu = Math.Round((double?)donHangs.Sum(dh => dh.tongtien) ?? 0, 1);
-        ViewBag.vitien = user?.vitien ?? 0;
+        ViewBag.vitien = user.vitien ?? 0;
         ViewBag.WalletSuccess = TempData["WalletSuccess"];
         ViewBag.WalletError = TempData["WalletError"];
         return View();
@@ -186,88 +187,146 @@ public class RestaurantController : BaseController
         return RedirectToAction("Wallet");
     }
 
-    public ActionResult Analytics()
+    public async Task<ActionResult> Analytics()
     {
         if (!checkLogin()) return RedirectToAction("Login", "Home");
-        var quanAn = getQuanAn();
-        if (quanAn == null)
+
+        try
+        {
+            var user = GetCurrentUser();
+            if (user == null) return RedirectToAction("Login", "Home");
+
+            // ═══ Cache: data analytics ít thay đổi → cache 5 phút ═══
+            // ponytail: IMemoryCache giúp tránh query DB mỗi lần load
+            var cacheKey = $"Analytics_{user.userid}";
+            if (_cache.TryGetValue(cacheKey, out Dictionary<string, object>? cached))
+            {
+                ViewBag.datas = cached!["datas"];
+                ViewBag.dataDanhMucs = cached!["dataDanhMucs"];
+                ViewBag.doanhThu = cached!["doanhThu"];
+                return View();
+            }
+
+            // ═══ Query 1: Món ăn + Biến thể + Danh mục (1 query duy nhất) ═══
+            // ponytail: không dùng getQuanAn() — tránh load ALL orders, chỉ lấy dữ liệu cần
+            var monAns = await db.tbMonAn
+                .Where(m => m.maquanan == user.userid && !m.isDeleted)
+                .Include(m => m.tbDanhMuc)
+                .Include(m => m.tbBienTheMonAns)
+                .ToListAsync();
+
+            var bienTheIds = monAns
+                .SelectMany(m => m.tbBienTheMonAns.Select(b => b.id))
+                .Distinct()
+                .ToList();
+
+            // ═══ Query 2: Chi tiết đơn hàng + Đánh giá (1 query, Include tbBienTheMonAn + tbDanhGias) ═══
+            // ponytail: Include tbBienTheMonAn ?? nhóm v? tbMonAn.mamon (không Include = null → sai data)
+            var chiTietDHs = bienTheIds.Any()
+                ? await db.tbChiTietDonHang
+                    .Where(ct => ct.mamon != null && bienTheIds.Contains(ct.mamon.Value))
+                    .Include(ct => ct.tbBienTheMonAn)
+                    .Include(ct => ct.tbDanhGias)
+                    .ToListAsync()
+                : new List<tbChiTietDonHang>();
+
+            // Nhóm chi tiết đơn theo tbMonAn.mamon (xuyên qua tbBienTheMonAn.mamon → tbMonAn.mamon)
+            var chiTietTheoMon = chiTietDHs
+                .GroupBy(ct => ct.tbBienTheMonAn?.mamon)
+                .Where(g => g.Key != null)
+                .ToDictionary(g => g.Key!.Value, g => g.ToList());
+
+            // ═══ Tính DataAnalytic cho từng món (toàn bộ trong RAM) ═══
+            var datas = new List<DataAnalytic>();
+            foreach (var m in monAns)
+            {
+                var cts = chiTietTheoMon.GetValueOrDefault(m.mamon, new List<tbChiTietDonHang>());
+                int totalDiem = 0;
+                int soDanhGia = 0;
+                int soLuongBan = 0;
+
+                foreach (var ct in cts)
+                {
+                    soLuongBan += ct.soluong ?? 0;
+                    foreach (var dg in ct.tbDanhGias)
+                    {
+                        soDanhGia++;
+                        totalDiem += dg.diemdanhgia ?? 0;
+                    }
+                }
+
+                datas.Add(new DataAnalytic
+                {
+                    maMonAn = m.mamon,
+                    tenMonAn = m.tenmon,
+                    hinhAnh = m.hinhanh,
+                    tenDanhMuc = m.tbDanhMuc?.tendanhmuc,
+                    giaTien = m.giatien,
+                    soLuongBanDuoc = soLuongBan,
+                    soDanhGia = soDanhGia,
+                    diemDanhGia = soDanhGia > 0 ? totalDiem / soDanhGia : 0
+                });
+            }
+
+            datas = datas.OrderByDescending(d => d.soLuongBanDuoc).ToList();
+            ViewBag.datas = datas;
+
+            // ═══ Tính DataAnalyticDanhMuc từ monAns + chiTietDHs (trong RAM) ═══
+            var dataDanhMucs = monAns
+                .Where(m => m.tbDanhMuc != null)
+                .GroupBy(m => m.tbDanhMuc!.madanhmuc)
+                .Select(g =>
+                {
+                    var firstDm = g.First().tbDanhMuc!;
+                    var monIds = g.Select(m => m.mamon).ToHashSet();
+                    var cts = chiTietDHs
+                        .Where(ct => ct.tbBienTheMonAn != null && monIds.Contains(ct.tbBienTheMonAn.mamon))
+                        .ToList();
+
+                    return new DataAnalyticDanhMuc
+                    {
+                        maDanhMuc = firstDm.madanhmuc,
+                        tenDanhMuc = firstDm.tendanhmuc,
+                        hinhAnh = firstDm.hinhanh,
+                        soLuongMonAn = g.Count(),
+                        tongSoLuongBanRa = cts.Sum(ct => ct.soluong ?? 0),
+                        // ponytail: dùng LINQ-to-Objects Sum (decimal * int → decimal → double?)
+                        doanhThu = cts.Any()
+                            ? (double?)(cts.Sum(ct => (ct.soluong ?? 0) * (ct.dongia ?? 0)))
+                            : 0
+                    };
+                })
+                .OrderByDescending(d => d.doanhThu)
+                .ToList();
+
+            ViewBag.dataDanhMucs = dataDanhMucs;
+
+            // ═══ Query 3: Doanh thu — 1 query nhẹ, trừ đơn hủy ═══
+            // ponytail: query tr?c ti?p tbDonHang, ko qua getQuanAn() — nhanh h?n nhi?u
+            var doanhThu = await db.tbDonHang
+                .Where(dh => dh.maquan == user.userid && dh.trangthai != OrderStatus.DaHuy)
+                .SumAsync(dh => (decimal?)dh.tongtien ?? 0);
+            ViewBag.doanhThu = (double?)doanhThu;
+
+            // ═══ Ghi vào cache (5 phút) ═══
+            var cacheData = new Dictionary<string, object>
+            {
+                ["datas"] = datas,
+                ["dataDanhMucs"] = dataDanhMucs,
+                ["doanhThu"] = ViewBag.doanhThu
+            };
+            _cache.Set(cacheKey, cacheData, TimeSpan.FromMinutes(5));
+
+            return View();
+        }
+        catch (Exception ex)
         {
             var logger = HttpContext.RequestServices.GetRequiredService<ILogger<RestaurantController>>();
-            logger.LogWarning("Analytics: No tbQuanAn record found for userId {UserId}", GetCurrentUser()?.userid);
-            return RedirectToAction("Logout", "Home");
+            logger.LogError(ex, "Analytics CRASHED for restaurant {UserId}", GetCurrentUser()?.userid);
+            // ponytail: redirect v? Restaurant Index, KHÔNG qua Home (tránh l?c sang view customer)
+            TempData["ErrMsg"] = "Không thể tải trang phân tích. Vui lòng thử lại sau.";
+            return RedirectToAction("Index", "Restaurant");
         }
-        var datas = new List<DataAnalytic>();
-        var dataDanhMucs = new List<DataAnalyticDanhMuc>();
-        var idDanhMucs = new List<int>();
-
-        foreach (var m in quanAn.tbMonAn)
-        {
-            int idDanhMuc = m.tbDanhMuc?.madanhmuc ?? 0;
-            if (idDanhMuc != 0 && !idDanhMucs.Contains(idDanhMuc))
-            {
-                var dataDanhMuc = new DataAnalyticDanhMuc
-                {
-                    maDanhMuc = idDanhMuc,
-                    hinhAnh = m.tbDanhMuc?.hinhanh,
-                    tenDanhMuc = m.tbDanhMuc?.tendanhmuc,
-                    soLuongMonAn = (from dm in db.tbDanhMuc
-                                    join ma in db.tbMonAn on dm.madanhmuc equals ma.madanhmuc
-                                    where ma.maquanan == quanAn.userid && dm.madanhmuc == idDanhMuc
-                                    select ma).Count(),
-                    tongSoLuongBanRa = (from dm in db.tbDanhMuc
-                                         join ma in db.tbMonAn on dm.madanhmuc equals ma.madanhmuc
-                                         join b in db.tbBienTheMonAn on ma.mamon equals b.mamon
-                                         join ctdh in db.tbChiTietDonHang on b.id equals ctdh.mamon
-                                         where ma.maquanan == quanAn.userid && dm.madanhmuc == idDanhMuc
-                                         select ctdh.soluong).Sum() ?? 0,
-                    doanhThu = (double?)(from dm in db.tbDanhMuc
-                                         join ma in db.tbMonAn on dm.madanhmuc equals ma.madanhmuc
-                                         join b in db.tbBienTheMonAn on ma.mamon equals b.mamon
-                                         join ctdh in db.tbChiTietDonHang on b.id equals ctdh.mamon
-                                         where ma.maquanan == quanAn.userid && dm.madanhmuc == idDanhMuc
-                                         select ctdh.soluong * ctdh.dongia).Sum() ?? 0
-                };
-                dataDanhMucs.Add(dataDanhMuc);
-                idDanhMucs.Add(idDanhMuc);
-            }
-        }
-
-        foreach (var m in quanAn.tbMonAn)
-        {
-            var data = new DataAnalytic
-            {
-                maMonAn = m.mamon,
-                giaTien = m.giatien,
-                tenMonAn = m.tenmon,
-                hinhAnh = m.hinhanh,
-                tenDanhMuc = m.tbDanhMuc?.tendanhmuc,
-                diemDanhGia = 0,
-                soDanhGia = 0,
-                soLuongBanDuoc = 0
-            };
-
-            var bientheIds = m.tbBienTheMonAn.Select(b => b.id).ToList();
-            var chiTietDHs = db.tbChiTietDonHang.Where(ct => ct.mamon != null && bientheIds.Contains(ct.mamon.Value)).ToList();
-            int totalDiem = 0;
-            foreach (var i in chiTietDHs)
-            {
-                data.soLuongBanDuoc += i.soluong ?? 0;
-                foreach (var tdg in i.tbDanhGia)
-                {
-                    data.soDanhGia += 1;
-                    totalDiem += tdg.diemdanhgia ?? 0;
-                }
-            }
-            data.diemDanhGia = data.soDanhGia == 0 ? 0 : totalDiem / data.soDanhGia;
-            datas.Add(data);
-        }
-
-        datas = datas.OrderByDescending(d => d.soLuongBanDuoc).ToList();
-        ViewBag.datas = datas;
-        // ponytail: Fix Item 15 — loai bo cancelled orders khoi doanh thu
-        ViewBag.doanhThu = (double?)quanAn.tbDonHang.Where(dh => dh.trangthai != OrderStatus.DaHuy).Sum(dh => dh.tongtien) ?? 0;
-        ViewBag.dataDanhMucs = dataDanhMucs;
-        return View();
     }
 
     public ActionResult Review()
@@ -592,39 +651,53 @@ public class RestaurantController : BaseController
     public ActionResult ProductList()
     {
         if (!checkLogin()) return RedirectToAction("Login", "Home");
-        var quanAn = db.tbQuanAn.Include(q => q.tbMonAns).ThenInclude(m => m.tbDanhMuc)
-            .Include(q => q.tbMonAns).ThenInclude(m => m.tbBienTheMonAns)
-            .FirstOrDefault(q => q.userid == getQuanAn().userid);
-        if (quanAn == null) return RedirectToAction("Login", "Home");
+        var user = GetCurrentUser();
+        if (user == null) return RedirectToAction("Login", "Home");
+
+        // ponytail: query tr?c ti?p, Include ?y ?? chain tbMonAn → tbBienTheMonAn → tbChiTietDonHang → tbDanhGia
+        // Không dùng getQuanAn() vì không Include ???c chi ti?t ?ánh giá qua NotMapped property
+        var monAns = db.tbMonAn
+            .Where(m => m.maquanan == user.userid && !m.isDeleted)
+            .Include(m => m.tbDanhMuc)
+            .Include(m => m.tbBienTheMonAns)
+                .ThenInclude(b => b.tbChiTietDonHangs)
+                    .ThenInclude(ct => ct.tbDanhGias)
+            .ToList();
 
         var datas = new List<DataAnalytic>();
-        foreach (var m in quanAn.tbMonAn)
+        foreach (var m in monAns)
         {
-            var data = new DataAnalytic
+            // ponytail: truy c?p tr?c ti?p Include chain, không qua NotMapped
+            var chiTietDHs = m.tbBienTheMonAns
+                .SelectMany(b => b.tbChiTietDonHangs ?? Enumerable.Empty<tbChiTietDonHang>())
+                .ToList();
+
+            int totalDiem = 0;
+            int soDanhGia = 0;
+            int soLuongBan = 0;
+
+            foreach (var ct in chiTietDHs)
+            {
+                soLuongBan += ct.soluong ?? 0;
+                foreach (var dg in ct.tbDanhGias)
+                {
+                    soDanhGia++;
+                    totalDiem += dg.diemdanhgia ?? 0;
+                }
+            }
+
+            datas.Add(new DataAnalytic
             {
                 maMonAn = m.mamon,
                 giaTien = m.giatien,
                 tenMonAn = m.tenmon,
                 hinhAnh = m.hinhanh,
                 tenDanhMuc = m.tbDanhMuc?.tendanhmuc,
-                diemDanhGia = 0,
-                soDanhGia = 0,
-                soLuongBanDuoc = 0
-            };
-
-            int totalDiem = 0;
-            foreach (var i in m.tbChiTietDonHang)
-            {
-                data.soLuongBanDuoc += i.soluong ?? 0;
-                foreach (var tdg in i.tbDanhGia)
-                {
-                    data.soDanhGia += 1;
-                    totalDiem += tdg.diemdanhgia ?? 0;
-                }
-            }
-            data.diemDanhGia = data.soDanhGia == 0 ? 0 : totalDiem / data.soDanhGia;
-            data.conhang = m.conhang;
-            datas.Add(data);
+                diemDanhGia = soDanhGia > 0 ? totalDiem / soDanhGia : 0,
+                soDanhGia = soDanhGia,
+                soLuongBanDuoc = soLuongBan,
+                conhang = m.conhang
+            });
         }
         ViewBag.datas = datas;
         return View();

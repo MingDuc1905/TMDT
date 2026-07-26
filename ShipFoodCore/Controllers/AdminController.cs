@@ -774,22 +774,48 @@ public class AdminController : BaseController
         var todayStart = now.Date;
         var thisMonthStart = new DateTime(now.Year, now.Month, 1);
 
+        // ponytail: batch 1 — th?ng kê user (quán, shipper, khách, admin, món) trong 1 query duy nh?t
+        // Dùng ??m có ?i?u ki?n thay vì 5 Count() riêng
+        var userStats = db.tbUser
+            .GroupBy(u => 1)
+            .Select(g => new
+            {
+                tongQuan = g.Count(u => u.loaitaikhoan == "Quán ăn" && u.trangthai == 1),
+                shipperHoatDong = g.Count(u => u.loaitaikhoan == "Shipper" && u.trangthai == 1),
+                shipperChoDuyet = g.Count(u => u.loaitaikhoan == "Shipper" && u.trangthai == 0),
+                tongKhach = g.Count(u => u.loaitaikhoan == "Khách hàng" && u.trangthai == 1)
+            })
+            .FirstOrDefault();
+
+        // ponytail: batch 2 — th?ng kê ??n hàng + doanh thu trong 1 query
+        var donStats = db.tbDonHang
+            .GroupBy(d => 1)
+            .Select(g => new
+            {
+                tongDonAll = g.Count(),
+                donHomNay = g.Count(d => d.ngaydathang >= todayStart),
+                donThangNay = g.Count(d => d.ngaydathang >= thisMonthStart),
+                doanhThuHomNay = g.Where(d => d.trangthai == "Hoàn thành" && d.ngaydathang >= todayStart)
+                    .Sum(d => (decimal?)d.tongtien) ?? 0,
+                doanhThuThangNay = g.Where(d => d.trangthai == "Hoàn thành" && d.ngaydathang >= thisMonthStart)
+                    .Sum(d => (decimal?)d.tongtien) ?? 0
+            })
+            .FirstOrDefault();
+
+        var tongMon = db.tbMonAn.Count();
+
         return Json(new
         {
-            tongQuan = db.tbQuanAn.Count(qa => qa.tbUser != null && qa.tbUser.trangthai == 1),
-            tongShipper = db.tbShipper.Count(s => s.tbUser != null && s.tbUser.trangthai == 1),
-            shipperChoDuyet = db.tbUser.Count(u => u.loaitaikhoan == "Shipper" && u.trangthai == 0),
-            tongKhach = db.tbUser.Count(u => u.loaitaikhoan == "Khách hàng" && u.trangthai == 1),
-            tongMon = db.tbMonAn.Count(),
-            tongDonAll = db.tbDonHang.Count(),
-            donHomNay = db.tbDonHang.Count(d => d.ngaydathang >= todayStart),
-            donThangNay = db.tbDonHang.Count(d => d.ngaydathang >= thisMonthStart),
-            doanhThuHomNay = db.tbDonHang
-                .Where(d => d.trangthai == "Hoàn thành" && d.ngaydathang >= todayStart)
-                .Sum(d => (decimal?)d.tongtien) ?? 0,
-            doanhThuThangNay = db.tbDonHang
-                .Where(d => d.trangthai == "Hoàn thành" && d.ngaydathang >= thisMonthStart)
-                .Sum(d => (decimal?)d.tongtien) ?? 0
+            tongQuan = userStats?.tongQuan ?? 0,
+            tongShipper = userStats?.shipperHoatDong ?? 0,
+            shipperChoDuyet = userStats?.shipperChoDuyet ?? 0,
+            tongKhach = userStats?.tongKhach ?? 0,
+            tongMon = tongMon,
+            tongDonAll = donStats?.tongDonAll ?? 0,
+            donHomNay = donStats?.donHomNay ?? 0,
+            donThangNay = donStats?.donThangNay ?? 0,
+            doanhThuHomNay = donStats?.doanhThuHomNay ?? 0,
+            doanhThuThangNay = donStats?.doanhThuThangNay ?? 0
         });
     }
 

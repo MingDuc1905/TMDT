@@ -249,12 +249,21 @@ public class RestaurantController : BaseController
     public ActionResult Review()
     {
         if (!checkLogin()) return RedirectToAction("Login", "Home");
-        var danhGias = new List<tbDanhGia>();
         var quanAn = getQuanAn();
-        foreach (var i in quanAn.tbMonAn)
-            foreach (var j in i.tbChiTietDonHang)
-                foreach (var o in j.tbDanhGia)
-                    danhGias.Add(o);
+        if (quanAn == null) return RedirectToAction("Logout", "Home");
+
+        // Direct DB query — navigation chain (tbMonAn→tbBienTheMonAn→tbChiTietDonHang→tbDanhGia)
+        // không được load qua getQuanAn() vì Include chain quá nặng.
+        var maMonQuan = quanAn.tbMonAn.Select(m => m.mamon).ToList();
+        var danhGias = db.tbDanhGia
+            .Where(d => d.tbChiTietDonHang != null
+                && d.tbChiTietDonHang.tbBienTheMonAn != null
+                && maMonQuan.Contains(d.tbChiTietDonHang.tbBienTheMonAn.mamon))
+            .Include(d => d.tbChiTietDonHang).ThenInclude(ct => ct.tbDonHang).ThenInclude(dh => dh.tbThongTinDatHang).ThenInclude(tt => tt.tbKhachHang)
+            .Include(d => d.tbChiTietDonHang).ThenInclude(ct => ct.tbBienTheMonAn).ThenInclude(b => b.tbMonAn)
+            .OrderByDescending(d => d.madg)
+            .ToList();
+
         ViewBag.danhgias = danhGias;
         return View();
     }
@@ -499,11 +508,18 @@ public class RestaurantController : BaseController
         if (!checkLogin()) return RedirectToAction("Login", "Home");
         var quanAn = getQuanAn();
         if (quanAn == null) return RedirectToAction("Login", "Home");
-        var danhGias = new List<tbDanhGia>();
-        foreach (var i in quanAn.tbMonAn)
-            foreach (var j in i.tbChiTietDonHang)
-                foreach (var o in j.tbDanhGia)
-                    danhGias.Add(o);
+
+        // Same direct query as Review()
+        var maMonQuan = quanAn.tbMonAn.Select(m => m.mamon).ToList();
+        var danhGias = db.tbDanhGia
+            .Where(d => d.tbChiTietDonHang != null
+                && d.tbChiTietDonHang.tbBienTheMonAn != null
+                && maMonQuan.Contains(d.tbChiTietDonHang.tbBienTheMonAn.mamon))
+            .Include(d => d.tbChiTietDonHang).ThenInclude(ct => ct.tbDonHang).ThenInclude(dh => dh.tbThongTinDatHang).ThenInclude(tt => tt.tbKhachHang)
+            .Include(d => d.tbChiTietDonHang).ThenInclude(ct => ct.tbBienTheMonAn).ThenInclude(b => b.tbMonAn)
+            .OrderByDescending(d => d.madg)
+            .ToList();
+
         ViewBag.danhgias = danhGias;
         ViewBag.quanAn = quanAn;
         return View();

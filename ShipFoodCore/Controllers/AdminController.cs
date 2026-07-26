@@ -963,9 +963,11 @@ public class AdminController : BaseController
         donHang.ngaythanhtoan = DateTime.Now;
         await db.SaveChangesAsync();
 
-        // SignalR broadcast đến group order_{madh}
+        // SignalR broadcast đến group order_{madh} + admin dashboard
         var hubContext = HttpContext.RequestServices.GetRequiredService<Microsoft.AspNetCore.SignalR.IHubContext<ShipFood.Hubs.Chats>>();
         await hubContext.Clients.Group($"order_{madh}").SendAsync("paymentConfirmed", madh, donHang.tongtien);
+        // Dashboard realtime: push refresh đến admin dashboard
+        await hubContext.Clients.Group("admins").SendAsync("dashboardStatsRefresh");
 
         return Json(new
         {

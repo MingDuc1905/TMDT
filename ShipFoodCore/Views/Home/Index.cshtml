@@ -85,8 +85,12 @@
     </div>
 </div>
 
-<!-- ===== STATS ROW — dữ liệu THẬT từ DB ===== -->
-<div class="container">
+<!-- ===== STATS ROW — dữ liệu THẬT từ DB ===== -->    <div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <span class="badge bg-light text-muted" id="lastUpdatedBadge" style="font-weight:400;font-size:11px;">
+            <i class="far fa-clock" aria-hidden="true"></i> Cập nhật lúc: --:--
+        </span>
+    </div>
     <div class="fs-stats-row wow fadeInUp" data-wow-delay="0.1s">
         <div class="fs-stat-item fs-reveal">
             <i class="fa fa-store fs-stat-icon" aria-hidden="true"></i>
@@ -424,6 +428,17 @@
         var h = document.getElementById('fsHeader');
         if (h) h.classList.toggle('scrolled', window.scrollY > 10);
     });
+
+    // Cập nhật lastUpdated badge
+    function updateLastUpdated() {
+        var now = new Date();
+        var badge = document.getElementById('lastUpdatedBadge');
+        if (badge) badge.innerHTML = '<i class="far fa-clock" aria-hidden="true"></i> Cập nhật lúc: '
+            + String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0') + ':' + String(now.getSeconds()).padStart(2,'0');
+    }
+    updateLastUpdated();
+    // Auto-refresh stats mỗi 60 giây — load lại trang nhẹ nhàng
+    setTimeout(function() { location.reload(); }, 60000);
 
     // Promo band dismiss — fade-out animation thay vì đột ngột biến mất
     document.addEventListener('DOMContentLoaded', function() {

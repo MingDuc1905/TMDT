@@ -80,7 +80,8 @@ public class ShipperController : BaseController
 
         var todayOrders = db.tbDonHang.Count(dh => dh.mashipper == sh.userid && dh.ngaydathang >= todayStart);
         var todayIncome = db.tbDonHang
-            .Where(dh => dh.mashipper == sh.userid && dh.ngaythanhtoan >= todayStart && dh.trangthai == OrderStatus.HoanThanh)
+            .Where(dh => dh.mashipper == sh.userid && dh.trangthai == OrderStatus.HoanThanh
+                && dh.ngaythanhtoan != null && dh.ngaythanhtoan >= todayStart)
             .Sum(dh => (decimal?)dh.phiship) ?? 0;
         ViewBag.TodayOrders = todayOrders;
         ViewBag.TodayIncome = todayIncome;

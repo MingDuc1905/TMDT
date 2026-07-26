@@ -23,6 +23,9 @@
             <h2 class="text-black font-w600 mb-0">Thống kê</h2>
             <p class="mb-0">Xin chào quản lí @(QuanAn?.tenquanan ?? "")</p>
         </div>
+        <span class="badge bg-light text-muted" id="lastUpdatedBadge" style="font-weight:400;font-size:11px;height:fit-content;">
+            <i class="far fa-clock" aria-hidden="true"></i> Cập nhật lúc: --:--
+        </span>
     </div>
 
     <!-- KPI Cards -->
@@ -162,3 +165,40 @@
         </div>
     }
 </div>
+
+@section scripts {
+    <!-- ═══ SIGNALR: Lắng nghe kpiRefresh từ server ═══ -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+    <script>
+    (function() {
+        function updateLastUpdated() {
+            var now = new Date();
+            var badge = document.getElementById('lastUpdatedBadge');
+            if (badge) badge.innerHTML = '<i class="far fa-clock" aria-hidden="true"></i> Cập nhật lúc: '
+                + String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0') + ':' + String(now.getSeconds()).padStart(2,'0');
+        }
+        updateLastUpdated();
+
+        try {
+            var conn = new signalR.HubConnectionBuilder()
+                .withUrl('/nhantin')
+                .withAutomaticReconnect()
+                .build();
+
+            conn.on('kpiRefresh', function() {
+                console.log('🔄 Restaurant KPI refresh via SignalR');
+                location.reload();
+            });
+
+            conn.start().then(function() {
+                conn.invoke('JoinRestaurantGroup', @(QuanAn?.userid ?? 0)).catch(function(){});
+                console.log('✅ Restaurant SignalR connected');
+            }).catch(function(err) {
+                console.warn('⚠️ Restaurant SignalR:', err.message);
+            });
+        } catch (e) {
+            console.warn('⚠️ SignalR init failed:', e.message);
+        }
+    })();
+    </script>
+}

@@ -383,6 +383,8 @@ public class RestaurantController : BaseController
             try
             {
                 await _hubContext.Clients.Group($"order_{id}").SendAsync("orderStatusChanged", id, OrderStatus.DaXacNhan, DateTime.Now.ToString("HH:mm"));
+                // Dashboard realtime: push KPI refresh đến restaurant dashboard
+                await _hubContext.Clients.Group($"restaurant_{quanAn.userid}").SendAsync("kpiRefresh");
             }
             catch (Exception ex)
             {
@@ -432,6 +434,8 @@ public class RestaurantController : BaseController
             try
             {
                 await _hubContext.Clients.Group($"order_{id}").SendAsync("orderStatusChanged", id, OrderStatus.DaHuy, DateTime.Now.ToString("HH:mm"));
+                // Dashboard realtime: push KPI refresh đến restaurant dashboard
+                await _hubContext.Clients.Group($"restaurant_{quanAn.userid}").SendAsync("kpiRefresh");
             }
             catch (Exception ex)
             {
@@ -492,6 +496,8 @@ public class RestaurantController : BaseController
 
             // Broadcast real-time đến khách hàng
             await _hubContext.Clients.Group($"order_{dh.madh}").SendAsync("orderStatusChanged", dh.madh, OrderStatus.ChoShipper, DateTime.Now.ToString("HH:mm"));
+            // Dashboard realtime: push KPI refresh đến restaurant dashboard
+            await _hubContext.Clients.Group($"restaurant_{quanAn?.userid ?? 0}").SendAsync("kpiRefresh");
         }
         catch (Exception ex)
         {

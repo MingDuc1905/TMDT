@@ -11,6 +11,9 @@
                 <div class="card">
                     <div class="card-body d-flex align-items-center gap-3 flex-wrap">
                         <h4 class="card-title mb-0 me-3">Dashboard Thống kê</h4>
+                        <span class="badge bg-light text-muted ms-2" id="lastUpdatedBadge" style="font-weight:400;font-size:11px;">
+                            <i class="far fa-clock" aria-hidden="true"></i> Cập nhật lúc: --:--
+                        </span>
                         <div class="d-flex align-items-center gap-2">
                             <label class="mb-0">Từ:</label>
                             <input type="date" id="fromDate" class="form-control form-control-sm" style="width:160px" />
@@ -659,6 +662,11 @@
                 }
             });
 
+            // Cập nhật lastUpdated badge
+            var now = new Date();
+            $('#lastUpdatedBadge').html('<i class="far fa-clock" aria-hidden="true"></i> Cập nhật lúc: '
+                + String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0') + ':' + String(now.getSeconds()).padStart(2,'0'));
+
             // 8. Load active coupons
             $.getJSON('@Url.Action("GetActiveCoupons", "Admin")', function (data) {
                 if (!data || data.length === 0) {
@@ -677,5 +685,34 @@
                 $('#couponBody').html(html);
             });
         }
+
+        // ═══ SIGNALR: Lắng nghe dashboardStatsRefresh từ server ═══
+        (function() {
+            try {
+                var conn = new signalR.HubConnectionBuilder()
+                    .withUrl('/nhantin')
+                    .withAutomaticReconnect()
+                    .build();
+
+                conn.on('dashboardStatsRefresh', function() {
+                    console.log('🔄 Dashboard refresh via SignalR');
+                    loadDashboard();
+                });
+
+                conn.start().then(function() {
+                    conn.invoke('JoinAdminGroup', 0).catch(function(){});
+                    console.log('✅ Admin SignalR connected');
+                }).catch(function(err) {
+                    console.warn('⚠️ Admin SignalR:', err.message);
+                });
+            } catch (e) {
+                console.warn('⚠️ SignalR init failed:', e.message);
+            }
+        })();
+
+        // ═══ AUTO-REFRESH: Cập nhật dashboard mỗi 60 giây (fallback nếu SignalR lỗi) ═══
+        setInterval(function() {
+            loadDashboard();
+        }, 60000);
     </script>
 }

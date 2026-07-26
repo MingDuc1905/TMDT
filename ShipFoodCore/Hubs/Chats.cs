@@ -145,6 +145,24 @@ public class Chats : Hub
 
 
     /// <summary>
+    /// ═══ DASHBOARD: Báo hiệu Restaurant Dashboard refresh KPI stats ═══
+    /// Gửi đến group restaurant_{restaurantId} để cập nhật KPI realtime
+    /// </summary>
+    public async Task NotifyRestaurantKpiRefresh(int restaurantId)
+    {
+        await Clients.Group($"restaurant_{restaurantId}").SendAsync("kpiRefresh");
+    }
+
+    /// <summary>
+    /// ═══ DASHBOARD: Báo hiệu Admin Dashboard refresh stats ═══
+    /// Gửi đến group admins để cập nhật dashboard realtime
+    /// </summary>
+    public async Task NotifyAdminDashboardRefresh()
+    {
+        await Clients.Group("admins").SendAsync("dashboardStatsRefresh");
+    }
+
+    /// <summary>
     /// Gửi tín hiệu "có tin nhắn mới" đến một user cụ thể
     /// </summary>
     public async Task NotifyNewMessage(int userId, int count)

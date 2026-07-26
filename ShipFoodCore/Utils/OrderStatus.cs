@@ -1,8 +1,12 @@
+// ============================================================
+// 📋 OrderStatus — Constants trạng thái đơn hàng (thay thế magic strings)
+// ============================================================
+// Ý nghĩa: Định nghĩa tất cả hằng số trạng thái, transition map, auto-messages
+// Chức năng: HoanThanh/DaHuy/ChoShipper..., IsValidTransition, StatusFlow, AutoMessages
+// KEYWORDS: order status, trạng thái, constants, lifecycle, transition, flow
+// ============================================================
 namespace ShipFood.Utils;
 
-/// <summary>
-/// Order status constants — thay thế magic strings khắp controllers/views/js
-/// </summary>
 public static class OrderStatus
 {
     // ─── Order Lifecycle ───

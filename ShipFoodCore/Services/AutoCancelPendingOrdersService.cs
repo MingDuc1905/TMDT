@@ -1,13 +1,15 @@
+// ============================================================
+// ⏰ AutoCancelPendingOrdersService — Tự động hủy đơn chờ thanh toán
+// ============================================================
+// Ý nghĩa: Background service tự động hủy các đơn "Chờ thanh toán" quá hạn
+// Chức năng: Kiểm tra mỗi 5 phút, hủy đơn quá 30 phút chưa thanh toán
+// KEYWORDS: background service, auto cancel, pending, timeout, cleanup, đơn chờ thanh toán, tự động hủy
+// ============================================================
 using Microsoft.EntityFrameworkCore;
 using ShipFood.Models;
 
 namespace ShipFood.Services;
 
-/// <summary>
-/// Background service: tự động hủy các đơn hàng "Chờ thanh toán" quá 30 phút
-/// Chạy mỗi 5 phút, tránh database đầy đơn "ma"
-/// ponytail: 30 phút thay vì 15 phút — tránh race condition với bank webhook đến chậm
-/// </summary>
 public class AutoCancelPendingOrdersService : BackgroundService
 {
     private readonly IServiceProvider _services;

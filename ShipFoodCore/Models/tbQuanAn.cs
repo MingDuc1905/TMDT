@@ -1,3 +1,10 @@
+// ============================================================
+// 🏪 tbQuanAn — Model Quán ăn (Restaurant)
+// ============================================================
+// Ý nghĩa: Lưu thông tin quán ăn: tên, địa chỉ, tọa độ, đánh giá, trạng thái
+// Chức năng: FK→tbUser.userid, navigation tới tbMonAn, tbDonHang
+// KEYWORDS: restaurant, quán ăn, quan an, merchant, shop, food store
+// ============================================================
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 

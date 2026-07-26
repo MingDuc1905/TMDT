@@ -1,8 +1,12 @@
+// ============================================================
+// 📏 FastShipConstants — Hằng số hệ thống (thay thế magic numbers)
+// ============================================================
+// Ý nghĩa: Tập trung tất cả hằng số như phí ship, ngưỡng, timeout
+// Chức năng: SHIP_FEE, FREE_SHIP_THRESHOLD, MIN/MAX_DEPOSIT, timeout constants
+// KEYWORDS: constants, hằng số, phí ship, threshold, timeout, magic numbers
+// ============================================================
 namespace ShipFood.Helpers;
 
-/// <summary>
-/// Hardcoded constants cho FastShip (fix P9.2 — tránh magic numbers trong code)
-/// </summary>
 public static class FastShipConstants
 {
     /// <summary>Phí ship cố định: 15,000đ / đơn</summary>

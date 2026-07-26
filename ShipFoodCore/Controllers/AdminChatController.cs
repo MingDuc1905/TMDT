@@ -1,3 +1,13 @@
+// ============================================================
+// 💬 AdminChatController — Chat Admin & Khách hàng | Admin Chat
+// ============================================================
+// Ý nghĩa: Xử lý chat realtime giữa Admin, Shipper, Khách hàng, Quán ăn
+// Chức năng: Gửi/nhận tin nhắn qua SignalR, lịch sử chat, danh sách hội thoại,
+//            phân biệt role khi gửi (admin/shipper/customer/restaurant),
+//            auto-lock chat sau 30 phút đơn hoàn thành, đếm unread
+// KEYWORDS: chat, tin nhan, message, SignalR, conversation, hoi thoai,
+//           admin chat, customer support, realtime
+// ============================================================
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.SignalR;

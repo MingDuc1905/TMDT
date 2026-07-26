@@ -1,3 +1,10 @@
+// ============================================================
+// ⭐ tbDanhGia — Model Đánh giá (Review)
+// ============================================================
+// Ý nghĩa: Khách hàng đánh giá món ăn sau khi nhận hàng
+// Chức năng: Điểm số (1-5), nhận xét, hình ảnh, phản hồi của quán
+// KEYWORDS: review, đánh giá, rating, feedback, comment, phản hồi
+// ============================================================
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 

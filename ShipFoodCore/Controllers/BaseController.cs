@@ -1,3 +1,12 @@
+// ============================================================
+// ⚙️ BaseController — Lớp nền tảng cho tất cả Controllers | Base Class
+// ============================================================
+// Ý nghĩa: Lớp abstract cha của mọi Controller, cung cấp các chức năng dùng chung
+// Chức năng: Session management (get/set user, cart), auth cookie (Remember Me),
+//            role checking (CheckLogin, CheckRoleJson), session restore từ cookie
+// KEYWORDS: base, session, cookie, auth, authentication, role check,
+//           login, remember me, user session, cart session
+// ============================================================
 using System.Security.Claims;
 using System.Text.Json;
 using Microsoft.AspNetCore.Authentication;

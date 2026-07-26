@@ -1,3 +1,13 @@
+// ============================================================
+// 🛒 CartController — Giỏ hàng & Thanh toán | Cart & Checkout
+// ============================================================
+// Ý nghĩa: Xử lý toàn bộ luồng mua hàng của khách hàng
+// Chức năng: Giỏ hàng (thêm/sửa/xóa), thanh toán COD/VNPAY/MoMo,
+//            mã giảm giá, lịch sử đơn hàng, order tracking, e-invoice,
+//            restore giỏ hàng từ localStorage, Apriori gợi ý mua kèm
+// KEYWORDS: cart, gio hang, checkout, thanh toan, payment, coupon,
+//           order history, tracking, VNPAY, MoMo, COD
+// ============================================================
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ShipFood.Helpers;

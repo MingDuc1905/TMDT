@@ -1,3 +1,13 @@
+// ============================================================
+// 🏪 RestaurantController — Quản lý quán ăn | Restaurant Management
+// ============================================================
+// Ý nghĩa: Xử lý toàn bộ nghiệp vụ dành cho chủ quán ăn (Restaurant role)
+// Chức năng: Dashboard KPI, đơn hàng (nhận/hủy/hoàn tất), món ăn CRUD,
+//            doanh thu, khuyến mãi, đánh giá, profile, wallet, QR Scanner,
+//            Apriori insights, realtime SignalR
+// KEYWORDS: restaurant, quan an, order, menu, product, discount, review,
+//           analytics, apriori, KPI, doanh thu
+// ============================================================
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.SignalR;

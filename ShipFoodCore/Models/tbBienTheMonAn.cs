@@ -1,3 +1,10 @@
+// ============================================================
+// 📐 tbBienTheMonAn — Model Biến thể món ăn (Size + Price Variant)
+// ============================================================
+// Ý nghĩa: Mỗi món có thể có nhiều biến thể size (M/L) với giá khác nhau
+// Chức năng: FK→tbMonAn.mamon, FK cho tbChiTietDonHang.mamon, tbMonAnKhuyenMai.mamon
+// KEYWORDS: variant, size, price, biến thể, product option, menu size
+// ============================================================
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 

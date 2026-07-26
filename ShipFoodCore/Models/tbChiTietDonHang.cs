@@ -1,3 +1,10 @@
+// ============================================================
+// 📋 tbChiTietDonHang — Model Chi tiết đơn hàng (Order Detail)
+// ============================================================
+// Ý nghĩa: Từng món ăn trong đơn hàng, gồm số lượng, đơn giá, đánh giá
+// Chức năng: FK→tbBienTheMonAn.id (biến thể), FK→tbDonHang.madh, navigation đánh giá
+// KEYWORDS: order detail, chi tiết đơn hàng, cart item, order item, line item
+// ============================================================
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 

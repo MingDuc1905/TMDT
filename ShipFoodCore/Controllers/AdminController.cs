@@ -1,3 +1,13 @@
+// ============================================================
+// 👑 AdminController — Quản lý hệ thống | System Administration
+// ============================================================
+// Ý nghĩa: Xử lý toàn bộ nghiệp vụ quản trị hệ thống (Admin role)
+// Chức năng: Dashboard KPI + charts, quản lý user (4 roles), quản lý quán,
+//            quản lý đơn hàng, danh mục, khuyến mãi, ví tiền,
+//            phân tích Apriori, Mock Payment, export CSV, SignalR realtime
+// KEYWORDS: admin, dashboard, quan ly, user management, order management,
+//           category, voucher, wallet, thong ke, thongke
+// ============================================================
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;

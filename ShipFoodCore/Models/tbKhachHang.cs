@@ -1,3 +1,10 @@
+// ============================================================
+// 👤 tbKhachHang — Model Khách hàng (Customer)
+// ============================================================
+// Ý nghĩa: Thông tin chi tiết khách hàng: tên, hình ảnh, địa chỉ đặt
+// Chức năng: FK→tbUser.userid, navigation tới tbThongTinDatHang, tbTinNhan
+// KEYWORDS: customer, khách hàng, khach hang, client, user profile
+// ============================================================
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 

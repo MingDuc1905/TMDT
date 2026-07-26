@@ -1,3 +1,13 @@
+// ============================================================
+// 🤖 ChatbotController — AI Chatbot thông minh | AI Assistant
+// ============================================================
+// Ý nghĩa: Xử lý hội thoại AI với khách hàng, hỗ trợ tra cứu đơn hàng
+// Chức năng: Gửi tin nhắn đến OpenAI, tra cứu đơn hàng (#madh),
+//            gợi ý món ăn từ DB, phân tích ngữ cảnh hệ thống,
+//            lịch sử hội thoại (session), quick replies
+// KEYWORDS: chatbot, AI, OpenAI, tro ly ao, tra cuu, order lookup,
+//           goi y mon an, suggestion, hoi thoai
+// ============================================================
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;

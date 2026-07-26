@@ -1,3 +1,10 @@
+// ============================================================
+// 🍕 tbMonAn — Model Món ăn (Food Item)
+// ============================================================
+// Ý nghĩa: Lưu thông tin món ăn: tên, mô tả, hình ảnh, danh mục, biến thể
+// Chức năng: Soft-delete (isDeleted), còn hàng (conhang), biến thể size+giá
+// KEYWORDS: food, món ăn, mon an, menu, product, bien the, category
+// ============================================================
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 

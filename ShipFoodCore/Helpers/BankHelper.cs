@@ -1,9 +1,12 @@
+// ============================================================
+// 🏦 BankHelper — Xử lý thông tin ngân hàng cho VietQR API
+// ============================================================
+// Ý nghĩa: Map tên ngân hàng → BIN code cho API VietQR
+// Chức năng: GetVietQrBinCode, BankBinMap (35+ ngân hàng Việt Nam)
+// KEYWORDS: bank, ngân hàng, bin code, vietqr, qr code, thanh toán, chuyển khoản
+// ============================================================
 namespace ShipFood.Helpers;
 
-/// <summary>
-/// Helper xử lý thông tin ngân hàng cho VietQR API
-/// VietQR API (img.vietqr.io) yêu cầu BIN code (970415) hoặc short code (ICB), KHÔNG phải tên đầy đủ
-/// </summary>
 public static class BankHelper
 {
     // Map từ tên ngân hàng (BANK_ID env var) → BIN code cho VietQR API

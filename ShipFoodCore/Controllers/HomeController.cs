@@ -1,3 +1,11 @@
+// ============================================================
+// 🏠 HomeController — Trang chủ & Xác thực | Homepage & Authentication
+// ============================================================
+// Ý nghĩa: Controller chính xử lý mọi tương tác của khách hàng (Customer role)
+// Chức năng: Trang chủ, tìm kiếm quán/món, đăng nhập/đăng ký, Google/Facebook OAuth,
+//            Profile KH, Nạp/Rút tiền ví, Chat AI, Gợi ý Apriori
+// KEYWORDS: home, customer, khach hang, login, signup, OAuth, search, wallet
+// ============================================================
 using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;

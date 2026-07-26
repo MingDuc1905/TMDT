@@ -1,3 +1,10 @@
+// ============================================================
+// 💬 Chats Hub — SignalR Realtime Hub cho toàn bộ hệ thống
+// ============================================================
+// Ý nghĩa: Trung tâm giao tiếp realtime giữa 4 roles qua SignalR
+// Chức năng: Chat, Join groups, Location tracking, Dashboard refresh, QR scan events
+// KEYWORDS: signalr, hub, realtime, chat, notification, websocket, group
+// ============================================================
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Caching.Distributed;
@@ -6,8 +13,6 @@ using ShipFood.Models;
 
 namespace ShipFood.Hubs;
 
-// ponytail: KHÔNG dùng [Authorize] class-level vì SignalR client-side ko g?i auth cookie ?úng cách
-// gây block k?t n?i cho customer. Thay vào ?ó, validate userId t? query string t?ng method.
 public class Chats : Hub
 {
     private readonly IDistributedCache _cache;

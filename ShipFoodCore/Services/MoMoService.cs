@@ -1,13 +1,16 @@
+// ============================================================
+// 💳 MoMoService — Tích hợp thanh toán MoMo (Sandbox)
+// ============================================================
+// Ý nghĩa: Service kết nối MoMo API tạo thanh toán, kiểm tra giao dịch, hoàn tiền
+// Chức năng: CreatePayment, CheckTransaction, Refund, VerifyIpnSignature (HMAC SHA256)
+// KEYWORDS: momo, payment, wallet, qr, sandbox, hmac, signature, thanh toán, hoàn tiền
+// ============================================================
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 
 namespace ShipFood.Services;
 
-/// <summary>
-/// MoMo Payment Integration Service (Sandbox)
-/// Xử lý tạo request thanh toán MoMo và kiểm tra trạng thái giao dịch
-/// </summary>
 public class MoMoService
 {
     private readonly IConfiguration _configuration;

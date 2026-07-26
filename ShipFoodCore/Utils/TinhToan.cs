@@ -1,3 +1,10 @@
+// ============================================================
+// 🧮 TinhToan — Helper tính toán cho toàn bộ hệ thống
+// ============================================================
+// Ý nghĩa: Các hàm tiện ích tính phí ship, tổng tiền, URL hình ảnh, parse tọa độ
+// Chức năng: TinhTienShip, TinhTongTien, HinhAnhUrl, AvatarUrl, TryParseToado
+// KEYWORDS: helper, tính toán, phí ship, hình ảnh, url, tọa độ, coordinate, parse
+// ============================================================
 using ShipFood.Models;
 
 namespace ShipFood.Utils;

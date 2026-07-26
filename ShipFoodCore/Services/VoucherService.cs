@@ -1,12 +1,15 @@
+// ============================================================
+// 🎫 VoucherService — Gợi ý voucher thông minh
+// ============================================================
+// Ý nghĩa: Tự động gợi ý voucher phù hợp theo khung giờ + lịch sử khách hàng
+// Chức năng: Gợi ý theo khung giờ (sáng/trưa/xế/tối/khuya), lần đầu, miễn phí ship
+// KEYWORDS: voucher, coupon, khuyến mãi, gợi ý, time slot, free ship, khung giờ
+// ============================================================
 using Microsoft.EntityFrameworkCore;
 using ShipFood.Models;
 
 namespace ShipFood.Services;
 
-/// <summary>
-/// Dịch vụ tự động gợi ý voucher theo khung giờ và thông tin khách hàng
-/// Giống như Grab/ShopeeFood tự động popup voucher phù hợp
-/// </summary>
 public class VoucherService
 {
     private readonly dbFoodyEntities _db;

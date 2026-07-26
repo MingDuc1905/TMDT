@@ -1,3 +1,10 @@
+// ============================================================
+// 📂 tbDanhMuc — Model Danh mục món ăn (Category)
+// ============================================================
+// Ý nghĩa: Phân loại món ăn theo danh mục (Món chính, Đồ uống, Tráng miệng...)
+// Chức năng: Tên danh mục, mô tả, hình ảnh, icon
+// KEYWORDS: category, danh mục, food category, phân loại, menu category
+// ============================================================
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 

@@ -3,13 +3,15 @@ using Microsoft.AspNetCore.SignalR;
 using ShipFood.Hubs;
 using ShipFood.Models;
 
+// ============================================================
+// 🔄 AutoPreparingService — Tự động chuyển trạng thái (ĐÃ TẮT)
+// ============================================================
+// Ý nghĩa: Background service cũ — tự động chuyển "Đã xác nhận" → "Đang chuẩn bị"
+// Chức năng: ĐÃ BỊ VÔ HIỆU HÓA vì quán cần tự click "Chuẩn bị xong"
+// KEYWORDS: auto preparing, disabled, background service, quán chủ động, đã tắt
+// ============================================================
 namespace ShipFood.Services;
 
-/// <summary>
-/// AutoPreparingService — REMOVED
-/// Auto-transition from "Đã xác nhận" → "Đang chuẩn bị" was breaking the order flow.
-/// The restaurant should manually click "Chuẩn bị xong" when food is ready.
-/// </summary>
 public class AutoPreparingService : BackgroundService
 {
     private readonly IServiceScopeFactory _scopeFactory;

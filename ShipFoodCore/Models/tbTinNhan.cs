@@ -1,3 +1,10 @@
+// ============================================================
+// 💬 tbTinNhan — Model Tin nhắn (Message)
+// ============================================================
+// Ý nghĩa: Lưu tin nhắn chat giữa các role trong hệ thống
+// Chức năng: FK→tbDonHang, tbKhachHang, tbShipper — lưu nội dung chat
+// KEYWORDS: message, chat, tin nhắn, conversation, signalr chat
+// ============================================================
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 

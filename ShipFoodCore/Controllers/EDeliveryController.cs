@@ -1,3 +1,10 @@
+// ============================================================
+// 📦 EDeliveryController — Vận đơn điện tử QR Code | E-Delivery QR
+// ============================================================
+// Ý nghĩa: Quản lý vận đơn điện tử dùng QR Code cho cả 4 role
+// Chức năng: Tạo QR, quét QR xác nhận lấy hàng, bypass admin, delivery logs, merchant scanner
+// KEYWORDS: edelivery, qr, scan, delivery, vận đơn, qr code, bypass, delivery logs
+// ============================================================
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
@@ -10,9 +17,6 @@ using System.Text;
 
 namespace ShipFood.Controllers;
 
-/// <summary>
-/// E-Delivery QR Code — Vận đơn điện tử cho 4 phân hệ (Shipper, Merchant, Customer, Admin)
-/// </summary>
 public class EDeliveryController : BaseController
 {
     private readonly IHubContext<Chats> _hubContext;

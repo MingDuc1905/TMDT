@@ -1,3 +1,10 @@
+// ============================================================
+// 👤 tbUser — Model Người dùng (User Account)
+// ============================================================
+// Ý nghĩa: Tài khoản đăng nhập chính cho 4 roles
+// Chức năng: Auth, phân loại role (loaitaikhoan), ví tiền, 1:1 với từng role model
+// KEYWORDS: user, account, đăng nhập, login, authentication, role, ví tiền
+// ============================================================
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 

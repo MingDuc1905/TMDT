@@ -1,12 +1,15 @@
+// ============================================================
+// 📄 EDeliveryService — Hóa đơn & Vận đơn điện tử
+// ============================================================
+// Ý nghĩa: Sinh E-Invoice (hóa đơn) và E-Waybill (vận đơn) cho đơn hàng thành công
+// Chức năng: GenerateEInvoice, GenerateEWaybill, GetDocumentsByOrder, GetByNumber — idempotent
+// KEYWORDS: invoice, waybill, e-invoice, e-waybill, hóa đơn điện tử, vận đơn điện tử, QR
+// ============================================================
 using Microsoft.EntityFrameworkCore;
 using ShipFood.Models;
 
 namespace ShipFood.Services;
 
-/// <summary>
-/// E-Delivery Service — tự động sinh Hóa đơn điện tử (E-Invoice) và Vận đơn điện tử (E-Waybill)
-/// khi đơn hàng được thanh toán hoặc giao thành công.
-/// </summary>
 public class EDeliveryService
 {
     private readonly dbFoodyEntities _db;

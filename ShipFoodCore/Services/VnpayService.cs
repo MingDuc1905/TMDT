@@ -1,3 +1,10 @@
+// ============================================================
+// 💳 VnpayService — Tích hợp thanh toán VNPAY (Sandbox)
+// ============================================================
+// Ý nghĩa: Service kết nối VNPAY API để tạo URL thanh toán và xác thực callback
+// Chức năng: CreatePaymentUrl, VerifySignature (HMAC SHA512), tạo secure hash
+// KEYWORDS: vnpay, payment, qr, sandbox, hmac, sha512, signature, thanh toán
+// ============================================================
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;

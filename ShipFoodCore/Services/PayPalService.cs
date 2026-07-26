@@ -1,13 +1,16 @@
+// ============================================================
+// 🅿️ PayPalService — Tích hợp thanh toán PayPal (Sandbox)
+// ============================================================
+// Ý nghĩa: Service kết nối PayPal REST API v2 để tạo Order và Capture payment
+// Chức năng: OAuth2 token, Create Order (intent=CAPTURE), Capture, VND→USD conversion
+// KEYWORDS: paypal, payment, sandbox, capture, oauth2, order, thanh toán quốc tế
+// ============================================================
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace ShipFood.Services;
 
-/// <summary>
-/// PayPal Payment Integration Service (Sandbox)
-/// S? d?ng REST API v2 d? t?o Order v� Capture payment
-/// </summary>
 public class PayPalService
 {
     private readonly ILogger<PayPalService> _logger;

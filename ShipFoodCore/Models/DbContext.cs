@@ -1,3 +1,10 @@
+// ============================================================
+// 🗄️ dbFoodyEntities — Entity Framework DbContext chính
+// ============================================================
+// Ý nghĩa: DbContext trung tâm quản lý 18 bảng + relationships + indexes
+// Chức năng: DbSet cho mỗi bảng, singular aliases, OnModelCreating với FK+indexes
+// KEYWORDS: ef core, dbcontext, database, entity framework, model, relationships
+// ============================================================
 using Microsoft.EntityFrameworkCore;
 
 namespace ShipFood.Models;

@@ -1,3 +1,10 @@
+// ============================================================
+// 🛵 tbShipper — Model Shipper (Delivery Driver)
+// ============================================================
+// Ý nghĩa: Lưu thông tin shipper: tên, địa chỉ, tọa độ, đánh giá, trạng thái
+// Chức năng: FK→tbUser.userid, navigation tới tbDonHang, tbTinNhan
+// KEYWORDS: shipper, delivery, driver, giao hàng, tài xế, ship
+// ============================================================
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 

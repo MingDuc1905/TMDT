@@ -1,3 +1,13 @@
+// ============================================================
+// 🚚 ShipperController — Quản lý tài xế giao hàng | Shipper Management
+// ============================================================
+// Ý nghĩa: Xử lý toàn bộ nghiệp vụ dành cho shipper (Shipper role)
+// Chức năng: Dashboard FREE-PICK + ĐƠN HÀNG, nhận đơn, cập nhật trạng thái
+//            giao hàng, ví tiền, thu nhập, lịch sử, QR Delivery,
+//            SignalR realtime, Leaflet map tracking
+// KEYWORDS: shipper, delivery, giao hang, FREE-PICK, wallet, QR,
+//           SignalR, Leaflet, order status
+// ============================================================
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;

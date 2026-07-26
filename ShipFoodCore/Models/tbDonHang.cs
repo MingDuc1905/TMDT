@@ -1,3 +1,10 @@
+// ============================================================
+// 📦 tbDonHang — Model Đơn hàng (Order)
+// ============================================================
+// Ý nghĩa: Bảng chính lưu tất cả đơn hàng của hệ thống
+// Chức năng: Lưu thông tin đơn: quán, shipper, khách, trạng thái, giá, ship fee
+// KEYWORDS: order, đơn hàng, don hang, madh, order tracking, trang thai
+// ============================================================
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 

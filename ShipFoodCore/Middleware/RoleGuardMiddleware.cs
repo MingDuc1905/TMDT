@@ -1,14 +1,16 @@
+// ============================================================
+// 🛡️ RoleGuardMiddleware — Bảo vệ truy cập chéo role
+// ============================================================
+// Ý nghĩa: Chặn user không đúng role truy cập trang của role khác
+// Chức năng: Kiểm tra session, fallback auth cookie, phục hồi session tự động
+// KEYWORDS: middleware, role guard, security, authorization, session, redirect, bảo vệ
+// ============================================================
 using System.Security.Claims;
 using ShipFood.Models;
 using System.Text.Json;
 
 namespace ShipFood.Middleware;
 
-/// <summary>
-/// RoleGuard Middleware — chặn truy cập chéo trang giữa các vai trò
-/// Kiểm tra mọi request, nếu user đăng nhập nhưng không đúng role → redirect
-/// Khi session mất (do restart), fallback sang auth cookie claims.
-/// </summary>
 public class RoleGuardMiddleware
 {
     private readonly RequestDelegate _next;

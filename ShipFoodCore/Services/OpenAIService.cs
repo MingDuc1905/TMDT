@@ -1,14 +1,16 @@
+// ============================================================
+// 🤖 OpenAIService — Chatbot AI (OpenAI-compatible)
+// ============================================================
+// Ý nghĩa: Kết nối OpenAI API (ZenMux) cho chatbot tư vấn món ăn
+// Chức năng: Gọi OpenAI chat completions với system prompt tiếng Việt, lịch sử hội thoại
+// KEYWORDS: openai, chatbot, ai, chatgpt, zenmux, hỏi đáp, system prompt, gpt, assistant
+// ============================================================
 using System.ClientModel;
 using OpenAI;
 using OpenAI.Chat;
 
 namespace ShipFood.Services;
 
-/// <summary>
-/// Service kết nối đến OpenAI-compatible API (ZenMux) thông qua OpenAI .NET SDK.
-/// Đọc cấu hình từ biến môi trường: OPENAI_API_KEY và OPENAI_API_BASE.
-/// Thay thế hoàn toàn GeminiService cũ (Google Gemini API).
-/// </summary>
 public class OpenAIService
 {
     private readonly ChatClient? _chatClient;

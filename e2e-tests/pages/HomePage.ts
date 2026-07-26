@@ -22,9 +22,10 @@ export class HomePage extends BasePage {
   readonly carouselPrevBtn: Locator;
   readonly carouselNextBtn: Locator;
 
-  // ─── Category Pills ───
+  // ─── Category Pills (replaced by FilterBar chips) ───
   readonly categoryAll: Locator;
   readonly categoryRow: Locator;
+  readonly filterChips: Locator;
 
   // ─── Restaurant Grid ───
   readonly restaurantCards: Locator;
@@ -58,8 +59,9 @@ export class HomePage extends BasePage {
     this.carouselPrevBtn = page.locator('.carousel-control-prev');
     this.carouselNextBtn = page.locator('.carousel-control-next');
 
-    this.categoryAll = page.locator('.fs-category-pill').first();
-    this.categoryRow = page.locator('#categoryRow');
+    this.categoryAll = page.locator('.fs-chip').first();
+    this.categoryRow = page.locator('#filterChips');
+    this.filterChips = page.locator('#filterChips');
 
     this.restaurantCards = page.locator('.product-item');
     this.emptyState = page.locator('.col-12.text-center.py-5');
@@ -82,9 +84,9 @@ export class HomePage extends BasePage {
     await this.page.waitForLoadState('networkidle');
   }
 
-  /** Click vào một category pill */
+  /** Click vào một filter chip */
   async clickCategory(categoryName: string) {
-    const category = this.categoryRow.locator(`a:has-text("${categoryName}")`);
+    const category = this.filterChips.locator(`button.fs-chip:has-text("${categoryName}")`);
     await category.first().click();
     await this.page.waitForLoadState('networkidle');
   }

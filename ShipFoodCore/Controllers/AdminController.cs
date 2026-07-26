@@ -910,6 +910,13 @@ public class AdminController : BaseController
         return Json(coupons);
     }
 
+    // ponytail: backward-compatible alias cho ExportCsv (test expects ExportExcel)
+    [HttpGet]
+    public ActionResult ExportExcel(string type = "revenue")
+    {
+        return ExportCsv(type);
+    }
+
     // ponytail: rename ExportExcel thanh ExportCsv vi thuc te xuat CSV
     [HttpGet]
     public ActionResult ExportCsv(string type = "revenue")

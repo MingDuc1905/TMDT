@@ -150,29 +150,24 @@ test.describe('🖥️ [Desktop 1920x1080] Visual & Asset Validation', () => {
     await expect(home.carouselPrevBtn).not.toBeDisabled();
   });
 
-  test('[TC-1.8] Category pills - click từng cái, danh sách quán thay đổi', async ({ page }) => {
+  test('[TC-1.8] Filter chips - click từng cái, bộ lọc hoạt động', async ({ page }) => {
     const home = new HomePage(page);
     await home.gotoHome();
 
-    // Chờ category pills load (wow.js animation có thể ẩn element tạm thời → state:'attached')
-    await page.waitForSelector('#categoryRow', { state: 'attached', timeout: 15_000 });
-    const pillCount = await home.categoryRow.locator('a').count();
-    console.log(`🏷️ Category pills: ${pillCount}`);
-    expect(pillCount).toBeGreaterThan(0);
+    // Chờ FilterBar chips load
+    await page.waitForSelector('#filterChips', { state: 'attached', timeout: 15_000 });
+    const chipCount = await home.filterChips.locator('button.fs-chip').count();
+    console.log(`🏷️ Filter chips: ${chipCount}`);
+    expect(chipCount).toBeGreaterThan(0);
 
-    // ponytail: Click tối đa 3 pill, dùng waitForURL + timeout thay networkidle (Render chậm)
-    const maxPills = Math.min(pillCount, 3);
-    for (let i = 0; i < maxPills; i++) {
-      const pill = home.categoryRow.locator('a').nth(i);
-      const pillText = await pill.textContent();
-      // Lấy href để chờ navigation — ponytail: getAttribute có thể null → fallback empty
-      const href = await pill.getAttribute('href') ?? '';
-      if (!href) { console.log('  ⚠️ Pill không có href, skip'); continue; }
-      await pill.click();
-      // ponytail: waitForFunction thay waitForURL — ? trong URL là glob wildcard, Render chậm
-      try { await page.waitForFunction(h => window.location.href.includes(h), href, { timeout: 30_000 }); } catch { }
-      await page.waitForTimeout(3000);
-      console.log(`  Click category: ${pillText?.trim()}`);
+    // Click tối đa 3 chips để verify chúng hoạt động
+    const maxChips = Math.min(chipCount, 3);
+    for (let i = 0; i < maxChips; i++) {
+      const chip = home.filterChips.locator('button.fs-chip').nth(i);
+      const chipText = await chip.textContent();
+      await chip.click();
+      await page.waitForTimeout(2000);
+      console.log(`  Click chip: ${chipText?.trim()}`);
     }
   });
 

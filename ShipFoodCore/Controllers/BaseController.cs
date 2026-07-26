@@ -7,6 +7,21 @@
 // KEYWORDS: base, session, cookie, auth, authentication, role check,
 //           login, remember me, user session, cart session
 // ============================================================
+// 🔗 LUỒNG TƯƠNG TÁC (FLOW):
+//   Kế thừa bởi: HomeController, CartController, RestaurantController,
+//                ShipperController, AdminController, PaymentController,
+//                AdminChatController, ChatbotController, EDeliveryController
+//   Calls →: HttpContext.Session (get/set user, cart)
+//            HttpContext.SignInAsync (auth cookie với claims)
+//            dbFoodyEntities (phục hồi session từ DB)
+//            Models: tbUser, Cart
+//   Called by ←: Tất cả Controller con gọi GetCurrentUser(), CheckLogin(), GetCart()
+//   Flow: GetCurrentUser → Session "user" → nếu null → fallback cookie claims
+//        → RestoreSessionFromClaims → Find DB → SetSessionUser
+//        SetSessionAndCookieAsync → SetSessionUser + SignInAsync + CommitAsync
+//        GetCart/SetCart → Session "cart" (JSON serialize/deserialize)
+//        CheckRoleJson → kiểm tra role → trả về 403 JSON nếu sai
+// ============================================================
 using System.Security.Claims;
 using System.Text.Json;
 using Microsoft.AspNetCore.Authentication;

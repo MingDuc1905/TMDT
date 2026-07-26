@@ -5,6 +5,22 @@
 // Chức năng: Kiểm tra session, fallback auth cookie, phục hồi session tự động
 // KEYWORDS: middleware, role guard, security, authorization, session, redirect, bảo vệ
 // ============================================================
+// 🔗 LUỒNG TƯƠNG TÁC (FLOW):
+//   Trigger: Mọi request HTTP đến server (middleware pipeline)
+//   Gọi bởi: Program.cs (app.UseMiddleware<RoleGuardMiddleware>())
+//   Gọi đến: BaseController (RestoreSessionFromClaims — phục hồi session)
+//            HomeController (Login/Logout redirect)
+//            RestaurantController, ShipperController, AdminController (redirect)
+//   Bypass Paths: /health, /Home/Login, /Home/Error, /Home/Signup, /nhantin
+//   Route Map: /admin → Admin, /restaurant → Quán ăn, /shipper → Shipper
+//   Flow: Request → Check BypassPaths → Xác định Route →
+//        Lấy session → null? → Restore từ auth cookie →
+//        Có user? → Đúng role? → OK → Next
+//        Không user → 401 JSON (AJAX) hoặc redirect /Home/Login
+//        Sai role → 403 JSON (AJAX) hoặc redirect về dashboard của role đó
+//   JSON API: Auto-detect → 401/403 JSON thay vì redirect (cho AJAX)
+//   Security: Boundary check → /admin KHÔNG match /adminchat (tránh false positive)
+// ============================================================
 using System.Security.Claims;
 using ShipFood.Models;
 using System.Text.Json;

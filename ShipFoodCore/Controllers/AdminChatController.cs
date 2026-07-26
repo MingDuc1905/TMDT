@@ -8,6 +8,22 @@
 // KEYWORDS: chat, tin nhan, message, SignalR, conversation, hoi thoai,
 //           admin chat, customer support, realtime
 // ============================================================
+// 🔗 LUỒNG TƯƠNG TÁC (FLOW):
+//   Trigger: User mở trang chat /AdminChat, gửi/nhận tin nhắn
+//   Calls →: BaseController (GetCurrentUser, checkLogin)
+//            Chats Hub (IHubContext — adminMessage, customerMessage, directMessage)
+//            Models: tbTinNhan, tbDonHang, tbKhachHang
+//            Views: AdminChat/Index
+//   Called by ←: _ChatWidget.cshtml (floating chat từ Home layout)
+//   Flow: Admin mở chat → GetConversations (50 đơn gần nhất)
+//        → Chọn hội thoại → GetMessages → hiển thị lịch sử
+//        → Gửi tin → SendMessage → Save DB → SignalR to order_{id} group
+//        → Customer nhận realtime qua widget _ChatWidget
+//   SignalR Events: adminMessage → customerMessage → directMessage
+//   Roles: Admin gửi → adminMessage | Customer → customerMessage
+//          Shipper → directMessage (nếu có targetUserId)
+//   Auto-lock: Chat bị khóa nếu đơn hoàn thành/hủy > 30 phút
+// ============================================================
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.SignalR;

@@ -1,3 +1,34 @@
+// ============================================================
+// 💳 PaymentController — Xử lý thanh toán | Payment Processing
+// ============================================================
+// Ý nghĩa: Controller trung tâm xử lý tất cả giao dịch thanh toán
+// Chức năng: ProcessPayment (COD/VNPAY), VNPAY IPN callback, Bank Webhook,
+//            nạp/rút ví, E-Invoice generation, SignalR broadcast,
+//            atomic transaction, multi-restaurant orders, idempotency lock
+// KEYWORDS: payment, thanh toán, VNPAY, COD, bank transfer, webhook,
+//           process payment, invoice, batch order
+// ============================================================
+// 🔗 LUỒNG TƯƠNG TÁC (FLOW):
+//   Trigger: POST /Payment/ProcessPayment (từ Cart/Checkout)
+//   Calls →: BaseController (GetCart, SetCart, GetCurrentUser, CheckLogin)
+//            VnpayService (CreatePaymentUrl, VerifySignature)
+//            EDeliveryService (GenerateEInvoice sau thanh toán thành công)
+//            Chats Hub (IHubContext — newOrder, paymentConfirmed, orderStatusChanged)
+//            BankHelper (GetVietQrBinCode)
+//            FastShipConstants (SHIP_FEE)
+//            Models: tbDonHang, tbChiTietDonHang, tbThongTinDatHang, tbBienTheMonAn
+//   Called by ←: Cart/Checkout.cshtml (AJAX POST)
+//                 BankWebhook (POST từ SePay/Casso/PayOS)
+//                 VNPAY (IPN callback + Return URL redirect)
+//   Flow: Checkout → ProcessPayment → 1. Validate → 2. Idempotency Lock
+//        → 3. Re-read giá DB → 4. Atomic transaction (multi-restaurant loop)
+//        → 5. SignalR newOrder → Restaurant nhận → 6. Xóa cart
+//        → 7. VNPAY URL (nếu chọn VNPAY) / COD success ngay
+//   BankWebhook: SePay/Casso → parse memo → FASTSHIP{id} / FASTSHIPNAP{uid}
+//        → xác thực token FixedTimeEquals → update DB → SignalR broadcast
+//   VNPAY IPN: POST callback → verify HMAC SHA512 → update trạng thái
+//        → GenerateEInvoice → SignalR paymentConfirmed + newOrder
+// ============================================================
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;

@@ -4,6 +4,21 @@
 // Ý nghĩa: Service kết nối MoMo API tạo thanh toán, kiểm tra giao dịch, hoàn tiền
 // Chức năng: CreatePayment, CheckTransaction, Refund, VerifyIpnSignature (HMAC SHA256)
 // KEYWORDS: momo, payment, wallet, qr, sandbox, hmac, signature, thanh toán, hoàn tiền
+//
+// LUỒNG DỮ LIỆU:
+//   CartController.Payment ⭢ gọi CreatePaymentAsync() ⭢ MoMo API (test-payment.momo.vn)
+//   MoMo redirect browser ⭢ PaymentController.MomoReturn() (frontend callback)
+//   MoMo IPN (server-side) ⭢ PaymentController.MomoIpn() ⭢ xác thực  VerifyIpnSignature()
+//   PaymentController.MomoReturn ⭢ CheckTransactionAsync() ⭢ cập nhật tbDonHang.trangthai
+//   Hủy đơn ⭢ RestaurantController.huydon() ⭢ gọi RefundAsync() ⭢ MoMo Refund API
+//   MoMo IPN ⭢ PaymentController.MomoIpn() ⭢ tự động xác nhận thanh toán + SignalR broadcast
+//
+// FILES LIÊN QUAN:
+//   CALLED BY:  PaymentController.cs (MomoReturn, MomoIpn, MockPaymentWebhook)
+//   CALLED BY:  AdminController.cs (MockPaymentWebhook — dev test)
+//   CALLS:      MoMo REST API (https://test-payment.momo.vn/v2/gateway/api/)
+//   CALLS:      HttpClient (tích hợp sẵn qua DI)
+//   LIÊN QUAN:  tbDonHang.cs, tbThongTinDatHang.cs (order state sau payment)
 // ============================================================
 using System.Security.Cryptography;
 using System.Text;

@@ -4,6 +4,20 @@
 // Ý nghĩa: Tự động gợi ý voucher phù hợp theo khung giờ + lịch sử khách hàng
 // Chức năng: Gợi ý theo khung giờ (sáng/trưa/xế/tối/khuya), lần đầu, miễn phí ship
 // KEYWORDS: voucher, coupon, khuyến mãi, gợi ý, time slot, free ship, khung giờ
+//
+// LUỒNG DỮ LIỆU:
+//   HomeController.Index ⭢ gọi GetTimeSlotVoucher() ⭢ tbKhuyenMai (query theo khung giờ)
+//   CartController.Checkout ⭢ gọi GetRecommendedVouchers(userId, tongTien) ⭢ gợi ý phù hợp
+//   GetTimeSlotVoucher ⭢ xác định khung giờ hiện tại (6h-22h) ⭢ tìm voucher theo tenkm
+//   GetRecommendedVouchers ⭢ ưu tiên: khung giờ ⭢ lần đầu ⭢ free ship (≥50K) ⭢ bổ sung
+//   Home/Index.cshtml ⭢ hiển thị voucher banner trên giao diện chính
+//   Cart/Checkout.cshtml ⭢ hiển thị danh sách voucher đề xuất trong giỏ hàng
+//
+// FILES LIÊN QUAN:
+//   CALLED BY:  HomeController.cs (khung giờ + banner), CartController.cs (gợi ý checkout)
+//   CALLS:      DbContext.tbKhuyenMai (đọc danh sách voucher)
+//   LIÊN QUAN:  tbKhuyenMai.cs (model voucher), tbLichSuSuDungKhuyenMai.cs (lịch sử dùng)
+//   LIÊN QUAN:  Views/Home/Index.cshtml, Views/Cart/Checkout.cshtml (UI gợi ý)
 // ============================================================
 using Microsoft.EntityFrameworkCore;
 using ShipFood.Models;

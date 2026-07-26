@@ -4,6 +4,20 @@
 // Ý nghĩa: Background service tự động hủy các đơn "Chờ thanh toán" quá hạn
 // Chức năng: Kiểm tra mỗi 5 phút, hủy đơn quá 30 phút chưa thanh toán
 // KEYWORDS: background service, auto cancel, pending, timeout, cleanup, đơn chờ thanh toán, tự động hủy
+//
+// LUỒNG DỮ LIỆU:
+//   App khởi động ⭢ Program.cs gọi services.AddHostedService<AutoCancelPendingOrdersService>()
+//   ExecuteAsync() chạy vòng lặp vô hạn ⭢ mỗi 5 phút kiểm tra DB
+//   Query: tbDonHang WHERE trangthai="Chờ thanh toán" AND ngaydathang < Now - 30 phút
+//   Tìm thấy đơn hết hạn ⭢ dh.trangthai = "Đã hủy" ⭢ db.SaveChangesAsync()
+//   Đơn bị hủy ⭢ không SignalR (vì service chạy nền, ko có hubContext)
+//   ⚠️ LƯU Ý: Không tự động hoàn tiền — nếu user đã chuyển khoản, cần thủ công
+//
+// FILES LIÊN QUAN:
+//   REGISTERED IN: Program.cs (AddHostedService)
+//   CALLS:      DbContext.tbDonHangs (query + update status)
+//   LIÊN QUAN:  tbDonHang.cs (trangthai = "Chờ thanh toán", "Đã hủy")
+//   LIÊN QUAN:  PaymentController.cs (có thể gọi hoàn tiền nếu đã thanh toán — tương lai)
 // ============================================================
 using Microsoft.EntityFrameworkCore;
 using ShipFood.Models;

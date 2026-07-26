@@ -5,6 +5,22 @@
 // Chức năng: Tạo QR, quét QR xác nhận lấy hàng, bypass admin, delivery logs, merchant scanner
 // KEYWORDS: edelivery, qr, scan, delivery, vận đơn, qr code, bypass, delivery logs
 // ============================================================
+// 🔗 LUỒNG TƯƠNG TÁC (FLOW):
+//   Trigger: Merchant/Shipper quét QR code / Admin bypass delivery
+//   Calls →: BaseController (GetCurrentUser)
+//            EDeliveryService (GenerateEInvoice)
+//            Chats Hub (IHubContext — orderDeliveryScanned, deliveryBypassed, deliveryScanEvent)
+//            QRCoder (tạo QR PNG)
+//            Models: tbDonHang, tbQuanAn, tbThongTinDatHang, tbShipper
+//            Views: ScanResult (EDelivery), DeliveryLogs (Admin)
+//   Called by ←: Shipper/QRDelivery scan QR code → redirect /edelivery/scan/{token}
+//                 Admin → DeliveryLogs → Bypass modal
+//   Flow: GenerateQR → tạo token HMAC SHA256 → QR PNG
+//        ScanQR → validate token + expire (24h) → hiển thị thông tin đơn
+//        ConfirmScan → POST JSON → update status "Đã lấy" + E-Invoice + SignalR
+//   Bypass: Admin ép trạng thái đơn hàng thủ công + SignalR broadcast
+//   Security: QR_HASH_SECRET từ env var, token 24h expire, HMAC SHA256 verify
+// ============================================================
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;

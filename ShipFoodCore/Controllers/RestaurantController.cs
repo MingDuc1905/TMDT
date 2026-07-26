@@ -8,6 +8,20 @@
 // KEYWORDS: restaurant, quan an, order, menu, product, discount, review,
 //           analytics, apriori, KPI, doanh thu
 // ============================================================
+// 🔗 LUỒNG TƯƠNG TÁC (FLOW):
+//   Trigger: User (role Quán ăn) đăng nhập và truy cập /Restaurant/*
+//   Calls →: BaseController (GetCurrentUser, getQuanAn, checkLogin, CheckRoleJson)
+//            RecommendationService (GetRestaurantAprioriInsights)
+//            Chats Hub (IHubContext — newPickupOrder, kpiRefresh, orderStatusChanged)
+//            Models: tbQuanAn, tbDonHang, tbMonAn, tbChiTietDonHang, tbDanhGia
+//            Views: Index (Dashboard), OrderList, ProductList, Analytics, Wallet
+//   Called by ←: HomeController (Login redirect) / SignalR (khi có đơn mới từ PaymentController)
+//   Flow: Login → Dashboard (KPI+apriori) → OrderList → nhandon → SignalR → Shipper thấy
+//        hoantatdon → SignalR newPickupOrder → Shipper FREE-PICK nhận
+//        ToggleConHang (AJAX) → toggle conhang → UI update ngay
+//   SignalR: Lắng nghe 'newOrder' từ PaymentController (có đơn mới)
+//            Broadcast 'kpiRefresh' khi nhận/hủy/hoàn tất đơn
+// ============================================================
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.SignalR;

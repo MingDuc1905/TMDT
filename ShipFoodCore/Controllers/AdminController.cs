@@ -8,6 +8,21 @@
 // KEYWORDS: admin, dashboard, quan ly, user management, order management,
 //           category, voucher, wallet, thong ke, thongke
 // ============================================================
+// 🔗 LUỒNG TƯƠNG TÁC (FLOW):
+//   Trigger: User (role Admin) đăng nhập và truy cập /Admin/*
+//   Calls →: BaseController (GetCurrentUser, checkLogin)
+//            RecommendationService (GetCategoryAprioriInsights)
+//            Chats Hub (IHubContext — dashboardStatsRefresh sau MockPayment)
+//            Models: tbDonHang, tbUser, tbQuanAn, tbShipper, tbDanhMuc, tbKhuyenMai
+//            Views: Dashboard, Order, QuanLyQuanAn, Category, VoucherManager
+//   Called by ←: HomeController (Login redirect) / SignalR (dashboardStatsRefresh)
+//   Flow: Dashboard → 6 KPI cards + RevenueChart + TopRestaurants + OrderStatusPie
+//        → AJAX loadDashboard() với date filter → JSON APIs (GetDashboardStats...)
+//        → ExportCsv/ExportExcel → download CSV
+//        → MockPaymentWebhook → tạo đơn test + SignalR broadcast
+//   SignalR: Lắng nghe 'dashboardStatsRefresh' từ Payment/Restaurant khi có đơn mới
+//            setInterval 60s auto-refresh fallback
+// ============================================================
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;

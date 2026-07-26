@@ -4,6 +4,20 @@
 // Ý nghĩa: Service kết nối PayPal REST API v2 để tạo Order và Capture payment
 // Chức năng: OAuth2 token, Create Order (intent=CAPTURE), Capture, VND→USD conversion
 // KEYWORDS: paypal, payment, sandbox, capture, oauth2, order, thanh toán quốc tế
+//
+// LUỒNG DỮ LIỆU:
+//   CartController.Payment ⭢ chọn PayPal ⭢ PaymentController.PayPalCreate()
+//   PaymentController.PayPalCreate ⭢ gọi CreateOrderAsync() ⭢ PayPal REST API (sandbox)
+//   PayPal trả về approve link ⭢ redirect browser ⭢ user duyệt trên PayPal
+//   User duyệt xong ⭢ PayPal redirect về PaymentController.PayPalReturn()
+//   PaymentController.PayPalReturn ⭢ gọi CaptureOrderAsync() ⭢ PayPal capture
+//   Capture thành công ⭢ cập nhật tbDonHang.trangthai = "Hoàn thành"
+//
+// FILES LIÊN QUAN:
+//   CALLED BY:  PaymentController.cs (PayPalCreate, PayPalReturn)
+//   CALLS:      PayPal REST API (https://api-m.sandbox.paypal.com)
+//   LIÊN QUAN:  tbDonHang.cs (order state), tbThongTinDatHang.cs (user info)
+//   LIÊN QUAN:  CartController.cs (khởi tạo luồng thanh toán)
 // ============================================================
 using System.Text;
 using System.Text.Json;

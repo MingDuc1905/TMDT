@@ -5,6 +5,14 @@
 // Chức năng: CreatePaymentUrl, VerifySignature (HMAC SHA512), tạo secure hash
 // KEYWORDS: vnpay, payment, qr, sandbox, hmac, sha512, signature, thanh toán
 // ============================================================
+// 🔗 LUỒNG TƯƠNG TÁC (FLOW):
+//   Gọi bởi: PaymentController (CreateVnpayPayment, VnpayIPN, VnpayReturn, VnpayWalletReturn)
+//            HomeController (NapTienVnpay — nạp tiền ví)
+//   Gọi đến: VNPAY Sandbox API (https://sandbox.vnpayment.vn/paymentv2/vpcpay.html)
+//   CreatePaymentUrl: Build sorted params → HMAC SHA512 sign → return URL với secure hash
+//   VerifySignature: Lấy vnp_SecureHash → xoá khỏi params → HMAC SHA512 → so sánh
+//   Security: TMN_CODE + HASH_SECRET từ env var (VNPAY_TMN_CODE, VNPAY_HASH_SECRET)
+// ============================================================
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;

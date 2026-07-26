@@ -8,6 +8,20 @@
 // KEYWORDS: chatbot, AI, OpenAI, tro ly ao, tra cuu, order lookup,
 //           goi y mon an, suggestion, hoi thoai
 // ============================================================
+// 🔗 LUỒNG TƯƠNG TÁC (FLOW):
+//   Trigger: User gửi tin nhắn từ _ChatWidget.cshtml (floating chat)
+//   Calls →: BaseController (GetCurrentUser)
+//            OpenAIService (SendMessageAsync)
+//            EDeliveryService (GetDocumentsByOrder cho tra invoice)
+//            Models: tbDonHang, tbMonAn, tbChiTietDonHang
+//   Called by ←: Views/Shared/_ChatWidget.cshtml (AJAX POST /Chatbot/SendMessage)
+//   Flow: User nhập → POST SendMessage → 1. Rate limit check (5 req/min)
+//        → 2. HandleDatabaseQueries: #123 → order lookup, "gợi ý" → top 5
+//        → 3. Gọi OpenAI với lịch sử hội thoại + DB context cache
+//        → 4. Fallback nếu AI lỗi: hướng dẫn dùng lệnh
+//   DB Context: cached 5 phút — tránh query N+1 mỗi request
+//   Quick Replies: động dựa trên từ khóa trong tin nhắn
+// ============================================================
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;

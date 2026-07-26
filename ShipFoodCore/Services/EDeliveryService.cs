@@ -4,6 +4,21 @@
 // Ý nghĩa: Sinh E-Invoice (hóa đơn) và E-Waybill (vận đơn) cho đơn hàng thành công
 // Chức năng: GenerateEInvoice, GenerateEWaybill, GetDocumentsByOrder, GetByNumber — idempotent
 // KEYWORDS: invoice, waybill, e-invoice, e-waybill, hóa đơn điện tử, vận đơn điện tử, QR
+//
+// LUỒNG DỮ LIỆU:
+//   Payment xong ⭢ PaymentController.MomoReturn/MockPaymentWebhook ⭢ EDeliveryController.Generate
+//   EDeliveryController.Generate ⭢ gọi GenerateEInvoice() ⭢ tạo tbEInvoice mới (idempotent)
+//   Shipper giao thành công ⭢ ShipperController.hoantatdon() ⭢ EDeliveryController.GenerateWaybill
+//   GenerateEWaybill() ⭢ tạo tbEInvoice (loaichungtu="EWaybill") với QR code + chữ ký số
+//   View order ⭢ EDeliveryController.Documents ⭢ GetDocumentsByOrder() ⭢ hiển thị E-Invoice/Waybill
+//   ExportExcel ⭢ EDeliveryController.Export ⭢ xuất XML/PDF cho cơ quan thuế (mở rộng sau)
+//
+// FILES LIÊN QUAN:
+//   CALLED BY:  EDeliveryController.cs (Generate, Documents, Export)
+//   CALLED BY:  ShipperController.cs (hoantatdon — gọi GenerateEWaybill)
+//   CALLS:      DbContext.tbEInvoices (CRUD), DbContext.tbDonHangs (order info)
+//   LIÊN QUAN:  tbEInvoice.cs (model hóa đơn điện tử)
+//   LIÊN QUAN:  tbDonHang.cs, tbQuanAn.cs, tbShipper.cs (thông tin đơn hàng)
 // ============================================================
 using Microsoft.EntityFrameworkCore;
 using ShipFood.Models;

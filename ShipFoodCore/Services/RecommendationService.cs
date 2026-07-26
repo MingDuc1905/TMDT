@@ -33,6 +33,27 @@ namespace ShipFood.Services;
 //   - Mọi method PHẢI bridge qua tbBienTheMonAn để map đúng
 //   - Try-catch ở caller để handle service crash
 //   - Dùng IQueryable + async EF để tránh N+1 query
+//
+// LUỒNG DỮ LIỆU:
+//   HomeController.Index ⭢ gọi GetPersonalizedRecommendations(userId) ⭢ gợi ý cá nhân hóa
+//   DetailRestaurant ⭢ gọi GetAprioriRecommendations(currentMonIds) ⭢ "thường mua kèm"
+//   HomeController.Index ⭢ gọi GetPopularPairs() ⭢ hiển thị "Combo từ AI"
+//   HomeController.Index ⭢ gọi GetTimeBasedRecommendations() ⭢ theo khung giờ (sáng/trưa/tối)
+//   HomeController.Index ⭢ gọi GetTrendingItems() ⭢ Top bán chạy 48h
+//   RestaurantController.Dashboard ⭢ gọi GetRestaurantAprioriInsights(restaurantId) ⭢ KPI insights
+//   AdminController.Dashboard ⭢ gọi GetCategoryAprioriInsights() ⭢ category cross-sell
+//
+// 🐛 LƯU Ý QUAN TRỌNG:
+//   tbBienTheMonAn.id là cầu nối GIỮA tbMonAn.mamon VÀ tbChiTietDonHang.mamon!
+//   ct.mamon (FK→tbBienTheMonAn.id) KHÔNG phải là monAnId trực tiếp.
+//   Mỗi method PHẢI chuyển đổi: tbBienTheMonAn.id ⭢ mamon ⭢ query tbMonAn
+//
+// FILES LIÊN QUAN:
+//   CALLED BY:  HomeController.cs (trang chủ), RestaurantController.cs (KPI dashboard)
+//   CALLED BY:  AdminController.cs (category insights), Home/DetailRestaurant.cshtml (chi tiết)
+//   CALLS:      DbContext.tbMonAn, tbDonHang, tbChiTietDonHang, tbBienTheMonAn (Apriori query)
+//   LIÊN QUAN:  tbMonAn.cs, tbBienTheMonAn.cs, tbChiTietDonHang.cs (FK bridge)
+//   LIÊN QUAN:  Views/Home/Index.cshtml (gợi ý), Views/Home/DetailRestaurant.cshtml (mua kèm)
 // ════════════════════════════════════════════════════════════════════
 
 public class RecommendationService

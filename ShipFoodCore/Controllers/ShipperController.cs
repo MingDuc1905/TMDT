@@ -8,6 +8,22 @@
 // KEYWORDS: shipper, delivery, giao hang, FREE-PICK, wallet, QR,
 //           SignalR, Leaflet, order status
 // ============================================================
+// 🔗 LUỒNG TƯƠNG TÁC (FLOW):
+//   Trigger: User (role Shipper) đăng nhập và truy cập /Shipper/*
+//   Calls →: BaseController (GetCurrentUser, checkLogin, CheckRoleJson)
+//            Chats Hub (IHubContext — orderAccepted, newPickupOrder listener)
+//            EDeliveryService (GenerateEWaybill khi hoàn thành đơn)
+//            Models: tbDonHang, tbQuanAn, tbShipper, tbThongTinDatHang
+//            Views: Index (Dashboard), OrderDetail, ThuNhap, LichSu, ViTien
+//   Called by ←: HomeController (Login redirect) / SignalR (newPickupOrder từ RestaurantController)
+//   Flow: Dashboard → FREE-PICK list (raw SQL LINQ) → ClaimOrder (atomic SQL)
+//        → SignalR broadcast → các shipper khác thấy đơn đã được nhận
+//        → Cập nhật trạng thái: Đã lấy → Đang giao → Hoàn thành
+//        → Hoàn thành: atomic transaction + cộng phí ship + sinh E-Waybill
+//   SignalR: Lắng nghe 'newPickupOrder' từ Restaurant (có đơn mới chờ lấy)
+//            Broadcast 'orderAccepted' khi claim đơn thành công
+//            Gửi 'orderStatusChanged' khi cập nhật trạng thái
+// ============================================================
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;

@@ -5,6 +5,30 @@
 // Chức năng: Chat, Join groups, Location tracking, Dashboard refresh, QR scan events
 // KEYWORDS: signalr, hub, realtime, chat, notification, websocket, group
 // ============================================================
+// 🔗 LUỒNG TƯƠNG TÁC (FLOW):
+//   Trigger: Client JS kết nối /nhantin, gọi Join methods, send message
+//   Gọi bởi: AdminChatController (IHubContext), RestaurantController (IHubContext),
+//            ShipperController (IHubContext), PaymentController (IHubContext),
+//            EDeliveryController (IHubContext), AdminController (IHubContext)
+//   Các Group:
+//     - order_{orderId}: Chat realtime cho 1 đơn hàng cụ thể
+//     - restaurant_{id}: Nhận newOrder + kpiRefresh từ PaymentController
+//     - shippers: Nhận newPickupOrder + orderAccepted
+//     - shipper_{userId}: Nhận directMessage từ customer
+//     - customer_{userId}: Nhận directMessage từ shipper + unreadCountUpdate
+//     - admins: Nhận dashboardStatsRefresh + deliveryScanEvent + userOnline
+//     - delivery_{orderId}: QR scan events
+//   SignalR Events (12 methods):
+//     Message, AdminSendMessage, CustomerSendMessage, SendToOrderGroup
+//     SendDirectMessage, UpdateLocation
+//     NotifyShippersNewPickup, NotifyOrderAccepted
+//     NotifyRestaurantKpiRefresh, NotifyAdminDashboardRefresh
+//     NotifyDeliveryScanned, NotifyDeliveryBypassed
+//   Connection Tracking: IDistributedCache (Redis) — user → connectionId
+//     OnConnectedAsync: Set cache + join customer_{userId} + broadcast userOnline
+//     OnDisconnectedAsync: Remove cache + broadcast userOffline
+//   Security: Validate caller userId từ session/cookie trước mỗi broadcast
+// ============================================================
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Caching.Distributed;

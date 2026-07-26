@@ -8,6 +8,19 @@
 // KEYWORDS: cart, gio hang, checkout, thanh toan, payment, coupon,
 //           order history, tracking, VNPAY, MoMo, COD
 // ============================================================
+// 🔗 LUỒNG TƯƠNG TÁC (FLOW):
+//   Trigger: User click "Thêm vào giỏ" / vào giỏ hàng / checkout / thanh toán
+//   Calls →: BaseController (GetCart, SetCart, GetCurrentUser, CheckLogin)
+//            RecommendationService (GetFrequentlyBoughtTogether)
+//            VoucherService (GetRecommendedVouchers, GetTimeSlotVoucher)
+//            PaymentController (ProcessPayment — POST redirect)
+//            Models: Cart, CartItem, tbDonHang, tbChiTietDonHang, tbThongTinDatHang
+//            Views: Index (Cart), Checkout, LichSuDatHang, OrderTracking, EInvoice
+//   Called by ←: HomeController redirects đến Cart khi thêm món
+//   Flow: Thêm món → AJAX → Cart session → Checkout → Chọn địa chỉ/coupon
+//        → POST Payment/ProcessPayment → Tạo đơn → SignalR broadcast → Restaurant nhận
+//        → COD thành công ngay / VNPAY chuyển hướng cổng thanh toán
+// ===========================================================
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ShipFood.Helpers;

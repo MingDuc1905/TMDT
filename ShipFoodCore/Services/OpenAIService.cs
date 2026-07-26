@@ -4,6 +4,20 @@
 // Ý nghĩa: Kết nối OpenAI API (ZenMux) cho chatbot tư vấn món ăn
 // Chức năng: Gọi OpenAI chat completions với system prompt tiếng Việt, lịch sử hội thoại
 // KEYWORDS: openai, chatbot, ai, chatgpt, zenmux, hỏi đáp, system prompt, gpt, assistant
+//
+// LUỒNG DỮ LIỆU:
+//   HomeController.ChatAI ⭢ ChatbotController.SendMessage ⭢ gọi OpenAIService.SendMessageAsync()
+//   OpenAIService.SendMessageAsync ⭢ gọi OpenAI API (hoặc ZenMux endpoint)
+//   OpenAI trả về text response ⭢ ChatbotController trả về JSON ⭢ Home/Index.cshtml hiển thị
+//   Nếu chưa cấu hình OPENAI_API_KEY ⭢ trả về null ⭢ ChatbotController fallback rule-based
+//
+// FILES LIÊN QUAN:
+//   CALLED BY:  ChatbotController.cs (SendMessage action)
+//   CALLS:      OpenAI API (api.openai.com hoặc ZenMux custom endpoint)
+//   LIÊN QUAN:  HomeController.cs (gọi ChatbotController qua fetch API)
+//   LIÊN QUAN:  Views/Home/Index.cshtml (UI chatbot box)
+//   LIÊN QUAN:  tbTinNhan.cs (lưu lịch sử chat vào DB)
+//   DEPENDS ON: Biến môi trường: OPENAI_API_KEY, OPENAI_API_BASE, OPENAI_MODEL
 // ============================================================
 using System.ClientModel;
 using OpenAI;

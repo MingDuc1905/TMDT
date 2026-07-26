@@ -6,6 +6,18 @@
 //            Profile KH, Nạp/Rút tiền ví, Chat AI, Gợi ý Apriori
 // KEYWORDS: home, customer, khach hang, login, signup, OAuth, search, wallet
 // ============================================================
+// 🔗 LUỒNG TƯƠNG TÁC (FLOW):
+//   Trigger: User truy cập /Home, /Home/Login, /Home/Signup, /Home/Wallet
+//   Calls →: BaseController (GetCart, GetCurrentUser, SetSessionAndCookieAsync)
+//            RecommendationService (GetPopularPairs, GetAprioriRecommendations)
+//            VnpayService (CreatePaymentUrl)
+//            Models: tbQuanAn, tbMonAn, tbUser, tbDanhMuc, tbDonHang, tbKhachHang, tbDanhGia
+//            Views: Index, Login, Signup, DetailRestaurant, ChiTietSanPham, Wallet, Profile
+//   Called by ←: RoleGuardMiddleware (redirect) / Program.cs (route mapping)
+//   Flow: Login → SetSession → Cookie Auth → RoleGuard → Redirect theo role
+//        Index → Query DB → ViewBag stats + recommendations → Render View
+//        Wallet → NapTien → QR VietQR → BankWebhook (PaymentController)
+// ===========================================================
 using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;

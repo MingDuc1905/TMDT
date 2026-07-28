@@ -608,7 +608,9 @@ public class ChatbotController : BaseController
                 _cachedDbContext = $"Số quán ăn: {tongQuan}. Số món: {tongMon}. Tổng đơn: {tongDon}. Đơn thành công: {donThanhCong}. "
                     + $"Top bán chạy: {string.Join(", ", topMon)}. "
                     + $"Quán: {string.Join(", ", listQuan)}. "
-                    + "Phí ship cố định 15k, miễn phí ship từ 200k.";
+                    + "Phí ship cố định 15k, miễn phí ship từ 200k. "
+                    + "Hình thức thanh toán: COD (tiền mặt), VNPAY QR, MoMo, PayPal. "
+                    + "Có khuyến mãi giảm giá đơn đầu tiên, voucher theo khung giờ.";
                 _lastDbContextRefresh = DateTime.Now;
                 return _cachedDbContext;
             }

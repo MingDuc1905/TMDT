@@ -287,8 +287,18 @@
         });
     }
 
+    // ─── Pre-warm: G?i /health khi load trang d? ?ánh th?c Render ───
+    // Render free tier sleep sau 15 phút, fetch ngay d? app k?p wake up
+    // tr??c khi user click vào chatbot, tránh timeout ? l?n chat d?u
+    function prewarmApp() {
+        fetch('/health', { method: 'GET', cache: 'no-store' })
+            .then(function(r) { if (r.ok) console.log('⚡ App warmed', new Date().toLocaleTimeString()); })
+            .catch(function() { console.log('⏳ Warming up...'); });
+    }
+
     // ─── SỬA DỨT ĐIỂM LỖI KẸT CHAT: Event Delegation + class .active ───
     $(document).ready(function() {
+        prewarmApp(); // ?ánh th?c Render ngay khi load trang
         loadAiHistory(); // Tự động load lịch sử AI khi mở trang
 
         // Dùng event delegation trên document để bọc toàn bộ

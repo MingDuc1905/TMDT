@@ -11,9 +11,9 @@
 //   ⭢ Parse JSON response → extract content → return string
 //
 // BIẾN MÔI TRƯỜNG (Render):
-//   OPENAI_API_KEY  — API key (ZenMux hoặc OpenAI)
-//   OPENAI_API_BASE — Base URL (VD: https://api.zenmux.com/v1)
-//   OPENAI_MODEL    — Model name (VD: gpt-4o-mini, gemini-2.0-flash)
+//   OPENAI_API_KEY  — API key (NaraRouter: sk-nry-...)
+//   OPENAI_API_BASE — Base URL: https://router.bynara.id/v1
+//   OPENAI_MODEL    — Model: agnes-2.5-flash (free, 512K context)
 //
 // FILES LIÊN QUAN:
 //   CALLED BY:  ChatbotController.cs
@@ -94,7 +94,7 @@ NGUYÊN TẮC:
                 ?? configuration["OpenAI:ApiBase"];
         _model = Environment.GetEnvironmentVariable("OPENAI_MODEL")
               ?? configuration["OpenAI:Model"]
-              ?? "gpt-4o-mini";
+              ?? "agnes-2.5-flash";
 
         if (string.IsNullOrEmpty(_apiKey) || _apiKey == "YOUR_OPENAI_API_KEY")
         {
@@ -165,8 +165,9 @@ NGUYÊN TẮC:
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
             // ─── Xác d?nh endpoint URL ───
+            var defaultBase = "https://router.bynara.id/v1";
             var endpoint = string.IsNullOrEmpty(_baseUrl)
-                ? "https://api.openai.com/v1/chat/completions"
+                ? $"{defaultBase}/chat/completions"
                 : $"{_baseUrl.TrimEnd('/')}/chat/completions";
 
             _logger.LogDebug("Sending request to {Endpoint} with model {Model}", endpoint, _model);

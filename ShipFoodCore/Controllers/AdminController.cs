@@ -1065,7 +1065,8 @@ public class AdminController : BaseController
             db.tbTinNhans.Add(new tbTinNhan
             {
                 noidung = $"? Admin c?ng ti?n: +{soTien:N0}?. Lý do: {(lyDo ?? "Không có")}. S? d? m?i: {user.vitien:N0}?",
-                makh = userid
+                makh = userid,
+                thoigian = DateTime.Now  // ⚠️ FIX: thiếu thời gian gửi tin nhắn
             });
             await db.SaveChangesAsync();
         }

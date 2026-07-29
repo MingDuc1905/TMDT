@@ -98,7 +98,8 @@ public class AdminChatController : BaseController
                 madh = orderId,
                 noidung = message,
                 makh = null,
-                mashipper = null
+                mashipper = null,
+                thoigian = DateTime.Now  // ⚠️ FIX: thiếu thời gian gửi tin nhắn
             };
             db.tbTinNhans.Add(tinNhan);
             await db.SaveChangesAsync();
@@ -203,7 +204,8 @@ public class AdminChatController : BaseController
                 madh = orderId > 0 ? orderId : null,
                 noidung = message,
                 makh = customerId,
-                mashipper = isShipper ? user.userid : null
+                mashipper = isShipper ? user.userid : null,
+                thoigian = DateTime.Now  // ⚠️ FIX: thiếu thời gian gửi tin nhắn
             };
             db.tbTinNhans.Add(tinNhan);
             await db.SaveChangesAsync();
@@ -425,7 +427,8 @@ public class AdminChatController : BaseController
                 madh = latestOrder,
                 noidung = "[ADMIN]" + message, // Gắn cờ admin để phân biệt với khách hàng
                 makh = userId,
-                mashipper = null
+                mashipper = null,
+                thoigian = DateTime.Now  // ⚠️ FIX: thiếu thời gian gửi tin nhắn
             };
             db.tbTinNhans.Add(tinNhan);
             await db.SaveChangesAsync();

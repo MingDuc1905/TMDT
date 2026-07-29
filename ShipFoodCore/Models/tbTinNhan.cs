@@ -22,6 +22,11 @@ public partial class tbTinNhan
     [MaxLength(500)]
     public string? noidung { get; set; }
 
+    /// <summary>
+    /// Thời gian gửi tin nhắn — ⚠️ FIX: bổ sung trường ngày tháng còn thiếu
+    /// </summary>
+    public DateTime? thoigian { get; set; }
+
     public int? mashipper { get; set; }
     public int? makh { get; set; }
 

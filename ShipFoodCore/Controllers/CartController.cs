@@ -699,10 +699,43 @@ public class CartController : BaseController
                 mactdh = mactdh,
                 diemdanhgia = diemdanhgia,
                 nhanxet = nhanxet ?? "",
-                hinhanh = null
+                hinhanh = null,
+                ngaydanhgia = DateTime.Now  // ⚠️ FIX: thiếu ngày đánh giá
             };
             db.tbDanhGias.Add(danhGia);
             db.SaveChanges();
+
+            // ⚠️ FIX: Cập nhật điểm đánh giá trung bình của quán
+            try
+            {
+                var restaurantId = chiTiet.tbDonHang?.maquan;
+                if (restaurantId.HasValue)
+                {
+                    var restaurant = db.tbQuanAn.Find(restaurantId.Value);
+                    if (restaurant != null)
+                    {
+                        var allReviews = db.tbDanhGias
+                            .Where(dg => dg.mactdh != null
+                                && dg.diemdanhgia.HasValue
+                                && dg.tbChiTietDonHang != null
+                                && dg.tbChiTietDonHang.tbDonHang != null
+                                && dg.tbChiTietDonHang.tbDonHang.maquan == restaurantId.Value);
+                        restaurant.soluotdanhgia = allReviews.Count();
+                        restaurant.diemdanhgia = allReviews.Any()
+                            ? (decimal?)allReviews.Average(dg => (decimal)dg.diemdanhgia.Value)
+                            : null;
+                        // Round to 1 decimal place
+                        if (restaurant.diemdanhgia.HasValue)
+                            restaurant.diemdanhgia = Math.Round(restaurant.diemdanhgia.Value, 1);
+                        db.SaveChanges();
+                    }
+                }
+            }
+            catch (Exception ratingEx)
+            {
+                var logger = HttpContext.RequestServices.GetRequiredService<ILogger<CartController>>();
+                logger.LogWarning(ratingEx, "Failed to update restaurant rating after review");
+            }
 
             return Json(new { success = true, message = "Đánh giá thành công! ⭐" });
         }

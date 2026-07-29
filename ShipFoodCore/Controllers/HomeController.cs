@@ -1399,7 +1399,8 @@ public class HomeController : BaseController
             db.tbTinNhans.Add(new tbTinNhan
             {
                 noidung = $"DEPOSIT_PENDING|{depositCode}|{soTien}|{user.userid}",
-                makh = user.userid
+                makh = user.userid,
+                thoigian = DateTime.Now  // ⚠️ FIX: thiếu thời gian gửi tin nhắn
             });
             db.SaveChanges();
         }

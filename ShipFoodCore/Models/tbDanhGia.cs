@@ -27,6 +27,11 @@ public partial class tbDanhGia
     public string? hinhanh { get; set; }
 
     /// <summary>
+    /// Thời gian đánh giá — ⚠️ FIX: bổ sung trường ngày tháng còn thiếu
+    /// </summary>
+    public DateTime? ngaydanhgia { get; set; }
+
+    /// <summary>
     /// Phản hồi của quán ăn dành cho đánh giá của khách hàng
     /// </summary>
     [MaxLength(500)]

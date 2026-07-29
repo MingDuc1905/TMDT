@@ -279,6 +279,13 @@ function showCartToast(type, msg) {
 
 // ─── Initialize ───
 document.addEventListener('DOMContentLoaded', function() {
+    // ═══ FIX: Nếu cookie cart_cleared tồn tại → xóa localStorage (vừa thanh toán xong) ═══
+    if (document.cookie.indexOf('cart_cleared=1') !== -1) {
+        clearCartLocal();
+        // Xóa cookie để không clear lại lần sau
+        document.cookie = 'cart_cleared=; path=/; max-age=0';
+    }
+
     // Khởi tạo badge từ localStorage
     var count = getCartCount();
     updateCartBadge(count);

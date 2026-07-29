@@ -30,6 +30,7 @@
 //        → GenerateEInvoice → SignalR paymentConfirmed + newOrder
 // ============================================================
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.SignalR;
@@ -154,14 +155,16 @@ public class PaymentController : BaseController
                 });
             }
 
-            // ═══ MULTI-DEVICE CHECK ═══
-            var recentMultiDeviceOrder = db.tbDonHang
+            // ═══ MULTI-DEVICE CHECK: Chỉ block khi có order đang CHỜ THANH TOÁN (chưa thanh toán) ═══
+            // Nếu order đã thành công ("Đã đặt", "Đang giao", "Hoàn thành"), user có thể đặt tiếp
+            var recentPendingOrder = db.tbDonHang
                 .Where(dh => dh.tbThongTinDatHang != null
                     && dh.tbThongTinDatHang.userid == user!.userid
+                    && dh.trangthai == "Chờ thanh toán"
                     && dh.ngaydathang >= DateTime.Now.AddMinutes(-5))
                 .OrderByDescending(dh => dh.ngaydathang)
                 .FirstOrDefault();
-            if (recentMultiDeviceOrder != null && recentMultiDeviceOrder.madh > 0)
+            if (recentPendingOrder != null && recentPendingOrder.madh > 0)
             {
                 var staleCart = GetCart();
                 if (staleCart != null && staleCart.items.Any())
@@ -169,7 +172,7 @@ public class PaymentController : BaseController
                     return Json(new
                     {
                         success = false,
-                        message = "Giỏ hàng của bạn đã được xử lý trên thiết bị khác. Vui lòng tải lại trang để làm mới giỏ hàng.",
+                        message = $"Bạn đang có đơn hàng #{recentPendingOrder.madh} chờ thanh toán. Vui lòng thanh toán hoặc hủy đơn trước khi tạo đơn mới.",
                         keepCart = false
                     });
                 }
@@ -355,6 +358,14 @@ public class PaymentController : BaseController
 
             // Xóa giỏ hàng sau khi đặt thành công
             SetCart(new Cart());
+            // ═══ FIX: clearLocalCart signal cho frontend ═══
+            Response.Cookies.Append("cart_cleared", "1", new CookieOptions
+            {
+                HttpOnly = false,
+                Secure = false,
+                SameSite = SameSiteMode.Lax,
+                Expires = DateTime.Now.AddMinutes(1)
+            });
 
             // ─── VNPAY: Tạo URL thanh toán ───
             if (isVnpay && firstOrderId > 0)

@@ -356,9 +356,14 @@
 }
 
 @{
+    // ════════════════════════════════════════
+    // 🏷️ LẤY DỮ LIỆU GIẢM GIÁ TỪ CONTROLLER
+    // ════════════════════════════════════════
     var khuyenMais = (ViewBag.KhuyenMais as List<ShipFood.Models.tbMonAnKhuyenMai>) ?? new List<ShipFood.Models.tbMonAnKhuyenMai>();
-    var muaKem = ViewBag.MuaKem as List<ShipFood.Models.tbMonAn>;
-    var trendingNow = ViewBag.TrendingNow as List<ShipFood.Models.tbMonAn>;
+    // ⬆ ViewBag.KhuyenMais = List<tbMonAnKhuyenMai> từ Controller
+    //    Mỗi item: km.phantramgiam (%), km.tbBienTheMonAn.mamon (FK→món)
+    var muaKem = ViewBag.MuaKem as List<ShipFood.Models.tbMonAn>;          // Apriori: món mua kèm
+    var trendingNow = ViewBag.TrendingNow as List<ShipFood.Models.tbMonAn>; // Gợi ý theo giờ
 }
 
 <div class="app">
@@ -478,11 +483,21 @@
                                     @foreach (ShipFood.Models.tbMonAn item in ViewBag.DanhSachMonAn)
                                     {
                                         // ponytail: cast item về tbMonAn để DLR không bị RuntimeBinderException với extension methods LINQ
+
+                                        // ═══════════════════════════════════════════════════
+                                        // 💰 TÍNH GIÁ SAU GIẢM: cho TỪNG món ăn trong danh sách
+                                        // ═══════════════════════════════════════════════════
+                                        // B1: Tìm KM của món này (so khớp km.tbBienTheMonAn.mamon == item.mamon)
                                         var khuyenMai = khuyenMais?.FirstOrDefault(km => km.tbBienTheMonAn?.mamon == item.mamon);
+                                        // B2: Giá gốc = giatien của biến thể size đầu tiên (VD: 50.000đ từ tbBienTheMonAn)
                                         var giaGoc = item.tbBienTheMonAns?.FirstOrDefault()?.giatien;
+                                        // B3: Mặc định giá mới = giá gốc (nếu ko có KM)
                                         var giaKhuyenMai = giaGoc;
+                                        // B4: Nếu CÓ KM hợp lệ → tính giá mới
                                         if (khuyenMai != null && khuyenMai.phantramgiam > 0)
                                         {
+                                            // ⭐ CÔNG THỨC: Giá mới = Giá gốc - (Giá gốc × % giảm / 100)
+                                            // VD: 50.000 - (50.000 × 20 / 100) = 40.000đ
                                             giaKhuyenMai = giaGoc - (giaGoc * khuyenMai.phantramgiam / 100);
                                         }
                                         var daMua = daMuaMonAnIds != null && daMuaMonAnIds.Contains(item.mamon);
@@ -504,8 +519,9 @@
                                                     }
                                                     else if (khuyenMai != null)
                                                     {
+                                                        // ⭐ BADGE GIẢM GIÁ: hiển thị % giảm ở góc trái ảnh
                                                         <span class="fs-badge-corner fs-badge-discount">
-                                                            <i class="fa fa-fire fs-badge-fire"></i>-@khuyenMai.phantramgiam%
+                                                            <i class="fa fa-fire fs-badge-fire"></i>-@khuyenMai.phantramgiam%  @* "-20%" *@
                                                         </span>
                                                     }
                                                 </div>
@@ -523,12 +539,16 @@
                                                 </div>
                                                 <!-- Column 3: Price + Size + Add-to-cart (right-aligned block) -->
                                                 <div class="col-auto item-restaurant-more" style="flex-shrink:0;display:flex;flex-direction:column;align-items:flex-end;gap:8px;min-width:140px;">
-                                                    <!-- Price -->
+                                                    <!-- ════════════════════════════════════════ -->
+                                                    <!-- 💲 HIỂN THỊ GIÁ: Giá cũ + Giá mới sau giảm -->
+                                                    <!-- ════════════════════════════════════════ -->
                                                     <div class="product-price fs-text-right" style="line-height:1.1;">
                                                         @if (khuyenMai != null && khuyenMai.phantramgiam > 0)
                                                         {
+                                                            // Giá CŨ (gạch ngang): 50.000đ
                                                             <div class="fs-price-old">@giaGoc?.ToString("N0")<sup class="fs-price-sup">đ</sup></div>
                                                         }
+                                                        <!-- 💲 Giá MỚI (màu đỏ nếu có KM, đen nếu không): 40.000đ -->
                                                         <div class="current-price current-price-@item.mamon fs-price-current" style="color:@(khuyenMai != null ? "var(--fs-danger)" : "var(--fs-dark)");">
                                                             @(khuyenMai != null ? giaKhuyenMai?.ToString("N0") : item.tbBienTheMonAns?.FirstOrDefault()?.giatien?.ToString("N0"))<sup class="fs-price-sup">đ</sup>
                                                         </div>

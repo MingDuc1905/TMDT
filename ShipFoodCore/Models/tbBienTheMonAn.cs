@@ -15,24 +15,30 @@ public partial class tbBienTheMonAn
 {
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-    public int id { get; set; }
+    public int id { get; set; }           // PK tự tăng — định danh biến thể size
 
-    public int mamon { get; set; }
+    public int mamon { get; set; }       // FK → tbMonAn.mamon — món cha của biến thể này
 
     [MaxLength(10)]
-    public string? size { get; set; }
+    public string? size { get; set; }     // Tên size: "M", "L", "XL" (null = mặc định)
 
     [Column(TypeName = "money")]
-    public decimal? giatien { get; set; }
+    public decimal? giatien { get; set; } // GIÁ TIỀN thực tế của biến thể size này (VD: 50.000đ)
+                                          // ⭐ Đây là GIÁ GỐC để tính giảm giá!
 
-    // Navigation
+    // Navigation — EF Core load tự động
     [ForeignKey("mamon")]
     public virtual tbMonAn? tbMonAn { get; set; }
+    // ⬆ Load món cha: tenmon, hinhanh, conhang, isDeleted
 
     public virtual ICollection<tbChiTietDonHang> tbChiTietDonHangs { get; set; } = new HashSet<tbChiTietDonHang>();
+    // ⬆ Các chi tiết đơn hàng thuộc biến thể này (khi user đặt)
+
     public virtual ICollection<tbMonAnKhuyenMai> tbMonAnKhuyenMais { get; set; } = new HashSet<tbMonAnKhuyenMai>();
+    // ⬆ Các KM áp dụng cho biến thể này (qua bảng trung gian)
 
     // Singular alias
-    [NotMapped]
+    [NotMapped]                           // Chỉ ở RAM, ko có cột trong DB
     public ICollection<tbChiTietDonHang> tbChiTietDonHang => tbChiTietDonHangs;
+    // ⬆ Alias cho tương thích code cũ (số ít thay vì số nhiều)
 }

@@ -146,6 +146,13 @@
                                                     <i class="fas fa-times"></i> Hủy đơn
                                                 </button>
                                             }
+                                            @if (i.trangthai == "Hoàn thành")
+                                            {
+                                                <button type="button" class="btn btn-sm btn-warning w-100" style="border-radius:8px;font-size:12px;color:#fff;font-weight:600;"
+                                                        onclick="openReviewFromList(@i.madh)">
+                                                    <i class="fas fa-star"></i> Đánh giá
+                                                </button>
+                                            }
                                         </div>
                                     </td>
                                 </tr>
@@ -157,6 +164,44 @@
         </div>
     }
 </div>
+<!-- ═══════════════════════════════════════════════════════════════
+     ⭐ MODAL ĐÁNH GIÁ MÓN ĂN (dùng chung)
+     ═══════════════════════════════════════════════════════════════ -->
+<div id="reviewModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.55);z-index:99999;align-items:center;justify-content:center;">
+    <div style="background:#fff;border-radius:20px;max-width:460px;width:92%;padding:32px 24px;box-shadow:0 20px 60px rgba(0,0,0,.2);animation:popIn .3s ease;text-align:center;">
+        <div style="font-size:40px;margin-bottom:12px;">⭐</div>
+        <h4 style="font-weight:700;margin-bottom:4px;">Đánh giá món ăn</h4>
+        <p class="text-muted" style="font-size:14px;margin-bottom:20px;">Chia sẻ trải nghiệm của bạn về món ăn này</p>
+
+        <div id="reviewStars" style="display:flex;justify-content:center;gap:8px;margin-bottom:20px;font-size:36px;cursor:pointer;">
+            <span data-star="1" class="review-star" style="color:#ddd;transition:color .15s;">★</span>
+            <span data-star="2" class="review-star" style="color:#ddd;transition:color .15s;">★</span>
+            <span data-star="3" class="review-star" style="color:#ddd;transition:color .15s;">★</span>
+            <span data-star="4" class="review-star" style="color:#ddd;transition:color .15s;">★</span>
+            <span data-star="5" class="review-star" style="color:#ddd;transition:color .15s;">★</span>
+        </div>
+        <p id="reviewLabel" style="font-size:14px;color:#888;margin-bottom:16px;">Chọn số sao</p>
+
+        <div id="reviewItemsList" style="margin-bottom:16px;">
+            <p class="text-muted small">Đang tải danh sách món...</p>
+        </div>
+
+        <textarea id="reviewComment" style="width:100%;border:1.5px solid #dee2e6;border-radius:12px;padding:12px;font-size:14px;resize:none;min-height:80px;" placeholder="Nhận xét của bạn... (không bắt buộc)"></textarea>
+        <p style="text-align:right;font-size:11px;color:#aaa;margin:4px 0 16px;"><span id="charCount">0</span>/500</p>
+
+        <div style="display:flex;gap:10px;">
+            <button type="button" class="btn btn-outline-secondary flex-fill" style="border-radius:10px;" onclick="closeReviewModal()">Hủy</button>
+            <button type="button" class="btn btn-warning flex-fill" style="border-radius:10px;color:#fff;font-weight:600;" id="btnSubmitReview" onclick="submitReview()" disabled>
+                <i class="fas fa-star"></i> Gửi đánh giá
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+    @@keyframes popIn { 0%{transform:scale(.8);opacity:0} 100%{transform:scale(1);opacity:1} }
+</style>
+
 @Html.AntiForgeryToken()
 <script src="~/Source/Restaurant/vendor/global/global.min.js"></script>
 <script src="~/Source/Restaurant/vendor/datatables/js/jquery.dataTables.min.js"></script>
@@ -180,6 +225,152 @@
                 alert('Lỗi kết nối. Vui lòng thử lại.');
             }
         });
+    }
+
+    // ════════════════════════════════════════════════════════
+    // ⭐ ĐÁNH GIÁ MÓN ĂN FROM LỊCH SỬ ĐƠN HÀNG
+    // ════════════════════════════════════════════════════════
+    var selectedReviewStars = 0;
+    var reviewingMactdh = null;
+    var reviewingOrderId = 0;
+
+    function openReviewFromList(orderId) {
+        reviewingOrderId = orderId;
+        selectedReviewStars = 0;
+        reviewingMactdh = null;
+        $('#reviewComment').val('');
+        $('#charCount').text('0');
+        $('#btnSubmitReview').prop('disabled', true);
+        resetStars();
+        $('#reviewLabel').text('Chọn số sao');
+        $('#reviewItemsList').html('<p class="text-muted small">Đang tải danh sách món...</p>');
+        $('#reviewModal').css('display','flex');
+
+        $.ajax({
+            url: '@Url.Action("GetReviewableItems", "Cart")',
+            type: 'GET',
+            data: { orderId: orderId },
+            success: function(res) {
+                if (res.success && res.items) {
+                    var html = '<div style="text-align:left;margin-bottom:12px;">';
+                    html += '<label style="font-weight:600;font-size:14px;">Chọn món để đánh giá:</label>';
+                    res.items.forEach(function(item) {
+                        var disabled = item.reviewed ? 'disabled' : '';
+                        var cls = item.reviewed ? 'text-muted' : '';
+                        html += '<div class="review-item-option ' + cls + '" style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:10px;border:1.5px solid #e5e7eb;margin-top:6px;cursor:' + (item.reviewed ? 'default' : 'pointer') + ';"';
+                        html += ' onclick="' + (item.reviewed ? '' : 'selectReviewItem(' + item.mactdh + ',\' ' + (item.tenmon || 'Món ăn').replace(/'/g, "\\'") + '\')') + '">';
+                        html += '<input type="radio" name="reviewItem" value="' + item.mactdh + '" ' + disabled + '>';
+                        html += '<span style="flex:1;font-size:14px;">' + escHtml(item.tenmon || 'Món ăn') + ' <span class="text-muted">x' + item.soluong + '</span></span>';
+                        if (item.reviewed) {
+                            html += '<span class="badge bg-success" style="font-size:11px;"><i class="fas fa-check"></i> Đã đánh giá</span>';
+                        }
+                        html += '</div>';
+                    });
+                    html += '</div>';
+                    $('#reviewItemsList').html(html);
+                } else {
+                    $('#reviewItemsList').html('<p class="text-danger small">' + (res.message || 'Không có món nào để đánh giá') + '</p>');
+                }
+            },
+            error: function() {
+                $('#reviewItemsList').html('<p class="text-danger small">Lỗi tải danh sách món</p>');
+            }
+        });
+    }
+
+    function selectReviewItem(mactdh, tenmon) {
+        reviewingMactdh = mactdh;
+        $('.review-item-option').css('border-color','#e5e7eb').css('background','');
+        $('.review-item-option input[value="' + mactdh + '"]').closest('.review-item-option').css('border-color','#ffc107').css('background','#fffef0');
+        updateSubmitBtn();
+    }
+
+    function closeReviewModal() {
+        $('#reviewModal').css('display','none');
+    }
+
+    $(document).on('click', '.review-star', function() {
+        selectedReviewStars = parseInt($(this).data('star'));
+        updateStars();
+        updateSubmitBtn();
+    });
+
+    $(document).on('mouseenter', '.review-star', function() {
+        var val = parseInt($(this).data('star'));
+        $('.review-star').each(function() {
+            var s = parseInt($(this).data('star'));
+            $(this).css('color', s <= val ? '#ffc107' : '#ddd');
+        });
+        var labels = ['', 'Rất tệ 😞', 'Tệ 😕', 'Tạm được 😐', 'Ngon 👍', 'Tuyệt vời 🎉'];
+        $('#reviewLabel').text(labels[val] || 'Chọn số sao');
+    });
+
+    $(document).on('mouseleave', '.review-star', function() {
+        updateStars();
+    });
+
+    function resetStars() {
+        selectedReviewStars = 0;
+        updateStars();
+        $('#reviewLabel').text('Chọn số sao');
+    }
+
+    function updateStars() {
+        $('.review-star').each(function() {
+            var s = parseInt($(this).data('star'));
+            $(this).css('color', s <= selectedReviewStars ? '#ffc107' : '#ddd');
+        });
+        var labels = ['', 'Rất tệ 😞', 'Tệ 😕', 'Tạm được 😐', 'Ngon 👍', 'Tuyệt vời 🎉'];
+        if (selectedReviewStars > 0) $('#reviewLabel').text(labels[selectedReviewStars] || 'Chọn số sao');
+    }
+
+    function updateSubmitBtn() {
+        $('#btnSubmitReview').prop('disabled', !(selectedReviewStars > 0 && reviewingMactdh != null));
+    }
+
+    $(document).on('input', '#reviewComment', function() {
+        var len = $(this).val().length;
+        if (len > 500) { $(this).val($(this).val().substring(0, 500)); len = 500; }
+        $('#charCount').text(len);
+    });
+
+    function submitReview() {
+        if (!selectedReviewStars || !reviewingMactdh) {
+            alert('Vui lòng chọn số sao và món ăn');
+            return;
+        }
+
+        $('#btnSubmitReview').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Đang gửi...');
+
+        $.ajax({
+            url: '@Url.Action("SubmitReview", "Cart")',
+            type: 'POST',
+            data: {
+                mactdh: reviewingMactdh,
+                diemdanhgia: selectedReviewStars,
+                nhanxet: $('#reviewComment').val()
+            },
+            headers: { 'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() },
+            success: function(res) {
+                if (res.success) {
+                    alert('✅ ' + res.message);
+                    closeReviewModal();
+                    location.reload();
+                } else {
+                    alert('❌ ' + res.message);
+                    $('#btnSubmitReview').prop('disabled', false).html('<i class="fas fa-star"></i> Gửi đánh giá');
+                }
+            },
+            error: function() {
+                alert('❌ Lỗi kết nối. Vui lòng thử lại.');
+                $('#btnSubmitReview').prop('disabled', false).html('<i class="fas fa-star"></i> Gửi đánh giá');
+            }
+        });
+    }
+
+    function escHtml(str) {
+        if (!str) return '';
+        var d = document.createElement('div'); d.textContent = str; return d.innerHTML;
     }
 
     $(function () {

@@ -640,6 +640,15 @@ APP_DOMAIN=https://fastship-web.onrender.com
 - [x] ✅ **Phân biệt auto-message vs real message** — CSS class `.msg.system` + icon 📢 + bg khác biệt
 - [x] ✅ **Null guard RestaurantController** — check `getQuanAn()` null trong OrderList + Wallet
 - [x] ✅ **Diagnostic logging ProcessPayment** — log chi tiết orderId, maquan, userId, restaurantIds
+- [x] ✅ **Anti-AI-Slop P1.1: DetailRestaurant CSS refactor** — 50+ CSS utility classes, ~40 inline styles → classes (44% reduction: 99 → 55), hardcode colors → `--fs-*` tokens
+- [x] ✅ **Anti-AI-Slop P1.2+P1.3: Checkout + OrderTracking** — hardcode `#3CB815`/`#e74c3c`/`#1a1a2e` → `var(--fs-green)`/`var(--fs-danger)`/`var(--fs-dark)`, add utility classes (toast, popup, coupon overlay, voucher)
+- [x] ✅ **Anti-AI-Slop P2.2: onmouseenter/leave → CSS hover** — `_LayoutPageShipper.cshtml` + `_LayoutPageRestaurant.cshtml` dùng `.fs-nav-hover:hover` class, xoá inline JS handlers
+- [x] ✅ **Anti-AI-Slop P2.3+P3: Accessibility audit** — `aria-label` trên 6 icon-only buttons (VoucherManager edit/delete, Checkout remove-coupon/close-popup, OrderList reset-filter, DeliveryLogs view-detail), `aria-hidden="true"` trên ~40 decorative FA icons (Dashboard KPI/charts, DeliveryLogs stats/status)
+- [x] ✅ **Design tokens bổ sung** — thêm `--fs-danger: #e74c3c`, `--fs-warning: #f39c12` + 4 utility classes (`.fs-text-danger`, `.fs-text-warning`, `.fs-text-dark`, `.fs-text-white`)
+- [x] ✅ **Fix: Cart lost items after placing order** — HttpOnly cookie detection bug (JavaScript không đọc được `.AspNetCore.Cookies`) → server-side `isLoggedIn` flag, xoá `justOrdered` lock block trong `RestoreFromLocal`
+- [x] ✅ **Fix: Analytics null guard** — null check KPI cards trong Admin Dashboard, từ chối null model
+- [x] ✅ **Fix: OrderList date filter (fromDate/toDate)** — thêm 2 input type="date" + server-side `.Where(d => d.NgayDat >= fromDate && d.NgayDat <= toDate)`
+- [x] ✅ **Fix: Out-of-stock badge + disabled button** — `soluong == 0` → badge "Cháy hàng" + disabled nút "Thêm vào giỏ" + CSS `.fs-btn-disabled`
 - [ ] **⚠️ Filter/Search quá phức tạp** — MenuSearch dynamic SQL + Bottom Sheet + Dual Filter Bar cần đơn giản hoá
 - [ ] Real payment (Stripe/PayPal/ZaloPay)
 
@@ -738,7 +747,7 @@ Dự án mã nguồn mở — phát triển bởi đội ngũ ShipFood.
 
 ---
 
-> **Phiên bản**: 5.6 — 14 bug fixes, OrderStatus constants, atomic transaction, null guards, chat improvements  
+> **Phiên bản**: 5.7 — Anti-AI-Slop UI refactor (3 views → design tokens, 250 inline styles ↓50%), accessibility audit (~40 icons + 6 buttons), Cart HttpOnly bug fix, OrderList date filter, out-of-stock badge  
 > **Ngôn ngữ**: C# 12, HTML5, CSS3, JavaScript ES6  
 > **Kiến trúc**: ASP.NET Core MVC n-tier  
 > **Database**: PostgreSQL 15+ (Npgsql)  

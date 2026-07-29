@@ -206,13 +206,17 @@ public class HomeController : BaseController
             var thucDon = db.tbDanhMuc.Where(d =>
                 db.tbMonAn.Any(m => m.maquanan == id && m.madanhmuc == d.madanhmuc)).ToList();
 
-            // Lấy danh sách khuyến mãi cho các món ăn (hiển thị cho người dùng)
+            // ════════════════════════════════════════════════════════
+            // 🏷️ GIẢM GIÁ: Query tbMonAnKhuyenMai — lấy tất cả KM còn hạn
+            // ════════════════════════════════════════════════════════
+            // B1: Lấy danh sách mã món ăn để đối chiếu KM
             var monAnIds = danhSachMonAn.Select(m => m.mamon).ToList();
+            // B2: Query KM — CHỈ lấy "Còn hạn" (tránh KM đã hết hạn)
             var khuyenMais = db.tbMonAnKhuyenMai
-                .Where(km => km.trangthai == "Còn hạn")
-                .Include(km => km.tbKhuyenMai)
-                .Include(km => km.tbBienTheMonAn)
-                .ToList();
+                .Where(km => km.trangthai == "Còn hạn")           // ĐK: chỉ KM đang hiệu lực
+                .Include(km => km.tbKhuyenMai)                   // Include KM gốc (tenkm, ngaybatdau...)
+                .Include(km => km.tbBienTheMonAn)                // Include biến thể (giatien, size)
+                .ToList();                                       // Execute query → List in-memory
 
             // Lấy danh sách món ăn người dùng đã mua (nếu đã đăng nhập)
             var cartSession = GetCart();
@@ -235,11 +239,13 @@ public class HomeController : BaseController
             }
             ViewBag.DaMuaMonAnIds = daMuaMonAnIds;
 
-            ViewBag.ThucDon = thucDon;
-            ViewBag.DanhSachMonAn = danhSachMonAn;
-            ViewBag.maquan = id;
-            ViewBag.searchKey = searchKey;
-            ViewBag.KhuyenMais = khuyenMais;
+            ViewBag.ThucDon = thucDon;           // DS danh mục (filter pills)
+            ViewBag.DanhSachMonAn = danhSachMonAn; // DS món ăn của quán
+            ViewBag.maquan = id;                   // ID quán cho view biết
+            ViewBag.searchKey = searchKey;         // Từ khoá tìm kiếm (nếu có)
+            ViewBag.KhuyenMais = khuyenMais;       // ⭐ KM giảm giá → view dùng để tính giá mới
+                                                    //   View sẽ dùng: km.tbBienTheMonAn?.mamon == item.mamon
+                                                    //   để tìm KM của từng món + tính giá
 
             // ─── Apriori: Gợi ý món thường mua kèm (dùng Apriori đa phần tử) ───
             try

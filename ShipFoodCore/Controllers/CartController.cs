@@ -600,6 +600,120 @@ public class CartController : BaseController
         return View();
     }
 
+    // ═══════════════════════════════════════════════════════════════
+    // ⭐ ĐÁNH GIÁ MÓN ĂN — Review items from completed orders
+    // ═══════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// API: Lấy danh sách món có thể đánh giá từ đơn hàng đã hoàn thành
+    /// </summary>
+    [HttpGet]
+    public JsonResult GetReviewableItems(int orderId)
+    {
+        if (!CheckLogin())
+            return Json(new { success = false, message = "Vui lòng đăng nhập" });
+
+        try
+        {
+            var donHang = db.tbDonHang
+                .Include(d => d.tbChiTietDonHangs).ThenInclude(c => c.tbBienTheMonAn!).ThenInclude(b => b.tbMonAn)
+                .Include(d => d.tbThongTinDatHang)
+                .FirstOrDefault(d => d.madh == orderId);
+
+            if (donHang == null)
+                return Json(new { success = false, message = "Đơn hàng không tồn tại" });
+
+            var user = GetCurrentUser();
+            if (donHang.tbThongTinDatHang?.userid != user?.userid)
+                return Json(new { success = false, message = "Không có quyền đánh giá đơn hàng này" });
+
+            // Chỉ cho đánh giá đơn đã hoàn thành
+            if (donHang.trangthai != "Hoàn thành")
+                return Json(new { success = false, message = "Chỉ có thể đánh giá đơn hàng đã hoàn thành" });
+
+            // Lấy danh sách đánh giá đã có để biết món nào chưa đánh giá
+            var existingReviewMactdh = db.tbDanhGias
+                .Where(dg => dg.mactdh != null && donHang.tbChiTietDonHangs.Select(c => c.mactdh).Contains(dg.mactdh.Value))
+                .Select(dg => dg.mactdh)
+                .ToHashSet();
+
+            var items = donHang.tbChiTietDonHangs.Select(c => new
+            {
+                mactdh = c.mactdh,
+                tenmon = c.tbMonAn?.tenmon ?? "Món ăn",
+                soluong = c.soluong,
+                reviewed = existingReviewMactdh.Contains(c.mactdh)
+            }).ToList();
+
+            return Json(new { success = true, items = items, orderId = orderId });
+        }
+        catch (Exception ex)
+        {
+            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<CartController>>();
+            logger.LogError(ex, "GetReviewableItems failed for order #{OrderId}", orderId);
+            return Json(new { success = false, message = "Lỗi khi tải thông tin đánh giá" });
+        }
+    }
+
+    /// <summary>
+    /// API: Gửi đánh giá món ăn
+    /// </summary>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public JsonResult SubmitReview(int mactdh, int diemdanhgia, string? nhanxet)
+    {
+        if (!CheckLogin())
+            return Json(new { success = false, message = "Vui lòng đăng nhập" });
+
+        if (diemdanhgia < 1 || diemdanhgia > 5)
+            return Json(new { success = false, message = "Điểm đánh giá phải từ 1-5 sao" });
+
+        if (nhanxet != null && nhanxet.Length > 500)
+            return Json(new { success = false, message = "Nhận xét không được vượt quá 500 ký tự" });
+
+        try
+        {
+            // Kiểm tra chi tiết đơn hàng có tồn tại và thuộc về user không
+            var chiTiet = db.tbChiTietDonHangs
+                .Include(c => c.tbDonHang).ThenInclude(d => d.tbThongTinDatHang)
+                .FirstOrDefault(c => c.mactdh == mactdh);
+
+            if (chiTiet == null)
+                return Json(new { success = false, message = "Chi tiết đơn hàng không tồn tại" });
+
+            var user = GetCurrentUser();
+            if (chiTiet.tbDonHang?.tbThongTinDatHang?.userid != user?.userid)
+                return Json(new { success = false, message = "Bạn không có quyền đánh giá món này" });
+
+            if (chiTiet.tbDonHang.trangthai != "Hoàn thành")
+                return Json(new { success = false, message = "Chỉ có thể đánh giá món từ đơn hàng đã hoàn thành" });
+
+            // Kiểm tra đã đánh giá chưa
+            var existingReview = db.tbDanhGias.FirstOrDefault(dg => dg.mactdh == mactdh);
+            if (existingReview != null)
+                return Json(new { success = false, message = "Bạn đã đánh giá món này rồi" });
+
+            // Tạo đánh giá mới
+            var danhGia = new tbDanhGia
+            {
+                mactdh = mactdh,
+                diemdanhgia = diemdanhgia,
+                nhanxet = nhanxet ?? "",
+                hinhanh = null
+            };
+            db.tbDanhGias.Add(danhGia);
+            db.SaveChanges();
+
+            return Json(new { success = true, message = "Đánh giá thành công! ⭐" });
+        }
+        catch (Exception ex)
+        {
+            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<CartController>>();
+            logger.LogError(ex, "SubmitReview failed for mactdh={Mactdh}", mactdh);
+            return Json(new { success = false, message = "Lỗi khi gửi đánh giá. Vui lòng thử lại." });
+        }
+    }
+
     // ─── E-Delivery: Xem hóa đơn / vận đơn điện tử ───
     [HttpGet]
     public ActionResult EInvoice(int id)

@@ -29,7 +29,9 @@ public partial class tbKhuyenMai
     public DateTime? ngaybatdau { get; set; }
     public DateTime? ngayketthuc { get; set; }
 
-    // Navigation
+        // Navigation — Liên kết với các bảng khác
     public virtual ICollection<tbDonHang> tbDonHangs { get; set; } = new HashSet<tbDonHang>();
+    // ⬆ 1 đơn hàng áp dụng mã KM này (tbDonHang.makm → tbKhuyenMai.makm)
     public virtual ICollection<tbMonAnKhuyenMai> tbMonAnKhuyenMais { get; set; } = new HashSet<tbMonAnKhuyenMai>();
+    // ⬆ 1 KM có thể áp dụng cho NHIỀU món ăn qua bảng trung gian tbMonAnKhuyenMai
 }

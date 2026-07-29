@@ -1,7 +1,7 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/Fastship-v5.6-3CB815?style=for-the-badge&logo=dotnet&logoColor=white&labelColor=111">
-    <img src="https://img.shields.io/badge/Fastship-v5.6-3CB815?style=for-the-badge&logo=dotnet&logoColor=white&labelColor=fff" alt="Fastship v5.6">
+    <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/Fastship-v5.7-3CB815?style=for-the-badge&logo=dotnet&logoColor=white&labelColor=111">
+    <img src="https://img.shields.io/badge/Fastship-v5.7-3CB815?style=for-the-badge&logo=dotnet&logoColor=white&labelColor=fff" alt="Fastship v5.7">
   </picture>
 </p>
 
@@ -350,6 +350,8 @@ dotnet run
 | `POST` | `/Chatbot/SendMessage` | AI chatbot |
 | `GET` | `/Admin/GetDashboardStats` | Dashboard stats |
 | `GET` | `/Admin/GetRevenueChart` | Revenue chart data |
+| `POST` | `/Restaurant/ToggleConHang` | AJAX toggle 1-click hết hàng |
+| `GET` | `/Home/SeedDb` | Seed database từ mysql_utf8.sql |
 | `GET` | `/health` | Healthcheck |
 
 </details>
@@ -423,20 +425,17 @@ TMDT-master/
 </details>
 
 <details>
-<summary><b>✅ v5.6 — Đã hoàn thành (Tháng 7, 2026)</b></summary>
+<summary><b>✅ v5.7 — Đã hoàn thành (Tháng 7, 2026)</b></summary>
 
-- [x] 📦 **OrderStatus constants class** — centralized state machine, transition validation, auto-message templates
-- [x] 🔒 **Atomic transaction ProcessPayment** — wrap order creation trong transaction, rollback nếu lỗi giữa chừng
-- [x] 💰 **Fix race condition cộng tiền shipper** — transaction + status check, chống double-credit
-- [x] 💬 **Auto-message chat system** — tự động tạo tin nhắn khi shipper nhận đơn, phân biệt system vs user message
-- [x] 🔄 **Fix pagination LichSu** — page parameter hoạt động đúng
-- [x] 🛡️ **Thêm [ValidateAntiForgeryToken]** — 4 POST actions trong RestaurantController
-- [x] 🎯 **Fix NullReferenceException** — null checks cho huydon + getQuanAn()
-- [x] 📝 **Diagnostic logging** — log chi tiết orderId, maquan, userId khi tạo đơn
-- [x] ⚡ **Loading state ClaimOrder** — spinner + disabled button chống double-click
-- [x] 🔊 **Audio notification fallback** — Web Audio API + page title flash
-- [x] 🗺️ **Geolocation cleanup** — beforeunload + clearWatch()
-- [x] 💬 **Phân biệt auto-message vs real message** — CSS class + icon khác biệt
+- [x] 🎨 **Anti-AI-Slop P1.1: DetailRestaurant CSS refactor** — 50+ CSS utility classes, ~40 inline styles → classes (44% reduction: 99 → 55), hardcode colors → `--fs-*` tokens
+- [x] 🎨 **Anti-AI-Slop P1.2+P1.3: Checkout + OrderTracking** — hardcode `#3CB815`/`#e74c3c`/`#1a1a2e` → `var(--fs-green)`/`var(--fs-danger)`/`var(--fs-dark)`, add utility classes
+- [x] 🎨 **Anti-AI-Slop P2.2: onmouseenter/leave → CSS hover** — Dashboards dùng `.fs-nav-hover:hover` class, xoá inline JS handlers
+- [x] ♿ **Accessibility audit** — `aria-label` trên 6 icon-only buttons, `aria-hidden="true"` trên ~40 decorative FA icons
+- [x] 🎯 **Design tokens bổ sung** — thêm `--fs-danger`, `--fs-warning` + 4 utility classes
+- [x] 🛒 **Fix: Cart lost items after placing order** — HttpOnly cookie detection bug → server-side `isLoggedIn` flag
+- [x] 📊 **Fix: Analytics null guard** — null check KPI cards trong Admin Dashboard
+- [x] 📅 **Fix: OrderList date filter** — thêm input type="date" + server-side date filtering
+- [x] 🏷️ **Fix: Out-of-stock badge + disabled button** — `soluong == 0` → badge "Cháy hàng" + disabled nút
 
 </details>
 

@@ -297,7 +297,8 @@ public class ShipperController : BaseController
             {
                 noidung = $"💸 Rút tiền: -{soTien:N0}đ. Số dư mới: {user.vitien:N0}đ",
                 makh = sh.userid,
-                mashipper = sh.userid
+                mashipper = sh.userid,
+                thoigian = DateTime.Now  // ⚠️ FIX: thiếu thời gian gửi tin nhắn
             });
             db.SaveChanges();
 

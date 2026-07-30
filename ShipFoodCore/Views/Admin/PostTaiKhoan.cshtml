@@ -45,10 +45,10 @@
                             <label>Loại tài khoản</label>
                             <div style="display: inline-block; background: white;">
                                 <select style=" width: 100%;" name="loaitaikhoan">
-                                    <option style="width:100%;" value="Khách hàng" selected="@(user.loaitaikhoan != null && user.loaitaikhoan.Equals("Khách hàng"))">Khách hàng</option>
-                                    <option style="width:100%;" value="Shipper" selected="@(user.loaitaikhoan != null && user.loaitaikhoan.Equals("Shipper"))">Shipper</option>
-                                    <option style="width:100%;" value="Quán ăn" selected="@(user.loaitaikhoan != null && user.loaitaikhoan.Equals("Quán ăn"))">Quán ăn</option>
-                                    <option style="width:100%;" value="Admin" selected="@(user.loaitaikhoan != null && user.loaitaikhoan.Equals("Admin"))">Admin</option>
+                                    <option style="width:100%;" value="Khách hàng" selected="@(user.loaitaikhoan == "Khách hàng")">Khách hàng</option>
+                                    <option style="width:100%;" value="Shipper" selected="@(user.loaitaikhoan == "Shipper")">Shipper</option>
+                                    <option style="width:100%;" value="Quán ăn" selected="@(user.loaitaikhoan == "Quán ăn")">Quán ăn</option>
+                                    <option style="width:100%;" value="Admin" selected="@(user.loaitaikhoan == "Admin")">Admin</option>
                                 </select>
                             </div>
                         </div>

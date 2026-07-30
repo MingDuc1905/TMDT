@@ -346,7 +346,14 @@ public class AdminController : BaseController
 
         if (id != null)
         {
-            user = db.tbUser.Find(id) ?? new tbUser();
+            // 🐛 FIX: Dùng Include d? load navigation properties (tbKhachHang, tbQuanAn, tbShipper, tbAdmin)
+            // Không dùng Find() vì lazy loading không ???c b?t trong ASP.NET Core EF
+            user = db.tbUser
+                .Include(u => u.tbKhachHang)
+                .Include(u => u.tbQuanAn)
+                .Include(u => u.tbShipper)
+                .Include(u => u.tbAdmin)
+                .FirstOrDefault(u => u.userid == id) ?? new tbUser();
             hoten = user.loaitaikhoan switch
             {
                 "Khách hàng" => user.tbKhachHang?.tenkh ?? "",

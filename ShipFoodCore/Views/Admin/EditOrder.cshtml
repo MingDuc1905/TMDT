@@ -77,7 +77,7 @@
                             <option value="">— Giữ nguyên —</option>
                             @foreach (var s in statusList)
                             {
-                                <option value="@s" selected="@(s == Model.trangthai ? true : false)">@s</option>
+                                <option value="@s" selected="@(s == Model.trangthai)">@s</option>
                             }
                         </select>
                     </div>
@@ -88,7 +88,7 @@
                             <option value="">— Giữ nguyên —</option>
                             @foreach (var sh in shippers)
                             {
-                                <option value="@sh.userid" selected="@(sh.userid == Model.mashipper ? true : false)">
+                                <option value="@sh.userid" selected="@(sh.userid == Model.mashipper)">
                                     @sh.tenshipper @(sh.tbUser != null ? $"({sh.tbUser.sdt})" : "")
                                 </option>
                             }

@@ -332,34 +332,45 @@ public class RestaurantController : BaseController
     public ActionResult Review()
     {
         if (!checkLogin()) return RedirectToAction("Login", "Home");
-        var quanAn = getQuanAn();
-        if (quanAn == null) return RedirectToAction("Logout", "Home");
-
-        var maMonQuan = quanAn.tbMonAn.Select(m => m.mamon).ToList();
-        if (!maMonQuan.Any())
+        try
         {
-            ViewBag.danhgias = new List<tbDanhGia>();
+            var quanAn = getQuanAn();
+            if (quanAn == null) return RedirectToAction("Logout", "Home");
+
+            var maMonQuan = quanAn.tbMonAn.Select(m => m.mamon).ToList();
+            if (!maMonQuan.Any())
+            {
+                ViewBag.danhgias = new List<tbDanhGia>();
+                return View();
+            }
+
+            // ponytail: PostgreSQL-safe — JOIN thay vì navigation chain nullable
+            // Bước 1: Lấy review IDs qua 2 JOIN (không dùng navigation chain)
+            var reviewIds = (from d in db.tbDanhGia
+                             join ct in db.tbChiTietDonHang on d.mactdh equals ct.mactdh
+                             join bt in db.tbBienTheMonAn on ct.mamon equals bt.id
+                             where maMonQuan.Contains(bt.mamon)
+                             select d.madg).Distinct().ToList();
+
+            // Bước 2: Load reviews với Include từ danh sách IDs
+            var danhGias = db.tbDanhGia
+                .Where(d => reviewIds.Contains(d.madg))
+                .Include(d => d.tbChiTietDonHang).ThenInclude(ct => ct.tbDonHang).ThenInclude(dh => dh.tbThongTinDatHang).ThenInclude(tt => tt.tbKhachHang)
+                .Include(d => d.tbChiTietDonHang).ThenInclude(ct => ct.tbBienTheMonAn).ThenInclude(b => b.tbMonAn)
+                .OrderByDescending(d => d.madg)
+                .ToList();
+
+            ViewBag.danhgias = danhGias;
             return View();
         }
-
-        // ponytail: PostgreSQL-safe — JOIN thay vì navigation chain nullable
-        // Bước 1: Lấy review IDs qua 2 JOIN (không dùng navigation chain)
-        var reviewIds = (from d in db.tbDanhGia
-                         join ct in db.tbChiTietDonHang on d.mactdh equals ct.mactdh
-                         join bt in db.tbBienTheMonAn on ct.mamon equals bt.id
-                         where maMonQuan.Contains(bt.mamon)
-                         select d.madg).Distinct().ToList();
-
-        // Bước 2: Load reviews với Include từ danh sách IDs
-        var danhGias = db.tbDanhGia
-            .Where(d => reviewIds.Contains(d.madg))
-            .Include(d => d.tbChiTietDonHang).ThenInclude(ct => ct.tbDonHang).ThenInclude(dh => dh.tbThongTinDatHang).ThenInclude(tt => tt.tbKhachHang)
-            .Include(d => d.tbChiTietDonHang).ThenInclude(ct => ct.tbBienTheMonAn).ThenInclude(b => b.tbMonAn)
-            .OrderByDescending(d => d.madg)
-            .ToList();
-
-        ViewBag.danhgias = danhGias;
-        return View();
+        catch (Exception ex)
+        {
+            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<RestaurantController>>();
+            logger.LogError(ex, "Review CRASHED: {Message}", ex.Message);
+            // ponytail: diagnostic — hi?n generic message, log full error server-side
+            TempData["ErrMsg"] = "Không thể tải đánh giá. Vui lòng thử lại sau.";
+            return RedirectToAction("Index");
+        }
     }
 
     public ActionResult Discount()
@@ -705,61 +716,71 @@ public class RestaurantController : BaseController
     public ActionResult ProductList()
     {
         if (!checkLogin()) return RedirectToAction("Login", "Home");
-        var user = GetCurrentUser();
-        if (user == null) return RedirectToAction("Login", "Home");
-
-        // ponytail: PostgreSQL-safe — chia Include 3 levels thành 2 queries
-        // Bước 1: Load monAn + tbDanhMuc + tbBienTheMonAns (2 levels, tránh Cartesian explosion)
-        var monAns = db.tbMonAn
-            .Where(m => m.maquanan == user.userid && !m.isDeleted)
-            .Include(m => m.tbDanhMuc)
-            .Include(m => m.tbBienTheMonAns)
-            .ToList();
-
-        // Bước 2: Load chiTietDonHangs + tbDanhGias riêng biệt
-        var bienTheIds = monAns.SelectMany(m => m.tbBienTheMonAns.Select(b => b.id)).ToList();
-        var chiTietDHs = bienTheIds.Any()
-            ? db.tbChiTietDonHang
-                .Where(ct => ct.mamon != null && bienTheIds.Contains(ct.mamon.Value))
-                .Include(ct => ct.tbDanhGias)
-                .ToList()
-            : new List<tbChiTietDonHang>();
-
-        var datas = new List<DataAnalytic>();
-        foreach (var m in monAns)
+        try
         {
-            var bienTheIdsForMon = m.tbBienTheMonAns.Select(b => b.id).ToHashSet();
-            var chiTietMonAn = chiTietDHs.Where(ct => ct.mamon != null && bienTheIdsForMon.Contains(ct.mamon.Value)).ToList();
+            var user = GetCurrentUser();
+            if (user == null) return RedirectToAction("Login", "Home");
 
-            int totalDiem = 0;
-            int soDanhGia = 0;
-            int soLuongBan = 0;
+            // ponytail: PostgreSQL-safe — chia Include 3 levels thành 2 queries
+            // Bước 1: Load monAn + tbDanhMuc + tbBienTheMonAns (2 levels, tránh Cartesian explosion)
+            var monAns = db.tbMonAn
+                .Where(m => m.maquanan == user.userid && !m.isDeleted)
+                .Include(m => m.tbDanhMuc)
+                .Include(m => m.tbBienTheMonAns)
+                .ToList();
 
-            foreach (var ct in chiTietMonAn)
+            // Bước 2: Load chiTietDonHangs + tbDanhGias riêng biệt
+            var bienTheIds = monAns.SelectMany(m => m.tbBienTheMonAns.Select(b => b.id)).ToList();
+            var chiTietDHs = bienTheIds.Any()
+                ? db.tbChiTietDonHang
+                    .Where(ct => ct.mamon != null && bienTheIds.Contains(ct.mamon.Value))
+                    .Include(ct => ct.tbDanhGias)
+                    .ToList()
+                : new List<tbChiTietDonHang>();
+
+            var datas = new List<DataAnalytic>();
+            foreach (var m in monAns)
             {
-                soLuongBan += ct.soluong ?? 0;
-                foreach (var dg in ct.tbDanhGias)
+                var bienTheIdsForMon = m.tbBienTheMonAns.Select(b => b.id).ToHashSet();
+                var chiTietMonAn = chiTietDHs.Where(ct => ct.mamon != null && bienTheIdsForMon.Contains(ct.mamon.Value)).ToList();
+
+                int totalDiem = 0;
+                int soDanhGia = 0;
+                int soLuongBan = 0;
+
+                foreach (var ct in chiTietMonAn)
                 {
-                    soDanhGia++;
-                    totalDiem += dg.diemdanhgia ?? 0;
+                    soLuongBan += ct.soluong ?? 0;
+                    foreach (var dg in ct.tbDanhGias)
+                    {
+                        soDanhGia++;
+                        totalDiem += dg.diemdanhgia ?? 0;
+                    }
                 }
-            }
 
-            datas.Add(new DataAnalytic
-            {
-                maMonAn = m.mamon,
-                giaTien = m.giatien,
-                tenMonAn = m.tenmon,
-                hinhAnh = m.hinhanh,
-                tenDanhMuc = m.tbDanhMuc?.tendanhmuc,
-                diemDanhGia = soDanhGia > 0 ? totalDiem / soDanhGia : 0,
-                soDanhGia = soDanhGia,
-                soLuongBanDuoc = soLuongBan,
-                conhang = m.conhang
-            });
+                datas.Add(new DataAnalytic
+                {
+                    maMonAn = m.mamon,
+                    giaTien = m.giatien,
+                    tenMonAn = m.tenmon,
+                    hinhAnh = m.hinhanh,
+                    tenDanhMuc = m.tbDanhMuc?.tendanhmuc,
+                    diemDanhGia = soDanhGia > 0 ? totalDiem / soDanhGia : 0,
+                    soDanhGia = soDanhGia,
+                    soLuongBanDuoc = soLuongBan,
+                    conhang = m.conhang
+                });
+            }
+            ViewBag.datas = datas;
+            return View();
         }
-        ViewBag.datas = datas;
-        return View();
+        catch (Exception ex)
+        {
+            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<RestaurantController>>();
+            logger.LogError(ex, "ProductList CRASHED: {Message}", ex.Message);
+            TempData["ErrMsg"] = "Không thể tải thực đơn. Vui lòng thử lại sau.";
+            return RedirectToAction("Index");
+        }
     }
 
     public ActionResult ProductDetail(int? id)

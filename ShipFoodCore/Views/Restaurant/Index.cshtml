@@ -17,6 +17,14 @@
         border-color:#3CB815;box-shadow:0 4px 16px rgba(60,184,21,.12);
     }
 </style>
+@if (TempData["ErrMsg"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-circle me-2"></i>@TempData["ErrMsg"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
 <div class="container-fluid">
     <div class="form-head d-flex mb-3 align-items-start">
         <div class="me-auto d-none d-lg-block">

@@ -49,7 +49,8 @@ public class ShipperController : BaseController
     private bool checkShipper()
     {
         var user = GetCurrentUser();
-        return user != null && user.loaitaikhoan.Equals("Shipper");
+        // ponytail: dung == thay .Equals() de tranh NullReferenceException khi loaitaikhoan null
+        return user != null && user.loaitaikhoan == "Shipper";
     }
 
     public ActionResult Index()

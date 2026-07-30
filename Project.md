@@ -240,11 +240,63 @@ TMDT-master/
 ├── seed.sql                         # Seed data SQL
 ├── .agents/skills/                  # Codebuff skill rules
 │   └── fastship-rules.md           # FastShip development rules
-├── e2e-tests/                      # Playwright E2E tests
-│   ├── tests/                     # 10 test spec files
+├── e2e-tests/                      # 🧪 Playwright E2E Test Suite (40 files)
+│   ├── tests/                     # 40 test spec files (~350 test cases)
+│   │   ├── 01-visual-asset-validation.spec.ts   # Visual + asset validation (21 TC)
+│   │   ├── 02-customer-flow.spec.ts             # Customer E2E flow login/search/cart (21 TC)
+│   │   ├── 03-restaurant-flow.spec.ts           # Restaurant order lifecycle (25 TC)
+│   │   ├── 04-shipper-flow.spec.ts              # Shipper dashboard + FREEPICK (15 TC)
+│   │   ├── 05-admin-flow.spec.ts                # Admin dashboard + user mgmt (17 TC)
+│   │   ├── 06-edelivery-flow.spec.ts            # E-Delivery QR full flow (15 TC)
+│   │   ├── 07-customer-advanced.spec.ts         # Customer advanced features (15 TC)
+│   │   ├── 08-merchant-advanced.spec.ts         # Merchant CRUD + profile (10 TC)
+│   │   ├── 09-shipper-advanced.spec.ts          # Shipper status/wallet/settings (8 TC)
+│   │   ├── 10-admin-advanced.spec.ts            # Admin advanced features (10 TC)
+│   │   ├── 11-cart-management.spec.ts           # Cart management CRUD (15 TC)
+│   │   ├── 12-checkout-flow.spec.ts             # Checkout full flow (14 TC)
+│   │   ├── 13-order-status.spec.ts              # Order status transitions (8 TC)
+│   │   ├── 14-filter-search.spec.ts             # Filter + search (8 TC)
+│   │   ├── 15-chat-system.spec.ts               # Chat system test
+│   │   ├── 16-edelivery-tracking.spec.ts        # E-Delivery tracking
+│   │   ├── 17-analytics-dashboard.spec.ts       # Analytics dashboard test
+│   │   ├── 18-mobile-responsive.spec.ts         # Mobile responsive test
+│   │   ├── 19-visual-regression.spec.ts         # Visual regression test
+│   │   ├── 20-performance.spec.ts               # Performance test
+│   │   ├── 21-product-detail.spec.ts            # 🆕 Product detail page (6 TC)
+│   │   ├── 22-order-detail-history.spec.ts      # 🆕 Order detail + history (12 TC)
+│   │   ├── 23-reviews.spec.ts                   # 🆕 Review modal (5 TC)
+│   │   ├── 24-customer-chat.spec.ts             # 🆕 Customer chat + AI (4 TC)
+│   │   ├── 25-admin-chat.spec.ts                # 🆕 Admin chat support (4 TC)
+│   │   ├── 26-admin-voucher.spec.ts             # 🆕 Voucher manager (4 TC)
+│   │   ├── 27-restaurant-wallet.spec.ts         # 🆕 Restaurant wallet (4 TC)
+│   │   ├── 28-admin-user-mgmt.spec.ts           # 🆕 Admin user management (10 TC)
+│   │   ├── 29-smoke-e2e.spec.ts                 # 🆕 E2E smoke test (3 flows)
+│   │   ├── 30-admin-order-mgmt.spec.ts          # 🆕 Admin order management (6 TC)
+│   │   ├── 31-restaurant-extra.spec.ts          # 🆕 Analytics/Discount/Reviews (10 TC)
+│   │   ├── 32-public-pages.spec.ts              # 🆕 About/Contact/DanhMuc (10 TC)
+│   │   ├── 33-auth-oauth.spec.ts                # 🆕 Signup/OAuth/Logout (7 TC)
+│   │   ├── 34-chat-roles.spec.ts                # 🆕 Restaurant+Shipper chat (6 TC)
+│   │   ├── 35-payment-flows.spec.ts             # 🆕 VNPay/MoMo/BankWebhook (9 TC)
+│   │   ├── 36-shipper-remaining.spec.ts         # 🆕 ThongBao/ClaimOrder/QR (8 TC)
+│   │   ├── 37-admin-remaining.spec.ts           # 🆕 EditOrder/WalletManager (10 TC)
+│   │   ├── 38-admin-api-dashboard.spec.ts       # 🆕 8 JSON API endpoints (8 TC)
+│   │   ├── 39-ui-ux-visual.spec.ts              # 🆕 Design tokens/a11y/images (14 TC)
+│   │   └── 40-full-visual-regression.spec.ts    # 🆕 28 screenshots all pages (28 TC)
 │   ├── pages/                     # Page Object Model (9 pages)
-│   ├── fixtures/                  # Test fixtures
-│   └── playwright.config.ts       # Playwright config
+│   │   ├── BasePage.ts           # Navigation, screenshot, image validation
+│   │   ├── HomePage.ts           # Homepage: search, filter, restaurant cards
+│   │   ├── LoginPage.ts          # Login: form, Google OAuth, error messages
+│   │   ├── CartPage.ts           # Cart: items, quantity, delete, checkout
+│   │   ├── CheckoutPage.ts       # Checkout: address, payment, coupon, submit
+│   │   ├── DetailRestaurantPage.ts # Restaurant detail: menu, add-to-cart
+│   │   ├── RestaurantPage.ts     # Restaurant dashboard: KPI, orders
+│   │   ├── ShipperPage.ts        # Shipper: FREEPICK, wallet, map
+│   │   └── AdminPage.ts          # Admin: KPI, charts, user management
+│   ├── fixtures/                  # Test fixtures + user accounts
+│   │   ├── users.ts              # 12 test accounts + seed IDs + URL paths
+│   │   └── lightpanda-fixture.ts # Lightpanda CDP connection fixture
+│   ├── playwright.config.ts       # Playwright config (Desktop + Mobile Chromium)
+│   └── lightpanda.config.ts      # Lightpanda browser config
 └── .dockerignore                   # Docker ignore rules
 ```
 
@@ -329,14 +381,14 @@ TMDT-master/
 | `tbDanhMuc` | Danh mục món | 1:N → tbMonAn (RESTRICT) |
 | `tbDonHang` | Đơn hàng | N:1 → tbQuanAn, tbKhuyenMai, tbLoaiHinhThanhToan, tbShipper |
 | `tbChiTietDonHang` | Chi tiết đơn | N:1 → tbBienTheMonAn (mamon = FK→tbBienTheMonAn.id), 1:N → tbDanhGia |
-| `tbDanhGia` | Đánh giá | N:1 → tbChiTietDonHang |
+| `tbDanhGia` | Đánh giá (có `ngaydanhgia` datetime) | N:1 → tbChiTietDonHang |
 | `tbKhuyenMai` | Khuyến mãi | 1:N → tbMonAnKhuyenMai, tbDonHang, tbLichSuSuDungKhuyenMai |
 | `tbMonAnKhuyenMai` | KM của món | N:1 → tbBienTheMonAn (mamon), tbKhuyenMai |
 | `tbLoaiHinhThanhToan` | Hình thức TT | 1:N → tbDonHang |
 | `tbThongTinDatHang` | Địa chỉ giao | 1:N → tbDonHang |
 | `tbShipper` | Shipper | 1:N → tbDonHang, tbTinNhan |
 | `tbAdmin` | Quản trị viên | 1:1 → tbUser |
-| `tbTinNhan` | Tin nhắn chat | N:1 → tbDonHang, tbKhachHang, tbShipper |
+| `tbTinNhan` | Tin nhắn chat (có `thoigian` datetime) | N:1 → tbDonHang, tbKhachHang, tbShipper |
 | `City/District` | Địa danh | — |
 | `tbLichSuSuDungKhuyenMai` | **NEW** Lịch sử dùng mã giảm giá | N:1 → tbUser, tbKhuyenMai; ghi nhận userid, makm, ngaydung |
 
@@ -350,6 +402,8 @@ TMDT-master/
 | `tbLichSuSuDungKhuyenMai` | `userid` | FK → tbUser, ghi nhận user dùng mã |
 | `tbLichSuSuDungKhuyenMai` | `makm` | FK → tbKhuyenMai, mã giảm giá đã dùng |
 | `tbLichSuSuDungKhuyenMai` | `ngaydung` | DATETIME, thời điểm áp dụng mã |
+| `tbDanhGia` | `ngaydanhgia` | 🆕 DATETIME — thời điểm đánh giá (trước đây THIẾU hoàn toàn) |
+| `tbTinNhan` | `thoigian` | 🆕 DATETIME — thời điểm gửi tin nhắn (trước đây THIẾU hoàn toàn) |
 
 **Seed data**: `mysql_utf8.sql` — categories, users, restaurants, menu items (tự động seed khi DB được tạo lần đầu).
 
@@ -649,6 +703,9 @@ APP_DOMAIN=https://fastship-web.onrender.com
 - [x] ✅ **Fix: Analytics null guard** — null check KPI cards trong Admin Dashboard, từ chối null model
 - [x] ✅ **Fix: OrderList date filter (fromDate/toDate)** — thêm 2 input type="date" + server-side `.Where(d => d.NgayDat >= fromDate && d.NgayDat <= toDate)`
 - [x] ✅ **Fix: Out-of-stock badge + disabled button** — `soluong == 0` → badge "Cháy hàng" + disabled nút "Thêm vào giỏ" + CSS `.fs-btn-disabled`
+- [x] ✅ **Fix: Thêm ngaydanhgia vào tbDanhGia** — model THIẾU hoàn toàn timestamp cho đánh giá, set `DateTime.Now` trong `CartController.SubmitReview`
+- [x] ✅ **Fix: Thêm thoigian vào tbTinNhan (6 vị trí)** — model THIẾU hoàn toàn timestamp cho chat messages, set ở AdminChatController (3 vị trí), AdminController.CongTien, HomeController.NapTien
+- [x] ✅ **Fix: Tự động cập nhật rating quán sau review** — `soluotdanhgia` + `diemdanhgia` của tbQuanAn được tính lại sau mỗi `SubmitReview` (COUNT + AVG từ tbDanhGia)
 - [ ] **⚠️ Filter/Search quá phức tạp** — MenuSearch dynamic SQL + Bottom Sheet + Dual Filter Bar cần đơn giản hoá
 - [ ] Real payment (Stripe/PayPal/ZaloPay)
 
@@ -732,6 +789,126 @@ docker run -p 8080:8080 -e MYSQLHOST=host.docker.internal -e MYSQLUSER=root -e M
 
 ---
 
+## 🧪 E2E Testing (Playwright)
+
+### Kiến trúc Test
+
+| Layer | Công nghệ | Số lượng |
+|-------|-----------|----------|
+| **Test Runner** | Playwright 1.61 | 40 test spec files |
+| **Page Objects** | TypeScript | 9 pages (Base, Home, Login, Cart, Checkout, DetailRestaurant, Restaurant, Shipper, Admin) |
+| **Fixtures** | TypeScript | 12 test accounts + seed IDs + URL paths |
+| **Browser** | Chromium (Desktop 1920×1080) + Lightpanda (optional) | 2 configs |
+| **Total Coverage** | 57 views + 80+ APIs | ~350 test cases |
+
+### Test Accounts (seed data)
+
+| Role | Username | Password | Họ tên |
+|------|----------|----------|--------|
+| Khách hàng | `tranthib` | `abcdef` | Trần Thị B |
+| Khách hàng | `levanc` | `qwerty` | Lê Văn C |
+| Quán ăn | `konekopizza` | `konekopizza` | Koneko Pizza |
+| Quán ăn | `com1990nvs` | `com1990nvs` | Cơm 1990 |
+| Shipper | `shipperz` | `shipz789` | Shipper Z |
+| Shipper | `shippery` | `shipy456` | Shipper Y |
+| Admin | `admin1` | `admin1` | Admin 1 |
+
+### Coverage Matrix (40 test files)
+
+```
+📁 01-10: CORE TESTS (20 files)
+├── 01-visual-asset-validation   → Visual, images, layout, console errors
+├── 02-customer-flow              → Login, search, cart, checkout, order history
+├── 03-restaurant-flow            → Dashboard, KPI, orders, accept/reject
+├── 04-shipper-flow               → Dashboard, FREE-PICK, wallet, income
+├── 05-admin-flow                 → Dashboard, KPI charts, user/order/category mgmt
+├── 06-edelivery-flow             → QR code, scan, bypass, delivery logs
+├── 07-customer-advanced          → Payment, tracking, multi-restaurant cart, review
+├── 08-merchant-advanced          → Product CRUD, profile, discount, analytics
+├── 09-shipper-advanced           → Status transitions, wallet, settings, QR
+└── 10-admin-advanced             → User duyệt/khóa, category CRUD, export
+
+📁 11-20: FEATURE TESTS (10 files)
+├── 11-cart-management            → Cart CRUD, quantity, delete, session persistence
+├── 12-checkout-flow              → Address tabs, COD, bank transfer, coupon, submit
+├── 13-order-status               → Status display, progress bar, tracking map
+├── 14-filter-search              → Category filter, search, MenuSearch API
+├── 15-chat-system                → Chat system (SignalR)
+├── 16-edelivery-tracking         → E-Delivery tracking + QR
+├── 17-analytics-dashboard        → Analytics dashboard
+├── 18-mobile-responsive          → Mobile viewport tests
+├── 19-visual-regression          → Visual regression (screenshot comparison)
+└── 20-performance                → Performance benchmarks
+
+📁 21-31: NEW FEATURE TESTS (11 files, viết Tháng 7/2026)
+├── 21-product-detail             → Chi tiết sản phẩm: hero, size chips, add-to-cart
+├── 22-order-detail-history       → Chi tiết đơn: invoice, map, SignalR, progress bar
+├── 23-reviews                    → Review modal: star rating, submit, validation, duplicate
+├── 24-customer-chat              → Chat KH + AI chatbot Gemini widget
+├── 25-admin-chat                 → Admin chat: conversations, send message, unread
+├── 26-admin-voucher              → Voucher: list, create, edit, toggle
+├── 27-restaurant-wallet          → Wallet: balance, withdraw, deposit, transactions
+├── 28-admin-user-mgmt            → User mgmt: 4 roles, search, approve, lock
+├── 29-smoke-e2e                  → E2E smoke: COD flow + Restaurant + Admin
+├── 30-admin-order-mgmt           → Admin orders: DataTable, SignalR, actions
+└── 31-restaurant-extra           → Analytics, discount, reviews (restaurant)
+
+📁 32-40: COMPLETE COVERAGE (9 files, viết Tháng 7/2026)
+├── 32-public-pages               → About, Contact, DanhMuc, SanPham, error states
+├── 33-auth-oauth                 → Signup, Google OAuth, Facebook, Logout
+├── 34-chat-roles                 → Restaurant NhanTin, Shipper NhanTin
+├── 35-payment-flows              → VNPay, MoMo, FailureView, BankWebhook
+├── 36-shipper-remaining          → ThongBao, ClaimOrder, updateStatus, QR
+├── 37-admin-remaining            → EditOrder, WalletManager, EditCategory
+├── 38-admin-api-dashboard        → 8 JSON API endpoints (stats, charts, coupons)
+├── 39-ui-ux-visual               → Design tokens, images, layout, a11y audit
+└── 40-full-visual-regression     → 28 screenshots (every page, all 4 roles)
+```
+
+### Cách chạy tests
+
+```bash
+# Cài đặt
+docker compose up -d              # Lightpanda browser (optional)
+cd e2e-tests
+npm install
+
+# TypeScript check (0 errors expected)
+npx tsc --noEmit
+
+# Chạy toàn bộ (~350 test cases, ~1-2h trên Render)
+npx playwright test
+
+# Chạy nhanh (Desktop only)
+npm run test:fast
+
+# Chạy theo role
+npm run test:customer             # Customer tests (02, 07, 21-24)
+npm run test:restaurant           # Restaurant tests (03, 08, 27, 31)
+npm run test:shipper              # Shipper tests (04, 09, 36)
+npm run test:admin                # Admin tests (05, 10, 25-26, 28, 30, 37-38)
+
+# Smoke tests (CI/CD gate)
+npx playwright test tests/29-smoke-e2e.spec.ts tests/39-ui-ux-visual.spec.ts
+
+# Full visual regression (28 screenshots)
+npx playwright test tests/40-full-visual-regression.spec.ts --timeout=300000
+
+# Với Lightpanda browser (nhanh hơn 9x)
+npm run test:lightpanda
+
+# Báo cáo
+npx playwright show-report        # HTML report
+```
+
+### Lưu ý khi chạy trên Render
+- Cold start 23-25s → timeout 60s
+- Rate limit 5 POST/5ph → workers=1
+- `waitForLoadState('networkidle')` KHÔNG dùng với SignalR (WebSocket giữ kết nối mãi)
+- Unsplash images có thể 403 do Render IP bị rate limit
+
+---
+
 ## 📞 Liên Hệ & Hỗ Trợ
 
 - **Email**: fastship@contact.com
@@ -747,7 +924,7 @@ Dự án mã nguồn mở — phát triển bởi đội ngũ ShipFood.
 
 ---
 
-> **Phiên bản**: 5.7 — Anti-AI-Slop UI refactor (3 views → design tokens, 250 inline styles ↓50%), accessibility audit (~40 icons + 6 buttons), Cart HttpOnly bug fix, OrderList date filter, out-of-stock badge  
+> **Phiên bản**: 6.0 — E2E test suite hoàn chỉnh (40 files, ~350 TC, 100% coverage 57 views + 80 APIs), bổ sung 9 file test mới (public pages, OAuth, payment flows, UI/UX audit, full visual regression), TypeScript 0 lỗi  
 > **Ngôn ngữ**: C# 12, HTML5, CSS3, JavaScript ES6  
 > **Kiến trúc**: ASP.NET Core MVC n-tier  
 > **Database**: PostgreSQL 15+ (Npgsql)  

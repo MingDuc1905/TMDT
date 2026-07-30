@@ -69,7 +69,8 @@
                                 <select style=" width: 100%;" name="quan">
                                     @foreach (var i in city.districts)
                                     {
-                                        <option style="width:600px;" value="@i.nameDistrict" selected="@(quan.Equals(i.nameDistrict))">@i.nameDistrict</option>
+                                        @* ponytail: dung == thay .Equals() de tranh NullReferenceException khi quan null *@
+                                        <option style="width:600px;" value="@i.nameDistrict" selected="@(quan?.Equals(i.nameDistrict) == true)">@i.nameDistrict</option>
                                     }
                                 </select>
                             </div> - <strong>@city.nameCity</strong>

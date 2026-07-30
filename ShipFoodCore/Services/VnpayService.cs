@@ -102,7 +102,7 @@ public class VnpayService
         return paymentUrl;
     }
 
-    public bool VerifySignature(IDictionary<string, string> vnpParams)
+    public virtual bool VerifySignature(IDictionary<string, string> vnpParams)
     {
         if (!vnpParams.TryGetValue("vnp_SecureHash", out var receivedHash))
         {

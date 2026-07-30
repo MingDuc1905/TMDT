@@ -26,8 +26,8 @@ public class BankWebhookTests
         var mockHubContext = new Mock<IHubContext<Chats>>();
         var mockEdelivery = new Mock<EDeliveryService>(db, new Mock<ILogger<EDeliveryService>>().Object);
         var mockConfig = new Mock<IConfiguration>();
-        // Set empty bank webhook token so it doesn't require auth
-        mockConfig.Setup(c => c["BANK_WEBHOOK_TOKEN"]).Returns("");
+        // Set bank webhook token for auth
+        mockConfig.Setup(c => c["BANK_WEBHOOK_TOKEN"]).Returns("test-webhook-token");
 
         return new PaymentController(
             db,
@@ -73,6 +73,7 @@ public class BankWebhookTests
         });
 
         var httpContext = new Microsoft.AspNetCore.Http.DefaultHttpContext();
+        httpContext.Request.Headers["Authorization"] = "Bearer test-webhook-token";
         httpContext.Request.Body = new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes(webhookBody));
         controller.ControllerContext = new Microsoft.AspNetCore.Mvc.ControllerContext
         {

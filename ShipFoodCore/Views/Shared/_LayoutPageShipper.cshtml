@@ -124,14 +124,15 @@
                                 <div class="toggle-container">
                                     <input type="checkbox" id="toggle" class="toggle-input" />
                                     <label for="toggle" class="toggle-label">
-                                        @if (shipper != null && shipper.trangthai.Equals("Đang hoạt động"))
+                                        @* ponytail: dung == thay .Equals() de tranh NullReferenceException khi trangthai null *@
+                                    @if (shipper?.trangthai == "Đang hoạt động")
                                         {
                                             <form action="@Url.Action("updateStatus", "Shipper")" method="post" style="margin:0; padding:0; display:inline;">
                                                 @Html.AntiForgeryToken()
                                                 <button type="submit" style="color:white; background:none; border:none; padding:0; cursor:pointer;" class="toggle-text">Đóng</button>
                                             </form>
                                         }
-                                        @if (shipper != null && shipper.trangthai.Equals("Không hoạt động"))
+                                        @if (shipper?.trangthai == "Không hoạt động")
                                         {
                                             <form action="@Url.Action("updateStatus", "Shipper")" method="post" style="margin:0; padding:0; display:inline;">
                                                 @Html.AntiForgeryToken()
@@ -147,6 +148,8 @@
                                    style="padding:4px 8px;border-radius:8px;">
                                     <div style="width:28px;height:28px;border-radius:50%;background:#3CB815;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;">@(shipper?.tenshipper?.Substring(0,1)?.ToUpper() ?? "S")</div>
                                     <span class="d-none d-lg-inline text-muted small fw-500">@(shipper?.tenshipper ?? "Shipper")</span>
+                            @* ponytail: fix NullReferenceException — dung == thay .Equals() de tranh crash khi trangthai null *@
+
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-right" style="min-width:160px;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.12);border:1px solid rgba(0,0,0,.06);">
                                     <li><a class="dropdown-item d-flex align-items-center gap-2 py-2" href="@Url.Action("Index","Shipper")"><i class="fas fa-tachometer-alt" style="width:16px;color:var(--fs-green);"></i> Dashboard</a></li>

@@ -58,7 +58,7 @@
 
                                             <p class="mb-0 text-500">@item.tbThongTinDatHang.diachi</p>
                                         </td>
-                                        @{ if (item.trangthai.Equals("Hoàn thành"))
+                                        @{ if (item?.trangthai == "Hoàn thành")
                                             {
                                                 <td class="py-2 text-right">
                                                     <span class="badge badge-success">
@@ -67,7 +67,7 @@
                                                 </td>
 
                                             }
-                                            else if (item.trangthai.Equals("Đã đặt"))
+                                            else if (item?.trangthai == "Đã đặt")
                                             {
                                                 <td class="py-2 text-right">
                                                     <span class="badge badge-primary">
@@ -75,7 +75,7 @@
                                                     </span>
                                                 </td>
                                             }
-                                            else if (item.trangthai.Equals("Đã xác nhận") || item.trangthai.Equals("Đã lấy"))
+                                            else if (item?.trangthai == "Đã xác nhận" || item?.trangthai == "Đã lấy")
                                             {
                                                 <td class="py-2 text-right">
                                                     <span class="badge badge-secondary">
@@ -85,7 +85,7 @@
                                                 </td>
 
                                             }
-                                            else if (item.trangthai.Equals("Đã hủy"))
+                                            else if (item?.trangthai == "Đã hủy")
                                             {
                                                 <td class="py-2 text-right">
                                                     <span class="badge badge-warning">

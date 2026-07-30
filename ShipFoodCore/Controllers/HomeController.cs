@@ -1037,7 +1037,8 @@ public class HomeController : BaseController
 
         try
         {
-            if (user.loaitaikhoan.Equals("Khách hàng"))
+            // ponytail: dung == thay .Equals() de tranh NullReferenceException
+            if (user.loaitaikhoan == "Khách hàng")
             {
                 user.vitien = 0;
                 user.trangthai = 1;
@@ -1054,7 +1055,7 @@ public class HomeController : BaseController
                 if (IsAjaxRequest()) return Json(new { success = true, redirectUrl = Url.Action("Index", "Home") });
                 return RedirectToAction("Index", "Home");
             }
-            else if (user.loaitaikhoan.Equals("Quán ăn"))
+            else if (user.loaitaikhoan == "Quán ăn")
             {
                 user.vitien = 0;
                 user.trangthai = 1;
@@ -1080,7 +1081,7 @@ public class HomeController : BaseController
                 if (IsAjaxRequest()) return Json(new { success = true, redirectUrl = Url.Action("Index", "Restaurant") });
                 return RedirectToAction("Index", "Restaurant");
             }
-            else if (user.loaitaikhoan.Equals("Shipper"))
+            else if (user.loaitaikhoan == "Shipper")
             {
                 user.vitien = 0;
                 user.trangthai = 1; // Active ngay — không cần duyệt
@@ -1100,7 +1101,6 @@ public class HomeController : BaseController
 
                 var cart = new Cart { userid = user.userid };
                 SetCart(cart);
-                // ponytail: security fix — SetSessionAndCookieAsync thay SetSessionUser cho auto-login
                 SetSessionUser(user);
                 if (IsAjaxRequest()) return Json(new { success = true, redirectUrl = Url.Action("Index", "Shipper") });
                 return RedirectToAction("Index", "Shipper");
@@ -1223,6 +1223,16 @@ public class HomeController : BaseController
     }
 
     public ActionResult Forgot()
+    {
+        return View();
+    }
+
+    public ActionResult About()
+    {
+        return View();
+    }
+
+    public ActionResult Contact()
     {
         return View();
     }
@@ -1404,7 +1414,11 @@ public class HomeController : BaseController
             });
             db.SaveChanges();
         }
-        catch { }
+        catch (Exception depositEx)
+        {
+            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<HomeController>>();
+            logger.LogError(depositEx, "Failed to save deposit pending log for user #{UserId}, amount={Amount}", user.userid, soTien);
+        }
 
         TempData["DepositQR"] = qrUrl;
         TempData["DepositAmount"] = soTien;

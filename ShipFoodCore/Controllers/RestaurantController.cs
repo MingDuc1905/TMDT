@@ -355,6 +355,14 @@ public class RestaurantController : BaseController
     {
         if (!checkLogin()) return RedirectToAction("Login", "Home");
         var quanAn = getQuanAn();
+        // ponytail: fix NullReferenceException — getQuanAn() tra ve null! khi khong co tbQuanAn record
+        if (quanAn == null)
+        {
+            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<RestaurantController>>();
+            logger.LogWarning("Discount: getQuanAn() returned null for user {UserId}", GetCurrentUser()?.userid);
+            TempData["DiscountError"] = "Không tìm thấy thông tin quán ăn. Vui lòng liên hệ admin.";
+            return RedirectToAction("Index");
+        }
 
         var monAnKhuyenMais = (from ma in db.tbMonAn
                                join b in db.tbBienTheMonAn on ma.mamon equals b.mamon
@@ -443,6 +451,13 @@ public class RestaurantController : BaseController
     {
         if (!checkLogin()) return RedirectToAction("Login", "Home");
         var quanAn = getQuanAn();
+        // ponytail: fix NullReferenceException — getQuanAn() co the null
+        if (quanAn == null)
+        {
+            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<RestaurantController>>();
+            logger.LogWarning("nhandon: getQuanAn() returned null");
+            return RedirectToAction("OrderList");
+        }
         var dh = db.tbDonHang.Include(d => d.tbThongTinDatHang).FirstOrDefault(d => d.madh == id && d.maquan == quanAn.userid);
         if (dh != null)
         {
@@ -487,6 +502,13 @@ public class RestaurantController : BaseController
     {
         if (!checkLogin()) return RedirectToAction("Login", "Home");
         var quanAn = getQuanAn();
+        // ponytail: fix NullReferenceException — getQuanAn() co the null
+        if (quanAn == null)
+        {
+            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<RestaurantController>>();
+            logger.LogWarning("huydon: getQuanAn() returned null");
+            return RedirectToAction("OrderList");
+        }
         var dh = db.tbDonHang.FirstOrDefault(d => d.madh == id && d.maquan == quanAn.userid);
         if (dh != null)
         {
@@ -637,7 +659,15 @@ public class RestaurantController : BaseController
             quanAn.hinhanh = safeFileName;
         }
 
-        var quanAnOld = db.tbQuanAn.Include(q => q.tbUser).FirstOrDefault(q => q.userid == getQuanAn().userid);
+        // ponytail: fix NullReferenceException — lay userid truoc, tranh getQuanAn() null
+        var currentQuanAn = getQuanAn();
+        if (currentQuanAn == null)
+        {
+            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<RestaurantController>>();
+            logger.LogWarning("Profile POST: getQuanAn() returned null");
+            return RedirectToAction("Profile");
+        }
+        var quanAnOld = db.tbQuanAn.Include(q => q.tbUser).FirstOrDefault(q => q.userid == currentQuanAn.userid);
         if (quanAnOld != null)
         {
             quanAnOld.tenquanan = quanAn.tenquanan;
@@ -739,7 +769,15 @@ public class RestaurantController : BaseController
 
         if (monAn.mamon == 0)
         {
-            monAn.maquanan = getQuanAn().userid;
+            // ponytail: fix NullReferenceException — getQuanAn() co the null
+            var quanAnForProduct = getQuanAn();
+            if (quanAnForProduct == null)
+            {
+                var logger = HttpContext.RequestServices.GetRequiredService<ILogger<RestaurantController>>();
+                logger.LogWarning("PostMonAn: getQuanAn() returned null");
+                return RedirectToAction("ProductList");
+            }
+            monAn.maquanan = quanAnForProduct.userid;
             db.tbMonAn.Add(monAn);
             db.SaveChanges();
 
@@ -889,14 +927,23 @@ public class RestaurantController : BaseController
     private bool checkLogin()
     {
         var user = GetCurrentUser();
-        return user != null && user.loaitaikhoan.Equals("Quán ăn");
+        // ponytail: dung == thay .Equals() de tranh NullReferenceException khi loaitaikhoan null
+        return user != null && user.loaitaikhoan == "Quán ăn";
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
     public ActionResult updateStatus()
     {
-        var quanAn = db.tbQuanAn.Find(getQuanAn().userid);
+        // ponytail: fix NullReferenceException — getQuanAn() co the null
+        var currentUserForStatus = getQuanAn();
+        if (currentUserForStatus == null)
+        {
+            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<RestaurantController>>();
+            logger.LogWarning("updateStatus: getQuanAn() returned null");
+            return RedirectToAction("Index");
+        }
+        var quanAn = db.tbQuanAn.Find(currentUserForStatus.userid);
         if (quanAn != null)
         {
             quanAn.trangthai = quanAn.trangthai == OrderStatus.DongCua ? OrderStatus.DangMoCua : OrderStatus.DongCua;

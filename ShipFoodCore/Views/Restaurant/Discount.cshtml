@@ -40,7 +40,7 @@
                                     {
                                         <tr>
                                             <td><strong>@i.makm</strong></td>
-                                            <td>@i.tbMonAn.tenmon</td>
+                                            <td>@(i.tbMonAn?.tenmon ?? "—")</td>
                                             <td><span class="badge light badge-success">@i.trangthai</span></td>
                                             <td>@i.soluong</td>
                                             <td>@i.phantramgiam %</td>

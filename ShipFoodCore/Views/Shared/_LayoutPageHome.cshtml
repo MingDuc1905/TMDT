@@ -220,15 +220,16 @@
                                 <li><a class="dropdown-item d-flex align-items-center gap-2 px-3 py-2" href="/Cart/LichSuDatHang"><i class="fa fa-history" style="width:18px;color:#6b7280;"></i> Lịch sử đơn hàng</a></li>
                                 <li><a class="dropdown-item d-flex align-items-center gap-2 px-3 py-2" href="/Home/Wallet"><i class="fa fa-wallet" style="width:18px;color:var(--fs-green);"></i> Ví tiền</a></li>
                                 <li><a class="dropdown-item d-flex align-items-center gap-2 px-3 py-2" href="/Home/Profile"><i class="fa fa-user" style="width:18px;color:#6b7280;"></i> Hồ sơ</a></li>
-                                @if (user.loaitaikhoan.Equals("Quán ăn"))
+                                @* ponytail: dung == thay .Equals() de tranh NullReferenceException khi loaitaikhoan null *@
+                                @if (user?.loaitaikhoan == "Quán ăn")
                                 {
                                     <li><a class="dropdown-item d-flex align-items-center gap-2 px-3 py-2" href="/Restaurant"><i class="fa fa-store" style="width:18px;color:#6b7280;"></i> Quản lý quán</a></li>
                                 }
-                                @if (user.loaitaikhoan.Equals("Shipper"))
+                                @if (user?.loaitaikhoan == "Shipper")
                                 {
                                     <li><a class="dropdown-item d-flex align-items-center gap-2 px-3 py-2" href="/Shipper"><i class="fa fa-truck" style="width:18px;color:#6b7280;"></i> Bảng điều khiển</a></li>
                                 }
-                                @if (user.loaitaikhoan.Equals("Admin"))
+                                @if (user?.loaitaikhoan == "Admin")
                                 {
                                     <li><a class="dropdown-item d-flex align-items-center gap-2 px-3 py-2" href="/Admin"><i class="fa fa-shield-alt" style="width:18px;color:#6b7280;"></i> Quản trị</a></li>
                                 }
@@ -325,15 +326,15 @@
                                     <li><a class="dropdown-item d-flex align-items-center gap-2 px-3 py-2" href="/Cart/LichSuDatHang"><i class="fa fa-history" style="width:18px;color:#6b7280;"></i> Lịch sử đơn hàng</a></li>
                                     <li><a class="dropdown-item d-flex align-items-center gap-2 px-3 py-2" href="/Home/Wallet"><i class="fa fa-wallet" style="width:18px;color:var(--fs-green);"></i> Ví tiền</a></li>
                                     <li><a class="dropdown-item d-flex align-items-center gap-2 px-3 py-2" href="/Home/Profile"><i class="fa fa-user" style="width:18px;color:#6b7280;"></i> Hồ sơ</a></li>
-                                    @if (user.loaitaikhoan.Equals("Quán ăn"))
+                                    @if (user?.loaitaikhoan == "Quán ăn")
                                     {
                                         <li><a class="dropdown-item d-flex align-items-center gap-2 px-3 py-2" href="/Restaurant"><i class="fa fa-store" style="width:18px;color:#6b7280;"></i> Quản lý quán</a></li>
                                     }
-                                    @if (user.loaitaikhoan.Equals("Shipper"))
+                                    @if (user?.loaitaikhoan == "Shipper")
                                     {
                                         <li><a class="dropdown-item d-flex align-items-center gap-2 px-3 py-2" href="/Shipper"><i class="fa fa-truck" style="width:18px;color:#6b7280;"></i> Bảng điều khiển</a></li>
                                     }
-                                    @if (user.loaitaikhoan.Equals("Admin"))
+                                    @if (user?.loaitaikhoan == "Admin")
                                     {
                                         <li><a class="dropdown-item d-flex align-items-center gap-2 px-3 py-2" href="/Admin"><i class="fa fa-shield-alt" style="width:18px;color:#6b7280;"></i> Quản trị</a></li>
                                     }

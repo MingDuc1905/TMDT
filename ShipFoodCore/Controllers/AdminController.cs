@@ -97,6 +97,12 @@ public class AdminController : BaseController
             .Include(d => d.tbThongTinDatHang)
             .Include(d => d.tbShipper).ThenInclude(s => s.tbUser)
             .FirstOrDefault(d => d.madh == id);
+        // ponytail: null check — tránh NullReferenceException khi id không tồn tại
+        if (donhang == null)
+        {
+            TempData["AdminError"] = "Không tìm thấy đơn hàng #" + id;
+            return RedirectToAction("Order");
+        }
         var chitietdh = db.tbChiTietDonHang
             .Where(ct => ct.madh == id)
             .Include(c => c.tbBienTheMonAn!).ThenInclude(b => b.tbMonAn!).ThenInclude(m => m.tbDanhMuc)
@@ -546,7 +552,8 @@ public class AdminController : BaseController
         var user = db.tbUser.Find(id);
         if (user != null)
         {
-            if (user.loaitaikhoan.Equals("Admin"))
+            // ponytail: dung == thay .Equals() de tranh NullReferenceException
+            if (user.loaitaikhoan == "Admin")
             {
                 // Kiểm tra không khóa admin cuối cùng
                 var adminCount = db.tbUser.Count(u => u.loaitaikhoan == "Admin" && u.trangthai == 1);
@@ -1070,7 +1077,11 @@ public class AdminController : BaseController
             });
             await db.SaveChangesAsync();
         }
-        catch { }
+        catch (Exception logEx)
+        {
+            var logger2 = HttpContext.RequestServices.GetRequiredService<ILogger<AdminController>>();
+            logger2.LogError(logEx, "Failed to write transaction log for user #{UserId}, amount={Amount}", userid, soTien);
+        }
 
         var logger = HttpContext.RequestServices.GetRequiredService<ILogger<AdminController>>();
         logger.LogInformation("Admin c?ng {Amount} vào ví user #{UserId}, lý do: {Reason}", soTien, userid, lyDo);
@@ -1086,6 +1097,7 @@ public class AdminController : BaseController
     private bool checkLogin()
     {
         var user = GetCurrentUser();
-        return user != null && user.loaitaikhoan.Equals("Admin");
+        // ponytail: dung == thay .Equals() de tranh NullReferenceException
+        return user != null && user.loaitaikhoan == "Admin";
     }
 }

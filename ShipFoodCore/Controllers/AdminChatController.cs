@@ -156,10 +156,11 @@ public class AdminChatController : BaseController
 
         try
         {
-            bool isShipper = user.loaitaikhoan.Equals("Shipper");
-            bool isCustomer = user.loaitaikhoan.Equals("Khách hàng");
-            bool isAdmin = user.loaitaikhoan.Equals("Admin");
-            bool isRestaurant = user.loaitaikhoan.Equals("Quán ăn");
+            // ponytail: dung == thay .Equals() de tranh NullReferenceException khi loaitaikhoan null
+            bool isShipper = user.loaitaikhoan == "Shipper";
+            bool isCustomer = user.loaitaikhoan == "Khách hàng";
+            bool isAdmin = user.loaitaikhoan == "Admin";
+            bool isRestaurant = user.loaitaikhoan == "Quán ăn";
 
             // ponytail: security fix — customer ch? ???c dùng user.id c?a chính h?, không dùng targetUserId
             int? customerId;
@@ -296,8 +297,9 @@ public class AdminChatController : BaseController
         if (currentUser == null)
             return Json(new { success = false, data = new object[0] });
 
-        bool isAdmin = currentUser.loaitaikhoan.Equals("Admin");
-        bool isShipper = currentUser.loaitaikhoan.Equals("Shipper");
+        // ponytail: dung == thay .Equals() de tranh NullReferenceException khi loaitaikhoan null
+        bool isAdmin = currentUser.loaitaikhoan == "Admin";
+        bool isShipper = currentUser.loaitaikhoan == "Shipper";
 
         try
         {
@@ -373,7 +375,8 @@ public class AdminChatController : BaseController
         if (currentUser == null)
             return Json(new { success = false, data = new object[0] });
 
-        bool isAdminOrShipper = currentUser.loaitaikhoan.Equals("Admin") || currentUser.loaitaikhoan.Equals("Shipper");
+        // ponytail: dung == thay .Equals() de tranh NullReferenceException
+        bool isAdminOrShipper = currentUser.loaitaikhoan == "Admin" || currentUser.loaitaikhoan == "Shipper";
         if (!isAdminOrShipper)
             return Json(new { success = false, data = new object[0] });
 
@@ -493,6 +496,7 @@ public class AdminChatController : BaseController
     private bool checkAdmin()
     {
         var user = GetCurrentUser();
-        return user != null && user.loaitaikhoan.Equals("Admin");
+        // ponytail: dung == thay .Equals() de tranh NullReferenceException khi loaitaikhoan null
+        return user != null && user.loaitaikhoan == "Admin";
     }
 }

@@ -181,7 +181,8 @@ public abstract class BaseController : Controller
             Response.StatusCode = 403;
             return Json(new { success = false, message = "Vui lòng đăng nhập để tiếp tục" });
         }
-        if (!user.loaitaikhoan.Equals(requiredRole))
+        // ponytail: dung == thay .Equals() de tranh NullReferenceException khi loaitaikhoan null
+        if (user.loaitaikhoan != requiredRole)
         {
             Response.StatusCode = 403;
             return Json(new { success = false, message = "Bạn không có quyền thực hiện thao tác này" });

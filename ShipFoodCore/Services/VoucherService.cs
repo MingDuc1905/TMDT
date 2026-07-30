@@ -118,11 +118,20 @@ public class VoucherService
         }
 
         // 4. Thêm các voucher phổ biến còn lại (tối đa 5)
+        // ponytail: lo?i free-ship n?u don hang < 50K ?? tránh leak discount sai
         var existingCodes = vouchers.Select(v => v.tenkm).ToHashSet();
-        var additionalVouchers = await _db.tbKhuyenMai
+        var additionalVouchersQuery = _db.tbKhuyenMai
             .Where(k => !existingCodes.Contains(k.tenkm)
                        && (k.ngayketthuc == null || k.ngayketthuc >= now)
-                       && (k.ngaybatdau == null || k.ngaybatdau <= now))
+                       && (k.ngaybatdau == null || k.ngaybatdau <= now));
+
+        // N?u don hang < 50K, lo?i b? voucher free-ship
+        if (tongTien.HasValue && tongTien.Value < 50000)
+        {
+            additionalVouchersQuery = additionalVouchersQuery.Where(k => !k.tenkm.Contains("MIỄN PHÍ SHIP"));
+        }
+
+        var additionalVouchers = await additionalVouchersQuery
             .OrderByDescending(k => k.phantramgiam)
             .Take(5 - vouchers.Count)
             .ToListAsync();

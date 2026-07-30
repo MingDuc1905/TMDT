@@ -42,7 +42,7 @@ public partial class tbMonAn
     /// </summary>
     public bool isDeleted { get; set; }
 
-    // Non-mapped property for cart quantity
+    // ponytail: non-mapped, runtime-only cart quantity (không phải navigation alias)
     [NotMapped]
     public int soLuong { get; set; }
 
@@ -59,7 +59,7 @@ public partial class tbMonAn
     /// </summary>
     public virtual ICollection<tbBienTheMonAn> tbBienTheMonAns { get; set; } = new HashSet<tbBienTheMonAn>();
 
-    // Singular alias
+    // ponytail: backward-compat alias — code mới dùng tbBienTheMonAns (số nhiều)
     [NotMapped]
     public ICollection<tbBienTheMonAn> tbBienTheMonAn => tbBienTheMonAns;
 
@@ -78,15 +78,13 @@ public partial class tbMonAn
         set => _giatien = value;
     }
 
-    /// <summary>
-    /// Chi tiết đơn hàng qua biến thể (backward-compat).
-    /// Truy cập qua navigation: món → biến thể → chi tiết đơn hàng.
-    /// </summary>
+    // ponytail: backward-compat alias — không có FK trực tiếp, cần Include(tbBienTheMonAns) trước
     [NotMapped]
     public List<tbChiTietDonHang> tbChiTietDonHangs =>
         tbBienTheMonAns?.SelectMany(b => b.tbChiTietDonHangs ?? Enumerable.Empty<tbChiTietDonHang>()).ToList()
         ?? new List<tbChiTietDonHang>();
 
+    // ponytail: backward-compat alias — dùng tbChiTietDonHangs (số nhiều)
     [NotMapped]
     public List<tbChiTietDonHang> tbChiTietDonHang => tbChiTietDonHangs;
 }

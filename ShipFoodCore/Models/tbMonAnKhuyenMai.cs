@@ -44,6 +44,7 @@ public partial class tbMonAnKhuyenMai
     // ⬆ Load thông tin biến thể size món: giatien, size (M/L), mamon (FK→tbMonAn)
 
     // ─── Backward-compatible ───
+    // ponytail: backward-compat — cần Include(tbBienTheMonAn).ThenInclude(tbMonAn) trước
     [NotMapped]                          // Chỉ ở RAM, ko có cột trong DB
     public tbMonAn? tbMonAn => tbBienTheMonAn?.tbMonAn;
     // ⬆ Tiện lợi: truy cập nhanh món ăn cha qua chuỗi: KM → BienThe → MonAn

@@ -44,7 +44,7 @@ public partial class tbQuanAn
     public virtual ICollection<tbDonHang> tbDonHangs { get; set; } = new HashSet<tbDonHang>();
     public virtual ICollection<tbMonAn> tbMonAns { get; set; } = new HashSet<tbMonAn>();
 
-    // Singular aliases for backward compatibility
+    // ponytail: backward-compat aliases — dùng tbDonHangs / tbMonAns (số nhiều)
     [NotMapped]
     public ICollection<tbDonHang> tbDonHang => tbDonHangs;
     [NotMapped]

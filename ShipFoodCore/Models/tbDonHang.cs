@@ -69,7 +69,7 @@ public partial class tbDonHang
     public virtual ICollection<tbChiTietDonHang> tbChiTietDonHangs { get; set; } = new HashSet<tbChiTietDonHang>();
     public virtual ICollection<tbTinNhan> tbTinNhans { get; set; } = new HashSet<tbTinNhan>();
 
-    // Singular aliases for backward compatibility
+    // ponytail: backward-compat alias — dùng tbChiTietDonHangs (số nhiều)
     [NotMapped]
     public ICollection<tbChiTietDonHang> tbChiTietDonHang => tbChiTietDonHangs;
 }

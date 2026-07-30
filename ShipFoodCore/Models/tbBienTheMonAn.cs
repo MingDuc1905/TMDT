@@ -37,7 +37,7 @@ public partial class tbBienTheMonAn
     public virtual ICollection<tbMonAnKhuyenMai> tbMonAnKhuyenMais { get; set; } = new HashSet<tbMonAnKhuyenMai>();
     // ⬆ Các KM áp dụng cho biến thể này (qua bảng trung gian)
 
-    // Singular alias
+    // ponytail: backward-compat alias — dùng tbChiTietDonHangs (số nhiều)
     [NotMapped]                           // Chỉ ở RAM, ko có cột trong DB
     public ICollection<tbChiTietDonHang> tbChiTietDonHang => tbChiTietDonHangs;
     // ⬆ Alias cho tương thích code cũ (số ít thay vì số nhiều)

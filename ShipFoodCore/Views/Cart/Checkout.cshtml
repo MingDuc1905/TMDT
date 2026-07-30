@@ -204,33 +204,33 @@
                             <div class="fs-voucher-timeslot">
                                 <div style="font-size:28px;flex-shrink:0;">@timeSlotInfo.Value.icon</div>
                                 <div style="flex:1;min-width:0;">
-                                    <div style="font-size:14px;font-weight:700;color:#856404;">🎯 Khung giờ @timeSlotInfo.Value.name</div>
-                                    <div style="font-size:12px;color:#856404;">@timeSlotInfo.Value.description</div>
+                                    <div style="font-size:14px;font-weight:700;color:var(--fs-warning, #856404);">🎯 Khung giờ @timeSlotInfo.Value.name</div>
+                                    <div style="font-size:12px;color:var(--fs-warning, #856404);">@timeSlotInfo.Value.description</div>
                                 </div>
                             </div>
                         }
                         @if (recommendedVouchers.Any())
                         {
                             <div style="margin-bottom:12px;">
-                                <div style="font-size:12px;font-weight:600;color:#1a1a2e;margin-bottom:8px;">🎫 Gợi ý mã giảm giá cho bạn:</div>
+                                <div style="font-size:12px;font-weight:600;color:var(--fs-dark);margin-bottom:8px;">🎫 Gợi ý mã giảm giá cho bạn:</div>
                                 <div class="d-flex flex-column gap-2">
                                     @foreach (var c in recommendedVouchers.Take(2))
                                     {
                                         <div onclick="quickApplyCoupon('@c.tenkm', this)"
                                              style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:12px 14px;border-radius:14px;font-size:13px;font-weight:600;
-                                             background:linear-gradient(135deg,#f0fff0,#e8f5e9);border:1.5px solid #3CB815;
+                                             background:linear-gradient(135deg,#f0fff0,#e8f5e9);border:1.5px solid var(--fs-green);
                                              transition:all .2s;"
                                              class="fs-trans-x"
                                              style="transition:transform .2s;">
-                                            <div style="width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,#3CB815,#27a001);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;font-weight:800;font-size:15px;">
+                                            <div style="width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,var(--fs-green),var(--fs-green-dark, #27a001));display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;font-weight:800;font-size:15px;">
                                                 @(c.phantramgiam ?? 0)%
                                             </div>
                                             <div style="flex:1;min-width:0;">
-                                                <div style="font-size:14px;font-weight:700;color:#1a1a2e;">@c.tenkm</div>
+                                                <div style="font-size:14px;font-weight:700;color:var(--fs-dark);">@c.tenkm</div>
                                                 <div style="font-size:11px;color:#888;">Giảm @(c.phantramgiam ?? 0)% đơn hàng</div>
                                             </div>
-                                            <div style="width:24px;height:24px;border-radius:50%;border:2px solid #3CB815;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                                                <span style="color:#3CB815;font-size:14px;">✓</span>
+                                            <div style="width:24px;height:24px;border-radius:50%;border:2px solid var(--fs-green);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                                <span style="color:var(--fs-green);font-size:14px;">✓</span>
                                             </div>
                                         </div>
                                     }
@@ -257,7 +257,7 @@
                         @if (couponList.Any())
                         {
                             <div style="margin-bottom:8px;">
-                                <div style="font-size:12px;font-weight:600;color:#1a1a2e;margin-bottom:8px;">🎫 Mã giảm giá đề xuất:</div>
+                                <div style="font-size:12px;font-weight:600;color:var(--fs-dark);margin-bottom:8px;">🎫 Mã giảm giá đề xuất:</div>
                                 <div class="d-flex flex-column gap-2">
                                     @{
                                         var highlightCpns = couponList.Take(3).ToList();
@@ -271,15 +271,15 @@
                                              transition:all .2s;"
                                              class="fs-trans-x"
                                              style="transition:transform .2s;">
-                                            <div style="width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,#3CB815,#27a001);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;font-weight:800;font-size:15px;">
+                                            <div style="width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,var(--fs-green),var(--fs-green-dark, #27a001));display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;font-weight:800;font-size:15px;">
                                                 @(c.phantramgiam ?? 0)%
                                             </div>
                                             <div style="flex:1;min-width:0;">
-                                                <div style="font-size:14px;font-weight:700;color:#1a1a2e;">@c.tenkm</div>
+                                                <div style="font-size:14px;font-weight:700;color:var(--fs-dark);">@c.tenkm</div>
                                                 <div style="font-size:11px;color:#888;">Giảm @(c.phantramgiam ?? 0)% đơn hàng</div>
                                             </div>
                                             <div style="width:24px;height:24px;border-radius:50%;border:2px solid #ddd;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                                                @if (isFirst) { <span style="color:#3CB815;font-size:14px;">✓</span> }
+                                                @if (isFirst) { <span style="color:var(--fs-green);font-size:14px;">✓</span> }
                                             </div>
                                         </div>
                                     }
@@ -343,7 +343,7 @@
                         <!-- Khu vực test mock payment (chuyển khoản) -->
                         <div id="test-mode-area" class="mt-3" style="display:none;">
                             <div style="background:#fff8e1;border:1px solid #ffe082;border-radius:10px;padding:12px;">
-                                <p class="mb-2" style="font-size:13px;color:#856404;"><i class="fas fa-flask me-1"></i><strong>Chế độ mô phỏng thanh toán:</strong></p>
+                                <p class="mb-2" style="font-size:13px;color:var(--fs-warning, #856404);"><i class="fas fa-flask me-1"></i><strong>Chế độ mô phỏng thanh toán:</strong></p>
                                 <div class="d-flex gap-2">
                                     <button type="button" class="btn btn-success btn-sm flex-fill" onclick="submitPayment('success')">
                                         <i class="fas fa-check me-1"></i>Thanh toán thành công
@@ -522,11 +522,11 @@
         var testArea = $('#test-mode-area');
         var codBtn = $('#btn-submit-cod');
         if (name.includes('Tiền mặt') || name.includes('COD')) {
-            area.html('<div class="payment-detail-box text-center"><div style="background:linear-gradient(135deg,#28a745,#20c997);width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 10px"><i class="fas fa-money-bill-wave text-white fa-lg"></i></div><strong style="color:#28a745;">Thanh toán khi nhận hàng (COD)</strong><p class="text-muted small mt-1 mb-0">Chuẩn bị sẵn tiền mặt khi shipper giao hàng.</p></div>').show();
+            area.html('<div class="payment-detail-box text-center"><div style="background:linear-gradient(135deg,var(--fs-green, #28a745),#20c997);width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 10px"><i class="fas fa-money-bill-wave text-white fa-lg"></i></div><strong style="color:var(--fs-green, #28a745);">Thanh toán khi nhận hàng (COD)</strong><p class="text-muted small mt-1 mb-0">Chuẩn bị sẵn tiền mặt khi shipper giao hàng.</p></div>').show();
             testArea.hide();
             codBtn.show().html('<i class="fas fa-check-circle me-2"></i>Xác nhận đặt hàng');
         } else if (name.includes('VNPAY') || name.includes('Vnpay') || name.includes('vnpay')) {
-            area.html('<div class="payment-detail-box text-center"><div style="background:linear-gradient(135deg,#F37920,#e05e0e);width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 10px"><span style="color:#fff;font-weight:800;font-size:22px;">VN</span></div><strong style="color:#F37920;">Thanh toán qua VNPAY</strong><p class="text-muted small mt-1 mb-0">Chuyển hướng đến cổng thanh toán VNPAY để thanh toán qua ATM, Visa, Mastercard.</p></div>').show();
+            area.html('<div class="payment-detail-box text-center"><div style="background:linear-gradient(135deg,var(--fs-orange, #F37920),var(--fs-orange-dark, #e05e0e));width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 10px"><span style="color:#fff;font-weight:800;font-size:22px;">VN</span></div><strong style="color:var(--fs-orange, #F37920);">Thanh toán qua VNPAY</strong><p class="text-muted small mt-1 mb-0">Chuyển hướng đến cổng thanh toán VNPAY để thanh toán qua ATM, Visa, Mastercard.</p></div>').show();
             testArea.hide();
             codBtn.show().html('<i class="fas fa-credit-card me-2"></i>Đặt hàng (Thanh toán VNPAY)');
         } else {
@@ -547,7 +547,7 @@
         });
         // Highlight the selected one
         $(el).css('background','#f0fff0').css('border','1.5px solid #3CB815');
-        $(el).find('div:last').html('<div style="width:24px;height:24px;border-radius:50%;border:2px solid #3CB815;background:#3CB815;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;font-weight:700;font-size:14px;">✓</div>');
+        $(el).find('div:last').html('<div style="width:24px;height:24px;border-radius:50%;border:2px solid #3CB815;background:var(--fs-green);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;font-weight:700;font-size:14px;">✓</div>');
         applyCoupon();
     }
 
@@ -720,12 +720,12 @@
 
         if (success) {
             redirectUrl = URL_CHI_TIET_DH + '?id=' + orderId;
-            iconHtml = '<div class="fs-popup-icon-circle" style="background:linear-gradient(135deg,#28a745,#20c997);"><i class="fas fa-check fa-2x text-white"></i></div>';
+            iconHtml = '<div class="fs-popup-icon-circle" style="background:linear-gradient(135deg,var(--fs-green, #28a745),#20c997);"><i class="fas fa-check fa-2x text-white"></i></div>';
             contentHtml = '<h4 style="font-weight:700;margin-bottom:8px;">' + title + '</h4>'
                 + '<p class="text-muted" style="font-size:14px;margin-bottom:20px;">' + detail + '</p>';
             btnHtml = '<a href="' + redirectUrl + '" class="btn btn-success px-5" style="border-radius:8px;">Xem chi tiết đơn hàng</a>';
         } else {
-            iconHtml = '<div class="fs-popup-icon-circle" style="background:linear-gradient(135deg,#dc3545,#e74c3c);"><i class="fas fa-times fa-2x text-white"></i></div>';
+            iconHtml = '<div class="fs-popup-icon-circle" style="background:linear-gradient(135deg,#dc3545,var(--fs-danger, #e74c3c));"><i class="fas fa-times fa-2x text-white"></i></div>';
             contentHtml = '<h4 style="font-weight:700;margin-bottom:8px;">' + title + '</h4>'
                 + '<p class="text-muted" style="font-size:14px;margin-bottom:20px;">' + detail + '</p>';
             btnHtml = '<button class="btn btn-warning px-5 me-2" onclick="$(\'#payment-popup-overlay\').remove();" style="border-radius:8px;">Thử lại</button>';
@@ -838,7 +838,7 @@
                     discountBadge.html('<span style="font-size:10px;font-weight:500;">GIẢM</span><span>-' + c.phantramgiam + '%</span>');
 
                     var mid = $('<div style="flex:1;min-width:0"></div>');
-                    var codeLabel = $('<div style="font-weight:700;font-size:14px;color:#1a1a2e;"></div>');
+                    var codeLabel = $('<div style="font-weight:700;font-size:14px;color:var(--fs-dark);"></div>');
                     codeLabel.html(escHtml(c.tenkm));
                     var desc = $('<div style="font-size:12px;color:#888;margin-top:2px;"></div>');
                     var descText = c.mota || 'Giảm ' + c.phantramgiam + '% cho đơn hàng';
@@ -877,7 +877,7 @@
                 }
             },
             error: function() {
-                $list.html('<div style="text-align:center;padding:40px;color:#e74c3c;"><i class="fas fa-exclamation-circle fa-2x mb-2 d-block"></i>Lỗi tải mã giảm giá</div>');
+                $list.html('<div style="text-align:center;padding:40px;color:var(--fs-danger, #e74c3c);"><i class="fas fa-exclamation-circle fa-2x mb-2 d-block"></i>Lỗi tải mã giảm giá</div>');
             }
         });
     }
@@ -893,7 +893,7 @@
         <!-- Header -->
         <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid #e5e7eb;background:linear-gradient(135deg,#f8f9fa,#fff);">
             <div>
-                <h5 style="margin:0;font-weight:700;font-size:16px;color:#1a1a2e;">
+                <h5 style="margin:0;font-weight:700;font-size:16px;color:var(--fs-dark);">
                     <i class="fas fa-tag text-success me-1"></i>Chọn mã giảm giá
                 </h5>
                 <small style="color:#888;font-size:12px;">Chọn một mã để áp dụng vào đơn hàng</small>

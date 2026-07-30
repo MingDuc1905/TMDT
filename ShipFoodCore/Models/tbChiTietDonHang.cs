@@ -38,11 +38,12 @@ public partial class tbChiTietDonHang
 
     public virtual ICollection<tbDanhGia> tbDanhGias { get; set; } = new HashSet<tbDanhGia>();
 
-    // Singular alias for backward compatibility
+    // ponytail: backward-compat alias — dùng tbDanhGias (số nhiều)
     [NotMapped]
     public ICollection<tbDanhGia> tbDanhGia => tbDanhGias;
 
     // ─── Backward-compatible: tbMonAn qua tbBienTheMonAn ───
+    // ponytail: backward-compat — cần Include(tbBienTheMonAn).ThenInclude(tbMonAn) trước
     [NotMapped]
     public tbMonAn? tbMonAn => tbBienTheMonAn?.tbMonAn;
 }

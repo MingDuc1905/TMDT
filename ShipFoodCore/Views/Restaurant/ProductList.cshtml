@@ -33,8 +33,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-7 col-xxl-12">
-                                <div class="new-arrival-content position-relative">
+                            <div class="col-md-7 col-xxl-12">                                    <div class="new-arrival-content position-relative">
                                         <a href="~/Restaurant/ProductDetail/@i.maMonAn"><h4>@i.tenMonAn</h4></a>
                                         <p class="price">@i.giaTien?.ToString("N0") VNĐ</p>
                                         <p>
@@ -43,7 +42,7 @@
                                                     data-mamon="@i.maMonAn"
                                                     onclick="toggleConHang(this)"
                                                     aria-label="Bật/tắt trạng thái còn hàng cho @i.tenMonAn">
-                                                <i class="fas @(i.conhang ? "fa-check-circle" : "fa-minus-circle")" style="margin-right:4px;"></i>@(i.conhang ? "Còn hàng" : "Hết hàng")
+                                                @(i.conhang ? "🔴 Còn hàng" : "⚪ Hết hàng")
                                             </button>
                                         </p>
                                     <p>Mã món: <span class="item">@i.maMonAn</span></p>
@@ -72,10 +71,7 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-            </div>
-        }
+        </div>
     </div>
 </div>
 
@@ -108,9 +104,9 @@ function toggleConHang(btn) {
         // Optimistic update
         $btn.prop('disabled', true);
         if (wasConHang) {
-            $btn.html('<i class="fas fa-minus-circle" style="margin-right:4px;"></i>Hết hàng').removeClass('btn-success').addClass('btn-secondary');
+            $btn.text('⚪ Hết hàng').removeClass('btn-success').addClass('btn-secondary');
         } else {
-            $btn.html('<i class="fas fa-check-circle" style="margin-right:4px;"></i>Còn hàng').removeClass('btn-secondary').addClass('btn-success');
+            $btn.text('🔴 Còn hàng').removeClass('btn-secondary').addClass('btn-success');
         }
         
         $.ajax({
@@ -119,7 +115,7 @@ function toggleConHang(btn) {
             data: { mamon: mamon },
             success: function(res) {
                 if (res.success) {
-                    $btn.html(res.conhang ? '<i class="fas fa-check-circle" style="margin-right:4px;"></i>Còn hàng' : '<i class="fas fa-minus-circle" style="margin-right:4px;"></i>Hết hàng')
+                    $btn.text(res.conhang ? '🔴 Còn hàng' : '⚪ Hết hàng')
                         .toggleClass('btn-success btn-secondary');
                     showToast(res.message);
                 } else {
@@ -156,9 +152,9 @@ function toggleConHang(btn) {
 // Rollback về trạng thái cũ khi API thất bại
 function rollbackToggle($btn, wasConHang) {
     if (wasConHang) {
-        $btn.html('<i class="fas fa-check-circle" style="margin-right:4px;"></i>Còn hàng').removeClass('btn-secondary').addClass('btn-success');
+        $btn.text('🔴 Còn hàng').removeClass('btn-secondary').addClass('btn-success');
     } else {
-        $btn.html('<i class="fas fa-minus-circle" style="margin-right:4px;"></i>Hết hàng').removeClass('btn-success').addClass('btn-secondary');
+        $btn.text('⚪ Hết hàng').removeClass('btn-success').addClass('btn-secondary');
     }
 }
 
@@ -173,3 +169,6 @@ function showToast(msg) {
 }
 </script>
 }
+        }
+    </div>
+</div>

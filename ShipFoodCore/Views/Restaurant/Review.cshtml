@@ -112,8 +112,7 @@
                         @foreach (var rv in danhgias.OrderByDescending(d => d.madg))
                         {
                             var tenkh = rv.tbChiTietDonHang?.tbDonHang?.tbThongTinDatHang?.tbKhachHang?.tenkh ?? "Khách hàng";
-                            // ponytail: dùng ???ng d?n ?ày ?? ?? -- tbMonAn là [NotMapped] qua tbBienTheMonAn
-                            var tenmon = rv.tbChiTietDonHang?.tbBienTheMonAn?.tbMonAn?.tenmon ?? "";
+                            var tenmon = rv.tbChiTietDonHang?.tbMonAn?.tenmon ?? "";
                             var diem = rv.diemdanhgia ?? 0;
                             var badgeClass = diem >= 5 ? "s5" : diem == 4 ? "s4" : diem == 3 ? "s3" : "s1";
                             var bgColors = new[] { "#3CB815","#007bff","#e74c3c","#f39c12","#9b59b6","#17a2b8" };

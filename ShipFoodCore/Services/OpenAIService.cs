@@ -33,13 +33,16 @@ public class OpenAIService
     private readonly string? _baseUrl;
     private readonly string _model;
 
-    // ponytail: System prompt — AI tr? l?i ng?n g?n, súc tích, t?p trung
+    // ponytail: System prompt — AI thân thi?n, t? nhiên, t?p trung vào FastShip
     private const string SystemPrompt = """
-Bạn là trợ lý AI thông minh của nền tảng Fastship (ShipFood). Mọi câu trả lời của bạn BẮT BUỘC phải tuân thủ nghiêm ngặt các quy tắc sau:
-1. NGẮN GỌN & SÚC TÍCH: Đi thẳng vào vấn đề chính, trả lời trực diện câu hỏi của khách hàng, không lòng vòng, không giải thích dài dòng.
-2. BỎ QUA LỜI CHÀO/CÔNG NGHIỆP: Không chào hỏi xã giao (không 'Xin chào', 'Chúc một ngày tốt lành', 'Rất vui được hỗ trợ'), không dùng câu từ công nghiệp rập khuôn.
-3. PHONG CÁCH TỰ NHIÊN: Dùng văn phong tự nhiên, hiện đại, hỗ trợ khách hàng như một người bạn thực thụ nhưng vẫn chuẩn xác.
-4. TẬP TRUNG THÔNG TIN: Nếu trả lời về trạng thái đơn hàng, món ăn, khuyến mãi hay phí ship, hãy đưa thông tin/con số cụ thể ngay ở dòng đầu tiên.
+Bạn là trợ lý AI thân thiện của nền tảng FastShip (ShipFood) - giao đồ ăn tại TP.HCM.
+Hãy trả lời tự nhiên như một người bạn am hiểu về ẩm thực và dịch vụ của FastShip.
+
+QUY TẮC:
+1. Trả lời tự nhiên, thân thiện, có thể chào hỏi nhẹ nhàng nếu phù hợp.
+2. Luôn trung thực - nếu không biết thì nói không biết, đừng bịa thông tin.
+3. Chỉ nói về FastShip (ShipFood) - không trả lời câu hỏi ngoài phạm vi.
+4. Ưu tiên tiếng Việt, rõ ràng, dễ hiểu.
 """;
 
     // ─── JSON Models cho request/response ───
@@ -91,6 +94,8 @@ Bạn là trợ lý AI thông minh của nền tảng Fastship (ShipFood). Mọi
         _model = Environment.GetEnvironmentVariable("OPENAI_MODEL")
               ?? configuration["OpenAI:Model"]
               ?? "agnes-2.5-flash";
+
+        _logger.LogInformation("OpenAI config - BaseUrl: {BaseUrl}, Model: {Model}", _baseUrl ?? "(default)", _model);
 
         if (string.IsNullOrEmpty(_apiKey) || _apiKey == "YOUR_OPENAI_API_KEY")
         {
@@ -153,10 +158,10 @@ Bạn là trợ lý AI thông minh của nền tảng Fastship (ShipFood). Mọi
             {
                 Model = _model,
                 Messages = messages,
-                // ponytail: Gi?m temperature ?? AI tr? l?i t?p trung, ít b?c phét
-                Temperature = 0.5,
-                // ponytail: Gi?i h?n d? dài câu tr? l?i, tránh dài dòng
-                MaxTokens = 300
+                // ponytail: temperature 0.7 cho câu tr? l?i t? nhiên, không quá sáng t?o
+                Temperature = 0.7,
+                // ponytail: maxTokens 600 ??? dài v?a ph?i, không quá d?i dòng
+                MaxTokens = 600
             };
 
             var json = JsonSerializer.Serialize(requestBody);

@@ -15,6 +15,7 @@
     font-family: var(--fs-font, 'Inter', sans-serif);
 }
 .chat-toggle:hover { transform: scale(1.08); box-shadow: 0 6px 24px rgba(60,184,21,0.45); }
+.chat-toggle:active { transform: scale(0.94); }
 .chat-toggle .badge {
     position: absolute; top: -4px; right: -4px;
     background: #e74c3c; color: #fff; border-radius: 50%;
@@ -24,11 +25,16 @@
 
 .chat-box {
     position: fixed; bottom: 96px; right: 24px; z-index: 9998;
-    width: 360px; max-height: 520px; background: #fff;
+    width: 380px; max-height: 560px; background: #fff;
     border-radius: var(--fs-radius, 12px); box-shadow: 0 8px 40px rgba(0,0,0,0.12);
     flex-direction: column; overflow: hidden;
     font-family: var(--fs-font, 'Inter', sans-serif);
     display: none;
+}
+@@media (max-width: 480px) {
+    .chat-box { width: calc(100vw - 32px); right: 16px; bottom: 80px; max-height: 70vh; }
+    .chat-toggle { bottom: 16px; right: 16px; width: 48px; height: 48px; font-size: 20px; }
+    .chat-msgs { min-height: 160px; max-height: 40vh; }
 }
 .chat-box.active {
     display: flex;
@@ -70,7 +76,10 @@
 
 .chat-msgs {
     flex: 1; overflow-y: auto; padding: 12px 14px;
-    background: var(--fs-light-soft, #f3f4f6); min-height: 200px; max-height: 280px;
+    background: var(--fs-light-soft, #f3f4f6); min-height: 200px; max-height: 340px;
+}
+@@media (max-width: 480px) {
+    .chat-msgs { min-height: 160px; max-height: 40vh; }
 }
 .chat-msgs::-webkit-scrollbar { width: 4px; }
 .chat-msgs::-webkit-scrollbar-thumb { background: rgba(0,0,0,.12); border-radius: 4px; }

@@ -626,6 +626,26 @@
                 loadShipperChat();
             }
         });
+        // Listen for real-time order status changes
+        conn.on('orderStatusChanged', function (oid, trangthai, timestamp) {
+            if (oid !== @(ViewBag.dh?.madh ?? 0)) return;
+            // Update button states based on new status
+            var statusOrder = ['Đã đặt', 'Đã xác nhận', 'Chờ shipper lấy hàng', 'Đã lấy', 'Đang giao', 'Hoàn thành', 'Đã hủy'];
+            var currentIdx = statusOrder.indexOf(trangthai);
+            $('#btnOrdered, #btnPickup, #btnDelivering, #btnComplete').each(function() {
+                var btnId = this.id;
+                if (btnId === 'btnOrdered') { $(this).addClass('disabled'); return; }
+                var btnStatus = btnId === 'btnPickup' ? 'Đã lấy' :
+                               btnId === 'btnDelivering' ? 'Đang giao' : 'Hoàn thành';
+                var btnIdx = statusOrder.indexOf(btnStatus);
+                if (currentIdx >= btnIdx) {
+                    $(this).addClass('disabled').removeAttr('onclick');
+                } else {
+                    $(this).removeClass('disabled');
+                }
+            });
+        });
+
         // Listen for customer messages (Customer g?i qua CustomerSendMessage)
         conn.on('customerMessage', function(msg, oid, senderName) {
             if (oid === orderId) {

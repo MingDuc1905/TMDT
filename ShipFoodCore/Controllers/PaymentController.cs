@@ -1134,8 +1134,9 @@ public class PaymentController : BaseController
         if (order == null)
             return Json(new { success = false, message = "Đơn hàng không tồn tại" });
 
-        var paid = order.trangthai.Equals("Đã thanh toán", StringComparison.OrdinalIgnoreCase) ||
-                   order.trangthai.Equals("Đã đặt", StringComparison.OrdinalIgnoreCase);
+        // ponytail: dung string.Equals thay .Equals() de tranh NullReferenceException khi trangthai null
+        var paid = string.Equals(order.trangthai, "Đã thanh toán", StringComparison.OrdinalIgnoreCase) ||
+                   string.Equals(order.trangthai, "Đã đặt", StringComparison.OrdinalIgnoreCase);
 
         return Json(new {
             success = true,

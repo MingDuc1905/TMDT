@@ -1013,7 +1013,8 @@ public class HomeController : BaseController
         }
 
         // Kiểm tra trùng lặp
-        var existingUsers = db.tbUser.Where(u => u.username.Equals(user.username)).ToList();
+        var existingUsers = db.tbUser.Where(u => u.username == user.username).ToList();
+        // ponytail: dung == thay .Equals() de tranh NullReferenceException
         if (existingUsers.Count != 0)
         {
             if (IsAjaxRequest()) return Json(new { success = false, message = "Tên tài khoản đã tồn tại" });

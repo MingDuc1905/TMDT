@@ -372,6 +372,7 @@
         var d = document.createElement('div'); d.textContent = str; return d.innerHTML;
     }
 
+    // ═══ REAL-TIME: SignalR order status update ═══
     $(function () {
         $('#orderTable').DataTable({
             searching: true,
@@ -381,6 +382,39 @@
             language: {
                 url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/vi.json'
             }
+        });
+
+        // Connect SignalR to receive order status changes in real-time
+        var conn = new signalR.HubConnectionBuilder()
+            .withUrl('/nhantin')
+            .withAutomaticReconnect()
+            .build();
+
+        conn.on('orderStatusChanged', function (orderId, trangthai, timestamp) {
+            // Cập nhật badge trạng thái trong bảng nếu đơn hàng đang hiển thị
+            // Tìm dòng chứa mã đơn hàng — href format: ~/Cart/ChiTietDonHang?id=XYZ
+            var $link = $('#orderTable').find('a[href*="ChiTietDonHang?id="][href$="' + orderId + '"]');
+            if ($link.length > 0) {
+                var $statusCell = $link.closest('tr').find('td:nth-child(6)');
+                if ($statusCell.length) {
+                    var badgeClass = trangthai === 'Đã hủy' || trangthai === 'Đã từ chối' ? 'badge-danger badge' :
+                                    trangthai === 'Đang giao' || trangthai === 'Hoàn thành' ? 'badge-success badge' :
+                                    trangthai === 'Đã lấy' ? 'badge-info badge' : 'badge-warning badge';
+                    $statusCell.html('<span class="' + badgeClass + '">' + trangthai + '</span>');
+                }
+            }
+        });
+
+        conn.start().then(function () {
+            // Tham gia các order groups để nhận real-time status updates
+            var orderIds = [@string.Join(",", donHangs.Select(o => o.madh))];
+            orderIds.forEach(function (id) {
+                conn.invoke('JoinOrderGroup', id).catch(function (err) {
+                    console.warn('SignalR: Cannot join order group ' + id, err);
+                });
+            });
+        }).catch(function (err) {
+            console.warn('SignalR connection failed (LichSuDatHang):', err.toString());
         });
     });
 </script>

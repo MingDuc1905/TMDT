@@ -70,7 +70,7 @@
                                     @foreach (var i in city.districts)
                                     {
                                         @* ponytail: dung == thay .Equals() de tranh NullReferenceException khi quan null *@
-                                        <option style="width:600px;" value="@i.nameDistrict" selected="@(quan?.Equals(i.nameDistrict) == true)">@i.nameDistrict</option>
+                                        <option style="width:600px;" value="@i.nameDistrict" selected="@(quan == i.nameDistrict)">@i.nameDistrict</option>
                                     }
                                 </select>
                             </div> - <strong>@city.nameCity</strong>

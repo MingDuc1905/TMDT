@@ -363,24 +363,58 @@
         window.location.href = '@Url.Action("NhanTin", "Home")';
     }
 
-    // Live order tracking with Leaflet.js + SignalR
+    // ═══ SIGNALR: Kết nối real-time - độc lập với bản đồ ═══
+    // Bug fix: SignalR connection moved OUTSIDE map conditional (if(trackingMap))
+    // Trước đây nằm trong điều kiện bản đồ → chỉ chạy khi status == "Đang giao"
+    // → user không thấy cập nhật trạng thái cho các status trước đó
     $(document).ready(function () {
-        var trackingMap = document.getElementById('order-tracking-map');
-        if (trackingMap && window.L) {
+        var conn = new signalR.HubConnectionBuilder()
+            .withUrl('/nhantin')
+            .withAutomaticReconnect()
+            .build();
+
+        // ═══ ORDER STATUS UPDATE: Lắng nghe mọi lúc (không phụ thuộc map) ═══
+        conn.on('orderStatusChanged', function (orderId, trangthai, timestamp) {
+            if (orderId !== @donHang.madh) return;
+            $('.checkout__order h4').text('Đơn hàng (' + trangthai + ')');
+            $('.breadcrumb__option span').text('Đơn hàng - ' + trangthai);
+            showOrderStatusToast(trangthai);
+        });
+
+        conn.start().then(function () {
+            conn.invoke('JoinOrderGroup', @donHang.madh).catch(function (err) {
+                console.error('JoinOrderGroup error:', err);
+            });
+            // ═══ MAP: Chỉ khởi tạo bản đồ nếu element tồn tại ═══
+            initLiveMap(conn);
+        }).catch(function (err) {
+            console.error('SignalR connection error:', err);
+        });
+
+        conn.onreconnected(function () {
+            conn.invoke('JoinOrderGroup', @donHang.madh).catch(function (err) {
+                console.error('RejoinOrderGroup error:', err);
+            });
+        });
+
+        function showOrderStatusToast(trangthai) {
+            var icons = { 'Đã xác nhận': '👍', 'Đang chuẩn bị': '👨‍🍳', 'Đã lấy': '📦', 'Đang giao': '🚚', 'Hoàn thành': '✅', 'Đã hủy': '❌' };
+            var icon = icons[trangthai] || '📦';
+            var toast = $('<div style="position:fixed;top:80px;right:20px;z-index:9999;background:#3CB815;color:#fff;padding:14px 20px;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.2);font-size:13px;max-width:340px;animation:slideIn .3s ease;">' + icon + ' Đơn hàng đã chuyển sang: <strong>' + trangthai + '</strong></div>');
+            $('body').append(toast);
+            setTimeout(function(){ toast.fadeOut(400, function(){ $(this).remove(); }); }, 4000);
+        }
+
+        function initLiveMap(conn) {
+            var trackingMap = document.getElementById('order-tracking-map');
+            if (!trackingMap || !window.L) return;
             var map = L.map('order-tracking-map').setView([10.8231, 106.6297], 13);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; OpenStreetMap'
             }).addTo(map);
-
             var shipperMarker = null;
-
-            // Connect to SignalR hub for real-time location
-            var conn = new signalR.HubConnectionBuilder()
-                .withUrl('/nhantin')
-                .withAutomaticReconnect()
-                .build();
-
             conn.on('shipperLocationUpdate', function (orderId, lat, lng) {
+                if (orderId !== @donHang.madh) return;
                 if (!shipperMarker) {
                     shipperMarker = L.marker([lat, lng])
                         .addTo(map)
@@ -393,21 +427,6 @@
                     shipperMarker.setLatLng([lat, lng]);
                 }
                 map.setView([lat, lng], 15);
-            });
-
-            conn.start().then(function () {
-                conn.invoke('JoinOrderGroup', @donHang.madh).catch(function (err) {
-                    console.error('JoinOrderGroup error:', err);
-                });
-            }).catch(function (err) {
-                console.error('SignalR connection error:', err);
-            });
-
-            // ponytail: ph?i join l?i order group sau khi SignalR reconnect
-            conn.onreconnected(function () {
-                conn.invoke('JoinOrderGroup', @donHang.madh).catch(function (err) {
-                    console.error('RejoinOrderGroup error:', err);
-                });
             });
         }
     });

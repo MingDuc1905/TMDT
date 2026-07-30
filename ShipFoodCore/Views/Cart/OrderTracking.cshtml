@@ -33,7 +33,7 @@
 @section styles {
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <style>
-    .tracking-wrapper { margin-top: 100px; padding: 24px 0 60px; background: #f8f9fa; min-height: 80vh; }
+    .tracking-wrapper { margin-top: 100px; padding: 24px 0 60px; background: var(--fs-bg, #f8f9fa); min-height: 80vh; }
     @@media (max-width: 768px) { .tracking-wrapper { margin-top: 80px; } }
 
     .tracking-card { background: var(--fs-white); border-radius: var(--fs-radius-lg); box-shadow: var(--fs-shadow); padding: 28px; margin-bottom: 20px; }
@@ -41,25 +41,25 @@
     /* ── Progress Bar ── */
     .fs-tracking-progress { display: flex; align-items: flex-start; justify-content: space-between; padding: 16px 0; }
     .fs-tracking-step { display: flex; flex-direction: column; align-items: center; position: relative; flex: 1; text-align: center; }
-    .fs-tracking-icon { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; background: #f0f0f0; border: 3px solid #e0e0e0; transition: all .3s; margin-bottom: 6px; }
+    .fs-tracking-icon { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; background: var(--fs-border-soft, #f0f0f0); border: 3px solid var(--fs-border, #e0e0e0); transition: all .3s; margin-bottom: 6px; }
     .fs-tracking-step.completed .fs-tracking-icon { background: var(--fs-green); border-color: var(--fs-green); }
     .fs-tracking-step.current .fs-tracking-icon { background: var(--fs-green); border-color: var(--fs-green); box-shadow: 0 0 0 4px rgba(60,184,21,.2); animation: pulse 2s infinite; }
-    .fs-tracking-label { font-size: 11px; font-weight: 600; color: #999; }
-    .fs-tracking-step.completed .fs-tracking-label, .fs-tracking-step.current .fs-tracking-label { color: #333; }
-    .fs-tracking-line { position: absolute; top: 22px; left: 50%; width: 100%; height: 3px; background: #e0e0e0; z-index: -1; }
+    .fs-tracking-label { font-size: 11px; font-weight: 600; color: var(--fs-muted, #999); }
+    .fs-tracking-step.completed .fs-tracking-label, .fs-tracking-step.current .fs-tracking-label { color: var(--fs-dark, #333); }
+    .fs-tracking-line { position: absolute; top: 22px; left: 50%; width: 100%; height: 3px; background: var(--fs-border, #e0e0e0); z-index: -1; }
     .fs-tracking-line.active { background: var(--fs-green); }
 
     @@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(60,184,21,.4); } 70% { box-shadow: 0 0 0 10px rgba(60,184,21,0); } 100% { box-shadow: 0 0 0 0 rgba(60,184,21,0); } }
     @@keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
 
     /* ── Order Info ── */
-    .info-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
+    .info-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--fs-border-soft, #f0f0f0); font-size: 14px; }
     .info-row:last-child { border-bottom: none; }
-    .info-label { color: #888; }
+    .info-label { color: var(--fs-muted, #888); }
     .info-value { font-weight: 600; color: var(--fs-dark); text-align: right; }
 
     /* ── Map ── */
-    #trackingMap { height: 300px; border-radius: 12px; border: 2px solid #e5e7eb; }
+    #trackingMap { height: 300px; border-radius: var(--fs-radius); border: 2px solid var(--fs-border, #e5e7eb); }
 
     /* ── Chat Bottom Sheet ── */
     .chat-fab { position:fixed; bottom:24px; right:24px; width:56px; height:56px; border-radius:50%; background:linear-gradient(135deg,var(--fs-green),var(--fs-green-dark)); color:#fff; border:none; box-shadow:0 4px 16px rgba(60,184,21,.4); display:flex; align-items:center; justify-content:center; font-size:22px; cursor:pointer; z-index:999; transition:transform .2s,box-shadow .2s; }
@@ -107,9 +107,9 @@
     .shipper-phone { font-size: 13px; color: #666; }
 
     /* ── Order Items ── */
-    .order-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
+    .order-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--fs-border-soft, #f0f0f0); font-size: 14px; }
     .order-item:last-child { border-bottom: none; }
-    .order-total { font-size: 18px; font-weight: 700; color: #e74c3c; border-top: 2px solid #e74c3c; padding-top: 12px; margin-top: 8px; display: flex; justify-content: space-between; }
+    .order-total { font-size: 18px; font-weight: 700; color: var(--fs-danger, #e74c3c); border-top: 2px solid var(--fs-danger, #e74c3c); padding-top: 12px; margin-top: 8px; display: flex; justify-content: space-between; }
 
     @@media (max-width: 576px) {
         .tracking-card { padding: 16px; }

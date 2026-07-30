@@ -1,7 +1,7 @@
 @{
     ViewBag.Title = "ProductList";
     Layout = "~/Views/Shared/_LayoutPageRestaurant.cshtml";
-    List<ShipFood.Models.DataAnalytic> datas = ViewBag.datas;
+    List<ShipFood.Models.DataAnalytic> datas = ViewBag.datas ?? new List<ShipFood.Models.DataAnalytic>();
 }
 
 <div class="container-fluid">

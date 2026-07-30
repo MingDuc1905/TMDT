@@ -1,5 +1,7 @@
 # ==========================================================
 # FastShip - Docker Build (Render-optimized)
+# Build arg to force cache invalidation — increment when deploy needs fresh build
+ARG CACHE_BUST=20260730
 # ==========================================================
 
 # ==========================================================

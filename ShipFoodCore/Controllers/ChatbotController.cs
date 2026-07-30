@@ -49,6 +49,7 @@ public class ChatbotController : BaseController
     }
 
     [HttpPost]
+    [IgnoreAntiforgeryToken]
     public async Task<JsonResult> SendMessage(string message)
     {
         if (string.IsNullOrWhiteSpace(message))
@@ -137,7 +138,23 @@ public class ChatbotController : BaseController
         });
     }
 
+    /// <summary>
+    /// Ki?m tra tr?ng thái AI — không g?i API, không t?n credits, không pollute history
+    /// </summary>
     [HttpGet]
+    [IgnoreAntiforgeryToken]
+    public JsonResult Status()
+    {
+        return Json(new
+        {
+            success = true,
+            configured = _openAI.IsConfigured,
+            model = _openAI.IsConfigured ? "connected" : "unconfigured"
+        });
+    }
+
+    [HttpGet]
+    [IgnoreAntiforgeryToken]
     public JsonResult GetAiHistory()
     {
         var rawHistory = GetConversationHistory();

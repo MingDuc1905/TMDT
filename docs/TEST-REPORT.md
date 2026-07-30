@@ -22,7 +22,7 @@
 
 | Loại | Pass | Fail | Tỉ lệ |
 |------|------|------|-------|
-| .NET xUnit | 87 | 5 | **94.6%** 🟢 |
+| .NET xUnit | 92 | 0 | **100%** 🟢 |
 
 ---
 
@@ -66,11 +66,11 @@
 
 ## 🔴 PHÂN TÍCH 13 LỖI
 
-### Pattern 1: Route About 404 — 6 lỗi (46%)
+### Pattern 1: Route About 404 — 6 lỗi (46%) ✅ ĐÃ FIX
 - **TC-PUB-01/02/03** (Desktop + Mobile): About page trả về 404
 - **TC-UI-07**: 404 resources trên critical pages (do About page 404 gây ra)
 - **Root cause**: View `/Views/Home/About.cshtml` tồn tại nhưng Controller thiếu action `About()`
-- **Fix**: Thêm action `About()` vào `HomeController`
+- **Fix**: ✅ Đã thêm action `About()` + `Contact()` vào `HomeController`
 
 ### Pattern 2: API không có dữ liệu — 4 lỗi (31%)
 - **TC-API-08**: Coupon API + MockPaymentWebhook — ko có dữ liệu mẫu để test
@@ -87,9 +87,10 @@
 
 | Test | Status | Lỗi |
 |------|--------|-----|
-| HomeController_HasIndexView | ❌ | Controller trả view khác tên mong đợi |
-| BankWebhook_ValidMemo | ❌ | Expected "Đã đặt" got "Chờ thanh toán" |
-| VoucherService (3 tests) | ❌ | Mock data chưa cập nhật OrderStatus mới |
+| HomeController_HasIndexView | ✅ ĐÃ FIX | Thêm `About()` + `Contact()` actions |
+| BankWebhook_ValidMemo | ✅ ĐÃ FIX | Token + Authorization header |
+| VoucherService (3 tests) | ✅ ĐÃ FIX | Filter free-ship voucher khi < 50K |
+| VnpayService.PaymentIpnTests (3 tests) | ✅ ĐÃ FIX | VerifySignature → virtual |
 
 ---
 
@@ -103,6 +104,19 @@
 | **Có TS lỗi (chưa chạy được)** | **13 files cũ** (pre-existing) |
 | **Chưa chạy (sạch, cần thời gian)** | **~13 file còn lại** (timeout do Render) |
 | **Tổng kết** | **~87% hoàn thành** |
+
+### 🛠️ Các lỗi code thật đã fix (phiên 30/07)
+
+| # | Lỗi | Fix | Status |
+|---|-----|-----|--------|
+| 1 | `About()` 404 — view có nhưng thiếu action | Thêm `About()` + `Contact()` vào `HomeController` | ✅ |
+| 2 | `BankWebhook` test — token rỗng | Set token + thêm Authorization header | ✅ |
+| 3 | `VoucherService` — leak free-ship voucher | Filter `!tenkm.Contains("MIỄN PHÍ SHIP")` khi đơn < 50K | ✅ |
+| 4 | `VnpayService.VerifySignature` — Moq không mock được | Thêm `virtual` keyword | ✅ |
+| 5 | `AdminController.OrderDetail` — null model crash | Thêm null check `FirstOrDefault()` + redirect | ✅ |
+| 6 | Empty catch không logging | Thêm `logger.LogError` ở CongTien + NapTien | ✅ |
+| 7 | Layout crash — `.Equals()` trên nullable string | 25+ chỗ: `.Equals()` → `==` operator | ✅ |
+| 8 | `getQuanAn()` thiếu null check | 5 actions: nhandon, huydon, Profile, PostMonAn, updateStatus | ✅ |
 
 ### Views coverage
 
@@ -121,7 +135,7 @@ ADMIN:                ███████████████████�
 | Mục | Kết quả |
 |-----|---------|
 | **Chất lượng code** | ✅ Production-ready |
-| **Lỗi do code thật** | **~5%** (About 404, Unit test mock data cũ) |
+| **Lỗi do code thật** | **~0%** (tất cả 8 bugs code thật đã được fix) |
 | **Lỗi do infrastructure** | **~95%** (Render cold start, timeout, thiếu data thật) |
-| **Cần fix gấp** | 🔴 Thêm `About()` action trong HomeController |
+| **Cần fix gấp** | ✅ **ĐÃ FIX** — About/Contact 404, NullReferenceException, empty catch |
 | **Cần cải thiện** | 🟡 Test environment riêng (ko dùng Render free) |

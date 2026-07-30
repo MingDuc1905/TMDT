@@ -1,7 +1,7 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/Fastship-v5.7-3CB815?style=for-the-badge&logo=dotnet&logoColor=white&labelColor=111">
-    <img src="https://img.shields.io/badge/Fastship-v5.7-3CB815?style=for-the-badge&logo=dotnet&logoColor=white&labelColor=fff" alt="Fastship v5.7">
+    <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/Fastship-v5.8-3CB815?style=for-the-badge&logo=dotnet&logoColor=white&labelColor=111">
+    <img src="https://img.shields.io/badge/Fastship-v5.8-3CB815?style=for-the-badge&logo=dotnet&logoColor=white&labelColor=fff" alt="Fastship v5.8">
   </picture>
 </p>
 
@@ -11,12 +11,12 @@
 
 <p align="center">
   <b>Nền tảng giao hàng thức ăn online</b><br>
-  <i>ASP.NET Core 8 · MySQL · SignalR · Gemini AI · Real-time Tracking</i>
+  <i>ASP.NET Core 8 · PostgreSQL · SignalR · Gemini AI · Real-time Tracking</i>
 </p>
 
 <p align="center">
   <a href="https://dotnet.microsoft.com/download/dotnet/8.0"><img src="https://img.shields.io/badge/.NET_8-512BD4?style=flat-square&logo=dotnet&logoColor=white" alt=".NET 8"></a>
-  <a href="https://www.mysql.com/"><img src="https://img.shields.io/badge/MySQL-4479A1?style=flat-square&logo=mysql&logoColor=white" alt="MySQL"></a>
+  <a href="https://www.postgresql.org/"><img src="https://img.shields.io/badge/PostgreSQL-336791?style=flat-square&logo=postgresql&logoColor=white" alt="PostgreSQL"></a>
   <a href="https://learn.microsoft.com/en-us/aspnet/core/signalr/"><img src="https://img.shields.io/badge/SignalR-512BD4?style=flat-square&logo=dotnet&logoColor=white" alt="SignalR"></a>
   <a href="https://leafletjs.com/"><img src="https://img.shields.io/badge/MoMo_Sandbox-A50064?style=flat-square&logo=data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMTIgMkM2LjQ4IDIgMiA2LjQ4IDIgMTJzNC40OCAxMCAxMCAxMCAxMC00LjQ4IDEwLTEwUzE3LjUyIDIgMTIgMnptMCAxOGMtNC40MSAwLTgtMy41OS04LThzMy41OS04IDgtOCA4IDMuNTkgOCA4LTMuNTkgOC04IDh6IiBmaWxsPSJ3aGl0ZSIvPjwvc3ZnPg==&logoColor=white" alt="MoMo Payment"></a>
   <a href="https://leafletjs.com/"><img src="https://img.shields.io/badge/Leaflet.js-199900?style=flat-square&logo=leaflet&logoColor=white" alt="Leaflet.js"></a>
@@ -27,6 +27,7 @@
   <a href="https://render.com/"><img src="https://img.shields.io/badge/Render-46E3B7?style=flat-square&logo=render&logoColor=black" alt="Render"></a>
   <a href="https://www.chartjs.org/"><img src="https://img.shields.io/badge/Chart.js-FF6384?style=flat-square&logo=chartdotjs&logoColor=white" alt="Chart.js"></a>
   <a href="https://jquery.com/"><img src="https://img.shields.io/badge/jQuery_3.7-0769AD?style=flat-square&logo=jquery&logoColor=white" alt="jQuery"></a>
+  <a href="https://playwright.dev/"><img src="https://img.shields.io/badge/Playwright-2EAD33?style=flat-square&logo=playwright&logoColor=white" alt="Playwright"></a>
   <br>
   <img src="https://img.shields.io/badge/Status-Active-2ea44f?style=flat-square" alt="Status">
   <img src="https://img.shields.io/github/last-commit/MingDuc1905/TMDT?style=flat-square&color=3CB815" alt="Last commit">
@@ -281,11 +282,11 @@ dotnet run
     <td><b>UI Kit</b></td>
     <td>Bootstrap 5</td>
     <td><b>Database</b></td>
-    <td>MySQL 8+ / MariaDB 10.6+</td>
+    <td>PostgreSQL 15+</td>
   </tr>
   <tr>
     <td><b>ORM</b></td>
-    <td>EF Core + Pomelo</td>
+    <td>EF Core + Npgsql</td>
     <td><b>Charts</b></td>
     <td>Chart.js 3.x</td>
     <td><b>Container</b></td>
@@ -436,6 +437,21 @@ TMDT-master/
 - [x] 📊 **Fix: Analytics null guard** — null check KPI cards trong Admin Dashboard
 - [x] 📅 **Fix: OrderList date filter** — thêm input type="date" + server-side date filtering
 - [x] 🏷️ **Fix: Out-of-stock badge + disabled button** — `soluong == 0` → badge "Cháy hàng" + disabled nút
+
+</details>
+
+<details>
+<summary><b>✅ v5.8 — Đã hoàn thành (Tháng 7, 2026)</b></summary>
+
+- [x] 🛡️ **Null-safety audit toàn bộ 4 roles** — 25+ chỗ `.Equals()` trên nullable string → `==` operator (Customer, Restaurant, Shipper, Admin layouts + controllers)
+- [x] 🛡️ **Null check getQuanAn()** — 5 actions của RestaurantController (nhandon, huydon, Profile, PostMonAn, updateStatus)
+- [x] 🛡️ **Fix OrderDetail crash** — thêm null check `FirstOrDefault()` trong AdminController
+- [x] 📝 **Logging cho empty catch** — 2 chỗ: AdminController.CongTien + HomeController.NapTien
+- [x] 🧪 **Thêm 20 file E2E test** — files 21-40: product detail, reviews, chat roles, payment flows, API dashboard, full visual regression
+- [x] 🧪 **Unit test fix** — VnpayService.VerifySignature → virtual, BankWebhookTests token + auth header
+- [x] 🛒 **VoucherService fix** — filter free-ship voucher khi đơn < 50K
+- [x] 📄 **Thêm About() + Contact()** — fix 404 cho trang About và Contact
+- [x] 🧹 **Docs cleanup** — Project.md, README.md, UI-UX.md, TEST-REPORT.md làm sạch, cập nhật version
 
 </details>
 

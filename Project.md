@@ -1,6 +1,6 @@
 # Fastship (ShipFood) — Nền tảng Giao Hàng Thức Ăn Online
 
-> **Cập nhật**: Dựa trên mã nguồn thực tế — ASP.NET Core 8 MVC + MySQL (Pomelo) + Bootstrap 5 + SignalR + Gemini AI + Google OAuth
+> **Cập nhật**: Dựa trên mã nguồn thực tế — ASP.NET Core 8 MVC + PostgreSQL (Npgsql) + Bootstrap 5 + SignalR + Gemini AI + Google OAuth
 > **Live Demo**: [https://fastship-web.onrender.com/](https://fastship-web.onrender.com/)
 
 ---
@@ -28,7 +28,7 @@ Cung cấp một giải pháp hoàn chỉnh cho:
 | Tầng | Công nghệ | Phiên bản |
 |------|-----------|-----------|
 | **Backend Framework** | ASP.NET Core | 8.0 |
-| **ORM** | Entity Framework Core (Npgsql) | 8.0.11 |
+| **ORM** | Entity Framework Core + Npgsql | 8.0.11 |
 | **Database** | PostgreSQL 15+ (Render Managed) | 15+ |
 | **Template Engine** | Razor (Runtime Compilation) | 8.0.11 |
 | **Real-time** | SignalR (Groups-based, 12 methods) | 8.0.11 |
@@ -63,7 +63,7 @@ Cung cấp một giải pháp hoàn chỉnh cho:
 <PackageReference Include="Google.GenAI" Version="1.11.0" />
 <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="8.0.0" />
 <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.11" />
-<PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="8.0.2" />
+<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.11" />
 <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.11" />
 <PackageReference Include="Microsoft.AspNetCore.SignalR.Common" Version="8.0.11" />
 <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="8.0.11" />
@@ -357,10 +357,9 @@ TMDT-master/
 
 ## 💾 Cơ Sở Dữ Liệu
 
-### Database: MySQL 8+ (MySqlServerVersion 8.0.20)
+### Database: PostgreSQL 15+ (Npgsql)
 
-**Connection**: `dbFoodyEntities` (Pomelo.EntityFrameworkCore.MySql)
-> **Fix v2.6**: Đổi từ `MariaDbServerVersion(10,6)` → `MySqlServerVersion(8,0,20)` để tắt RETURNING clause (MySQL < 8.0.21 không hỗ trợ). Nếu cần auto-detect: `ServerVersion.AutoDetect(connectionString)`.
+**Connection**: `dbFoodyEntities` (Npgsql)
 
 > **⚠️ Quan trọng**: `tbChiTietDonHang.mamon` là FK → `tbBienTheMonAn.id` (không phải `tbMonAn.mamon`). Mọi Apriori query cần bridge mapping qua tbBienTheMonAn.
 
@@ -518,7 +517,7 @@ TMDT-master/
 - **Builder**: Dockerfile (automatic)
 - **Replicas**: 1
 - **Restart**: ON_FAILURE, max 3 retries
-- **MySQL**: Auto-config từ Render env vars (MYSQLHOST, MYSQLPORT, MYSQLUSER, MYSQLPASSWORD, MYSQLDATABASE)
+- **PostgreSQL**: Auto-config từ Render env vars (PGHOST, PGPORT, PGUSER, PGPASSWORD, PGDATABASE)
 
 ### Database Initialization
 - `EnsureCreated()` tự động tạo bảng khi chạy lần đầu
@@ -527,15 +526,15 @@ TMDT-master/
 
 ### Environment Variables
 ```env
-# MySQL (Render auto)
-MYSQLHOST=localhost
-MYSQLPORT=3306
-MYSQLUSER=root
-MYSQLPASSWORD=
-MYSQLDATABASE=dbFoody
+# PostgreSQL (Render auto)
+PGHOST=localhost
+PGPORT=5432
+PGUSER=postgres
+PGPASSWORD=
+PGDATABASE=dbFoody
 
 # Or full URL
-MYSQL_URL=Server=...;Database=...;User=...;Password=...;
+PG_URL=Server=...;Database=...;User=...;Password=...;
 
 # Google OAuth (optional)
 Authentication__Google__ClientId=xxx
@@ -602,7 +601,7 @@ APP_DOMAIN=https://fastship-web.onrender.com
 ## 📝 Ghi Chú Phát Triển
 
 - **Framework**: ASP.NET Core 8 (not MVC 5)
-- **Database**: MySQL 8+ with Pomelo (MySqlServerVersion 8.0.20, not MariaDb)
+- **Database**: PostgreSQL 15+ with Npgsql
 - **ORM**: Entity Framework Core 8 (not EF6)
 - **Frontend**: Bootstrap 5 (not Bootstrap 3/4)
 - **Auth**: Cookie + Session (not Identity Framework)
@@ -706,6 +705,12 @@ APP_DOMAIN=https://fastship-web.onrender.com
 - [x] ✅ **Fix: Thêm ngaydanhgia vào tbDanhGia** — model THIẾU hoàn toàn timestamp cho đánh giá, set `DateTime.Now` trong `CartController.SubmitReview`
 - [x] ✅ **Fix: Thêm thoigian vào tbTinNhan (6 vị trí)** — model THIẾU hoàn toàn timestamp cho chat messages, set ở AdminChatController (3 vị trí), AdminController.CongTien, HomeController.NapTien
 - [x] ✅ **Fix: Tự động cập nhật rating quán sau review** — `soluotdanhgia` + `diemdanhgia` của tbQuanAn được tính lại sau mỗi `SubmitReview` (COUNT + AVG từ tbDanhGia)
+- [x] ✅ **Fix: Thêm About() + Contact() actions** — fix 404 cho trang About và Contact
+- [x] ✅ **Null-safety audit v5.8** — 25+ chỗ `.Equals()` → `==`, 5 null checks getQuanAn(), 1 FirstOrDefault null check, 2 empty catch → logging
+- [x] ✅ **VnpayService.VerifySignature virtual** — fix Moq mock cho PaymentIpnTests
+- [x] ✅ **VoucherService free-ship filter** — không leak free-ship voucher khi đơn < 50K
+- [x] ✅ **BankWebhookTests fix** — token rỗng + thiếu Authorization header
+- [x] ✅ **Bổ sung 20 E2E test files** — (21-40): product detail, reviews, chat, payment, API dashboard, full visual regression
 - [ ] **⚠️ Filter/Search quá phức tạp** — MenuSearch dynamic SQL + Bottom Sheet + Dual Filter Bar cần đơn giản hoá
 - [ ] Real payment (Stripe/PayPal/ZaloPay)
 
@@ -727,7 +732,7 @@ APP_DOMAIN=https://fastship-web.onrender.com
 | Package | Version | Mục đích |
 |---------|---------|----------|
 | `Microsoft.AspNetCore.App` | 8.0 | Core framework (built-in) |
-| `Pomelo.EntityFrameworkCore.MySql` | 8.0.2 | MySQL EF Core provider |
+| `Npgsql.EntityFrameworkCore.PostgreSQL` | 8.0.11 | PostgreSQL EF Core provider |
 | `Microsoft.EntityFrameworkCore` | 8.0.11 | EF Core ORM |
 | `Microsoft.AspNetCore.SignalR.Common` | 8.0.11 | Real-time messaging |
 | `Microsoft.AspNetCore.Authentication.Google` | 8.0.0 | Google OAuth |
@@ -757,17 +762,17 @@ cd ShipFoodCore
 dotnet restore
 ```
 
-### 3. Cấu hình MySQL
-- Cài đặt MySQL 8+ hoặc MariaDB 10.6+
-- Tạo database: `CREATE DATABASE dbFoody CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`
-- Import seed data: `mysql -u root -p dbFoody < mysql_utf8.sql`
+### 3. Cấu hình PostgreSQL
+- Cài đặt PostgreSQL 15+
+- Tạo database: `CREATE DATABASE "dbFoody";`
+- Import seed data: `psql -U postgres -d dbFoody < seed.sql`
 
 ### 4. Cấu hình Connection String
 Trong `appsettings.json` hoặc environment variables:
 ```json
 {
   "ConnectionStrings": {
-    "dbFoodyEntities": "Server=localhost;Port=3306;Database=dbFoody;User=root;Password=yourpassword;"
+    "dbFoodyEntities": "Server=localhost;Port=5432;Database=dbFoody;User=postgres;Password=yourpassword;"
   }
 }
 ```
@@ -784,7 +789,7 @@ dotnet run --project ShipFoodCore
 ### Docker (optional)
 ```bash
 docker build -t fastship .
-docker run -p 8080:8080 -e MYSQLHOST=host.docker.internal -e MYSQLUSER=root -e MYSQLPASSWORD=pass -e MYSQLDATABASE=dbFoody fastship
+docker run -p 8080:8080 -e PGHOST=host.docker.internal -e PGUSER=postgres -e PGPASSWORD=pass -e PGDATABASE=dbFoody fastship
 ```
 
 ---

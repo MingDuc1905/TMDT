@@ -486,6 +486,9 @@ try
             @"ALTER TABLE ""tbDanhMuc"" ADD COLUMN IF NOT EXISTS ""icon"" VARCHAR(50);",
             @"ALTER TABLE ""tbKhachHang"" ADD COLUMN IF NOT EXISTS ""hinhanh"" VARCHAR(500);",
             @"ALTER TABLE ""tbAdmin"" ADD COLUMN IF NOT EXISTS ""hinhanh"" VARCHAR(500);",
+            @"ALTER TABLE ""tbDanhGia"" ADD COLUMN IF NOT EXISTS ""ngaydanhgia"" TIMESTAMP;",
+            @"ALTER TABLE ""tbDanhGia"" ADD COLUMN IF NOT EXISTS ""phanHoiCuaQuan"" VARCHAR(500);",
+            @"ALTER TABLE ""tbTinNhan"" ADD COLUMN IF NOT EXISTS ""thoigian"" TIMESTAMP;",
         };
         foreach (var alter in alterStatements)
         {

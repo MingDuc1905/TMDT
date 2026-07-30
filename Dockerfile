@@ -1,7 +1,5 @@
 # ==========================================================
 # FastShip - Docker Build (Render-optimized)
-# Build arg to force cache invalidation — increment when deploy needs fresh build
-ARG CACHE_BUST=20260730
 # ==========================================================
 
 # ==========================================================
@@ -26,6 +24,11 @@ RUN dotnet restore ShipFoodCore/ShipFoodCore.csproj --verbosity quiet
 # Stage 2: Build
 # ==========================================================
 FROM restore AS build
+
+# Cache invalidation: increment CACHE_BUST value below to force fresh Docker build
+# Change value → file content changes → layer hash changes → cache miss
+ARG CACHE_BUST
+RUN echo "${CACHE_BUST}" > /tmp/.cache-bust && echo "Build CACHE_BUST=${CACHE_BUST}"
 
 # Copy source files (dockerignore excludes .agents/, Skills/, .git/, etc.)
 COPY ShipFoodCore/ ./ShipFoodCore/

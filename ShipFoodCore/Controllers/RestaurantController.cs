@@ -367,9 +367,7 @@ public class RestaurantController : BaseController
         {
             var logger = HttpContext.RequestServices.GetRequiredService<ILogger<RestaurantController>>();
             logger.LogError(ex, "Review CRASHED: {Message}", ex.Message);
-            // ponytail: DIAGNOSTIC — show real error temporarily, include inner for Npgsql details
-            var inner = ex.InnerException != null ? $" → {ex.InnerException.GetType().Name}: {ex.InnerException.Message}" : "";
-            TempData["ErrMsg"] = $"[Debug] {ex.GetType().Name}: {ex.Message}{inner}";
+            TempData["ErrMsg"] = "Không thể tải đánh giá. Vui lòng thử lại sau.";
             return RedirectToAction("Index");
         }
     }
@@ -779,8 +777,7 @@ public class RestaurantController : BaseController
         {
             var logger = HttpContext.RequestServices.GetRequiredService<ILogger<RestaurantController>>();
             logger.LogError(ex, "ProductList CRASHED: {Message}", ex.Message);
-            var inner = ex.InnerException != null ? $" → {ex.InnerException.GetType().Name}: {ex.InnerException.Message}" : "";
-            TempData["ErrMsg"] = $"[Debug] {ex.GetType().Name}: {ex.Message}{inner}";
+            TempData["ErrMsg"] = "Không thể tải danh sách món ăn. Vui lòng thử lại sau.";
             return RedirectToAction("Index");
         }
     }

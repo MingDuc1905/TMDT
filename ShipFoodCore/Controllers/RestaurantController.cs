@@ -302,11 +302,11 @@ public class RestaurantController : BaseController
             ViewBag.dataDanhMucs = dataDanhMucs;
 
             // ═══ Query 3: Doanh thu — 1 query nhẹ, trừ đơn hủy ═══
-            // ponytail: query tr?c ti?p tbDonHang, ko qua getQuanAn() — nhanh h?n nhi?u
-            var doanhThu = await db.tbDonHang
+            // ponytail: PostgreSQL-safe — SumAsync với ?? bên ngoài (ko bên trong expression)
+            var doanhThu = (double?)(await db.tbDonHang
                 .Where(dh => dh.maquan == user.userid && dh.trangthai != OrderStatus.DaHuy)
-                .SumAsync(dh => (decimal?)dh.tongtien ?? 0);
-            ViewBag.doanhThu = (double?)doanhThu;
+                .SumAsync(dh => (decimal?)dh.tongtien) ?? 0);
+            ViewBag.doanhThu = doanhThu;
 
             // ═══ Ghi vào cache (5 phút) ═══
             var cacheData = new Dictionary<string, object>
@@ -335,13 +335,24 @@ public class RestaurantController : BaseController
         var quanAn = getQuanAn();
         if (quanAn == null) return RedirectToAction("Logout", "Home");
 
-        // Direct DB query — navigation chain (tbMonAn→tbBienTheMonAn→tbChiTietDonHang→tbDanhGia)
-        // không được load qua getQuanAn() vì Include chain quá nặng.
         var maMonQuan = quanAn.tbMonAn.Select(m => m.mamon).ToList();
+        if (!maMonQuan.Any())
+        {
+            ViewBag.danhgias = new List<tbDanhGia>();
+            return View();
+        }
+
+        // ponytail: PostgreSQL-safe — JOIN thay vì navigation chain nullable
+        // Bước 1: Lấy review IDs qua 2 JOIN (không dùng navigation chain)
+        var reviewIds = (from d in db.tbDanhGia
+                         join ct in db.tbChiTietDonHang on d.mactdh equals ct.mactdh
+                         join bt in db.tbBienTheMonAn on ct.mamon equals bt.id
+                         where maMonQuan.Contains(bt.mamon)
+                         select d.madg).Distinct().ToList();
+
+        // Bước 2: Load reviews với Include từ danh sách IDs
         var danhGias = db.tbDanhGia
-            .Where(d => d.tbChiTietDonHang != null
-                && d.tbChiTietDonHang.tbBienTheMonAn != null
-                && maMonQuan.Contains(d.tbChiTietDonHang.tbBienTheMonAn.mamon))
+            .Where(d => reviewIds.Contains(d.madg))
             .Include(d => d.tbChiTietDonHang).ThenInclude(ct => ct.tbDonHang).ThenInclude(dh => dh.tbThongTinDatHang).ThenInclude(tt => tt.tbKhachHang)
             .Include(d => d.tbChiTietDonHang).ThenInclude(ct => ct.tbBienTheMonAn).ThenInclude(b => b.tbMonAn)
             .OrderByDescending(d => d.madg)
@@ -625,16 +636,24 @@ public class RestaurantController : BaseController
         var quanAn = getQuanAn();
         if (quanAn == null) return RedirectToAction("Login", "Home");
 
-        // Same direct query as Review()
+        // ponytail: PostgreSQL-safe — JOIN thay vì navigation chain nullable (same fix as Review)
         var maMonQuan = quanAn.tbMonAn.Select(m => m.mamon).ToList();
-        var danhGias = db.tbDanhGia
-            .Where(d => d.tbChiTietDonHang != null
-                && d.tbChiTietDonHang.tbBienTheMonAn != null
-                && maMonQuan.Contains(d.tbChiTietDonHang.tbBienTheMonAn.mamon))
-            .Include(d => d.tbChiTietDonHang).ThenInclude(ct => ct.tbDonHang).ThenInclude(dh => dh.tbThongTinDatHang).ThenInclude(tt => tt.tbKhachHang)
-            .Include(d => d.tbChiTietDonHang).ThenInclude(ct => ct.tbBienTheMonAn).ThenInclude(b => b.tbMonAn)
-            .OrderByDescending(d => d.madg)
-            .ToList();
+        var reviewIds = maMonQuan.Any()
+            ? (from d in db.tbDanhGia
+               join ct in db.tbChiTietDonHang on d.mactdh equals ct.mactdh
+               join bt in db.tbBienTheMonAn on ct.mamon equals bt.id
+               where maMonQuan.Contains(bt.mamon)
+               select d.madg).Distinct().ToList()
+            : new List<int>();
+
+        var danhGias = reviewIds.Any()
+            ? db.tbDanhGia
+                .Where(d => reviewIds.Contains(d.madg))
+                .Include(d => d.tbChiTietDonHang).ThenInclude(ct => ct.tbDonHang).ThenInclude(dh => dh.tbThongTinDatHang).ThenInclude(tt => tt.tbKhachHang)
+                .Include(d => d.tbChiTietDonHang).ThenInclude(ct => ct.tbBienTheMonAn).ThenInclude(b => b.tbMonAn)
+                .OrderByDescending(d => d.madg)
+                .ToList()
+            : new List<tbDanhGia>();
 
         ViewBag.danhgias = danhGias;
         ViewBag.quanAn = quanAn;
@@ -689,29 +708,34 @@ public class RestaurantController : BaseController
         var user = GetCurrentUser();
         if (user == null) return RedirectToAction("Login", "Home");
 
-        // ponytail: query tr?c ti?p, Include ?y ?? chain tbMonAn → tbBienTheMonAn → tbChiTietDonHang → tbDanhGia
-        // Không dùng getQuanAn() vì không Include ???c chi ti?t ?ánh giá qua NotMapped property
+        // ponytail: PostgreSQL-safe — chia Include 3 levels thành 2 queries
+        // Bước 1: Load monAn + tbDanhMuc + tbBienTheMonAns (2 levels, tránh Cartesian explosion)
         var monAns = db.tbMonAn
             .Where(m => m.maquanan == user.userid && !m.isDeleted)
             .Include(m => m.tbDanhMuc)
             .Include(m => m.tbBienTheMonAns)
-                .ThenInclude(b => b.tbChiTietDonHangs)
-                    .ThenInclude(ct => ct.tbDanhGias)
             .ToList();
+
+        // Bước 2: Load chiTietDonHangs + tbDanhGias riêng biệt
+        var bienTheIds = monAns.SelectMany(m => m.tbBienTheMonAns.Select(b => b.id)).ToList();
+        var chiTietDHs = bienTheIds.Any()
+            ? db.tbChiTietDonHang
+                .Where(ct => ct.mamon != null && bienTheIds.Contains(ct.mamon.Value))
+                .Include(ct => ct.tbDanhGias)
+                .ToList()
+            : new List<tbChiTietDonHang>();
 
         var datas = new List<DataAnalytic>();
         foreach (var m in monAns)
         {
-            // ponytail: truy c?p tr?c ti?p Include chain, không qua NotMapped
-            var chiTietDHs = m.tbBienTheMonAns
-                .SelectMany(b => b.tbChiTietDonHangs ?? Enumerable.Empty<tbChiTietDonHang>())
-                .ToList();
+            var bienTheIdsForMon = m.tbBienTheMonAns.Select(b => b.id).ToHashSet();
+            var chiTietMonAn = chiTietDHs.Where(ct => ct.mamon != null && bienTheIdsForMon.Contains(ct.mamon.Value)).ToList();
 
             int totalDiem = 0;
             int soDanhGia = 0;
             int soLuongBan = 0;
 
-            foreach (var ct in chiTietDHs)
+            foreach (var ct in chiTietMonAn)
             {
                 soLuongBan += ct.soluong ?? 0;
                 foreach (var dg in ct.tbDanhGias)

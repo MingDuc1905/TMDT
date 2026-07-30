@@ -37,19 +37,19 @@
                     <i class="fas fa-fire"></i> Khuyến mãi
                 </button>
                 <button type="button" class="fs-chip @(isBestSeller ? "active" : "")" data-filter="bestseller" onclick="toggleChip('bestseller')">
-                    ⭐ Bán chạy
+                    <i class="fas fa-chart-line"></i> Bán chạy
                 </button>
                 <button type="button" class="fs-chip" data-filter="nearme" onclick="toggleChip('nearme')">
-                    📍 Gần đây
+                    <i class="fas fa-location-dot"></i> Gần đây
                 </button>
                 <button type="button" class="fs-chip" data-filter="quick" onclick="toggleChip('quick')">
-                    ⚡ Dưới 30 phút
+                    <i class="fas fa-bolt"></i> Dưới 30 phút
                 </button>
                 <button type="button" class="fs-chip" data-filter="rated" onclick="toggleChip('rated')">
-                    👍 Đánh giá tốt (Từ 4.4)
+                    <i class="fas fa-thumbs-up"></i> Đánh giá tốt (Từ 4.4)
                 </button>
                 <button type="button" class="fs-chip @(mode == "pickup" ? "active" : "")" data-filter="mode" onclick="toggleChip('mode')">
-                    🚶 Tự đến lấy
+                    <i class="fas fa-walking"></i> Tự đến lấy
                 </button>
             </div>
         </div>
@@ -72,11 +72,11 @@
                 <div class="fs-radio-group">
                     <label class="fs-radio @(mode == "delivery" ? "active" : "")">
                         <input type="radio" name="filterMode" value="delivery" @(mode == "delivery" ? "checked" : "") onchange="updateFilter()">
-                        🛵 Giao hàng
+                        <i class="fas fa-motorcycle"></i> Giao hàng
                     </label>
                     <label class="fs-radio @(mode == "pickup" ? "active" : "")">
                         <input type="radio" name="filterMode" value="pickup" @(mode == "pickup" ? "checked" : "") onchange="updateFilter()">
-                        🚶 Tự đến lấy
+                        <i class="fas fa-walking"></i> Tự đến lấy
                     </label>
                 </div>
             </div>
@@ -87,19 +87,19 @@
                 <div class="fs-radio-group">
                     <label class="fs-radio @(sortBy == "suggest" ? "active" : "")">
                         <input type="radio" name="sortBy" value="suggest" @(sortBy == "suggest" ? "checked" : "") onchange="updateFilter()">
-                        ✨ Gợi ý
+                        <i class="fas fa-magic"></i> Gợi ý
                     </label>
                     <label class="fs-radio @(sortBy == "rating" ? "active" : "")">
                         <input type="radio" name="sortBy" value="rating" @(sortBy == "rating" ? "checked" : "") onchange="updateFilter()">
-                        ⭐ Đánh giá
+                        <i class="fas fa-star"></i> Đánh giá
                     </label>
                     <label class="fs-radio @(sortBy == "price_asc" ? "active" : "")">
                         <input type="radio" name="sortBy" value="price_asc" @(sortBy == "price_asc" ? "checked" : "") onchange="updateFilter()">
-                        💰 Giá: Thấp → Cao
+                        <i class="fas fa-arrow-up"></i> Giá: Thấp → Cao
                     </label>
                     <label class="fs-radio @(sortBy == "price_desc" ? "active" : "")">
                         <input type="radio" name="sortBy" value="price_desc" @(sortBy == "price_desc" ? "checked" : "") onchange="updateFilter()">
-                        💰 Giá: Cao → Thấp
+                        <i class="fas fa-arrow-down"></i> Giá: Cao → Thấp
                     </label>
                 </div>
             </div>
@@ -155,11 +155,11 @@
                     </label>
                     <label class="fs-checkbox @(isBestSeller ? "active" : "")">
                         <input type="checkbox" @(isBestSeller ? "checked" : "") onchange="toggleSheetCheckbox('bestseller', this)">
-                        ⭐ Bán chạy nhất
+                        <i class="fas fa-chart-line"></i> Bán chạy nhất
                     </label>
                     <label class="fs-checkbox">
                         <input type="checkbox" onchange="toggleSheetCheckbox('vegetarian', this)">
-                        🌱 Đồ chay
+                        <i class="fas fa-seedling"></i> Đồ chay
                     </label>
                 </div>
             </div>

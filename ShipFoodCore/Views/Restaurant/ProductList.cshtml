@@ -43,7 +43,7 @@
                                                     data-mamon="@i.maMonAn"
                                                     onclick="toggleConHang(this)"
                                                     aria-label="Bật/tắt trạng thái còn hàng cho @i.tenMonAn">
-                                                @(i.conhang ? "🔴 Còn hàng" : "⚪ Hết hàng")
+                                                <i class="fas @(i.conhang ? "fa-check-circle" : "fa-minus-circle")" style="margin-right:4px;"></i>@(i.conhang ? "Còn hàng" : "Hết hàng")
                                             </button>
                                         </p>
                                     <p>Mã món: <span class="item">@i.maMonAn</span></p>
@@ -108,9 +108,9 @@ function toggleConHang(btn) {
         // Optimistic update
         $btn.prop('disabled', true);
         if (wasConHang) {
-            $btn.text('⚪ Hết hàng').removeClass('btn-success').addClass('btn-secondary');
+            $btn.html('<i class="fas fa-minus-circle" style="margin-right:4px;"></i>Hết hàng').removeClass('btn-success').addClass('btn-secondary');
         } else {
-            $btn.text('🔴 Còn hàng').removeClass('btn-secondary').addClass('btn-success');
+            $btn.html('<i class="fas fa-check-circle" style="margin-right:4px;"></i>Còn hàng').removeClass('btn-secondary').addClass('btn-success');
         }
         
         $.ajax({
@@ -119,7 +119,7 @@ function toggleConHang(btn) {
             data: { mamon: mamon },
             success: function(res) {
                 if (res.success) {
-                    $btn.text(res.conhang ? '🔴 Còn hàng' : '⚪ Hết hàng')
+                    $btn.html(res.conhang ? '<i class="fas fa-check-circle" style="margin-right:4px;"></i>Còn hàng' : '<i class="fas fa-minus-circle" style="margin-right:4px;"></i>Hết hàng')
                         .toggleClass('btn-success btn-secondary');
                     showToast(res.message);
                 } else {
@@ -156,9 +156,9 @@ function toggleConHang(btn) {
 // Rollback về trạng thái cũ khi API thất bại
 function rollbackToggle($btn, wasConHang) {
     if (wasConHang) {
-        $btn.text('🔴 Còn hàng').removeClass('btn-secondary').addClass('btn-success');
+        $btn.html('<i class="fas fa-check-circle" style="margin-right:4px;"></i>Còn hàng').removeClass('btn-secondary').addClass('btn-success');
     } else {
-        $btn.text('⚪ Hết hàng').removeClass('btn-success').addClass('btn-secondary');
+        $btn.html('<i class="fas fa-minus-circle" style="margin-right:4px;"></i>Hết hàng').removeClass('btn-success').addClass('btn-secondary');
     }
 }
 

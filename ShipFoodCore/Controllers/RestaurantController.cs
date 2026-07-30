@@ -332,23 +332,22 @@ public class RestaurantController : BaseController
     public ActionResult Review()
     {
         if (!checkLogin()) return RedirectToAction("Login", "Home");
-        var user = GetCurrentUser();
-        if (user == null) return RedirectToAction("Login", "Home");
+        var quanAn = getQuanAn();
+        if (quanAn == null) return RedirectToAction("Logout", "Home");
 
-        // ponytail: query tr?c ti?p tbDanhGia qua tbChiTietDonHang → tbBienTheMonAn → tbMonAn
-        // Dùng user.userid thay getQuanAn() ?? tránh load ALL monAns + orders (N+1)
+        // Direct DB query — navigation chain (tbMonAn→tbBienTheMonAn→tbChiTietDonHang→tbDanhGia)
+        // không được load qua getQuanAn() vì Include chain quá nặng.
+        var maMonQuan = quanAn.tbMonAn.Select(m => m.mamon).ToList();
         var danhGias = db.tbDanhGia
             .Where(d => d.tbChiTietDonHang != null
                 && d.tbChiTietDonHang.tbBienTheMonAn != null
-                && d.tbChiTietDonHang.tbBienTheMonAn.tbMonAn != null
-                && d.tbChiTietDonHang.tbBienTheMonAn.tbMonAn.maquanan == user.userid)
+                && maMonQuan.Contains(d.tbChiTietDonHang.tbBienTheMonAn.mamon))
             .Include(d => d.tbChiTietDonHang).ThenInclude(ct => ct.tbDonHang).ThenInclude(dh => dh.tbThongTinDatHang).ThenInclude(tt => tt.tbKhachHang)
             .Include(d => d.tbChiTietDonHang).ThenInclude(ct => ct.tbBienTheMonAn).ThenInclude(b => b.tbMonAn)
             .OrderByDescending(d => d.madg)
             .ToList();
 
         ViewBag.danhgias = danhGias;
-        ViewBag.restaurantId = user.userid;
         return View();
     }
 
@@ -365,14 +364,11 @@ public class RestaurantController : BaseController
             return RedirectToAction("Index");
         }
 
-        // ponytail: fix Include navigation properties — tbBienTheMonAn + tbKhuyenMai can null
-        // Query g?c dùng LINQ join syntax không Include ???c navigation, d?n ??n i.tbMonAn?.tenmon luôn null
-        var monAnKhuyenMais = db.tbMonAnKhuyenMai
-            .Where(makm => makm.tbBienTheMonAn != null && makm.tbBienTheMonAn.tbMonAn != null
-                        && makm.tbBienTheMonAn.tbMonAn.maquanan == quanAn.userid)
-            .Include(m => m.tbBienTheMonAn).ThenInclude(b => b.tbMonAn)
-            .Include(m => m.tbKhuyenMai)
-            .ToList();
+        var monAnKhuyenMais = (from ma in db.tbMonAn
+                               join b in db.tbBienTheMonAn on ma.mamon equals b.mamon
+                               join makm in db.tbMonAnKhuyenMai on b.id equals makm.mamon
+                               where ma.maquanan == quanAn.userid
+                               select makm).ToList();
 
         ViewBag.monAns = quanAn.tbMonAn.ToList();
         ViewBag.maKM = db.tbKhuyenMai.ToList();

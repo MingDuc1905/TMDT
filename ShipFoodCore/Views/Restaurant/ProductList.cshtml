@@ -49,11 +49,11 @@
                                     <p>Dạnh mục: <span class="item">@i.tenDanhMuc</span></p>
                                     <div class="comment-review star-rating text-right">
                                         <ul>
-                                            @for (int index = 1; index <= i.diemDanhGia; index++)
+                                            @for (int index = 1; index <= (i.diemDanhGia ?? 0); index++)
                                             {
                                                 <i class="fa fa-star text-orange"></i>
                                             }
-                                            @for (int index = 1; index <= 5 - i.diemDanhGia; index++)
+                                            @for (int index = 1; index <= 5 - (i.diemDanhGia ?? 0); index++)
                                             {
                                                 <i class="fa fa-star text-gray"></i>
                                             }
@@ -71,7 +71,10 @@
                                 </div>
                             </div>
                         </div>
-        </div>
+                    </div>
+                </div>
+            </div>
+        }
     </div>
 </div>
 
@@ -169,6 +172,3 @@ function showToast(msg) {
 }
 </script>
 }
-        }
-    </div>
-</div>

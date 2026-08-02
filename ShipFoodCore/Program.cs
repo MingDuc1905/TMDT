@@ -671,6 +671,23 @@ app.UseSession();
 // Nếu RoleGuard chạy trước Authentication → context.User luôn unauthenticated → 401 cho mọi AJAX
 app.UseAuthentication();
 
+// ═══ No-store cho mọi response khi user đã đăng nhập ═══
+// Chặn browser back button hiển thị trang cũ (ví dụ: nhà hàng bấm Back → thấy trang khách hàng)
+// Bắt buộc trình duyệt gửi request mới → RoleGuardMiddleware sẽ redirect về đúng dashboard role
+app.Use(async (context, next) =>
+{
+    context.Response.OnStarting(() =>
+    {
+        if (context.User?.Identity?.IsAuthenticated == true)
+        {
+            context.Response.Headers.CacheControl = "no-store, no-cache, must-revalidate";
+            context.Response.Headers.Pragma = "no-cache";
+        }
+        return Task.CompletedTask;
+    });
+    await next();
+});
+
 // ─── Phase 3: RoleGuard Middleware (must be AFTER UseSession + UseAuthentication) ───
 app.UseMiddleware<ShipFood.Middleware.RoleGuardMiddleware>();
 

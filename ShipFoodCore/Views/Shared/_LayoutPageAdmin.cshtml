@@ -288,5 +288,11 @@
     }
     </script>
     @RenderSection("Scripts", required: false)
+<script>
+    // ═══ Chặn back button hiển thị trang khách hàng (bfcache) — reload để RoleGuard redirect về đúng role ═══
+    window.addEventListener('pageshow', function (e) {
+        if (e.persisted) { window.location.reload(); }
+    });
+</script>
 </body>
 </html>

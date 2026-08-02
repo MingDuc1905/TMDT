@@ -107,6 +107,41 @@ public class RoleGuardMiddleware
         { "/shipper", "Shipper" },
     };
 
+    /// <summary>
+    /// Xác định route thuộc về Khách hàng (user view).
+    /// ponytail: /Cart/ChiTietDonHang + /Cart/EInvoice là trang DÙNG CHUNG
+    /// (quán xem chi tiết đơn từ OrderList, admin/quán xem hóa đơn điện tử) → KHÔNG chặn.
+    /// </summary>
+    private static bool IsCustomerRoute(string path)
+    {
+        if (path == "/" || path == "/home" || path == "/cart" || path == "/chatbot" || path == "/payment")
+            return true;
+
+        if (path.StartsWith("/home/", StringComparison.OrdinalIgnoreCase) ||
+            path.StartsWith("/chatbot/", StringComparison.OrdinalIgnoreCase) ||
+            path.StartsWith("/payment/", StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        if (path.StartsWith("/cart/", StringComparison.OrdinalIgnoreCase))
+        {
+            // Trang dùng chung cho mọi role — giữ nguyên quyền truy cập
+            if (path.StartsWith("/cart/chitietdonhang", StringComparison.OrdinalIgnoreCase) ||
+                path.StartsWith("/cart/einvoice", StringComparison.OrdinalIgnoreCase))
+                return false;
+            return true;
+        }
+
+        return false;
+    }
+
+    private static tbUser? GetSessionUser(HttpContext context)
+    {
+        var userJson = context.Session.GetString("user");
+        if (string.IsNullOrEmpty(userJson)) return null;
+        try { return JsonSerializer.Deserialize<tbUser>(userJson); }
+        catch { return null; }
+    }
+
     public RoleGuardMiddleware(RequestDelegate next, ILogger<RoleGuardMiddleware> logger)
     {
         _next = next;
@@ -141,18 +176,56 @@ public class RoleGuardMiddleware
 
         if (requiredRole == null)
         {
+            // ═══ REVERSE GUARD: chặn user không phải Khách hàng vào trang khách hàng ═══
+            // Ngăn Quán ăn/Shipper/Admin xem view user dù bất kỳ cách nào (click, URL trực tiếp, back button)
+            if (IsCustomerRoute(path))
+            {
+                var cUser = GetSessionUser(context);
+                if (cUser == null && context.User?.Identity?.IsAuthenticated == true)
+                {
+                    await RestoreSessionFromCookieAsync(context, db);
+                    cUser = GetSessionUser(context);
+                }
+
+                if (cUser != null && cUser.loaitaikhoan != "Khách hàng")
+                {
+                    _logger.LogWarning("RoleGuard: User {UserId} ({Role}) tried to access customer route {Path}",
+                        cUser.userid, cUser.loaitaikhoan, path);
+
+                    var homeRedirect = cUser.loaitaikhoan switch
+                    {
+                        "Quán ăn" => "/Restaurant",
+                        "Shipper" => "/Shipper",
+                        "Admin" => "/Admin",
+                        // ponytail: role không xác định → Logout để dọn session/cookie, tránh kẹt ở trang Login khi vẫn còn auth
+                        _ => "/Home/Logout"
+                    };
+
+                    if (context.Request.Headers["X-Requested-With"] == "XMLHttpRequest" ||
+                        context.Request.Headers["Accept"].ToString().Contains("application/json"))
+                    {
+                        context.Response.StatusCode = 403;
+                        context.Response.ContentType = "application/json";
+                        await context.Response.WriteAsync(JsonSerializer.Serialize(new
+                        {
+                            success = false,
+                            message = "Bạn không có quyền truy cập trang này.",
+                            redirectUrl = homeRedirect
+                        }));
+                        return;
+                    }
+
+                    context.Response.Redirect(homeRedirect);
+                    return;
+                }
+            }
+
             await _next(context);
             return;
         }
 
         // ═══ Lấy user từ session ═══
-        var userJson = context.Session.GetString("user");
-        tbUser? user = null;
-        if (!string.IsNullOrEmpty(userJson))
-        {
-            try { user = JsonSerializer.Deserialize<tbUser>(userJson); }
-            catch { }
-        }
+        var user = GetSessionUser(context);
 
         // ═══ Chưa đăng nhập → thử phục hồi từ auth cookie ═══
         if (user == null)
@@ -160,14 +233,10 @@ public class RoleGuardMiddleware
             if (context.User?.Identity?.IsAuthenticated == true && !path.Equals("/home/logout", StringComparison.OrdinalIgnoreCase))
             {
                 await RestoreSessionFromCookieAsync(context, db);
-                userJson = context.Session.GetString("user");
-                if (!string.IsNullOrEmpty(userJson))
+                user = GetSessionUser(context);
+                if (user != null)
                 {
-                    try { user = JsonSerializer.Deserialize<tbUser>(userJson); } catch { }
-                    if (user != null)
-                    {
-                        _logger.LogInformation("RoleGuard: Session restored from auth cookie for user {UserId}", user.userid);
-                    }
+                    _logger.LogInformation("RoleGuard: Session restored from auth cookie for user {UserId}", user.userid);
                 }
             }
 

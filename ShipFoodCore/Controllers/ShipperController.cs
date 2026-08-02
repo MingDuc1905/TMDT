@@ -533,6 +533,12 @@ public class ShipperController : BaseController
                 try
                 {
                     await _hubContext.Clients.Group($"order_{id}").SendAsync("orderStatusChanged", id, trangthai, DateTime.Now.ToString("HH:mm"));
+                    // ponytail: FIX realtime OrderList — khi shipper đổi trạng thái (Đã lấy/Đang giao/Hoàn thành),
+                    // phải báo cho quán (group restaurant_{maquan}) để danh sách đơn của quán cập nhật realtime
+                    if (donhang.maquan != null)
+                    {
+                        await _hubContext.Clients.Group($"restaurant_{donhang.maquan}").SendAsync("kpiRefresh");
+                    }
                 }
                 catch (Exception ex)
                 {

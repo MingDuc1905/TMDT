@@ -19,7 +19,9 @@
 //   LIÊN QUAN:  tbDonHang.cs (trangthai = "Chờ thanh toán", "Đã hủy")
 //   LIÊN QUAN:  PaymentController.cs (có thể gọi hoàn tiền nếu đã thanh toán — tương lai)
 // ============================================================
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using ShipFood.Hubs;
 using ShipFood.Models;
 
 namespace ShipFood.Services;
@@ -61,6 +63,24 @@ public class AutoCancelPendingOrdersService : BackgroundService
                     }
                     await db.SaveChangesAsync(stoppingToken);
                     _logger.LogInformation("Auto-canceled {Count} expired pending orders", expiredOrders.Count);
+
+                    // ponytail: FIX realtime OrderList — báo quán biết đơn đã bị auto-cancel để list cập nhật
+                    try
+                    {
+                        var hub = scope.ServiceProvider.GetRequiredService<IHubContext<Chats>>();
+                        var restaurantIds = expiredOrders
+                            .Where(d => d.maquan != null)
+                            .Select(d => d.maquan!.Value)
+                            .Distinct();
+                        foreach (var resId in restaurantIds)
+                        {
+                            await hub.Clients.Group($"restaurant_{resId}").SendAsync("kpiRefresh", stoppingToken);
+                        }
+                    }
+                    catch (Exception hubEx)
+                    {
+                        _logger.LogWarning(hubEx, "Auto-cancel SignalR broadcast failed");
+                    }
                 }
             }
             catch (Exception ex) when (ex is not OperationCanceledException)

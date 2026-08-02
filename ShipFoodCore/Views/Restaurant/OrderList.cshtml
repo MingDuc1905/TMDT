@@ -276,67 +276,78 @@
     </div>
 </div>
 
-<!-- Datatable -->
-<script src="~/Source/Restaurant/vendor/datatables/js/jquery.dataTables.min.js"></script>
-<!-- SignalR -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+@section scripts {
+    <!-- ponytail: layout da load jquery.dataTables.min.js truoc RenderSection("scripts") — khong load lai -->
+    <!-- SignalR -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
 
-<script>
-    (function ($) {
-        // ponytail: removed searching:false — no longer needed (filter is server-side)
-        // ponytail: searching: false — filter da la server-side, ko can o DataTable
-        var table = $('#orderTable').DataTable({
-            searching: false,
-            paging: true,
-            select: false,
-            lengthChange: false,
-            order: [[0, 'desc']],
-        });
+    <script>
+        // ponytail: FIX realtime — script nay nam trong section "scripts" de chay SAU khi jQuery (global.min.js)
+        // da duoc load o cuoi layout. Truoc day script inline trong body chay TRUOC jQuery -> ReferenceError
+        // -> DataTable + SignalR khong bao gio khoi tao -> list khong cap nhat realtime.
+        $(document).ready(function () {
+            // ponytail: filter da la server-side, ko can searching o DataTable
+            $('#orderTable').DataTable({
+                searching: false,
+                paging: true,
+                select: false,
+                lengthChange: false,
+                order: [[0, 'desc']],
+            });
 
-        // ── SignalR: Real-time đơn hàng mới ──
-        (function initRestaurantRealtime() {
-            var restaurantId = @(ViewBag.restaurantId ?? 0);
-            if (!restaurantId) return;
+            // ── SignalR: Real-time đơn hàng ──
+            (function initRestaurantRealtime() {
+                var restaurantId = @(ViewBag.restaurantId ?? 0);
+                if (!restaurantId) return;
 
-            var conn = new signalR.HubConnectionBuilder()
-                .withUrl('/nhantin')
-                .withAutomaticReconnect()
-                .build();
+                var conn = new signalR.HubConnectionBuilder()
+                    .withUrl('/nhantin')
+                    .withAutomaticReconnect()
+                    .build();
 
-            function playNewOrderSound() {
-                try {
-                    var ctx = new (window.AudioContext || window.webkitAudioContext)();
-                    var osc = ctx.createOscillator();
-                    var gain = ctx.createGain();
-                    osc.connect(gain);
-                    gain.connect(ctx.destination);
-                    osc.frequency.value = 880;
-                    osc.type = 'sine';
-                    gain.gain.setValueAtTime(0.3, ctx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
-                    osc.start(ctx.currentTime);
-                    osc.stop(ctx.currentTime + 0.4);
-                } catch (e) {
-                    var origTitle = document.title;
-                    document.title = '🆕 Đơn hàng mới!';
-                    setTimeout(function() { document.title = origTitle; }, 3000);
+                function playNewOrderSound() {
+                    try {
+                        var ctx = new (window.AudioContext || window.webkitAudioContext)();
+                        var osc = ctx.createOscillator();
+                        var gain = ctx.createGain();
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.frequency.value = 880;
+                        osc.type = 'sine';
+                        gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+                        osc.start(ctx.currentTime);
+                        osc.stop(ctx.currentTime + 0.4);
+                    } catch (e) {
+                        var origTitle = document.title;
+                        document.title = '🆕 Đơn hàng mới!';
+                        setTimeout(function() { document.title = origTitle; }, 3000);
+                    }
                 }
-            }
 
-            conn.on('newOrder', function (data) {
-                playNewOrderSound();
-                setTimeout(function() { location.reload(); }, 2000);
-            });
+                // Đơn mới → reload (giữ nguyên hành vi cũ)
+                conn.on('newOrder', function (data) {
+                    playNewOrderSound();
+                    setTimeout(function() { location.reload(); }, 2000);
+                });
 
-            conn.onreconnected(function() {
-                conn.invoke('JoinRestaurantGroup', restaurantId).catch(function(){});
-            });
+                // ponytail: FIX realtime — kpiRefresh duoc broadcast den restaurant_{userid} khi
+                // nhandon/huydon/hoantatdon (RestaurantController) + shipper doi trang thai (ShipperController)
+                // + auto-cancel (AutoCancelPendingOrdersService) -> reload list cap nhat trang thai moi
+                conn.on('kpiRefresh', function () {
+                    setTimeout(function() { location.reload(); }, 500);
+                });
 
-            conn.start().then(function() {
-                conn.invoke('JoinRestaurantGroup', restaurantId).catch(function(){});
-            }).catch(function(err) {
-                console.error('SignalR OrderList connection failed:', err);
-            });
-        })();
-    })(jQuery);
-</script>
+                conn.onreconnected(function() {
+                    conn.invoke('JoinRestaurantGroup', restaurantId).catch(function(){});
+                });
+
+                conn.start().then(function() {
+                    conn.invoke('JoinRestaurantGroup', restaurantId).catch(function(){});
+                }).catch(function(err) {
+                    console.error('SignalR OrderList connection failed:', err);
+                });
+            })();
+        });
+    </script>
+}

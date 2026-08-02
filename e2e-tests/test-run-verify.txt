@@ -1,0 +1,73 @@
+
+Running 11 tests using 1 worker
+
+🏷️ Filter chips: 6
+  Click chip: Khuyến mãi
+  Click chip: ⭐ Bán chạy
+  Click chip: 📍 Gần đây
+  ok  1 [Desktop Chromium] › tests\01-visual-asset-validation.spec.ts:153:7 › 🖥️ [Desktop 1920x1080] Visual & Asset Validation › [TC-1.8] Filter chips - click từng cái, bộ lọc hoạt động (27.7s)
+📍 URL sau login: https://fastship-web.onrender.com/Restaurant
+  ok  2 [Desktop Chromium] › tests\03-restaurant-flow.spec.ts:390:7 › 🍽️ Quản lý Món ăn › [TC-3.15] Console không có JS errors (bỏ qua network 429) (28.4s)
+📍 URL sau login: https://fastship-web.onrender.com/Shipper
+❌ JS errors: $(...).DataTable is not a function
+  x   3 [Desktop Chromium] › tests\04-shipper-flow.spec.ts:283:7 › 🖼️ Shipper Visual Checks › [TC-4.14] Console không có JS errors (bỏ qua network 429) (9.7s)
+📥 ExportExcel response: text/csv | cd: attachment; filename=bao-cao-doanh-thu-20260726.csv; filename*=UTF-8''bao-cao-doanh-thu-20260726.csv
+📥 Fetch result: status=200 type=text/csv cd=attachment; filename=bao-cao-doanh-thu-20260726.csv; filename*=UTF-8''bao-cao-doanh-thu-20260726.csv
+  ok  4 [Desktop Chromium] › tests\10-admin-advanced.spec.ts:106:7 › 📊 Dashboard APIs › [TC-10.9] ExportExcel — download CSV (8.0s)
+Dashboard cards: 8
+KPI values: 4
+  KPI 0: 5
+  KPI 1: 8,543,000 VNĐ
+  KPI 2: 84
+  KPI 3: 2
+  ok  5 [Desktop Chromium] › tests\17-analytics-dashboard.spec.ts:25:7 › 🍽️ Restaurant dashboard › [TC-ANALYTIC-01] Restaurant Dashboard → KPI cards render (10.2s)
+Order status summary visible: true
+  ok  6 [Desktop Chromium] › tests\17-analytics-dashboard.spec.ts:49:7 › 🍽️ Restaurant dashboard › [TC-ANALYTIC-02] Restaurant Dashboard → order status summary (13.7s)
+Apriori insight cards: 2
+First insight: "
+                                    
+                                        Trà tắc
+              "
+  ok  7 [Desktop Chromium] › tests\17-analytics-dashboard.spec.ts:62:7 › 🍽️ Restaurant dashboard › [TC-ANALYTIC-03] Restaurant Dashboard → Apriori cross-sell insights (11.1s)
+Wallet page loaded: true
+  ok  8 [Desktop Chromium] › tests\17-analytics-dashboard.spec.ts:78:7 › 🍽️ Restaurant dashboard › [TC-ANALYTIC-04] Restaurant Dashboard → wallet page (10.6s)
+Analytics URL: https://fastship-web.onrender.com/Home/Error?traceId=00-c4719f289ee24d86a68a25698339a255-7404592a9ef2343f-00
+Analytics page loaded: false
+Product analytics cards: 0
+  ok  9 [Desktop Chromium] › tests\17-analytics-dashboard.spec.ts:95:7 › 📈 Restaurant analytics page › [TC-ANALYTIC-05] Analytics → feedback stats render (11.0s)
+Star rating elements: 0
+  ok 10 [Desktop Chromium] › tests\17-analytics-dashboard.spec.ts:114:7 › 📈 Restaurant analytics page › [TC-ANALYTIC-06] Analytics → star ratings visible (11.6s)
+Chart canvases: 3
+Chart containers: 23
+  ok 11 [Desktop Chromium] › tests\17-analytics-dashboard.spec.ts:145:7 › 👨‍💼 Admin dashboard › [TC-ADMIN-02] Admin Dashboard → charts render (10.5s)
+
+
+  1) [Desktop Chromium] › tests\04-shipper-flow.spec.ts:283:7 › 🖼️ Shipper Visual Checks › [TC-4.14] Console không có JS errors (bỏ qua network 429) 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: 0
+    Received: 1
+
+      291 |       console.log(`❌ JS errors: ${jsErrors.join(' | ')}`);
+      292 |     }
+    > 293 |     expect(jsErrors.length).toBe(0);
+          |                             ^
+      294 |   });
+      295 |
+      296 |   test('[TC-4.15] Desktop layout - không bị overflow', async ({ page }) => {
+        at C:\Users\MingDuc\Desktop\TMDT\e2e-tests\tests\04-shipper-flow.spec.ts:293:29
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\04-shipper-flow-🖼️-Shippe-c342f--errors-bỏ-qua-network-429--Desktop-Chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\04-shipper-flow-🖼️-Shippe-c342f--errors-bỏ-qua-network-429--Desktop-Chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\04-shipper-flow-🖼️-Shippe-c342f--errors-bỏ-qua-network-429--Desktop-Chromium\error-context.md
+
+  1 failed
+    [Desktop Chromium] › tests\04-shipper-flow.spec.ts:283:7 › 🖼️ Shipper Visual Checks › [TC-4.14] Console không có JS errors (bỏ qua network 429) 
+  10 passed (2.8m)

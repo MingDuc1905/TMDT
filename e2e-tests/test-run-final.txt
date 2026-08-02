@@ -1,0 +1,1010 @@
+
+Running 643 tests using 2 workers
+
+📸 Trang chủ - Tổng ảnh: 15, Ảnh lỗi: 1
+⚠️ URL ảnh lỗi: https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=400&h=300&fit=crop
+⚠️ 1 broken external images (Unsplash rate-limited) — soft fail
+  ok   1 [Desktop Full] › tests\01-visual-asset-validation.spec.ts:69:7 › 🖥️ [Desktop 1920x1080] Visual & Asset Validation › [TC-1.1] Trang chủ - tất cả ảnh không bị vỡ + kiểm tra fallback (4.8s)
+❌ Lỗi: Mật khẩu không đúng. Vui lòng kiểm tra lại.
+  ok   2 [Desktop Full] › tests\02-customer-flow.spec.ts:27:7 › 🔐 Đăng nhập - Negative & Positive › [TC-2.1] Đăng nhập sai mật khẩu - hiển thị lỗi "Mật khẩu không đúng" (6.9s)
+🔘 Tổng nút trên trang: 96
+  ok   3 [Desktop Full] › tests\01-visual-asset-validation.spec.ts:85:7 › 🖥️ [Desktop 1920x1080] Visual & Asset Validation › [TC-1.2] Trang chủ - kiểm tra tất cả nút hiển thị + log số lượng (3.5s)
+❌ Lỗi: Tên đăng nhập, email hoặc mật khẩu không đúng. Vui lòng kiểm tra lại.
+  x    4 [Desktop Full] › tests\02-customer-flow.spec.ts:50:7 › 🔐 Đăng nhập - Negative & Positive › [TC-2.2] Đăng nhập tài khoản không tồn tại - lỗi "không tồn tại" (5.5s)
+  ok   5 [Desktop Full] › tests\01-visual-asset-validation.spec.ts:94:7 › 🖥️ [Desktop 1920x1080] Visual & Asset Validation › [TC-1.3] Trang chủ - không có JS console error (bỏ qua network 503/404) (6.3s)
+URL sau khi submit form trống: https://fastship-web.onrender.com/Home/Login
+  ok   6 [Desktop Full] › tests\02-customer-flow.spec.ts:67:7 › 🔐 Đăng nhập - Negative & Positive › [TC-2.3] Đăng nhập để trống username - validation (3.0s)
+📍 URL sau login: https://fastship-web.onrender.com/
+  ok   8 [Desktop Full] › tests\02-customer-flow.spec.ts:81:7 › 🔐 Đăng nhập - Negative & Positive › [TC-2.4] Đăng nhập đúng - redirect về trang chủ (6.6s)
+ℹ️ User dropdown không visible (có thể do UI khác)
+🔗 Footer links: 17
+  ok   9 [Desktop Full] › tests\02-customer-flow.spec.ts:119:7 › 🔐 Đăng nhập - Negative & Positive › [TC-2.5] Đăng nhập với Remember Me - session còn sau redirect (16.7s)
+  ok   7 [Desktop Full] › tests\01-visual-asset-validation.spec.ts:109:7 › 🖥️ [Desktop 1920x1080] Visual & Asset Validation › [TC-1.5] Footer - tất cả links hoạt động, không bị vỡ layout (28.0s)
+🔤 Font Inter loaded: true
+  ok  11 [Desktop Full] › tests\01-visual-asset-validation.spec.ts:127:7 › 🖥️ [Desktop 1920x1080] Visual & Asset Validation › [TC-1.6] Font Inter được load trên trang (6.2s)
+  ok  12 [Desktop Full] › tests\01-visual-asset-validation.spec.ts:137:7 › 🖥️ [Desktop 1920x1080] Visual & Asset Validation › [TC-1.7] Carousel hero - next/prev hoạt động, không dead (8.7s)
+🔍 Tìm "pizza": 3 kết quả
+  ok  10 [Desktop Full] › tests\02-customer-flow.spec.ts:145:7 › 🔍 Tìm kiếm & Duyệt danh sách › [TC-2.6] Tìm kiếm "pizza" - hiển thị ít nhất 1 kết quả (25.5s)
+  x   13 [Desktop Full] › tests\01-visual-asset-validation.spec.ts:153:7 › 🖥️ [Desktop 1920x1080] Visual & Asset Validation › [TC-1.8] Category pills - click từng cái, danh sách quán thay đổi (25.6s)
+  ok  15 [Desktop Full] › tests\01-visual-asset-validation.spec.ts:179:7 › 🖥️ [Desktop 1920x1080] Visual & Asset Validation › [TC-1.9] Trang login - tất cả inputs và nút hoạt động (3.9s)
+  ok  14 [Desktop Full] › tests\02-customer-flow.spec.ts:162:7 › 🔍 Tìm kiếm & Duyệt danh sách › [TC-2.7] Tìm kiếm không có kết quả - hiển thị thông báo "Không tìm thấy" (42.1s)
+🍕 Số món: 5
+📸 Ảnh: 14, Lỗi: 0
+  ok  16 [Desktop Full] › tests\01-visual-asset-validation.spec.ts:196:7 › 🖥️ [Desktop 1920x1080] Visual & Asset Validation › [TC-1.10] Trang chi tiết quán ăn - ảnh món ăn không bị vỡ (26.3s)
+📊 Stat items: 4
+  Stat 0: 11+
+  Stat 1: 30′
+  Stat 2: 30+
+  Stat 3: 4.7★
+  ok  18 [Desktop Full] › tests\01-visual-asset-validation.spec.ts:214:7 › 🖥️ [Desktop 1920x1080] Visual & Asset Validation › [TC-1.11] Stats row - tất cả stat items hiển thị số liệu (5.8s)
+🎨 CSS background images: 4, Lỗi: 0
+  ok  19 [Desktop Full] › tests\01-visual-asset-validation.spec.ts:231:7 › 🖥️ [Desktop 1920x1080] Visual & Asset Validation › [TC-1.12] Kiểm tra CSS background-image trên toàn trang (3.6s)
+  ok  20 [Desktop Full] › tests\01-visual-asset-validation.spec.ts:239:7 › 🖥️ [Desktop 1920x1080] Visual & Asset Validation › [TC-1.13] Kiểm tra không có 404 resources (image, css, js) (24.8s)
+✅ Promo band dismissed
+  ok  21 [Desktop Full] › tests\01-visual-asset-validation.spec.ts:257:7 › 🖥️ [Desktop 1920x1080] Visual & Asset Validation › [TC-1.14] Promo band dismiss - không gây lỗi (5.2s)
+🔍 Search URL: https://fastship-web.onrender.com/Home?idDM=&txtSearch=pizza
+  ok  22 [Desktop Full] › tests\01-visual-asset-validation.spec.ts:271:7 › 🖥️ [Desktop 1920x1080] Visual & Asset Validation › [TC-1.15] Kiểm tra nút "Tìm" có hoạt động (search) (7.1s)
+✅ Mobile menu opened
+  ok  23 [Desktop Full] › tests\01-visual-asset-validation.spec.ts:294:7 › 📱 [Mobile 375x812] Visual & Asset Validation › [TC-1.16] Mobile - hamburger menu hoạt động (5.0s)
+📸 Mobile - Tổng ảnh: 15, Lỗi: 0
+  ok  24 [Desktop Full] › tests\01-visual-asset-validation.spec.ts:317:7 › 📱 [Mobile 375x812] Visual & Asset Validation › [TC-1.17] Mobile - tất cả ảnh không bị vỡ (4.5s)
+📐 Horizontal overflow: false
+  ok  25 [Desktop Full] › tests\01-visual-asset-validation.spec.ts:327:7 › 📱 [Mobile 375x812] Visual & Asset Validation › [TC-1.18] Mobile - layout không bị tràn ngang (horizontal scroll) (2.6s)
+  x   17 [Desktop Full] › tests\02-customer-flow.spec.ts:179:7 › 🔍 Tìm kiếm & Duyệt danh sách › [TC-2.8] Click category pill - lọc danh sách quán (1.7m)
+  ok  26 [Desktop Full] › tests\01-visual-asset-validation.spec.ts:339:7 › 📱 [Mobile 375x812] Visual & Asset Validation › [TC-1.19] Mobile - không có 404 resources (24.6s)
+✅ DetailRestaurant URL: https://fastship-web.onrender.com/Home/DetailRestaurant/6
+🏪 Mobile - Số quán: 13
+  ok  28 [Desktop Full] › tests\02-customer-flow.spec.ts:189:7 › 🔍 Tìm kiếm & Duyệt danh sách › [TC-2.9] Click vào quán ăn - vào trang chi tiết thực đơn (6.8s)
+  ok  27 [Desktop Full] › tests\01-visual-asset-validation.spec.ts:352:7 › 📱 [Mobile 375x812] Visual & Asset Validation › [TC-1.20] Mobile - restaurant cards hiển thị ít nhất 1 quán (9.8s)
+  ok  30 [Desktop Full] › tests\01-visual-asset-validation.spec.ts:370:7 › 📱 [Mobile 375x812] Visual & Asset Validation › [TC-1.21] Mobile - footer responsive, không bị đè lên nhau (3.8s)
+📍 URL sau login: https://fastship-web.onrender.com/Restaurant
+✅ URL: https://fastship-web.onrender.com/Restaurant
+  ok  31 [Desktop Full] › tests\03-restaurant-flow.spec.ts:67:7 › 🏪 Dashboard Quán ăn - KPI & Thống kê › [TC-3.1] Đăng nhập quán ăn - redirect đến /Restaurant (7.8s)
+📍 URL sau login: https://fastship-web.onrender.com/Restaurant
+📊 KPI cards: 1
+  KPI 0: Chiến lược bán chéo từ dữ liệu
+                                Phân tích Apriori trên 32 đơn hàng hoàn thành
+                            
+                            AI
+  ok  32 [Desktop Full] › tests\03-restaurant-flow.spec.ts:74:7 › 🏪 Dashboard Quán ăn - KPI & Thống kê › [TC-3.2] Dashboard hiển thị thẻ KPI (tổng đơn, doanh thu, đánh giá) (7.8s)
+🍕 Koneko Pizza: 5 món
+🏪 Quán: Koneko Pizza
+📍 URL sau login: https://fastship-web.onrender.com/Restaurant
+🔗 Sidebar links: 13
+  ok  33 [Desktop Full] › tests\03-restaurant-flow.spec.ts:90:7 › 🏪 Dashboard Quán ăn - KPI & Thống kê › [TC-3.3] Sidebar hiển thị đầy đủ menu: Dashboard, Order List, ... (6.0s)
+  ok  29 [Desktop Full] › tests\02-customer-flow.spec.ts:208:7 › 🔍 Tìm kiếm & Duyệt danh sách › [TC-2.10] Xem chi tiết quán - thực đơn có món ăn (31.2s)
+📍 URL sau login: https://fastship-web.onrender.com/Restaurant
+📈 Canvas charts: 0
+  ok  34 [Desktop Full] › tests\03-restaurant-flow.spec.ts:134:7 › 🏪 Dashboard Quán ăn - KPI & Thống kê › [TC-3.4] Biểu đồ doanh thu (Chart.js) render (7.0s)
+📍 URL sau login: https://fastship-web.onrender.com/Restaurant
+📋 Số đơn hàng: 84
+  ok  36 [Desktop Full] › tests\03-restaurant-flow.spec.ts:154:7 › 📋 Quản lý đơn hàng (Order List) › [TC-3.5] Danh sách đơn hàng load - bảng hiển thị (12.5s)
+📍 URL sau login: https://fastship-web.onrender.com/Restaurant
+🔗 Chi tiết links: 84
+✅ Chi tiết đơn hàng URL: https://fastship-web.onrender.com/Cart/ChiTietDonHang?id=90
+ℹ️ Giỏ có 0 món
+  ok  37 [Desktop Full] › tests\03-restaurant-flow.spec.ts:166:7 › 📋 Quản lý đơn hàng (Order List) › [TC-3.6] Chi tiết đơn hàng - click xem thông tin (11.9s)
+📍 URL sau login: https://fastship-web.onrender.com/Restaurant
+  ok  35 [Desktop Full] › tests\02-customer-flow.spec.ts:226:7 › 🛒 Vòng đời giỏ hàng (Cart Lifecycle) › [TC-2.11] Giỏ hàng trống - thông báo "trống" hiển thị (34.1s)
+📌 Trạng thái đơn đầu: Chờ shipper lấy hàng
+  ok  38 [Desktop Full] › tests\03-restaurant-flow.spec.ts:190:7 › 📋 Quản lý đơn hàng (Order List) › [TC-3.7] Kiểm tra trạng thái đơn - cột trạng thái không trống (10.8s)
+📍 URL sau login: https://fastship-web.onrender.com/Restaurant
+🟢 Nhận đơn buttons: 28
+  ok  40 [Desktop Full] › tests\03-restaurant-flow.spec.ts:205:7 › 📋 Quản lý đơn hàng (Order List) › [TC-3.8] Nút "Nhận đơn" hiển thị cho đơn trạng thái "Đã đặt" (28.3s)
+✅ Đã thêm món vào giỏ
+🛒 Số món trong giỏ: 1
+  ok  39 [Desktop Full] › tests\02-customer-flow.spec.ts:241:7 › 🛒 Vòng đời giỏ hàng (Cart Lifecycle) › [TC-2.12] Thêm món vào giỏ (đã login) - kiểm tra giỏ có item (1.1m)
+⏳ ApiThemMonAn timeout on Render — waiting for networkidle fallback
+✅ Customer: thêm món vào giỏ
+📍 URL sau login: https://fastship-web.onrender.com/Restaurant
+📋 Số đơn sau khi tạo: 84
+  ok  41 [Desktop Full] › tests\03-restaurant-flow.spec.ts:220:7 › 🔄 Xử lý đơn hàng - Accept & Status Transitions › [TC-3.9] Tạo đơn mới từ customer -> kiểm tra quán ăn thấy đơn (1.3m)
+📍 URL sau login: https://fastship-web.onrender.com/Restaurant
+📋 Nhận đơn #23/07/2026 04:33
+💰 Tổng trước: 10,000 đ
+✅ Đã nhận đơn #23/07/2026 04:33
+🔄 Nhận đơn buttons còn: 27
+  ok  43 [Desktop Full] › tests\03-restaurant-flow.spec.ts:287:7 › 🔄 Xử lý đơn hàng - Accept & Status Transitions › [TC-3.10] Nhận đơn -> chuyển trạng thái "Đã xác nhận" (12.7s)
+💰 Tổng sau tăng: 20,000 đ
+📍 URL sau login: https://fastship-web.onrender.com/Restaurant
+🔴 Hủy đơn buttons: 36
+  ok  42 [Desktop Full] › tests\02-customer-flow.spec.ts:269:7 › 🛒 Vòng đời giỏ hàng (Cart Lifecycle) › [TC-2.13] Tăng số lượng - tổng tiền thay đổi (1.2m)
+✅ Đã hủy đơn
+  ok  44 [Desktop Full] › tests\03-restaurant-flow.spec.ts:318:7 › 🔄 Xử lý đơn hàng - Accept & Status Transitions › [TC-3.11] Hủy đơn - nút hủy hoạt động (13.0s)
+📍 URL sau login: https://fastship-web.onrender.com/Restaurant
+✅ Đã chuẩn bị xong buttons: 9
+✅ Đã chuyển trạng thái "Hoàn tất"
+  ok  46 [Desktop Full] › tests\03-restaurant-flow.spec.ts:338:7 › 🔄 Xử lý đơn hàng - Accept & Status Transitions › [TC-3.12] Nút "Đã chuẩn bị xong" cho đơn đã xác nhận (12.8s)
+📍 URL sau login: https://fastship-web.onrender.com/Restaurant
+ℹ️ Không tìm thấy tên quán trên header
+  ok  47 [Desktop Full] › tests\03-restaurant-flow.spec.ts:361:7 › 🍽️ Quản lý Món ăn › [TC-3.13] Dashboard quán - kiểm tra thông tin quán (11.6s)
+📍 URL sau login: https://fastship-web.onrender.com/Restaurant
+📸 Dashboard quán - Ảnh: 3, Lỗi: 0
+  ok  48 [Desktop Full] › tests\03-restaurant-flow.spec.ts:375:7 › 🍽️ Quản lý Món ăn › [TC-3.14] Kiểm tra tất cả ảnh trên dashboard quán không bị vỡ (7.8s)
+📍 URL sau login: https://fastship-web.onrender.com/Restaurant
+❌ JS errors: $(...).peity is not a function
+  x   49 [Desktop Full] › tests\03-restaurant-flow.spec.ts:390:7 › 🍽️ Quản lý Món ăn › [TC-3.15] Console không có JS errors (bỏ qua network 429) (9.1s)
+📍 URL sau login: https://fastship-web.onrender.com/Restaurant
+📝 Product form: true
+  Tên món: false
+  Giá: true
+  Danh mục: true
+  Size inputs: 2
+  Submit btn: "Thêm món"
+  ok  50 [Desktop Full] › tests\03-restaurant-flow.spec.ts:407:7 › 🍽️ Quản lý Món ăn — CRUD (Thêm/Sửa/Xóa) › [TC-3.16] Product Detail page — form thêm món load (10.6s)
+🛒 Item count: 1
+  ok  45 [Desktop Full] › tests\02-customer-flow.spec.ts:309:7 › 🛒 Vòng đời giỏ hàng (Cart Lifecycle) › [TC-2.14] Giảm số lượng về 0 - món bị xoá khỏi giỏ (1.2m)
+📍 URL sau login: https://fastship-web.onrender.com/Restaurant
+📋 Products: 0
+  ok  51 [Desktop Full] › tests\03-restaurant-flow.spec.ts:431:7 › 🍽️ Quản lý Món ăn — CRUD (Thêm/Sửa/Xóa) › [TC-3.17] Product List page — danh sách món hiển thị (28.3s)
+📍 URL sau login: https://fastship-web.onrender.com/Restaurant
+📁 File upload: true
+🖼️ Preview: false
+  ok  53 [Desktop Full] › tests\03-restaurant-flow.spec.ts:455:7 › 🍽️ Quản lý Món ăn — CRUD (Thêm/Sửa/Xóa) › [TC-3.18] Product form — file upload + preview ảnh (29.0s)
+📍 URL sau login: https://fastship-web.onrender.com/Restaurant
+📏 Size inputs: 2
+  ok  54 [Desktop Full] › tests\03-restaurant-flow.spec.ts:467:7 › 🍽️ Quản lý Món ăn — CRUD (Thêm/Sửa/Xóa) › [TC-3.19] Size variant pricing grid (M/L/XL) (10.9s)
+📍 URL sau login: https://fastship-web.onrender.com/Restaurant
+🗑️ Delete buttons: 0
+  ok  55 [Desktop Full] › tests\03-restaurant-flow.spec.ts:478:7 › 🍽️ Quản lý Món ăn — CRUD (Thêm/Sửa/Xóa) › [TC-3.20] Xóa món — click nút xóa (9.7s)
+📍 URL sau login: https://fastship-web.onrender.com/Restaurant
+✅ Profile page loaded
+  ok  56 [Desktop Full] › tests\03-restaurant-flow.spec.ts:499:7 › ⚙️ Profile & Settings › [TC-3.21] Profile page load (11.1s)
+🗑️ Xoá item: 1 -> 1
+ℹ️ Có thể API xoá chậm, skip assert
+  ok  52 [Desktop Full] › tests\02-customer-flow.spec.ts:351:7 › 🛒 Vòng đời giỏ hàng (Cart Lifecycle) › [TC-2.15] Xoá món khỏi giỏ - nút Delete hoạt động (1.4m)
+🔓 SQLi payload: "' OR '1'='1" -> URL: https://fastship-web.onrender.com/?txtSearch=%27%20OR%20%271%27%3D%271 [safe]
+🛡️ WAF blocked SQLi payload: "' OR '1'='1" — secure
+🔓 SQLi payload: "'; DROP TABLE tbUser; --" -> URL: https://fastship-web.onrender.com/?txtSearch=%27%3B%20DROP%20TABLE%20tbUser%3B%20-- [safe]
+🛡️ WAF blocked SQLi payload: "'; DROP TABLE tbUser; --" — secure
+🔓 SQLi payload: "' UNION SELECT * FROM tbUser --" -> URL: https://fastship-web.onrender.com/?txtSearch=%27%20UNION%20SELECT%20*%20FROM%20tbUser%20-- [safe]
+🛡️ WAF blocked SQLi payload: "' UNION SELECT * FROM tbUser --" — secure
+🔓 SQLi payload: "1; SELECT * FROM tbAdmin" -> URL: https://fastship-web.onrender.com/?txtSearch=1%3B%20SELECT%20*%20FROM%20tbAdmin [safe]
+🛡️ WAF blocked SQLi payload: "1; SELECT * FROM tbAdmin" — secure
+  ok  58 [Desktop Full] › tests\02-customer-flow.spec.ts:391:7 › 🔒 Security & Boundary Testing › [TC-2.16] SQL Injection - nhập ký tự đặc biệt vào search (9.9s)
+🔓 XSS payload: "<script>alert(1)</script>..." -> URL: https://fastship-web.onrender.com/Home?idDM=&txtSearch=%3Cscript%3Ealert%281%29%3C%2Fscript%3E
+ℹ️ Login page không có lỗi — session có thể đã được set
+📍 URL sau login: https://fastship-web.onrender.com/Home/Login
+🔓 XSS payload: "<img src=x onerror=alert(1)>..." -> URL: https://fastship-web.onrender.com/Home?idDM=&txtSearch=%3Cimg+src%3Dx+onerror%3Dalert%281%29%3E
+🔓 XSS payload: ""><script>alert(1)</script>..." -> URL: https://fastship-web.onrender.com/Home?idDM=&txtSearch=%22%3E%3Cscript%3Ealert%281%29%3C%2Fscript%3E
+🏷️ Discount items: 4
+🔓 XSS payload: "javascript:alert(1)..." -> URL: https://fastship-web.onrender.com/Home?idDM=&txtSearch=javascript%3Aalert%281%29
+  ok  57 [Desktop Full] › tests\03-restaurant-flow.spec.ts:508:7 › ⚙️ Profile & Settings › [TC-3.22] Discount page load (39.5s)
+  ok  59 [Desktop Full] › tests\02-customer-flow.spec.ts:429:7 › 🔒 Security & Boundary Testing › [TC-2.17] XSS Injection - nhập script vào search (21.2s)
+🔢 Số âm: nhập '-5' -> giá trị: '1'
+🔢 Số thập phân: nhập '2.5' -> giá trị: '2.5'
+  ok  61 [Desktop Full] › tests\02-customer-flow.spec.ts:451:7 › 🔒 Security & Boundary Testing › [TC-2.18] Số âm / số thập phân ở ô số lượng (7.6s)
+📍 URL sau login: https://fastship-web.onrender.com/Restaurant
+📈 Analytics charts: 0
+  ok  60 [Desktop Full] › tests\03-restaurant-flow.spec.ts:516:7 › ⚙️ Profile & Settings › [TC-3.23] Analytics page — charts render (28.1s)
+📍 URL sau login: https://fastship-web.onrender.com/Restaurant
+📷 Scanner: false
+  Start: false
+  Stop: false
+📋 History: false
+  ok  63 [Desktop Full] › tests\03-restaurant-flow.spec.ts:528:7 › 📷 Merchant QR Scanner › [TC-3.24] Scanner page — html5-qrcode container + controls (9.9s)
+📍 URL sau login: https://fastship-web.onrender.com/Restaurant
+🔗 Scanner nav link: 0
+  ok  64 [Desktop Full] › tests\03-restaurant-flow.spec.ts:545:7 › 📷 Merchant QR Scanner › [TC-3.25] Scanner sidebar nav link tồn tại (6.6s)
+📍 URL sau login: https://fastship-web.onrender.com/Shipper
+✅ URL: https://fastship-web.onrender.com/Shipper
+  ok  65 [Desktop Full] › tests\04-shipper-flow.spec.ts:51:7 › 🚚 Dashboard Shipper - Tabs & Navigation › [TC-4.1] Đăng nhập shipper - redirect đến /Shipper (6.0s)
+📍 URL sau login: https://fastship-web.onrender.com/Shipper
+📋 Tab FREE-PICK: 0, Tab ĐƠN HÀNG: 2
+  ok  66 [Desktop Full] › tests\04-shipper-flow.spec.ts:58:7 › 🚚 Dashboard Shipper - Tabs & Navigation › [TC-4.2] Dashboard hiển thị FREE-PICK và ĐƠN HÀNG tabs (7.6s)
+📍 URL sau login: https://fastship-web.onrender.com/Shipper
+ℹ️ Tab FREE-PICK không tồn tại (selector không match)
+📋 FREE-PICK orders: 0
+  ok  67 [Desktop Full] › tests\04-shipper-flow.spec.ts:68:7 › 🚚 Dashboard Shipper - Tabs & Navigation › [TC-4.3] Tab FREE-PICK - danh sách đơn chờ nhận load (8.8s)
+📍 URL sau login: https://fastship-web.onrender.com/Shipper
+ℹ️ Tab ĐƠN HÀNG không clickable, skip
+ℹ️ .table-responsive không tồn tại trên shipper dashboard
+📋 Đơn đã nhận: 0
+  ok  68 [Desktop Full] › tests\04-shipper-flow.spec.ts:80:7 › 🚚 Dashboard Shipper - Tabs & Navigation › [TC-4.4] Tab ĐƠN HÀNG - danh sách đơn đã nhận (24.2s)
+📍 URL sau login: https://fastship-web.onrender.com/Shipper
+ℹ️ Tab FREE-PICK không tồn tại (selector không match)
+🗺️ Map container: 11, Visible: true
+  ok  69 [Desktop Full] › tests\04-shipper-flow.spec.ts:94:7 › 🚚 Dashboard Shipper - Tabs & Navigation › [TC-4.5] Bản đồ FREE-PICK hiển thị (9.1s)
+📍 URL sau login: https://fastship-web.onrender.com/Shipper
+ℹ️ Tab FREE-PICK không tồn tại (selector không match)
+🔗 Order detail links: 8
+📍 URL sau click: https://fastship-web.onrender.com/Shipper/OrderDetail/90
+  ok  70 [Desktop Full] › tests\04-shipper-flow.spec.ts:110:7 › 📦 Nhận đơn & Quy trình giao hàng › [TC-4.6] Click "Chi tiết" / "Nhận đơn" đầu tiên (14.3s)
+📍 URL sau login: https://fastship-web.onrender.com/Shipper
+ℹ️ Tab ĐƠN HÀNG không clickable, skip
+⚪ Nút "Đã lấy hàng": không có
+⚪ Nút "Đang giao": không có
+⚪ Nút "Giao thành công": không có
+  ok  71 [Desktop Full] › tests\04-shipper-flow.spec.ts:136:7 › 📦 Nhận đơn & Quy trình giao hàng › [TC-4.7] Cập nhật trạng thái giao hàng (nếu có nút) (7.5s)
+📍 URL sau login: https://fastship-web.onrender.com/Shipper
+ℹ️ Tab ĐƠN HÀNG không clickable, skip
+ℹ️ Không có đơn nào
+  ok  72 [Desktop Full] › tests\04-shipper-flow.spec.ts:161:7 › 📦 Nhận đơn & Quy trình giao hàng › [TC-4.8] Chi tiết đơn hàng đã nhận - thông tin hiển thị đầy đủ (8.0s)
+  ok  62 [Desktop Full] › tests\02-customer-flow.spec.ts:478:7 › 💳 Thanh toán - Complete Order Flow › [TC-2.19] Checkout - form validation: không điền địa chỉ, bấm submit (2.1m)
+📍 URL sau login: https://fastship-web.onrender.com/Shipper
+💰 Số dư ví: 1,200đ
+📋 Giao dịch: 0
+  ok  73 [Desktop Full] › tests\04-shipper-flow.spec.ts:194:7 › 💰 Ví tiền & Thu nhập Shipper › [TC-4.9] Trang ví tiền load - số dư hiển thị (7.5s)
+📍 URL sau login: https://fastship-web.onrender.com/Shipper
+📊 Thu nhập stats: 6
+  Stat 0: 💳 Tổng thu nhập 30 ngày
+        0đ
+        **** **** **** 0004
+        
+            
+                CHỦ THẺ
+                shipperz
+            
+            
+                SỐ ĐƠN
+                0
+            
+        
+    
+
+    
+    
+        
+            📊 Hôm nay
+            0đ
+            Thu nhập hôm nay
+        
+        
+            ✅ Đã giao
+            0
+            Đơn hoàn thành hôm nay
+        
+        
+            ❌ Đã hủy
+            0
+            Đơn hủy hôm nay
+        
+        
+            📈 Hiệu suất
+            0%
+            Tỷ lệ hoàn thành
+        
+    
+
+    
+    
+        
+            Xu hướng thu nhập
+            
+                30 ngày qua
+  Stat 1: 📊 Hôm nay
+            0đ
+            Thu nhập hôm nay
+        
+        
+            ✅ Đã giao
+            0
+            Đơn hoàn thành hôm nay
+        
+        
+            ❌ Đã hủy
+            0
+            Đơn hủy hôm nay
+        
+        
+            📈 Hiệu suất
+            0%
+            Tỷ lệ hoàn thành
+  Stat 2: 📊 Hôm nay
+            0đ
+            Thu nhập hôm nay
+  Stat 3: ✅ Đã giao
+            0
+            Đơn hoàn thành hôm nay
+  ok  75 [Desktop Full] › tests\04-shipper-flow.spec.ts:211:7 › 💰 Ví tiền & Thu nhập Shipper › [TC-4.10] Trang thu nhập - thống kê hiển thị (8.5s)
+📍 URL sau login: https://fastship-web.onrender.com/Shipper
+✅ Lịch sử giao hàng load
+📋 Lịch sử: 1 dòng
+  ok  76 [Desktop Full] › tests\04-shipper-flow.spec.ts:233:7 › 💰 Ví tiền & Thu nhập Shipper › [TC-4.11] Trang lịch sử giao hàng load (6.3s)
+📍 URL sau login: https://fastship-web.onrender.com/Shipper
+💰 Số dư hiện tại: 1,200đ
+  ok  77 [Desktop Full] › tests\04-shipper-flow.spec.ts:253:7 › 💰 Ví tiền & Thu nhập Shipper › [TC-4.12] So sánh số dư ví trước và sau khi giao hàng (nếu có) (7.1s)
+📍 URL sau login: https://fastship-web.onrender.com/Shipper
+📸 Ảnh: 3, Lỗi: 0
+  ok  78 [Desktop Full] › tests\04-shipper-flow.spec.ts:268:7 › 🖼️ Shipper Visual Checks › [TC-4.13] Tất cả ảnh trên dashboard shipper không vỡ (5.8s)
+📍 URL sau login: https://fastship-web.onrender.com/Shipper
+❌ JS errors: $ is not defined | $(...).DataTable is not a function
+  x   79 [Desktop Full] › tests\04-shipper-flow.spec.ts:283:7 › 🖼️ Shipper Visual Checks › [TC-4.14] Console không có JS errors (bỏ qua network 429) (8.7s)
+📍 URL sau login: https://fastship-web.onrender.com/Shipper
+📐 Horizontal overflow: false
+  ok  80 [Desktop Full] › tests\04-shipper-flow.spec.ts:296:7 › 🖼️ Shipper Visual Checks › [TC-4.15] Desktop layout - không bị overflow (5.7s)
+📍 URL sau login: https://fastship-web.onrender.com/Admin
+✅ URL: https://fastship-web.onrender.com/Admin
+  ok  81 [Desktop Full] › tests\05-admin-flow.spec.ts:51:7 › 👑 Admin Dashboard - KPI & Charts › [TC-5.1] Đăng nhập admin - redirect đến /Admin (6.1s)
+📍 URL sau login: https://fastship-web.onrender.com/Admin
+📊 Cards/boxes: 0
+ℹ️ Không tìm thấy card element nào (có thể layout khác)
+  ok  82 [Desktop Full] › tests\05-admin-flow.spec.ts:58:7 › 👑 Admin Dashboard - KPI & Charts › [TC-5.2] Dashboard hiển thị KPI cards (doanh thu, đơn hàng, user, ...) (9.9s)
+📍 URL sau login: https://fastship-web.onrender.com/Admin
+📈 Canvas elements: 0
+ℹ️ Không có Chart.js canvas — admin page có thể không có biểu đồ
+  ok  83 [Desktop Full] › tests\05-admin-flow.spec.ts:81:7 › 👑 Admin Dashboard - KPI & Charts › [TC-5.3] Biểu đồ doanh thu Chart.js render (5.8s)
+ℹ️ Checkout form không load được: TimeoutError: locator.waitFor: Timeout 15000ms exceeded.
+Call log:
+  - waiting for locator('#input-hoten')
+
+📍 URL sau login: https://fastship-web.onrender.com/Admin
+  ok  74 [Desktop Full] › tests\02-customer-flow.spec.ts:508:7 › 💳 Thanh toán - Complete Order Flow › [TC-2.20] Checkout - điền đầy đủ thông tin, chọn COD, đặt hàng (1.3m)
+🔗 Tổng navigation links: 16
+  ✅ Dashboard: /Admin/Dashboard
+  ✅ Quản lý: /Admin/QuanLyKhachHang
+  ✅ Đơn hàng: /Admin/Order
+  ✅ Danh mục: /Admin/Category
+  ok  84 [Desktop Full] › tests\05-admin-flow.spec.ts:100:7 › 👑 Admin Dashboard - KPI & Charts › [TC-5.4] Kiểm tra tất cả navigation links trên admin page (10.8s)
+📍 URL sau login: https://fastship-web.onrender.com/Admin
+📋 Lịch sử đơn hàng load thành công
+✅ Dashboard: https://fastship-web.onrender.com/Admin/Dashboard
+  ok  85 [Desktop Full] › tests\02-customer-flow.spec.ts:579:7 › 📋 Lịch sử đơn hàng › [TC-2.21] Xem lịch sử đơn hàng - danh sách load (16.7s)
+✅ Quản lý người dùng: https://fastship-web.onrender.com/Admin/QuanLyKhachHang
+✅ Đơn hàng: https://fastship-web.onrender.com/Admin/Order
+✅ Danh mục: https://fastship-web.onrender.com/Admin/Category
+  ok  86 [Desktop Full] › tests\05-admin-flow.spec.ts:128:7 › 👑 Admin Dashboard - KPI & Charts › [TC-5.5] Kiểm tra sidebar routing - click từng link (20.5s)
+📸 QR images found: 0
+ℹ️ No QR orders found — shipper may have no pending orders
+  ok  87 [Desktop Full] › tests\06-edelivery-flow.spec.ts:45:7 › 🚚 Shipper — QR Code Display › [TC-6.1] Shipper OrderDetail — QR code image load (10.3s)
+📍 URL sau login: https://fastship-web.onrender.com/Admin
+  ok  88 [Desktop Full] › tests\05-admin-flow.spec.ts:155:7 › 👑 Admin Dashboard - KPI & Charts › [TC-5.6] Console không có JS errors (bỏ qua network 429) (11.1s)
+📋 QR tabs: 3
+  Tab 0: "Chờ giao" — clicked
+  Tab 1: "Đang giao" — clicked
+  Tab 2: "Hoàn thành" — clicked
+  ok  89 [Desktop Full] › tests\06-edelivery-flow.spec.ts:71:7 › 🚚 Shipper — QR Code Display › [TC-6.2] QRDelivery page — tab filter hoạt động (Chờ giao / Đang giao / Hoàn thành) (12.4s)
+📍 URL sau login: https://fastship-web.onrender.com/Admin
+✅ Quản lý người dùng load
+📋 Tables: 1
+  ok  90 [Desktop Full] › tests\05-admin-flow.spec.ts:173:7 › 👥 Quản lý Người dùng (User Management) › [TC-5.7] Trang quản lý người dùng load - bảng hiển thị (7.1s)
+📍 URL sau login: https://fastship-web.onrender.com/Admin
+ℹ️ Không có search input
+  ok  92 [Desktop Full] › tests\05-admin-flow.spec.ts:189:7 › 👥 Quản lý Người dùng (User Management) › [TC-5.8] Tìm kiếm người dùng - gõ từ khóa (9.6s)
+🃏 QR card visible: true
+📸 QR image loaded: true
+⬇️ Download QR btn: true
+  ok  91 [Desktop Full] › tests\06-edelivery-flow.spec.ts:93:7 › 🚚 Shipper — QR Code Display › [TC-6.3] OrderDetail page — QR glassmorphism card hiển thị (16.6s)
+📍 URL sau login: https://fastship-web.onrender.com/Admin
+🔍 Filter tabs: 0
+  ok  93 [Desktop Full] › tests\05-admin-flow.spec.ts:207:7 › 👥 Quản lý Người dùng (User Management) › [TC-5.9] Kiểm tra các loại user (Khách hàng, Quán ăn, Shipper, Admin) (9.1s)
+📷 QR-reader container: true
+  Start btn: true
+  Stop btn: true
+  Switch cam: true
+📋 Scan history: "Chưa có lượt quét nào"
+  ok  94 [Desktop Full] › tests\06-edelivery-flow.spec.ts:129:7 › 🏪 Merchant — QR Scanner › [TC-6.4] Merchant scan page — html5-qrcode library load (11.9s)
+📍 URL sau login: https://fastship-web.onrender.com/Admin
+✅ Quản lý đơn hàng load
+📋 Số đơn: 30
+  ok  95 [Desktop Full] › tests\05-admin-flow.spec.ts:229:7 › 📦 Quản lý Đơn hàng (Order Management) › [TC-5.10] Trang quản lý đơn hàng load (31.2s)
+📍 URL sau login: https://fastship-web.onrender.com/Admin
+📡 API response: {"success":false,"message":"Mã QR không hợp lệ."}
+  ok  96 [Desktop Full] › tests\06-edelivery-flow.spec.ts:154:7 › 🏪 Merchant — QR Scanner › [TC-6.5] Merchant scan page — API call khi scan thành công (36.5s)
+  ok  97 [Desktop Full] › tests\05-admin-flow.spec.ts:250:7 › 📦 Quản lý Đơn hàng (Order Management) › [TC-5.11] Tìm kiếm đơn hàng theo mã (13.9s)
+📍 URL sau login: https://fastship-web.onrender.com/Admin
+✅ Quản lý danh mục load
+  ok  99 [Desktop Full] › tests\05-admin-flow.spec.ts:269:7 › 📂 Quản lý Danh mục (Category Management) › [TC-5.12] Trang quản lý danh mục load (10.4s)
+📦 localStorage scanHistory: null
+🗑️ After clear: null
+  ok  98 [Desktop Full] › tests\06-edelivery-flow.spec.ts:170:7 › 🏪 Merchant — QR Scanner › [TC-6.6] Scan history — localStorage lưu và hiển thị (13.6s)
+📍 URL sau login: https://fastship-web.onrender.com/Admin
+📄 Scan page (invalid token): 
+    
+    window._IS_LOGGED_IN = false;
+
+    
+    Bỏ qua điều hướng, đến nội dung chính
+
+    
+    
+ 
+📋 Danh mục: 13
+  Danh mục đầu: #1
+                        Đồ ăn
+                 
+  ok 101 [Desktop Full] › tests\06-edelivery-flow.spec.ts:189:7 › 📱 Customer — Real-time QR Scan Notification › [TC-6.7] ScanQR landing page — hiển thị thông tin đơn hàng (5.9s)
+  ok 100 [Desktop Full] › tests\05-admin-flow.spec.ts:281:7 › 📂 Quản lý Danh mục (Category Management) › [TC-5.13] Danh sách danh mục hiển thị (9.3s)
+📊 Database stats:
+  tbUser: 29
+  tbQuanAn: 11
+  tbMonAn: 63
+  tbBienTheMonAn: 76
+  tbDonHang: 90
+  tbChiTietDonHang: 35
+  ok 103 [Desktop Full] › tests\05-admin-flow.spec.ts:302:7 › 🗄️ Database Validation (Đối chiếu dữ liệu) › [TC-5.14] Kiểm tra DbDebug endpoint - database có dữ liệu (1.3s)
+📍 URL sau login: https://fastship-web.onrender.com/Admin
+📸 Ảnh: 2, Lỗi: 0
+  ok 104 [Desktop Full] › tests\05-admin-flow.spec.ts:331:7 › 🖼️ Admin Visual Checks › [TC-5.15] Tất cả ảnh trên dashboard admin không vỡ (10.7s)
+📊 Progress bar visible: false
+🔌 SignalR loaded: true
+🗺️ Tracking map visible: true
+📍 URL sau login: https://fastship-web.onrender.com/Admin
+📐 Horizontal overflow: false
+  ok 105 [Desktop Full] › tests\05-admin-flow.spec.ts:346:7 › 🖼️ Admin Visual Checks › [TC-5.16] Desktop layout - responsive (7.1s)
+  ok 102 [Desktop Full] › tests\06-edelivery-flow.spec.ts:199:7 › 📱 Customer — Real-time QR Scan Notification › [TC-6.8] OrderTracking page — SignalR delivery event handlers (20.7s)
+📍 URL sau login: https://fastship-web.onrender.com/Admin
+  ok 106 [Desktop Full] › tests\05-admin-flow.spec.ts:361:7 › 🖼️ Admin Visual Checks › [TC-5.17] Kiểm tra 404 resources trên toàn bộ admin pages (15.4s)
+⚠️ Rate limited, sẽ retry sau...
+⏳ Login retry #1 (chờ 62s tránh rate limit)...
+💳 MoMo option visible: false
+  ok 108 [Desktop Full] › tests\07-customer-advanced.spec.ts:26:7 › 💳 Payment Methods › [TC-7.1] Thanh toán MoMo — page load + QR display (28.5s)
+🏦 Bank transfer option visible: false
+  ok 109 [Desktop Full] › tests\07-customer-advanced.spec.ts:41:7 › 💳 Payment Methods › [TC-7.2] Thanh toán Bank Transfer — QR + thông tin tài khoản (9.9s)
+📡 VerifyBank API: {"success":false,"message":"Đơn hàng không tồn tại"}
+  ok 110 [Desktop Full] › tests\07-customer-advanced.spec.ts:56:7 › 💳 Payment Methods › [TC-7.3] Verify Bank Transaction API (5.5s)
+📊 Tracking steps: 0
+  x  111 [Desktop Full] › tests\07-customer-advanced.spec.ts:67:7 › 📍 Order Tracking Real-time › [TC-7.4] OrderTracking page — progress bar steps render (34.0s)
+🔌 SignalR on detail page: true
+  ok 107 [Desktop Full] › tests\06-edelivery-flow.spec.ts:232:7 › 📱 Customer — Real-time QR Scan Notification › [TC-6.9] ChiTietDonHang page — SignalR + Leaflet live map (1.7m)
+🗺️ Map visible: true
+  Map size: 1200x300
+  Leaflet tiles: 0
+  ok 112 [Desktop Full] › tests\07-customer-advanced.spec.ts:88:7 › 📍 Order Tracking Real-time › [TC-7.5] Map Leaflet render trên OrderTracking (14.5s)
+🔌 SignalR: true
+🍃 Leaflet: true
+  ok 114 [Desktop Full] › tests\07-customer-advanced.spec.ts:108:7 › 📍 Order Tracking Real-time › [TC-7.6] ChiTietDonHang — SignalR + Leaflet map (14.9s)
+📊 Stat cards: 5
+  50Tổng đơn
+  4Đã quét
+  7Đang giao
+  12Hoàn thành
+  13Chờ quét
+📋 Delivery table visible: true
+🏷️ Pastel badges: 50
+  First badge: "Chờ shipper lấy hàng"
+🔗 Nav link to DeliveryLogs: true
+  ok 113 [Desktop Full] › tests\06-edelivery-flow.spec.ts:254:7 › 👑 Admin — Delivery Logs Matrix & Bypass › [TC-6.10] Delivery Logs page load — stats + table (28.8s)
+🔢 Cart badge: "1"
+  ok 115 [Desktop Full] › tests\07-customer-advanced.spec.ts:125:7 › 🛒 Cart Advanced › [TC-7.7] Cart badge count — update after add (11.7s)
+🛠️ Bypass buttons: 17
+📦 Bypass modal visible: true
+  Modal text: "
+    
+        
+            
+            Xử lý thủ công
+        
+        Bạn có chắc chắn muốn chuyển"
+  Status select: true
+  Options:  Đã lấy hàng (scan),  Đang giao,  Hoàn thành,  Đã hủy
+  Cancel btn: true
+  Confirm btn: true
+  Modal closed: true
+  ok 116 [Desktop Full] › tests\06-edelivery-flow.spec.ts:294:7 › 👑 Admin — Delivery Logs Matrix & Bypass › [TC-6.11] Bypass modal — open + close + UI elements (17.5s)
+📡 Bypass API response: {"success":false,"message":"Đơn hàng không tồn tại."}
+  ok 118 [Desktop Full] › tests\06-edelivery-flow.spec.ts:345:7 › 👑 Admin — Delivery Logs Matrix & Bypass › [TC-6.12] Bypass API call — validate request/response (9.6s)
+📐 No vertical borders (borderLeftWidth=0px): true
+  ok 119 [Desktop Full] › tests\06-edelivery-flow.spec.ts:361:7 › 👑 Admin — Delivery Logs Matrix & Bypass › [TC-6.13] Delivery Logs — no vertical borders in table (9.7s)
+📍 URL after nav click: https://fastship-web.onrender.com/EDelivery/DeliveryLogs
+  ok 120 [Desktop Full] › tests\06-edelivery-flow.spec.ts:376:7 › 👑 Admin — Delivery Logs Matrix & Bypass › [TC-6.14] Delivery Logs — admin sidebar nav link hoạt động (6.9s)
+  x  117 [Desktop Full] › tests\07-customer-advanced.spec.ts:140:7 › 🛒 Cart Advanced › [TC-7.8] Multi-restaurant cart — thêm món từ 2 quán khác nhau (36.0s)
+✅ Customer: added item to cart
+⭐ Review section: true
+  Reviews count: 0
+  ok 122 [Desktop Full] › tests\07-customer-advanced.spec.ts:162:7 › ⭐ Reviews & Ratings › [TC-7.9] Review section hiển thị trên DetailRestaurant (11.6s)
+📸 QR images for shipper: 0
+📷 Merchant scanner visible: false
+👑 Admin delivery logs: true
+  ok 121 [Desktop Full] › tests\06-edelivery-flow.spec.ts:399:7 › 🔄 End-to-End: Order → QR → Scan → Notify › [TC-6.15] Full flow: Tạo đơn → Shipper nhận → QR hiển thị (33.3s)
+📝 Tên món (tenMonAn): false
+📝 Giá (giatien): true
+📝 Danh mục (madanhmuc): true
+📝 Mô tả (mota): true
+📍 URL after empty submit: https://fastship-web.onrender.com/Restaurant/ProductDetail
+⚠️ goto timeout, retrying...
+  ok 124 [Desktop Full] › tests\08-merchant-advanced.spec.ts:26:7 › 🍽️ CRUD Món ăn › [TC-8.1] PostMonAn — form field validation (11.3s)
+🏷️ Category pills: 0
+  ok 123 [Desktop Full] › tests\07-customer-advanced.spec.ts:178:7 › 🔍 Category Filter & Search › [TC-7.10] Lọc quán theo danh mục — category pills hoạt động (44.6s)
+🔍 Search 'Koneko': 3 results
+  ok 126 [Desktop Full] › tests\07-customer-advanced.spec.ts:191:7 › 🔍 Category Filter & Search › [TC-7.11] Thanh tìm kiếm navbar — search theo tên quán (15.2s)
+  ✅ Size M input found
+📏 Size inputs found: 1/3
+  ok 125 [Desktop Full] › tests\08-merchant-advanced.spec.ts:47:7 › 🍽️ CRUD Món ăn › [TC-8.2] Size variant pricing grid (M/L/XL) — inputs + labels (33.5s)
+📁 File upload input visible: true
+🖼️ Preview image: false
+  ok 128 [Desktop Full] › tests\08-merchant-advanced.spec.ts:58:7 › 🍽️ CRUD Món ăn › [TC-8.3] Upload ảnh — file input + preview (9.4s)
+💬 Chat container: true
+  ok 127 [Desktop Full] › tests\07-customer-advanced.spec.ts:207:7 › 💬 Chat với Shipper › [TC-7.12] Chat page load — component hiển thị (15.4s)
+🔗 ScanQR URL: https://fastship-web.onrender.com/edelivery/scan/invalid-test-token | status: 404
+✅ Invalid token page shows error or redirects
+  ok 130 [Desktop Full] › tests\07-customer-advanced.spec.ts:218:7 › 📸 E-Delivery Customer › [TC-7.13] ScanQR landing — token invalid hiển thị lỗi (4.1s)
+📡 FastShipTracking hub: true
+  ok 131 [Desktop Full] › tests\07-customer-advanced.spec.ts:234:7 › 📸 E-Delivery Customer › [TC-7.14] OrderTracking — SignalR delivery events (14.6s)
+✅ Success page shows content (URL: https://fastship-web.onrender.com/Cart/SuccessView)
+  ok 132 [Desktop Full] › tests\07-customer-advanced.spec.ts:249:7 › 📸 E-Delivery Customer › [TC-7.15] Success page — order confirmation hiển thị (8.8s)
+⚠️ goto timeout, retrying...
+✏️ Edit links: 0
+🗑️ Delete links: 0
+  ok 129 [Desktop Full] › tests\08-merchant-advanced.spec.ts:72:7 › 🍽️ CRUD Món ăn › [TC-8.4] Product List — nút Chỉnh sửa + Xóa (45.6s)
+ℹ️ No delete links (may have no products)
+  ok 134 [Desktop Full] › tests\08-merchant-advanced.spec.ts:85:7 › 🍽️ CRUD Món ăn › [TC-8.5] Xóa món — click + redirect về ProductList (10.2s)
+📋 Profile form fields: 5
+  ok 135 [Desktop Full] › tests\08-merchant-advanced.spec.ts:98:7 › ⚙️ Hồ sơ Quán › [TC-8.6] Profile page — form fields hiển thị (10.3s)
+📍 After profile save: https://fastship-web.onrender.com/Restaurant
+  ok 136 [Desktop Full] › tests\08-merchant-advanced.spec.ts:107:7 › ⚙️ Hồ sơ Quán › [TC-8.7] Profile — submit form (11.4s)
+📋 Discount table: true
+  Promotions: 4
+➕ Add promotion btn: true
+  ok 137 [Desktop Full] › tests\08-merchant-advanced.spec.ts:120:7 › 🏷️ Khuyến mãi › [TC-8.8] Discount page — danh sách + CRUD buttons (10.0s)
+📈 Charts: 0
+📊 Stats cards: 0
+  ok 138 [Desktop Full] › tests\08-merchant-advanced.spec.ts:137:7 › 📊 Analytics › [TC-8.9] Analytics page — charts + stats (9.8s)
+  x  133 [Desktop Full] › tests\09-shipper-advanced.spec.ts:26:7 › 🔄 Cập nhật trạng thái giao hàng › [TC-9.1] OrderDetail — nút Lấy hàng + Hoàn thành (1.3m)
+  x  140 [Desktop Full] › tests\09-shipper-advanced.spec.ts:39:7 › 🔄 Cập nhật trạng thái giao hàng › [TC-9.2] UpdateDonHang API — status transitions (5.6s)
+ℹ️ No status toggle link
+  ok 141 [Desktop Full] › tests\09-shipper-advanced.spec.ts:53:7 › 🔄 Cập nhật trạng thái giao hàng › [TC-9.3] Toggle trạng thái Online/Offline (6.4s)
+⭐ Reviews: true
+  ok 139 [Desktop Full] › tests\08-merchant-advanced.spec.ts:146:7 › 📊 Analytics › [TC-8.10] Review page — danh sách đánh giá (30.4s)
+💰 Balance: 1,200đ
+📋 Transactions: 0
+  ok 142 [Desktop Full] › tests\09-shipper-advanced.spec.ts:67:7 › 💰 Ví & Thu nhập › [TC-9.4] Ví tiền — số dư + lịch sử giao dịch (11.1s)
+📊 Income stats: 0
+  ok 144 [Desktop Full] › tests\09-shipper-advanced.spec.ts:76:7 › 💰 Ví & Thu nhập › [TC-9.5] Thu nhập — thống kê 30 ngày (13.3s)
+📋 Delivery history: 1 rows
+  First status: Xem chi tiết
+  ok 145 [Desktop Full] › tests\09-shipper-advanced.spec.ts:87:7 › 💰 Ví & Thu nhập › [TC-9.6] Lịch sử giao hàng — bảng + trạng thái (8.4s)
+📝 Username: true
+📝 Password: true
+📝 Email: true
+📝 SĐT: true
+  Roles: Khách hàng, Shipper, Quán ăn, Admin
+  ok 143 [Desktop Full] › tests\10-admin-advanced.spec.ts:26:7 › 👥 CRUD Người dùng › [TC-10.1] PostTaiKhoan — form tạo user (4 roles) (28.1s)
+📝 Settings fields: 2
+📍 LockOrUnlock redirect: https://fastship-web.onrender.com/Admin
+  ok 147 [Desktop Full] › tests\10-admin-advanced.spec.ts:44:7 › 👥 CRUD Người dùng › [TC-10.2] LockOrUnlock — khóa/mở user (6.7s)
+📍 After settings save: https://fastship-web.onrender.com/Shipper
+  ok 146 [Desktop Full] › tests\09-shipper-advanced.spec.ts:102:7 › ⚙️ Cài đặt › [TC-9.7] CaiDat — form fields + submit (12.4s)
+✅ Duyet API: 200
+  ok 148 [Desktop Full] › tests\10-admin-advanced.spec.ts:53:7 › 👥 CRUD Người dùng › [TC-10.3] Duyet user — approve Shipper/Quán (6.0s)
+❌ Huy API: 200
+  ok 150 [Desktop Full] › tests\10-admin-advanced.spec.ts:59:7 › 👥 CRUD Người dùng › [TC-10.4] Huy user — reject Shipper/Quán (5.9s)
+📋 QR tabs: 3
+✅ All QR tabs clickable
+🔌 SignalR on QR: true
+  ok 149 [Desktop Full] › tests\09-shipper-advanced.spec.ts:121:7 › 📸 QR Delivery Advanced › [TC-9.8] QRDelivery page — SignalR auto-refresh (13.6s)
+📊 Dashboard stats: tongDoanhThu=170000, tongSoDon=24
+  ok 151 [Desktop Full] › tests\10-admin-advanced.spec.ts:68:7 › 📊 Dashboard APIs › [TC-10.5] GetDashboardStats — JSON response (5.5s)
+📈 Revenue chart: 2 days
+  ok 153 [Desktop Full] › tests\10-admin-advanced.spec.ts:79:7 › 📊 Dashboard APIs › [TC-10.6] GetRevenueChart — JSON daily data (4.8s)
+🏪 Top restaurants: 1
+  #1: Koneko Pizza - 170000
+  ok 154 [Desktop Full] › tests\10-admin-advanced.spec.ts:87:7 › 📊 Dashboard APIs › [TC-10.7] GetTopRestaurants — top 5 (6.6s)
+🥧 Status pie: Hoàn thành, Đã hủy, Đang xử lý
+  ok 155 [Desktop Full] › tests\10-admin-advanced.spec.ts:97:7 › 📊 Dashboard APIs › [TC-10.8] GetOrderStatusPie — chart data (5.4s)
+📥 ExportExcel response:  | cd: 
+📥 Fetch result: status=404 type=null cd=null
+  x  156 [Desktop Full] › tests\10-admin-advanced.spec.ts:106:7 › 📊 Dashboard APIs › [TC-10.9] ExportExcel — download CSV (8.1s)
+➕ Add category: true
+✏️ Edit links: 13
+  ok 157 [Desktop Full] › tests\10-admin-advanced.spec.ts:143:7 › 📂 Quản lý Danh mục › [TC-10.10] Category page — danh sách + CRUD buttons (8.3s)
+📝 Create category fields: 6
+✅ Submit: false
+  ok 158 [Desktop Full] › tests\10-admin-advanced.spec.ts:152:7 › 📂 Quản lý Danh mục › [TC-10.11] CreateCategory — form fields (7.9s)
+  x  159 [Desktop Full] › tests\10-admin-advanced.spec.ts:165:7 › 💳 Mock Payment › [TC-10.12] MockPaymentWebhook — xác nhận thanh toán (5.0s)
+📊 Delivery stats: 5
+  50Tổng đơn
+  4Đã quét
+  7Đang giao
+  12Hoàn thành
+  13Chờ quét
+🏷️ Pastel badges: 50
+  ok 160 [Desktop Full] › tests\10-admin-advanced.spec.ts:179:7 › 📸 E-Delivery Admin › [TC-10.13] DeliveryLogs — stats cards + table (8.9s)
+  ok 152 [Desktop Full] › tests\11-cart-management.spec.ts:38:7 › 🛒 Thêm món vào giỏ hàng › [TC-CART-01] Thêm 1 món → cart badge count = 1 (1.0m)
+🛠️ Bypass buttons: 17
+  Status options:  Đã lấy hàng (scan),  Đang giao,  Hoàn thành,  Đã hủy
+  Modal closed ✅
+  ok 161 [Desktop Full] › tests\10-admin-advanced.spec.ts:196:7 › 📸 E-Delivery Admin › [TC-10.14] Bypass modal — open + chọn status + cancel (11.2s)
+📡 Bypass invalid: {"success":false,"message":"Đơn hàng không tồn tại."}
+  ok 163 [Desktop Full] › tests\10-admin-advanced.spec.ts:214:7 › 📸 E-Delivery Admin › [TC-10.15] Bypass API — POST invalid + valid flow (6.4s)
+  x  162 [Desktop Full] › tests\11-cart-management.spec.ts:48:7 › 🛒 Thêm món vào giỏ hàng › [TC-CART-02] Thêm 3 món khác nhau → verify cart total (1.2m)
+  x  164 [Desktop Full] › tests\12-checkout-flow.spec.ts:46:7 › 📋 Checkout page load › [TC-CHECKOUT-01] Checkout page load → verify elements visible (1.3m)
+Item quantity after 2 adds: 2
+  ok 165 [Desktop Full] › tests\11-cart-management.spec.ts:82:7 › 🛒 Thêm món vào giỏ hàng › [TC-CART-03] Thêm cùng 1 món 2 lần → verify số lượng tăng (1.9m)
+  x  166 [Desktop Full] › tests\12-checkout-flow.spec.ts:66:7 › 📋 Checkout page load › [TC-CHECKOUT-02] Order summary hiển thị items từ cart (1.7m)
+Total before: 10,000 đ
+Total after increase x2: 30,000 đ
+  ok 167 [Desktop Full] › tests\11-cart-management.spec.ts:110:7 › 🔢 Cập nhật số lượng › [TC-CART-04] Tăng số lượng 1 → 3 → verify total cập nhật (1.1m)
+  x  168 [Desktop Full] › tests\12-checkout-flow.spec.ts:89:7 › 📍 Address tabs › [TC-CHECKOUT-03] Tab "Địa chỉ mới" mặc định active (1.3m)
+Qty before decrease: 3
+Qty after decrease x2: 1
+  ok 169 [Desktop Full] › tests\11-cart-management.spec.ts:137:7 › 🔢 Cập nhật số lượng › [TC-CART-05] Giảm số lượng 3 → 1 → verify total giảm (1.1m)
+  x  170 [Desktop Full] › tests\12-checkout-flow.spec.ts:110:7 › 📍 Address tabs › [TC-CHECKOUT-04] Tab "Địa chỉ đã lưu" → verify saved addresses (1.3m)
+Qty before: 1
+Items after decrease from 1: 1
+  ok 171 [Desktop Full] › tests\11-cart-management.spec.ts:168:7 › 🔢 Cập nhật số lượng › [TC-CART-06] Giảm từ 1 → item bị xoá hoặc qty = 0 (1.0m)
+  x  172 [Desktop Full] › tests\12-checkout-flow.spec.ts:133:7 › 📍 Address tabs › [TC-CHECKOUT-05] Điền form địa chỉ mới → verify validation (1.3m)
+Removing item: Trà tắc
+Items before: 1, after: 1
+  ok 173 [Desktop Full] › tests\11-cart-management.spec.ts:205:7 › 🗑️ Xoá món khỏi giỏ › [TC-CART-07] Xoá 1 item → verify item removed (1.0m)
+  x  174 [Desktop Full] › tests\12-checkout-flow.spec.ts:165:7 › 💰 Payment methods › [TC-CHECKOUT-06] COD option → verify selection (1.2m)
+Cart empty after removing all: false
+  ok 175 [Desktop Full] › tests\11-cart-management.spec.ts:227:7 › 🗑️ Xoá món khỏi giỏ › [TC-CART-08] Xoá tất cả items → empty state hiển thị (1.4m)
+Empty state button: "
+                        
+                        Khám phá quán ăn
+                    "
+  ok 177 [Desktop Full] › tests\11-cart-management.spec.ts:259:7 › 📋 Empty state & UI › [TC-CART-09] Cart trống → empty state + "Khám phá quán ăn" button (11.1s)
+  x  176 [Desktop Full] › tests\12-checkout-flow.spec.ts:182:7 › 💰 Payment methods › [TC-CHECKOUT-07] Chuyển khoản option → verify QR/info area (1.2m)
+Cart total text: "10,000 đ"
+  ok 178 [Desktop Full] › tests\11-cart-management.spec.ts:281:7 › 📋 Empty state & UI › [TC-CART-10] Cart page — tổng tiền hiển thị đúng format VNĐ (1.1m)
+  x  179 [Desktop Full] › tests\12-checkout-flow.spec.ts:205:7 › 💰 Payment methods › [TC-CHECKOUT-08] Submit button disabled khi chưa confirm (1.2m)
+Checkout button is enabled
+  ok 180 [Desktop Full] › tests\11-cart-management.spec.ts:298:7 › 📋 Empty state & UI › [TC-CART-11] Cart — checkout button visible khi có items (59.9s)
+  x  181 [Desktop Full] › tests\12-checkout-flow.spec.ts:223:7 › 🎟️ Coupon › [TC-CHECKOUT-09] Nhập coupon hợp lệ → verify discount (1.3m)
+Items before nav: 1, after: 1
+  ok 182 [Desktop Full] › tests\11-cart-management.spec.ts:322:7 › 💾 Session persistence › [TC-CART-12] Navigate away → quay lại cart → items vẫn giữ (1.1m)
+Items before refresh: 1, after: 1
+  ok 184 [Desktop Full] › tests\11-cart-management.spec.ts:344:7 › 💾 Session persistence › [TC-CART-13] Refresh cart page → items vẫn giữ (1.0m)
+  x  183 [Desktop Full] › tests\12-checkout-flow.spec.ts:238:7 › 🎟️ Coupon › [TC-CHECKOUT-10] Nhập coupon không hợp lệ → verify error (1.3m)
+Badge: 0 → 1
+  ok 185 [Desktop Full] › tests\11-cart-management.spec.ts:368:7 › 🏷️ Navbar cart badge › [TC-CART-14] Thêm item → navbar badge cập nhật (1.0m)
+  x  186 [Desktop Full] › tests\12-checkout-flow.spec.ts:253:7 › 🎟️ Coupon › [TC-CHECKOUT-11] Browse coupons popup → verify display (1.3m)
+Badge: 1 → 1
+  ok 187 [Desktop Full] › tests\11-cart-management.spec.ts:396:7 › 🏷️ Navbar cart badge › [TC-CART-15] Xoá item → navbar badge giảm (1.4m)
+Order history items: 26
+Status badges found: 2
+  ok 189 [Desktop Full] › tests\13-order-status.spec.ts:29:7 › 📊 Order status display › [TC-STATUS-01] Customer: OrderHistory → verify orders listed with status (11.5s)
+  x  188 [Desktop Full] › tests\12-checkout-flow.spec.ts:293:7 › ✅ Order submission › [TC-CHECKOUT-12] Fill full form → confirm → submit COD → verify result popup (1.2m)
+Order links: 50
+After click order link: https://fastship-web.onrender.com/Cart/ChiTietDonHang?id=90
+  ok 190 [Desktop Full] › tests\13-order-status.spec.ts:48:7 › 📊 Order status display › [TC-STATUS-02] Customer: OrderHistory → click vào đơn → OrderDetail page (33.7s)
+Restaurant order list items: 85
+Accept buttons: 60, Reject buttons: 41
+Checkout without items URL: https://fastship-web.onrender.com/Cart
+  ok 192 [Desktop Full] › tests\13-order-status.spec.ts:72:7 › 📊 Order status display › [TC-STATUS-03] Restaurant: OrderList → verify orders with accept/reject buttons (12.0s)
+  ok 191 [Desktop Full] › tests\12-checkout-flow.spec.ts:340:7 › ⚠️ Checkout edge cases › [TC-CHECKOUT-13] Checkout không có items → redirect hoặc empty state (30.4s)
+Tracking progress visible: false
+  ok 193 [Desktop Full] › tests\13-order-status.spec.ts:96:7 › 📍 Order tracking progress › [TC-STATUS-04] OrderTracking → progress bar renders (13.7s)
+Tracking map visible: false
+  ok 195 [Desktop Full] › tests\13-order-status.spec.ts:122:7 › 📍 Order tracking progress › [TC-STATUS-05] OrderTracking → map renders (13.1s)
+ℹ️ ETA not visible (no active delivery)
+  ok 196 [Desktop Full] › tests\13-order-status.spec.ts:140:7 › 📍 Order tracking progress › [TC-STATUS-06] OrderTracking → ETA display (32.4s)
+Shipper order cards: 27
+Status badges: 28
+  ok 197 [Desktop Full] › tests\13-order-status.spec.ts:163:7 › 🚚 Shipper order status › [TC-STATUS-07] Shipper: OrderList → verify order cards with status (10.4s)
+  x  194 [Desktop Full] › tests\12-checkout-flow.spec.ts:355:7 › ⚠️ Checkout edge cases › [TC-CHECKOUT-14] Submit button disable sau khi click đầu tiên (1.3m)
+Earnings page loaded: true
+  ok 198 [Desktop Full] › tests\13-order-status.spec.ts:179:7 › 🚚 Shipper order status › [TC-STATUS-08] Shipper: ThuNhap → earnings dashboard loads (11.9s)
+Chat FAB visible: true
+  ok 200 [Desktop Full] › tests\15-chat-system.spec.ts:27:7 › 💬 Chat widget UI › [TC-CHAT-01] Chat FAB button visible trên homepage (12.4s)
+Results for "pizza": 3
+Restaurant names: Koneko Pizza, Trà tắc, Pizza thập cẩm
+Has relevant result: true
+  ok 199 [Desktop Full] › tests\14-filter-search.spec.ts:28:7 › 🔍 Homepage search › [TC-FILTER-01] Search "pizza" → verify kết quả chứa pizza (28.2s)
+Chat box visible after click: true
+  ok 201 [Desktop Full] › tests\15-chat-system.spec.ts:39:7 › 💬 Chat widget UI › [TC-CHAT-02] Click chat FAB → chat box opens (13.8s)
+Results for "xyz123nonexistent": 2
+  x  202 [Desktop Full] › tests\14-filter-search.spec.ts:48:7 › 🔍 Homepage search › [TC-FILTER-02] Search "xyz123" → empty state (9.7s)
+AI tab: true, Admin tab: true
+  ok 203 [Desktop Full] › tests\15-chat-system.spec.ts:55:7 › 💬 Chat widget UI › [TC-CHAT-03] Chat box có 2 tabs: AI + Admin (16.4s)
+Results for "phở": 2
+  ok 204 [Desktop Full] › tests\14-filter-search.spec.ts:66:7 › 🔍 Homepage search › [TC-FILTER-03] Search Unicode "phở" → không crash (11.6s)
+Results for empty search: 13
+  ok 206 [Desktop Full] › tests\14-filter-search.spec.ts:82:7 › 🔍 Homepage search › [TC-FILTER-04] Search rỗng → hiện tất cả quán (9.6s)
+Chat box hidden after close: true
+  ok 205 [Desktop Full] › tests\15-chat-system.spec.ts:73:7 › 💬 Chat widget UI › [TC-CHAT-04] Close chat box → hidden (13.6s)
+Category row visible: false
+  ok 207 [Desktop Full] › tests\14-filter-search.spec.ts:101:7 › 🏷️ Category pills › [TC-FILTER-05] Category pills visible trên homepage (5.2s)
+AI section visible: true
+AI input: true, AI button: true
+  ok 208 [Desktop Full] › tests\15-chat-system.spec.ts:101:7 › 🤖 AI Chatbot › [TC-CHAT-05] AI chat input + send button visible (14.2s)
+Bot messages after send: 2
+Last bot reply: "Chào bạn, cần hỗ trợ gì ạ? Đặt món hay check đơn?Gợi ý món ănPhí ship thế nào?Tra cứu đơn hàng #Liên"
+  ok 210 [Desktop Full] › tests\15-chat-system.spec.ts:125:7 › 🤖 AI Chatbot › [TC-CHAT-06] Gửi tin nhắn AI "Xin chào" → nhận reply (18.8s)
+Bot messages after food suggestion: 2
+Bot food suggestion: "❌ Lỗi máy chủ nội bộ. Vui lòng thử lại sau. (Mã lỗi: 00-51be606c4349ff5f53fd223e1ac77393-0e8f78b4406b310b-00)16:06"
+  ok 211 [Desktop Full] › tests\15-chat-system.spec.ts:156:7 › 🤖 AI Chatbot › [TC-CHAT-07] Gửi tin nhắn AI "Gợi ý món ăn" → nhận top items (21.6s)
+ℹ️ "Cơm" category pill not found
+  ok 209 [Desktop Full] › tests\14-filter-search.spec.ts:122:7 › 🏷️ Category pills › [TC-FILTER-06] Click category pill "Cơm" → filter restaurants (1.2m)
+Quick reply buttons: 0
+  ok 212 [Desktop Full] › tests\15-chat-system.spec.ts:185:7 › 🤖 AI Chatbot › [TC-CHAT-08] Quick reply buttons hoạt động (35.9s)
+Admin section visible: true
+  ok 214 [Desktop Full] › tests\15-chat-system.spec.ts:220:7 › 👨‍💼 Admin chat › [TC-CHAT-09] Customer: chuyển sang Admin tab (16.4s)
+Admin chat URL: https://fastship-web.onrender.com/AdminChat
+Admin conversations: 3
+Connection status elements: 0
+  ok 215 [Desktop Full] › tests\15-chat-system.spec.ts:242:7 › 👨‍💼 Admin chat › [TC-CHAT-10] Admin chat — login admin → verify chat page (11.0s)
+Messages before: 2, after empty send: 2
+  ok 216 [Desktop Full] › tests\15-chat-system.spec.ts:268:7 › ⚠️ Chat edge cases › [TC-CHAT-11] Gửi tin nhắn rỗng → không gửi (16.6s)
+SignalR errors: 0
+  ok 217 [Desktop Full] › tests\15-chat-system.spec.ts:294:7 › ⚠️ Chat edge cases › [TC-CHAT-12] Chat widget không có SignalR → graceful fallback (15.5s)
+QR images: 0
+  ok 218 [Desktop Full] › tests\16-edelivery-tracking.spec.ts:26:7 › 📸 Shipper QR Delivery › [TC-EDEL-01] Shipper: QRDelivery page → QR images load (10.9s)
+QR tabs: 9
+  Tab 0: "" clicked
+  Tab 1: "N
+                                    Nguyen Thi Z" clicked
+  Tab 2: "Chờ giao
+        
+        
+             Đang giao
+        
+        
+             Hoàn thành" clicked
+  ok 219 [Desktop Full] › tests\16-edelivery-tracking.spec.ts:45:7 › 📸 Shipper QR Delivery › [TC-EDEL-02] Shipper: QRDelivery tab filter (14.8s)
+QR API status: 404
+  ok 220 [Desktop Full] › tests\16-edelivery-tracking.spec.ts:72:7 › 🔗 E-Delivery API › [TC-EDEL-03] QR code API → valid PNG response (11.6s)
+Invalid scan error: false
+  ok 221 [Desktop Full] › tests\16-edelivery-tracking.spec.ts:90:7 › 🔗 E-Delivery API › [TC-EDEL-04] Scan QR với invalid token → error (3.0s)
+ℹ️ "Tất cả" category not found
+  x  213 [Desktop Full] › tests\14-filter-search.spec.ts:139:7 › 🏷️ Category pills › [TC-FILTER-07] Click "Tất cả" → reset filter (2.1m)
+Progress bar: false
+Map: false
+  ok 222 [Desktop Full] › tests\16-edelivery-tracking.spec.ts:105:7 › 📍 Order tracking › [TC-TRACK-01] OrderTracking → progress bar + map render (14.2s)
+Menu categories: 3
+Items after category filter: 1
+  ok 223 [Desktop Full] › tests\14-filter-search.spec.ts:169:7 › 🍽️ Restaurant menu filter › [TC-FILTER-08] Restaurant detail → category sidebar filter (8.4s)
+  ok 224 [Desktop Full] › tests\16-edelivery-tracking.spec.ts:125:7 › 📍 Order tracking › [TC-TRACK-02] OrderTracking → ETA display (13.6s)
+Order items in tracking: 0
+Info rows: 0
+  ok 226 [Desktop Full] › tests\16-edelivery-tracking.spec.ts:140:7 › 📍 Order tracking › [TC-TRACK-03] OrderTracking → order summary sidebar (14.1s)
+Chat FAB in tracking: false
+  ok 227 [Desktop Full] › tests\16-edelivery-tracking.spec.ts:157:7 › 📍 Order tracking › [TC-TRACK-04] OrderTracking → chat sheet FAB visible (12.3s)
+Detail links: 25
+Order title: "Đơn hàng (Chờ shipper lấy hàng)"
+Order items: 1
+  ok 228 [Desktop Full] › tests\16-edelivery-tracking.spec.ts:174:7 › 📄 Order detail › [TC-TRACK-05] ChiTietDonHang → order info + action buttons (14.4s)
+Inline map in detail: false
+  ok 229 [Desktop Full] › tests\16-edelivery-tracking.spec.ts:201:7 › 📄 Order detail › [TC-TRACK-06] ChiTietDonHang → map visible khi đang giao (14.7s)
+  x  225 [Desktop Full] › tests\14-filter-search.spec.ts:188:7 › 🍽️ Restaurant menu filter › [TC-FILTER-09] Restaurant detail → search menu items (1.2m)
+Promotional badges: 0
+  ok 231 [Desktop Full] › tests\14-filter-search.spec.ts:207:7 › 🍽️ Restaurant menu filter › [TC-FILTER-10] Restaurant detail → promotional badge visible (6.6s)
+Filter bar visible: false
+  ok 232 [Desktop Full] › tests\14-filter-search.spec.ts:223:7 › 🎛️ Filter bar › [TC-FILTER-11] FilterBar sort options visible (5.9s)
+Clear filter buttons: 0
+Dashboard cards: 8
+KPI values: 4
+  KPI 0: 5
+  KPI 1: 8,543,000 VNĐ
+  KPI 2: 84
+  KPI 3: 2
+  ok 230 [Desktop Full] › tests\17-analytics-dashboard.spec.ts:25:7 › 🍽️ Restaurant dashboard › [TC-ANALYTIC-01] Restaurant Dashboard → KPI cards render (30.5s)
+  ok 233 [Desktop Full] › tests\14-filter-search.spec.ts:238:7 › 🎛️ Filter bar › [TC-FILTER-12] Clear all filters → reset (6.4s)
+Restaurant cards: 13
+Card width: 450px, viewport: 375px
+  x  235 [Desktop Full] › tests\18-mobile-responsive.spec.ts:28:7 › 📱 Homepage mobile › [TC-MOBILE-01] Homepage: 2-column grid trên mobile (5.4s)
+Order status summary visible: true
+  ok 234 [Desktop Full] › tests\17-analytics-dashboard.spec.ts:49:7 › 🍽️ Restaurant dashboard › [TC-ANALYTIC-02] Restaurant Dashboard → order status summary (10.9s)
+Horizontal overflow: false
+  ok 236 [Desktop Full] › tests\18-mobile-responsive.spec.ts:47:7 › 📱 Homepage mobile › [TC-MOBILE-02] Homepage: no horizontal overflow (5.0s)
+Logo visible: true
+Navbar visible: true
+  ok 238 [Desktop Full] › tests\18-mobile-responsive.spec.ts:58:7 › 📱 Homepage mobile › [TC-MOBILE-03] Homepage: logo + navbar visible (5.0s)
+Apriori insight cards: 2
+First insight: "
+                                    
+                                        Trà tắc
+              "
+  ok 237 [Desktop Full] › tests\17-analytics-dashboard.spec.ts:62:7 › 🍽️ Restaurant dashboard › [TC-ANALYTIC-03] Restaurant Dashboard → Apriori cross-sell insights (10.9s)
+Wallet page loaded: true
+  ok 240 [Desktop Full] › tests\17-analytics-dashboard.spec.ts:78:7 › 🍽️ Restaurant dashboard › [TC-ANALYTIC-04] Restaurant Dashboard → wallet page (10.7s)
+Analytics URL: https://fastship-web.onrender.com/Home/Error?traceId=00-8d258965c5b6b30917c5979ae45bf140-10d4e2af2e2c9e65-00
+Analytics page loaded: false
+Product analytics cards: 0
+  ok 241 [Desktop Full] › tests\17-analytics-dashboard.spec.ts:95:7 › 📈 Restaurant analytics page › [TC-ANALYTIC-05] Analytics → feedback stats render (10.4s)
+⚠️ goto timeout, retrying...
+Star rating elements: 0
+  ok 242 [Desktop Full] › tests\17-analytics-dashboard.spec.ts:114:7 › 📈 Restaurant analytics page › [TC-ANALYTIC-06] Analytics → star ratings visible (12.1s)
+Cart items: 0
+  ok 239 [Desktop Full] › tests\18-mobile-responsive.spec.ts:77:7 › 🛒 Cart mobile › [TC-MOBILE-04] Cart page: stacked layout trên mobile (39.5s)
+Admin dashboard loaded: true
+  ok 243 [Desktop Full] › tests\17-analytics-dashboard.spec.ts:131:7 › 👨‍💼 Admin dashboard › [TC-ADMIN-01] Admin Dashboard → KPI cards (10.0s)
+Interactive buttons: 0
+Small touch targets: 0/0
+  ok 244 [Desktop Full] › tests\18-mobile-responsive.spec.ts:98:7 › 🛒 Cart mobile › [TC-MOBILE-05] Cart: touch targets ≥ 44px (10.2s)
+Chart canvases: 3
+Chart containers: 23
+  ok 245 [Desktop Full] › tests\17-analytics-dashboard.spec.ts:145:7 › 👨‍💼 Admin dashboard › [TC-ADMIN-02] Admin Dashboard → charts render (10.9s)
+  ok 246 [Desktop Full] › tests\18-mobile-responsive.spec.ts:127:7 › 💳 Checkout mobile › [TC-MOBILE-06] Checkout: form fields full-width (11.3s)
+User management loaded: true
+User rows: 13
+  ok 247 [Desktop Full] › tests\17-analytics-dashboard.spec.ts:162:7 › 👨‍💼 Admin dashboard › [TC-ADMIN-03] Admin → user management page (10.7s)
+Payment options: 0
+Small payment options: 0/0
+  ok 248 [Desktop Full] › tests\18-mobile-responsive.spec.ts:143:7 › 💳 Checkout mobile › [TC-MOBILE-07] Checkout: payment options tappable (11.4s)
+Order management loaded: true
+  ok 249 [Desktop Full] › tests\17-analytics-dashboard.spec.ts:177:7 › 👨‍💼 Admin dashboard › [TC-ADMIN-04] Admin → order management page (11.4s)
+--fs-green: "#3CB815"
+  ok 251 [Desktop Full] › tests\19-visual-regression.spec.ts:25:7 › 🎨 Design tokens › [TC-VISUAL-01] --fs-green CSS variable defined (3.5s)
+--fs-orange: "#F65005"
+  ok 252 [Desktop Full] › tests\19-visual-regression.spec.ts:36:7 › 🎨 Design tokens › [TC-VISUAL-02] --fs-orange CSS variable defined (3.5s)
+Body font-family: "Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif"
+  ok 253 [Desktop Full] › tests\19-visual-regression.spec.ts:47:7 › 🎨 Design tokens › [TC-VISUAL-03] Inter font loaded (3.6s)
+Card border-radius: "16px"
+  ok 254 [Desktop Full] › tests\19-visual-regression.spec.ts:58:7 › 🎨 Design tokens › [TC-VISUAL-04] --fs-radius applied on cards (4.1s)
+Card box-shadow: "rgba(0, 0, 0, 0.05) 0px 2px 14px 0px"
+  ok 255 [Desktop Full] › tests\19-visual-regression.spec.ts:70:7 › 🎨 Design tokens › [TC-VISUAL-05] --fs-shadow applied on cards (4.3s)
+Menu items: 5
+Menu item width: 771.078125px
+  x  250 [Desktop Full] › tests\18-mobile-responsive.spec.ts:170:7 › 🍽️ Restaurant detail mobile › [TC-MOBILE-08] Restaurant detail: menu items stacked (30.3s)
+Empty cart: icon=true, text=true, CTA=false
+  ok 256 [Desktop Full] › tests\19-visual-regression.spec.ts:88:7 › 📭 Empty states › [TC-VISUAL-06] Cart empty state: icon + text + CTA (10.8s)
+Search empty state: false
+  ok 258 [Desktop Full] › tests\19-visual-regression.spec.ts:106:7 › 📭 Empty states › [TC-VISUAL-07] Search empty state: "Không tìm thấy" message (5.4s)
+Add to cart button: 69.9375x44px
+  ok 257 [Desktop Full] › tests\18-mobile-responsive.spec.ts:190:7 › 🍽️ Restaurant detail mobile › [TC-MOBILE-09] Restaurant detail: add to cart button accessible (13.9s)
+  x  259 [Desktop Full] › tests\19-visual-regression.spec.ts:121:7 › 📸 Screenshots › [TC-VISUAL-08] Homepage screenshot — Desktop (10.7s)
+Chat FAB visible on mobile: true
+Chat FAB: 56x56px
+  ok 260 [Desktop Full] › tests\18-mobile-responsive.spec.ts:212:7 › 💬 Chat widget mobile › [TC-MOBILE-10] Chat FAB: accessible trên mobile (16.0s)
+  x  261 [Desktop Full] › tests\19-visual-regression.spec.ts:132:7 › 📸 Screenshots › [TC-VISUAL-09] Homepage screenshot — Mobile (7.9s)
+  x  263 [Desktop Full] › tests\19-visual-regression.spec.ts:143:7 › 📸 Screenshots › [TC-VISUAL-10] Login page screenshot (4.3s)
+Inputs to check: 4
+  Input #0: font-size 14px — WILL TRIGGER ZOOM
+  Input #1: font-size 14px — WILL TRIGGER ZOOM
+  Input #2: font-size 13px — WILL TRIGGER ZOOM
+  Input #3: font-size 13px — WILL TRIGGER ZOOM
+Zoom-risk inputs: 4/4
+  ok 262 [Desktop Full] › tests\18-mobile-responsive.spec.ts:238:7 › 🔍 Input zoom check › [TC-MOBILE-11] Input font-size ≥ 16px (no iOS zoom) (12.7s)
+Buttons with emoji: 0/10
+  ok 264 [Desktop Full] › tests\19-visual-regression.spec.ts:158:7 › 🖼️ Icons consistency › [TC-VISUAL-11] Không dùng emoji làm icon controls (4.9s)
+Bottom sheet trigger: false
+  ok 265 [Desktop Full] › tests\18-mobile-responsive.spec.ts:267:7 › 📋 Bottom sheet filter › [TC-MOBILE-12] Mobile: bottom sheet trigger visible (5.0s)
+Font Awesome icons: 84
+Homepage load: 953ms
+  ok 266 [Desktop Full] › tests\19-visual-regression.spec.ts:179:7 › 🖼️ Icons consistency › [TC-VISUAL-12] Font Awesome icons loaded (3.9s)
+  ok 267 [Desktop Full] › tests\20-performance.spec.ts:24:7 › ⚡ Page load performance › [TC-PERF-01] Homepage load time < 10s (3.1s)
+Loading/skeleton elements: 1
+Login page load: 787ms
+  ok 269 [Desktop Full] › tests\20-performance.spec.ts:32:7 › ⚡ Page load performance › [TC-PERF-02] Login page load time < 8s (2.8s)
+  ok 268 [Desktop Full] › tests\19-visual-regression.spec.ts:195:7 › ⏳ Loading states › [TC-VISUAL-13] Skeleton loading có trên trang (4.3s)
+Footer on /: true
+Footer on /Home/Login: false
+Footer on /Cart: false
+  ok 271 [Desktop Full] › tests\19-visual-regression.spec.ts:210:7 › 📋 Footer › [TC-VISUAL-14] Footer visible trên tất cả pages (7.9s)
+  ok 272 [Desktop Full] › tests\accessibility.spec.ts:26:7 › Accessibility: Semantic HTML & Landmarks › homepage has main landmark (4.0s)
+  ok 273 [Desktop Full] › tests\accessibility.spec.ts:38:7 › Accessibility: Semantic HTML & Landmarks › homepage has navigation landmark (4.3s)
+  ok 274 [Desktop Full] › tests\accessibility.spec.ts:50:7 › Accessibility: Semantic HTML & Landmarks › homepage has footer (4.8s)
+Login form unlabeled inputs: 0
+  ok 275 [Desktop Full] › tests\accessibility.spec.ts:62:7 › Accessibility: Semantic HTML & Landmarks › login page has form with labels (2.3s)
+Cart page load: 554ms
+  ok 270 [Desktop Full] › tests\20-performance.spec.ts:40:7 › ⚡ Page load performance › [TC-PERF-03] Cart page load time < 8s (26.1s)
+Homepage images missing alt: 0
+  ok 276 [Desktop Full] › tests\accessibility.spec.ts:95:7 › Accessibility: Images & Alt Text › all images on homepage have alt attribute (4.2s)
+Restaurant detail images missing alt: 3
+  x  278 [Desktop Full] › tests\accessibility.spec.ts:110:7 › Accessibility: Images & Alt Text › all images on restaurant detail have alt (4.3s)
+Restaurant detail load: 1955ms
+Font Awesome icons without accessibility attributes: 0
+  ok 277 [Desktop Full] › tests\20-performance.spec.ts:50:7 › ⚡ Page load performance › [TC-PERF-04] Restaurant detail load time < 10s (11.4s)
+  ok 279 [Desktop Full] › tests\accessibility.spec.ts:127:7 › Accessibility: Images & Alt Text › Font Awesome icons have aria-hidden or aria-label (4.2s)
+Login inputs: [
+  {
+    "type": "text",
+    "hasLabel": false,
+    "hasAriaLabel": false,
+    "hasPlaceholder": true,
+    "name": "usernameOrPhone"
+  },
+  {
+    "type": "password",
+    "hasLabel": false,
+    "hasAriaLabel": false,
+    "hasPlaceholder": true,
+    "name": "pwd"
+  },
+  {
+    "type": "checkbox",
+    "hasLabel": false,
+    "hasAriaLabel": false,
+    "hasPlaceholder": false,
+    "name": "rememberMe"
+  }
+]
+  ok 281 [Desktop Full] › tests\accessibility.spec.ts:157:7 › Accessibility: Form & Interactive Elements › login form inputs have accessible names (2.7s)
+Checkout page load: 358ms
+  ok 280 [Desktop Full] › tests\20-performance.spec.ts:60:7 › ⚡ Page load performance › [TC-PERF-05] Checkout page load time < 10s (8.1s)
+Search input accessibility: {
+  "found": true,
+  "hasAriaLabel": true,
+  "ariaLabel": "Từ khoá tìm kiếm",
+  "hasLabel": false,
+  "hasPlaceholder": true,
+  "wrappedInLabel": false,
+  "accessible": true
+}
+  ok 282 [Desktop Full] › tests\accessibility.spec.ts:194:7 › Accessibility: Form & Interactive Elements › search input has aria-label or label (27.3s)
+Critical JS errors: 0
+Touch targets: 96 total, 9 below 44px
+Undersized elements: [
+  {
+    "tag": "a",
+    "text": "",
+    "width": 30,
+    "height": 30
+  },
+  {
+    "tag": "a",
+    "text": "",
+    "width": 30,
+    "height": 30
+  },
+  {
+    "tag": "a",
+    "text": "",
+    "width": 30,
+    "height": 30
+  },
+  {
+    "tag": "a",
+    "text": "",
+    "width": 30,
+    "height": 30
+  },
+  {
+    "tag": "button",
+    "text": "",
+    "width": 24,
+    "height": 25
+  },
+  {
+    "tag": "a",
+    "text": "",
+    "width": 30,
+    "height": 30
+  },
+  {
+    "tag": "a",
+    "text": "",
+    "width": 30,
+    "height": 30
+  },
+  {
+    "tag": "a",
+    "text": "",
+    "width": 30,
+    "height": 30
+  },
+  {
+    "tag": "a",
+    "text": "",
+    "width": 30,
+    "height": 30
+  }
+]
+Undersized ratio: 9.4%
+  ok 284 [Desktop Full] › tests\accessibility.spec.ts:226:7 › Accessibility: Form & Interactive Elements › interactive elements have minimum touch target size (4.5s)
+  ok 283 [Desktop Full] › tests\20-performance.spec.ts:76:7 › 🚫 Console errors › [TC-PERF-06] Homepage — 0 critical JS errors (27.7s)
+  ok 285 [Desktop Full] › tests\admin-flow.spec.ts:42:7 › Admin: Dashboard › admin dashboard loads after login (8.8s)
+Critical JS errors on Cart: 0
+  ok 286 [Desktop Full] › tests\20-performance.spec.ts:96:7 › 🚫 Console errors › [TC-PERF-07] Cart page — 0 critical JS errors (13.1s)
+  x  287 [Desktop Full] › tests\admin-flow.spec.ts:51:7 › Admin: Dashboard › dashboard shows KPI cards (10.4s)
+Critical JS errors on Checkout: 0
+  ok 288 [Desktop Full] › tests\20-performance.spec.ts:118:7 › 🚫 Console errors › [TC-PERF-08] Checkout — 0 critical JS errors (13.7s)
+Health status: 200, time: 982ms
+  ok 290 [Desktop Full] › tests\20-performance.spec.ts:146:7 › 🏥 Health check › [TC-PERF-09] /health endpoint responds < 5s (1.7s)
+No canvas found on dashboard
+  ok 289 [Desktop Full] › tests\admin-flow.spec.ts:59:7 › Admin: Dashboard › dashboard has revenue chart canvas (9.0s)
+  ok 292 [Desktop Full] › tests\admin-flow.spec.ts:74:7 › Admin: Dashboard › dashboard sidebar is visible (8.2s)
+  ok 293 [Desktop Full] › tests\admin-flow.spec.ts:83:7 › Admin: Dashboard › dashboard has user management link (8.1s)
+  ok 294 [Desktop Full] › tests\admin-flow.spec.ts:92:7 › Admin: Dashboard › dashboard has order management link (8.9s)
+MenuSearch API: 200, time: 211ms
+  ok 291 [Desktop Full] › tests\20-performance.spec.ts:162:7 › 📡 API response times › [TC-PERF-10] MenuSearch API < 5s (29.1s)
+Homepage HTML: 200, time: 198ms
+  ok 296 [Desktop Full] › tests\20-performance.spec.ts:173:7 › 📡 API response times › [TC-PERF-11] Homepage HTML < 8s (845ms)
+CSS responses: 9, statuses: 200
+  ok 297 [Desktop Full] › tests\20-performance.spec.ts:188:7 › 📦 Static assets › [TC-PERF-12] CSS bundle loads (6.0s)
+JS responses: 11, statuses: 200
+  ok 298 [Desktop Full] › tests\20-performance.spec.ts:201:7 › 📦 Static assets › [TC-PERF-13] JS bundle loads (5.1s)
+  ok 299 [Desktop Full] › tests\auth-flow.spec.ts:26:7 › Auth: Login Success › customer login with valid credentials redirects to home (10.1s)
+⚠️ goto timeout, retrying...
+  ok 300 [Desktop Full] › tests\auth-flow.spec.ts:34:7 › Auth: Login Success › restaurant login redirects to /Restaurant (9.5s)
+  ok 301 [Desktop Full] › tests\auth-flow.spec.ts:42:7 › Auth: Login Success › shipper login redirects to /Shipper (9.8s)
+  ok 295 [Desktop Full] › tests\admin-flow.spec.ts:101:7 › Admin: Dashboard › dashboard has category management link (46.3s)
+  ok 303 [Desktop Full] › tests\admin-flow.spec.ts:110:7 › Admin: Dashboard › unauthenticated user redirected from admin (4.6s)
+  ok 302 [Desktop Full] › tests\auth-flow.spec.ts:50:7 › Auth: Login Success › admin login redirects to /Admin (8.5s)
+  ok 304 [Desktop Full] › tests\admin-flow.spec.ts:125:7 › Admin: User Management › user management page loads (7.7s)
+  ok 306 [Desktop Full] › tests\admin-flow.spec.ts:134:7 › Admin: User Management › user management shows table (8.6s)
+  ok 307 [Desktop Full] › tests\admin-flow.spec.ts:143:7 › Admin: User Management › user table has rows (9.1s)
+  x  305 [Desktop Full] › tests\auth-flow.spec.ts:58:7 › Auth: Login Success › login shows user name in navbar after success (26.3s)
+  ok 309 [Desktop Full] › tests\auth-flow.spec.ts:77:7 › Auth: Login Success › login sets session cookie (9.9s)
+  ok 310 [Desktop Full] › tests\auth-flow.spec.ts:94:7 › Auth: Login Failure › login with wrong password shows error (4.7s)
+  ok 311 [Desktop Full] › tests\auth-flow.spec.ts:109:7 › Auth: Login Failure › login with non-existent username shows error (4.8s)
+Table headers: ID | Họ tên | Username | Trạng thái | Thao tác
+  ok 308 [Desktop Full] › tests\admin-flow.spec.ts:151:7 › Admin: User Management › user table has columns (name, email, role) (27.5s)
+  ok 312 [Desktop Full] › tests\auth-flow.spec.ts:124:7 › Auth: Login Failure › login with empty username shows error (9.8s)
+  ok 314 [Desktop Full] › tests\auth-flow.spec.ts:140:7 › Auth: Login Failure › login with empty password shows error (9.1s)
+  ok 315 [Desktop Full] › tests\auth-flow.spec.ts:156:7 › Auth: Login Failure › login with special characters in password (4.8s)
+  ok 316 [Desktop Full] › tests\auth-flow.spec.ts:172:7 › Auth: Login Failure › login page stays on /Home/Login after failed attempt (26.5s)
+  x  313 [Desktop Full] › tests\admin-flow.spec.ts:163:7 › Admin: User Management › search user works (1.3m)
+  x  317 [Desktop Full] › tests\auth-flow.spec.ts:193:7 › Auth: Logout › logout clears session and redirects to home (1.4m)

@@ -1,0 +1,18 @@
+
+Running 4 tests using 1 worker
+
+🏷️ Filter chips: 6
+  Click chip: Khuyến mãi
+  Click chip: ⭐ Bán chạy
+  Click chip: 📍 Gần đây
+  ok 1 [Desktop Chromium] › tests\01-visual-asset-validation.spec.ts:153:7 › 🖥️ [Desktop 1920x1080] Visual & Asset Validation › [TC-1.8] Filter chips - click từng cái, bộ lọc hoạt động (9.2s)
+📍 URL sau login: https://fastship-web.onrender.com/Restaurant
+  ok 2 [Desktop Chromium] › tests\03-restaurant-flow.spec.ts:390:7 › 🍽️ Quản lý Món ăn › [TC-3.15] Console không có JS errors (bỏ qua network 429) (10.3s)
+📍 URL sau login: https://fastship-web.onrender.com/Shipper
+  ok 3 [Desktop Chromium] › tests\04-shipper-flow.spec.ts:283:7 › 🖼️ Shipper Visual Checks › [TC-4.14] Console không có JS errors (bỏ qua network 429) (17.1s)
+⚠️ goto timeout, retrying...
+📥 ExportExcel response: text/csv | cd: attachment; filename=bao-cao-doanh-thu-20260726.csv; filename*=UTF-8''bao-cao-doanh-thu-20260726.csv
+📥 Fetch result: status=200 type=text/csv cd=attachment; filename=bao-cao-doanh-thu-20260726.csv; filename*=UTF-8''bao-cao-doanh-thu-20260726.csv
+  ok 4 [Desktop Chromium] › tests\10-admin-advanced.spec.ts:106:7 › 📊 Dashboard APIs › [TC-10.9] ExportExcel — download CSV (37.1s)
+
+  4 passed (1.3m)

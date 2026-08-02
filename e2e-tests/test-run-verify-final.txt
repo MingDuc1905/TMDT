@@ -1,0 +1,47 @@
+
+Running 4 tests using 1 worker
+
+🏷️ Filter chips: 6
+  Click chip: Khuyến mãi
+  Click chip: ⭐ Bán chạy
+  Click chip: 📍 Gần đây
+  ok 1 [Desktop Chromium] › tests\01-visual-asset-validation.spec.ts:153:7 › 🖥️ [Desktop 1920x1080] Visual & Asset Validation › [TC-1.8] Filter chips - click từng cái, bộ lọc hoạt động (9.7s)
+📍 URL sau login: https://fastship-web.onrender.com/Restaurant
+  ok 2 [Desktop Chromium] › tests\03-restaurant-flow.spec.ts:390:7 › 🍽️ Quản lý Món ăn › [TC-3.15] Console không có JS errors (bỏ qua network 429) (8.4s)
+📍 URL sau login: https://fastship-web.onrender.com/Shipper
+❌ JS errors: $(...).DataTable is not a function
+  x  3 [Desktop Chromium] › tests\04-shipper-flow.spec.ts:283:7 › 🖼️ Shipper Visual Checks › [TC-4.14] Console không có JS errors (bỏ qua network 429) (9.4s)
+📥 ExportExcel response: text/csv | cd: attachment; filename=bao-cao-doanh-thu-20260726.csv; filename*=UTF-8''bao-cao-doanh-thu-20260726.csv
+📥 Fetch result: status=200 type=text/csv cd=attachment; filename=bao-cao-doanh-thu-20260726.csv; filename*=UTF-8''bao-cao-doanh-thu-20260726.csv
+  ok 4 [Desktop Chromium] › tests\10-admin-advanced.spec.ts:106:7 › 📊 Dashboard APIs › [TC-10.9] ExportExcel — download CSV (7.5s)
+
+
+  1) [Desktop Chromium] › tests\04-shipper-flow.spec.ts:283:7 › 🖼️ Shipper Visual Checks › [TC-4.14] Console không có JS errors (bỏ qua network 429) 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: 0
+    Received: 1
+
+      291 |       console.log(`❌ JS errors: ${jsErrors.join(' | ')}`);
+      292 |     }
+    > 293 |     expect(jsErrors.length).toBe(0);
+          |                             ^
+      294 |   });
+      295 |
+      296 |   test('[TC-4.15] Desktop layout - không bị overflow', async ({ page }) => {
+        at C:\Users\MingDuc\Desktop\TMDT\e2e-tests\tests\04-shipper-flow.spec.ts:293:29
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\04-shipper-flow-🖼️-Shippe-c342f--errors-bỏ-qua-network-429--Desktop-Chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\04-shipper-flow-🖼️-Shippe-c342f--errors-bỏ-qua-network-429--Desktop-Chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\04-shipper-flow-🖼️-Shippe-c342f--errors-bỏ-qua-network-429--Desktop-Chromium\error-context.md
+
+  1 failed
+    [Desktop Chromium] › tests\04-shipper-flow.spec.ts:283:7 › 🖼️ Shipper Visual Checks › [TC-4.14] Console không có JS errors (bỏ qua network 429) 
+  3 passed (38.5s)

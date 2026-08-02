@@ -33,7 +33,7 @@ session_init:
     2_read_claude: "PHẢI đọc CLAUDE.md — touch /tmp/.claude_read_today"
     3_read_project: "PHẢI đọc Project.md — touch /tmp/.project_md_read"
     4_read_uiux: "PHẢI đọc UI-UX.md — touch /tmp/.uiux_md_read"
-    5_scan_skills: "ls .agents/skills/ && ls ShipFoodCore/Skills/*/"
+    5_scan_skills: "ls .agents/skills/ | wc -l — XÁC NHẬN 188 skills; ls -d ShipFoodCore/Skills/*/ | wc -l — XÁC NHẬN 12 repos"
     6_scan_icons: "ls ShipFoodCore/Skills/developer-icons-main/icons/ | head -20"
     7_load_ponytail: "skill ponytail (tool call đầu tiên)"
     8_log: "Ghi log đầy đủ theo Section 0"
@@ -49,11 +49,16 @@ session_init:
 ### ⚠️ Tại sao cần IRON LAW này?
 
 > Rules đã có nhưng AI vẫn vi phạm. Vấn đề không phải rules — mà là cơ chế enforce.
-### 0.5.1 Bắt buộc tận dụng triệt để Hệ sinh thái Skills (Maximized Utilization)
+### 0.5.1 Bắt buộc tận dụng triệt để Hệ sinh thái Skills (Maximized Utilization) — BẮT BUỘC TUYỆT ĐỐI
 
-Trước khi xử lý bất kỳ yêu cầu nào, AI **PHẢI** quét qua toàn bộ kho tàng 190 skills (`.agents/skills/`) và 13 repos (`ShipFoodCore/Skills/`) để tìm ra tất cả những công cụ có thể kết hợp hỗ trợ cho task (ví dụ: dùng `systematic-debugging` để tìm lỗi, dùng `verification-before-completion` để build test, dùng `ui-ux-pro-max` nếu đụng tới giao diện, v.v.). **Tuyệt đối không được lười biếng bỏ qua các công cụ mạnh mẽ đã được cung cấp.**
+Trước khi xử lý bất kỳ yêu cầu nào, AI **PHẢI** quét qua toàn bộ kho tàng **188 skills** (`.agents/skills/`) và **12 repos** (`ShipFoodCore/Skills/`) và **320 SVG icons** (`developer-icons-main/icons/`) để tìm ra tất cả những công cụ có thể kết hợp hỗ trợ cho task. **Tuyệt đối không được lười biếng bỏ qua bất kỳ tài nguyên nào đã được cài đặt sẵn.**
 
-Tuy nhiên, để tránh làm phiền người dùng bằng các bảng biểu dài dòng, SAU log format (Section 0) và TRƯỚC khi làm bất cứ điều gì khác, bạn chỉ cần chèn khối sau để báo cáo những skill **thực sự được kích hoạt**:
+#### Quy tắc vàng: Không có 'không liên quan' trước khi scan
+
+> ⚠️ **AI KHÔNG ĐƯỢC PHÉP tự suy luận rằng một skill/repo 'không liên quan' trước khi scan toàn bộ!**
+> Chỉ sau khi SCAN hết tên 188 skills + 12 repos mới được kết luận.
+
+SAU log format (Section 0) và TRƯỚC khi làm bất cứ điều gì khác, chèn khối sau để báo cáo tài nguyên **thực sự được sử dụng**:
 
 ```markdown
 ## 🔍 SKILLS SỬ DỤNG (TẬN DỤNG TRIỆT ĐỂ)
@@ -63,18 +68,36 @@ Tuy nhiên, để tránh làm phiền người dùng bằng các bảng biểu d
 ```
 
 **Rules**:
-1. **Triệt để**: Phải cố gắng suy nghĩ xem có thể áp dụng thêm skill nào để làm kết quả tốt hơn không (vd: tự động build, tự động test, tự động kiểm tra convention).
-2. **Ngắn gọn**: Chỉ liệt kê những skill / repo **thực sự được sử dụng** trong response. Không giải thích lý do từ chối các skill không liên quan.
-3. Vẫn PHẢI có mục `## 🔍 SKILLS SỬ DỤNG...` ở đầu mỗi response làm minh chứng.
+1. **Triệt để**: PHẢI scan TOÀN BỘ 188 skills + 12 repos trước mỗi task. Không scan = VI PHẠM.
+2. **Tối thiểu 3 skills mỗi task**: Mỗi response PHẢI sử dụng ít nhất 3 skills (trừ câu trả lời đơn giản "có"/"không").
+3. **Repo bắt buộc cho task tương ứng**:
+   - Task UI → PHẢI check `developer-icons-main` + `awesome-claude-design` + `ui-ux-pro-max-skill-main`
+   - Task Security → PHẢI check `gstack-main`
+   - Task E2E test → PHẢI dùng `lightpanda-browser`
+   - Task Research → PHẢI dùng `agent-reach-main`
+   - Task Workflow → PHẢI dùng `superpowers-main`
+   - Task Database/Refactor → PHẢI dùng `codegraph-main`
+   - Task Prompt design → PHẢI dùng `whisper-flow-main`
+   - Task API integration → PHẢI check `public-apis-master`
+4. **Ngắn gọn**: Chỉ liệt kê những skill / repo **thực sự được sử dụng** trong response.
+5. Vẫn PHẢI có mục `## 🔍 SKILLS SỬ DỤNG...` ở đầu mỗi response làm minh chứng.
+6. **Ghi số lượng**: Trong mỗi skill/repo section, ghi rõ "đã scan 188 skills, tìm thấy X skills phù hợp"
 
-### 0.5.2 Cơ chế Auto-Fail
+### 0.5.2 Cơ chế Auto-Fail — TĂNG CƯỜNG
 
 ```yaml
 auto_fail_triggers:
   - "Response KHÔNG có 'SKILLS SỬ DỤNG' section"
+  - "Task UI mà KHÔNG có developer-icons-main hoặc awesome-claude-design trong 'Skills Repo used'"
+  - "Task Security mà KHÔNG có gstack-main"
+  - "Dùng icon navigation/system control bằng emoji thay vì SVG từ developer-icons-main"
+  - "Dùng dưới 3 skills cho task code (trừ câu hỏi đơn giản)"
+  - "Response KHÔNG có 'Resource scan' line trong log format"
+  - "Không scan toàn bộ 188 skills + 12 repos trước task (fake scan = VI PHẠM)"
 
 auto_fail_action:
-  first: "⚠️ VI PHẠM IRON LAW 0.5 — DỪNG. XÓA response. Load skill. Làm lại."
+  first: "⚠️ VI PHẠM IRON LAW 0.5 — DỪNG. XÓA response. Load skill. Làm lại từ IRON LAW 0."
+  second: "🔴 VI PHẠM LẦN 2 — session reset. 3 response read-only."
 ```
 
 ### 0.5.3 Ví dụ Inventory Rút Gọn
@@ -89,22 +112,24 @@ auto_fail_action:
 
 ## 📋 SECTION 0: LOG FORMAT — BẮT BUỘC TUYỆT ĐỐI
 
-### Format CHUẨN — Phải xuất hiện ở 3 dòng ĐẦU mỗi response:
+### Format CHUẨN — Phải xuất hiện ở 3-6 dòng ĐẦU mỗi response:
 
 ```yaml
-first_3_lines:
+first_lines:
   line_1: "**Skill đã load**: ponytail, systematic-debugging, verification-before-completion, hallmark, ui-ux-pro-max, [thêm nếu load thêm]"
   line_2: "**Skills Repo used**: developer-icons-main | [mục đích]; awesome-claude-design | [mục đích]; [thêm]"
   line_3: "**Agent spawned**: code-reviewer | [mục đích]; basher | [mục đích]; [thêm]"
   line_4: "**Docs đã đọc**: CLAUDE.md, Project.md, UI-UX.md, [thêm nếu đọc thêm]"
-  line_5: "**Compliance check**: ✅ Luật Sắt 1 | ✅ Luật Sắt 2 | ✅ Luật Sắt 3 | ✅ Pre-flight PASSED"
+  line_5: "**Compliance check**: ✅ Luật Sắt 1 | ✅ Luật Sắt 2 | ✅ Luật Sắt 3 | ✅ Luật Sắt 4 | ✅ Luật Sắt 7 | ✅ Pre-flight PASSED"
+  line_6: "**Resource scan**: 📦 188 skills scanned | 📚 12 repos available | 🎨 320 SVG icons in developer-icons-main | 🖼️ awesome-claude-design patterns ready"
 ```
 
 ### Rules:
-1. **3 dòng đầu** KHÔNG ĐƯỢC CHỨA gì khác ngoài log
+1. **3-6 dòng đầu** KHÔNG ĐƯỢC CHỨA gì khác ngoài log
 2. Nếu quên 1 field → VI PHẠM → XÓA response, load skill lại
-3. **Bắt buộc**: `Skill đã load` + `Skills Repo used` + `Agent spawned` + `Docs đã đọc` + `Compliance check`
+3. **Bắt buộc**: `Skill đã load` + `Skills Repo used` + `Agent spawned` + `Docs đã đọc` + `Compliance check` + `Resource scan`
 4. **Bắt buộc**: Ghi ĐẦY ĐỦ tất cả skill đã load, không sót cái nào
+5. **Bắt buộc**: Ghi ĐẦY ĐỦ số lượng skills đã scan + repos đã kiểm tra
 
 ---
 
@@ -259,15 +284,34 @@ code_review_gate:
 
 ## 🔴 IRON LAW 4: SKILL & REPO ENFORCEMENT — BẮT BUỘC SCAN TOÀN BỘ
 
-### ⚠️ LUẬT SẮT: TRƯỚC MỖI TASK, PHẢI SCAN TẤT CẢ SKILLS VÀ REPOS
+### ⚠️ LUẬT SẮT: TRƯỚC MỖI TASK, PHẢI SCAN TẤT CẢ 188 SKILLS + 12 REPOS + 320 ICONS
 
 ```yaml
 mandatory_scan:
-  rule: "Trước mỗi task, PHẢI chạy: ls .agents/skills/ && ls ShipFoodCore/Skills/*/ để tìm skills/repos phù hợp"
-  scan_depth: "PHẢI đọc tên TẤT CẢ skills (không lướt). Nếu thấy skill khả dụng → load ngay."
-  penalty: "Bỏ sót skill khả dụng → VI PHẠM. XÓA response. Load skill. Làm lại."
-  proof: "Trong log response, PHẢI ghi: 'Đã scan 120 skills, tìm thấy X skills phù hợp: [list]'"
+  rule: "Trước mỗi task, PHẢI chạy: ls .agents/skills/ && ls ShipFoodCore/Skills/*/ && ls ShipFoodCore/Skills/developer-icons-main/icons/ | head -10"
+  scan_depth: "PHẢI đọc tên TẤT CẢ 188 skills (không lướt, không skip). Nếu thấy skill khả dụng → load ngay."
+  scan_verification: "PHẢI spawn basher chạy 'ls .agents/skills/ | wc -l' để xác nhận đã scan exact 188 skills"
+  penalty: "Bỏ sót skill/repo/icon khả dụng → VI PHẠM. XÓA response. Load skill. Làm lại từ IRON LAW 0."
+  proof: "Trong log response, PHẢI ghi: '📦 Đã scan 188 skills, tìm thấy X skills phù hợp | 📚 Đã kiểm tra 12 repos, dùng Y repos | 🎨 320 SVG icons available'"
 ```
+
+### 📊 RESOURCE UTILIZATION MATRIX — BẮT BUỘC TUÂN THEO
+
+Mỗi task type PHẢI kích hoạt các resources tương ứng theo matrix dưới đây:
+
+| Task Type | Skills bắt buộc phải load | Repos bắt buộc phải dùng | Kiểm tra bắt buộc |
+|-----------|--------------------------|------------------------|-------------------|
+| **🐛 Bug Fix** | `systematic-debugging`, `verification-before-completion`, `ponytail` | `codegraph-main` (nếu refactor), `ponytail-main` | Trace data flow, root cause report |
+| **🎨 UI Change** | `ponytail`, `ui-ux-pro-max`, `hallmark`, `ui-styling` | `developer-icons-main` (icons), `awesome-claude-design` (patterns), `ui-ux-pro-max-skill-main` (search) | Contrast 4.5:1, touch ≥44px, no emoji for controls |
+| **✨ New Feature** | `brainstorming`, `writing-plans`, `spec-kit`, `ponytail` | `public-apis-master` (check existing APIs), `superpowers-main` (workflow) | Plan approved before code |
+| **🔒 Security** | `gstack`, `systematic-debugging` | `gstack-main` (agents + benchmarks) | Penetration test, OWASP top 10 |
+| **🧪 E2E Test** | `test-driven-development`, `verification-before-completion` | `lightpanda-browser` (headless browser) | All tests PASS, no flaky |
+| **📝 Docs** | `markdown-mermaid-writing`, `hallmark` | `awesome-claude-design` (templates) | Mermaid diagrams, clean formatting |
+| **🔍 Research** | `agent-reach`, `defuddle`, `paper-lookup` | `agent-reach-main` (web), `public-apis-master` | Source-backed evidence |
+| **🔄 Refactor** | `ponytail`, `ponytail-audit`, `systematic-debugging` | `codegraph-main` (code analysis), `ponytail-main` (patterns) | 0 regression, build PASS |
+| **🌐 API Integration** | `ponytail`, `verification-before-completion` | `public-apis-master` (find API), `agent-reach-main` (test API) | API works end-to-end |
+
+**LUẬT SẮT**: Nếu response không sử dụng đủ resources theo matrix này → VI PHẠM IRON LAW 4.
 
 ### 🎯 TOP 25 SKILLS QUAN TRỌNG NHẤT (dùng thường xuyên)
 
@@ -298,9 +342,9 @@ mandatory_scan:
 | **`what-if-oracle`** | 🧠 Thinking | Scenario analysis, contingency | Thiếu planning cho rủi ro |
 | **`markdown-mermaid-writing`** | 📝 Docs | Tài liệu, diagrams, reports | Tài liệu thiếu diagrams |
 
-### 📚 ĐA PHẦN SKILLS THEO NHÓM (không đầy đủ tuyệt đối — PHẢI luôn chạy `ls .agents/skills/` trước mỗi task)
+### 📚 TOÀN BỘ 188 SKILLS THEO NHÓM (PHẢI scan toàn bộ trước mỗi task)
 
-> ⚠️ **Lưu ý**: Danh sách này CHỈ MANG TÍNH THAM KHẢO, có thể thiếu sót. **BẮT BUỘC** phải chạy `ls .agents/skills/` để scan toàn bộ skills trước mỗi task.
+> ⚠️ **LUẬT SẮT**: Danh sách này CHỈ LÀ THAM KHẢO — **BẮT BUỘC** phải chạy `ls .agents/skills/ | wc -l` để xác nhận đã scan EXACT 188 skills trước mỗi task. Không được dùng danh sách cũ thay cho scan thật.
 
 #### ⭐ Core — Dùng MỌI LÚC
 ```
@@ -399,7 +443,7 @@ generate-image, pi-agent, stable-baselines3, pufferlib,
 timesfm-forecasting, simpy, neurokit2, neuropixels-analysis
 ```
 
-### 📦 TOÀN BỘ 13 REPOS TRONG ShipFoodCore/Skills/
+### 📦 TOÀN BỘ 12 REPOS TRONG ShipFoodCore/Skills/
 
 | STT | Repo | Mô tả | Dùng khi nào | Cách dùng |
 |-----|------|-------|-------------|-----------|
@@ -433,8 +477,8 @@ timesfm-forecasting, simpy, neurokit2, neuropixels-analysis
 
 ```yaml
 skill_scan_process:
-  step_1: "ls .agents/skills/ — đọc TÊN tất cả 120+ skills, tìm skill phù hợp"
-  step_2: "ls ShipFoodCore/Skills/*/ — đọc tên tất cả 13 repos"
+  step_1: "ls .agents/skills/ | wc -l — XÁC NHẬN scan EXACT 188 skills, đọc tên tất cả, tìm skill phù hợp"
+  step_2: "ls ShipFoodCore/Skills/*/ | wc -l — XÁC NHẬN 12 repos, đọc tên tất cả repos, tìm repo phù hợp"
   step_3: "NẾU task = UI → load: ponytail + ui-ux-pro-max + hallmark + ui-styling"
   step_4: "NẾU task = Bug → load: systematic-debugging + verification-before-completion"
   step_5: "NẾU task = Feature → load: brainstorming + writing-plans + spec-kit"
@@ -513,6 +557,63 @@ flowchart TD
     Q -->|Yes| S[Commit & Push]
     S --> T[GHI LOG ĐẦY ĐỦ]
 ```
+
+## 🔴 IRON LAW 7: MAXIMUM RESOURCE UTILIZATION — ÉP BUỘC DÙNG TRIỆT ĐỂ TOÀN BỘ TÀI NGUYÊN
+
+> ⚠️ **ĐÂY LÀ LUẬT QUAN TRỌNG NHẤT**. 188 skills, 12 repos, 320 SVG icons đã được cài đặt — KHÔNG được phép lãng phí tài nguyên nào.
+> Mỗi lần bỏ sót tài nguyên có thể dùng = VI PHẠM NGHIÊM TRỌNG.
+
+### 7.1 Nguyên tắc "Zero Waste" — Không bỏ sót tài nguyên nào
+
+```yaml
+zero_waste:
+  rule: "Mỗi task PHẢI tận dụng TỐI ĐA resources sẵn có. Không bao giờ bỏ qua tài nguyên chỉ vì lười scan."
+  icon_rule: "MỖI KHI cần icon → kiểm tra developer-icons-main (320 SVG icons) TRƯỚC, FA5 sau, emoji CUỐI CÙNG"
+  design_rule: "MỖI KHI thiết kế UI → kiểm tra awesome-claude-design (68 patterns) + ui-ux-pro-max-skill-main (161 rules)"
+  api_rule: "MỖI KHI cần API → kiểm tra public-apis-master TRƯỚC khi tự xây mới"
+  security_rule: "MỖI KHI audit → PHẢI dùng gstack-main (agents + benchmarks)"
+  e2e_rule: "MỖI KHI viết E2E test → PHẢI dùng lightpanda-browser (nhanh 9x Chrome)"
+  research_rule: "MỖI KHI tra cứu online → PHẢI dùng agent-reach-main (13+ platforms)"
+  refactor_rule: "MỖI KHI refactor lớn → PHẢI dùng codegraph-main (phân tích codebase)"
+```
+
+### 7.2 Quy trình Resource Check bắt buộc (trước mỗi task)
+
+```yaml
+resource_check_process:
+  step_1: "Scan toàn bộ 188 skills: spawn basher 'ls .agents/skills/ | wc -l' — PHẢI ra 188"
+  step_2: "Scan toàn bộ 12 repos: spawn basher 'ls -d ShipFoodCore/Skills/*/ | wc -l' — PHẢI ra 12"
+  step_3: "Kiểm tra icons: 'ls ShipFoodCore/Skills/developer-icons-main/icons/ | head -10' — xem icon nào có sẵn"
+  step_4: "Match task type với RESOURCE UTILIZATION MATRIX ở IRON LAW 4"
+  step_5: "Load tất cả skills phù hợp (tối thiểu 3 skills)"
+  step_6: "Chuẩn bị repo commands — cp icon, run script, v.v."
+  step_7: "Nếu task UI → CHẮC CHẮN dùng developer-icons-main SVG, KHÔNG emoji cho controls"
+  step_8: "Ghi log đầy đủ: '📦 Đã scan 188 skills | 📚 Đã kiểm tra 12 repos | 🎨 320 icons available'"
+  penalty: "Bỏ qua BẤT KỲ bước nào → VI PHẠM IRON LAW 7 → reset session từ IRON LAW 0"
+```
+
+### 7.3 Resource Counter — BẮT BUỘC GHI Ở CUỐI MỖI RESPONSE
+
+```markdown
+📊 **Tài nguyên đã sử dụng trong response này:**
+- Skills: [số lượng] / 188
+- Repos: [số lượng] / 12
+- Icons từ developer-icons-main: [số lượng]
+- Design patterns từ awesome-claude-design: [số lượng]
+- Tổng cộng: X tài nguyên đã dùng
+```
+
+### 7.4 Resource Usage Score — Tự đánh giá mỗi response
+
+```yaml
+scoring:
+  excellent: "Dùng ≥5 skills + ≥3 repos + icons từ developer-icons-main"
+  good: "Dùng 3-4 skills + 1-2 repos"
+  poor: "Dùng <3 skills, 0 repos — VI PHẠM"
+  critical: "Task UI mà 0 icons từ developer-icons-main → FAIL"
+```
+
+**LUẬT SẮT**: Score 'poor' hoặc 'critical' → TỰ ĐỘNG VI PHẠM. XÓA response. Làm lại.
 
 ---
 
@@ -655,15 +756,28 @@ git_rules:
 ```markdown
 ## 📋 TASK INIT CHECKLIST
 
+### 🔴 COMPLIANCE GATES
 - [ ] **IRON LAW 0**: Session init hoàn tất? (10 bước — /tmp/ markers tồn tại)
 - [ ] **IRON LAW 1**: Tool call đầu tiên response này là `skill`?
 - [ ] **IRON LAW 2**: Pre-flight compliance script đã chạy PASS?
-- [ ] **Skill đã load**: ponytail, systematic-debugging, [thêm theo task type]
-- [ ] **Docs đã đọc**: CLAUDE.md, Project.md, UI-UX.md
-- [ ] **Skills scanned**: `.agents/skills/` + `ShipFoodCore/Skills/`
-- [ ] **Task type**: Bug / UI / Feature / Review / Other
-- [ ] **Gate passed**: Bug Fix Gate / UI Change Gate / New Feature Gate
+- [ ] **IRON LAW 4**: Đã scan RESOURCE UTILIZATION MATRIX cho task type?
+- [ ] **IRON LAW 7**: Đã thực hiện Resource Check Process (8 bước)?
+
+### 📦 RESOURCE UTILIZATION
+- [ ] **188 skills scanned**: `ls .agents/skills/ | wc -l` = 188 ✅
+- [ ] **12 repos checked**: `ls -d ShipFoodCore/Skills/*/ | wc -l` = 12 ✅
+- [ ] **320 icons available**: developer-icons-main ready ✅
+- [ ] **Skills loaded (min 3)**: danh sách skills phù hợp với task type
+- [ ] **Repos used**: danh sách repos theo RESOURCE UTILIZATION MATRIX
+
+### 📚 DOCS & TASK TYPE
+- [ ] **Docs đã đọc**: CLAUDE.md, Project.md, UI-UX.md, [thêm theo task]
+- [ ] **Task type**: Bug / UI / Feature / Review / Security / E2E / Docs / Research / Refactor / API
+- [ ] **Gate passed**: Bug Fix Gate / UI Change Gate / New Feature Gate / Security Gate
+- [ ] **Resource Usage Score**: Excellent / Good (nếu Poor → VI PHẠM)
 ```
+
+> ⚠️ **CẢNH BÁO NGHIÊM TRỌNG**: Không hoàn thành checklist này → TỰ ĐỘNG VI PHẠM IRON LAW 0.5 + 4 + 7 → reset session từ IRON LAW 0.
 
 ---
 

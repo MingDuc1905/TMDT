@@ -1,0 +1,1794 @@
+
+Running 353 tests using 4 workers
+
+--fs-green: "#3CB815"
+  ok   3 [Desktop Chromium Fast] › tests\19-visual-regression.spec.ts:25:7 › 🎨 Design tokens › [TC-VISUAL-01] --fs-green CSS variable defined (5.1s)
+Homepage load: 9163ms
+--fs-orange: "#F65005"
+  ok   5 [Desktop Chromium Fast] › tests\19-visual-regression.spec.ts:36:7 › 🎨 Design tokens › [TC-VISUAL-02] --fs-orange CSS variable defined (8.5s)
+  ok   4 [Desktop Chromium Fast] › tests\20-performance.spec.ts:24:7 › ⚡ Page load performance › [TC-PERF-01] Homepage load time < 10s (13.7s)
+Login page load: 1014ms
+  ok   2 [Desktop Chromium Fast] › tests\admin-flow.spec.ts:42:7 › Admin: Dashboard › admin dashboard loads after login (16.6s)
+  ok   7 [Desktop Chromium Fast] › tests\20-performance.spec.ts:32:7 › ⚡ Page load performance › [TC-PERF-02] Login page load time < 8s (2.8s)
+Cart page load: 331ms
+  ok   9 [Desktop Chromium Fast] › tests\20-performance.spec.ts:40:7 › ⚡ Page load performance › [TC-PERF-03] Cart page load time < 8s (8.4s)
+  x    8 [Desktop Chromium Fast] › tests\admin-flow.spec.ts:51:7 › Admin: Dashboard › dashboard shows KPI cards (8.6s)
+  ok   1 [Desktop Chromium Fast] › tests\accessibility.spec.ts:26:7 › Accessibility: Semantic HTML & Landmarks › homepage has main landmark (26.6s)
+  ok  11 [Desktop Chromium Fast] › tests\accessibility.spec.ts:38:7 › Accessibility: Semantic HTML & Landmarks › homepage has navigation landmark (3.9s)
+Restaurant detail load: 980ms
+  ok  10 [Desktop Chromium Fast] › tests\20-performance.spec.ts:50:7 › ⚡ Page load performance › [TC-PERF-04] Restaurant detail load time < 10s (8.4s)
+  ok  13 [Desktop Chromium Fast] › tests\accessibility.spec.ts:50:7 › Accessibility: Semantic HTML & Landmarks › homepage has footer (3.4s)
+Login form unlabeled inputs: 0
+  ok  15 [Desktop Chromium Fast] › tests\accessibility.spec.ts:62:7 › Accessibility: Semantic HTML & Landmarks › login page has form with labels (1.2s)
+No canvas found on dashboard
+  ok  12 [Desktop Chromium Fast] › tests\admin-flow.spec.ts:59:7 › Admin: Dashboard › dashboard has revenue chart canvas (9.0s)
+Body font-family: "Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif"
+Homepage images missing alt: 0
+  ok   6 [Desktop Chromium Fast] › tests\19-visual-regression.spec.ts:47:7 › 🎨 Design tokens › [TC-VISUAL-03] Inter font loaded (24.7s)
+  ok  16 [Desktop Chromium Fast] › tests\accessibility.spec.ts:95:7 › Accessibility: Images & Alt Text › all images on homepage have alt attribute (3.8s)
+  ok  17 [Desktop Chromium Fast] › tests\admin-flow.spec.ts:74:7 › Admin: Dashboard › dashboard sidebar is visible (7.2s)
+  ok  20 [Desktop Chromium Fast] › tests\admin-flow.spec.ts:83:7 › Admin: Dashboard › dashboard has user management link (7.5s)
+  ok  21 [Desktop Chromium Fast] › tests\admin-flow.spec.ts:92:7 › Admin: Dashboard › dashboard has order management link (9.8s)
+Restaurant detail images missing alt: 3
+Card border-radius: "16px"
+  x   19 [Desktop Chromium Fast] › tests\accessibility.spec.ts:110:7 › Accessibility: Images & Alt Text › all images on restaurant detail have alt (22.7s)
+  ok  18 [Desktop Chromium Fast] › tests\19-visual-regression.spec.ts:58:7 › 🎨 Design tokens › [TC-VISUAL-04] --fs-radius applied on cards (24.0s)
+⚠️ goto timeout, retrying...
+Card box-shadow: "rgba(0, 0, 0, 0.05) 0px 2px 14px 0px"
+  ok  23 [Desktop Chromium Fast] › tests\19-visual-regression.spec.ts:70:7 › 🎨 Design tokens › [TC-VISUAL-05] --fs-shadow applied on cards (5.8s)
+  ok  22 [Desktop Chromium Fast] › tests\admin-flow.spec.ts:101:7 › Admin: Dashboard › dashboard has category management link (7.9s)
+Font Awesome icons without accessibility attributes: 0
+  ok  24 [Desktop Chromium Fast] › tests\accessibility.spec.ts:127:7 › Accessibility: Images & Alt Text › Font Awesome icons have aria-hidden or aria-label (5.1s)
+Checkout page load: 1382ms
+  ok  14 [Desktop Chromium Fast] › tests\20-performance.spec.ts:60:7 › ⚡ Page load performance › [TC-PERF-05] Checkout page load time < 10s (39.1s)
+  ok  26 [Desktop Chromium Fast] › tests\admin-flow.spec.ts:110:7 › Admin: Dashboard › unauthenticated user redirected from admin (4.6s)
+Login inputs: [
+  {
+    "type": "text",
+    "hasLabel": false,
+    "hasAriaLabel": false,
+    "hasPlaceholder": true,
+    "name": "usernameOrPhone"
+  },
+  {
+    "type": "password",
+    "hasLabel": false,
+    "hasAriaLabel": false,
+    "hasPlaceholder": true,
+    "name": "pwd"
+  },
+  {
+    "type": "checkbox",
+    "hasLabel": false,
+    "hasAriaLabel": false,
+    "hasPlaceholder": false,
+    "name": "rememberMe"
+  }
+]
+  ok  27 [Desktop Chromium Fast] › tests\accessibility.spec.ts:157:7 › Accessibility: Form & Interactive Elements › login form inputs have accessible names (3.0s)
+⚠️ Rate limited, sẽ retry sau...
+⏳ Login retry #1 (chờ 49s tránh rate limit)...
+Critical JS errors: 0
+  ok  28 [Desktop Chromium Fast] › tests\20-performance.spec.ts:76:7 › 🚫 Console errors › [TC-PERF-06] Homepage — 0 critical JS errors (8.4s)
+Empty cart: icon=true, text=true, CTA=false
+  ok  25 [Desktop Chromium Fast] › tests\19-visual-regression.spec.ts:88:7 › 📭 Empty states › [TC-VISUAL-06] Cart empty state: icon + text + CTA (13.6s)
+⚠️ Rate limited, sẽ retry sau...
+⏳ Login retry #1 (chờ 52s tránh rate limit)...
+Search empty state: false
+  ok  32 [Desktop Chromium Fast] › tests\19-visual-regression.spec.ts:106:7 › 📭 Empty states › [TC-VISUAL-07] Search empty state: "Không tìm thấy" message (4.3s)
+Search input accessibility: {
+  "found": true,
+  "hasAriaLabel": true,
+  "ariaLabel": "Từ khoá tìm kiếm",
+  "hasLabel": false,
+  "hasPlaceholder": true,
+  "wrappedInLabel": false,
+  "accessible": true
+}
+  ok  30 [Desktop Chromium Fast] › tests\accessibility.spec.ts:194:7 › Accessibility: Form & Interactive Elements › search input has aria-label or label (22.9s)
+  ok  33 [Desktop Chromium Fast] › tests\19-visual-regression.spec.ts:121:7 › 📸 Screenshots › [TC-VISUAL-08] Homepage screenshot — Desktop (26.9s)
+  ok  35 [Desktop Chromium Fast] › tests\19-visual-regression.spec.ts:132:7 › 📸 Screenshots › [TC-VISUAL-09] Homepage screenshot — Mobile (4.6s)
+Touch targets: 96 total, 9 below 44px
+Undersized elements: [
+  {
+    "tag": "a",
+    "text": "",
+    "width": 30,
+    "height": 30
+  },
+  {
+    "tag": "a",
+    "text": "",
+    "width": 30,
+    "height": 30
+  },
+  {
+    "tag": "a",
+    "text": "",
+    "width": 30,
+    "height": 30
+  },
+  {
+    "tag": "a",
+    "text": "",
+    "width": 30,
+    "height": 30
+  },
+  {
+    "tag": "button",
+    "text": "",
+    "width": 24,
+    "height": 25
+  },
+  {
+    "tag": "a",
+    "text": "",
+    "width": 30,
+    "height": 30
+  },
+  {
+    "tag": "a",
+    "text": "",
+    "width": 30,
+    "height": 30
+  },
+  {
+    "tag": "a",
+    "text": "",
+    "width": 30,
+    "height": 30
+  },
+  {
+    "tag": "a",
+    "text": "",
+    "width": 30,
+    "height": 30
+  }
+]
+Undersized ratio: 9.4%
+  ok  34 [Desktop Chromium Fast] › tests\accessibility.spec.ts:226:7 › Accessibility: Form & Interactive Elements › interactive elements have minimum touch target size (22.3s)
+  ok  36 [Desktop Chromium Fast] › tests\19-visual-regression.spec.ts:143:7 › 📸 Screenshots › [TC-VISUAL-10] Login page screenshot (3.1s)
+Buttons with emoji: 0/10
+  ok  38 [Desktop Chromium Fast] › tests\19-visual-regression.spec.ts:158:7 › 🖼️ Icons consistency › [TC-VISUAL-11] Không dùng emoji làm icon controls (4.2s)
+  ok  37 [Desktop Chromium Fast] › tests\auth-flow.spec.ts:26:7 › Auth: Login Success › customer login with valid credentials redirects to home (6.6s)
+  x   31 [Desktop Chromium Fast] › tests\20-performance.spec.ts:96:7 › 🚫 Console errors › [TC-PERF-07] Cart page — 0 critical JS errors (45.2s)
+Font Awesome icons: 84
+  ok  39 [Desktop Chromium Fast] › tests\19-visual-regression.spec.ts:179:7 › 🖼️ Icons consistency › [TC-VISUAL-12] Font Awesome icons loaded (3.7s)
+Loading/skeleton elements: 1
+  ok  42 [Desktop Chromium Fast] › tests\19-visual-regression.spec.ts:195:7 › ⏳ Loading states › [TC-VISUAL-13] Skeleton loading có trên trang (3.3s)
+  ok  40 [Desktop Chromium Fast] › tests\auth-flow.spec.ts:34:7 › Auth: Login Success › restaurant login redirects to /Restaurant (8.0s)
+  ok  29 [Desktop Chromium Fast] › tests\admin-flow.spec.ts:125:7 › Admin: User Management › user management page loads (1.0m)
+Footer on /: true
+Footer on /Home/Login: false
+Critical JS errors on Checkout: 0
+  ok  44 [Desktop Chromium Fast] › tests\auth-flow.spec.ts:42:7 › Auth: Login Success › shipper login redirects to /Shipper (7.9s)
+  ok  41 [Desktop Chromium Fast] › tests\20-performance.spec.ts:118:7 › 🚫 Console errors › [TC-PERF-08] Checkout — 0 critical JS errors (12.3s)
+Footer on /Cart: false
+  ok  43 [Desktop Chromium Fast] › tests\19-visual-regression.spec.ts:210:7 › 📋 Footer › [TC-VISUAL-14] Footer visible trên tất cả pages (10.3s)
+Health status: 200, time: 1149ms
+  ok  47 [Desktop Chromium Fast] › tests\20-performance.spec.ts:146:7 › 🏥 Health check › [TC-PERF-09] /health endpoint responds < 5s (1.6s)
+  ok  45 [Desktop Chromium Fast] › tests\admin-flow.spec.ts:134:7 › Admin: User Management › user management shows table (8.9s)
+⚠️ Rate limited, sẽ retry sau...
+⏳ Login retry #1 (chờ 54s tránh rate limit)...
+Homepage restaurants: 13
+  ok  48 [Desktop Chromium Fast] › tests\customer-flow.spec.ts:30:7 › Customer: Homepage Browsing › homepage loads restaurant list (4.7s)
+⚠️ Rate limited, sẽ retry sau...
+⏳ Login retry #1 (chờ 54s tránh rate limit)...
+⚠️ Rate limited, sẽ retry sau...
+⏳ Login retry #1 (chờ 72s tránh rate limit)...
+  ok  51 [Desktop Chromium Fast] › tests\customer-flow.spec.ts:39:7 › Customer: Homepage Browsing › clicking restaurant card navigates to detail (3.8s)
+After category filter: 13 restaurants
+  ok  52 [Desktop Chromium Fast] › tests\customer-flow.spec.ts:54:7 › Customer: Homepage Browsing › category filter shows relevant restaurants (1.7s)
+Search "pizza": 3 results
+  ok  53 [Desktop Chromium Fast] › tests\customer-flow.spec.ts:68:7 › Customer: Homepage Browsing › search for "pizza" returns results or empty state (4.1s)
+Unexpected: nonexistent search returned results
+  ok  54 [Desktop Chromium Fast] › tests\customer-flow.spec.ts:83:7 › Customer: Homepage Browsing › search for "xyznonexistent123" shows empty state (3.1s)
+  ok  55 [Desktop Chromium Fast] › tests\customer-flow.spec.ts:97:7 › Customer: Homepage Browsing › homepage promo band can be dismissed (5.2s)
+Stats row visible: true
+  ok  56 [Desktop Chromium Fast] › tests\customer-flow.spec.ts:112:7 › Customer: Homepage Browsing › homepage stats row shows statistics (4.2s)
+  x   49 [Desktop Chromium Fast] › tests\20-performance.spec.ts:162:7 › 📡 API response times › [TC-PERF-10] MenuSearch API < 5s (45.1s)
+Homepage HTML: 200, time: 376ms
+  ok  58 [Desktop Chromium Fast] › tests\20-performance.spec.ts:173:7 › 📡 API response times › [TC-PERF-11] Homepage HTML < 8s (568ms)
+Footer visible after scroll: true
+CSS responses: 9, statuses: 200
+  ok  57 [Desktop Chromium Fast] › tests\customer-flow.spec.ts:124:7 › Customer: Homepage Browsing › scroll to bottom loads all sections (24.3s)
+  ok  59 [Desktop Chromium Fast] › tests\20-performance.spec.ts:188:7 › 📦 Static assets › [TC-PERF-12] CSS bundle loads (4.9s)
+Restaurant name: Koneko Pizza
+  ok  60 [Desktop Chromium Fast] › tests\customer-flow.spec.ts:140:7 › Customer: Restaurant Detail & Menu › restaurant detail shows name and address (3.2s)
+JS responses: 11, statuses: 200
+  ok  61 [Desktop Chromium Fast] › tests\20-performance.spec.ts:201:7 › 📦 Static assets › [TC-PERF-13] JS bundle loads (4.9s)
+Menu items: 5
+  ok  62 [Desktop Chromium Fast] › tests\customer-flow.spec.ts:149:7 › Customer: Restaurant Detail & Menu › restaurant menu has items (2.9s)
+  ok  63 [Desktop Chromium Fast] › tests\edge-performance.spec.ts:24:7 › Edge Cases: Error Handling › non-existent page returns 404 or error (3.5s)
+Item name visible: true, price visible: true
+  ok  64 [Desktop Chromium Fast] › tests\customer-flow.spec.ts:158:7 › Customer: Restaurant Detail & Menu › menu items show name and price (3.3s)
+Menu search input visible: true
+  ok  65 [Desktop Chromium Fast] › tests\edge-performance.spec.ts:37:7 › Edge Cases: Error Handling › invalid restaurant ID shows error or empty (3.5s)
+  ok  46 [Desktop Chromium Fast] › tests\auth-flow.spec.ts:50:7 › Auth: Login Success › admin login redirects to /Admin (1.1m)
+  ok  67 [Desktop Chromium Fast] › tests\edge-performance.spec.ts:50:7 › Edge Cases: Error Handling › invalid order ID shows error (4.1s)
+  x   68 [Desktop Chromium Fast] › tests\auth-flow.spec.ts:58:7 › Auth: Login Success › login shows user name in navbar after success (8.3s)
+  ok  70 [Desktop Chromium Fast] › tests\auth-flow.spec.ts:77:7 › Auth: Login Success › login sets session cookie (8.9s)
+  x   66 [Desktop Chromium Fast] › tests\customer-flow.spec.ts:169:7 › Customer: Restaurant Detail & Menu › search menu filters items (23.3s)
+  ok  50 [Desktop Chromium Fast] › tests\admin-flow.spec.ts:143:7 › Admin: User Management › user table has rows (1.4m)
+  ok  71 [Desktop Chromium Fast] › tests\auth-flow.spec.ts:94:7 › Auth: Login Failure › login with wrong password shows error (4.2s)
+Category pills: 3
+⚠️ Rate limited, sẽ retry sau...
+⏳ Login retry #1 (chờ 64s tránh rate limit)...
+Items before category: 5, after: 1
+  ok  72 [Desktop Chromium Fast] › tests\customer-flow.spec.ts:184:7 › Customer: Restaurant Detail & Menu › category pills filter menu (5.4s)
+  ok  69 [Desktop Chromium Fast] › tests\edge-performance.spec.ts:61:7 › Edge Cases: Error Handling › server does not crash on malformed URL (23.6s)
+  ok  74 [Desktop Chromium Fast] › tests\auth-flow.spec.ts:109:7 › Auth: Login Failure › login with non-existent username shows error (4.0s)
+⚠️ Rate limited, sẽ retry sau...
+⏳ Login retry #1 (chờ 68s tránh rate limit)...
+  ok  76 [Desktop Chromium Fast] › tests\edge-performance.spec.ts:74:7 › Edge Cases: Error Handling › empty search returns homepage or empty state (4.7s)
+  ok  78 [Desktop Chromium Fast] › tests\edge-performance.spec.ts:92:7 › Edge Cases: Boundary Conditions › very long search string does not crash (25.1s)
+⚠️ goto timeout, retrying...
+  ok  79 [Desktop Chromium Fast] › tests\edge-performance.spec.ts:106:7 › Edge Cases: Boundary Conditions › special characters in search do not crash (5.9s)
+  ok  77 [Desktop Chromium Fast] › tests\auth-flow.spec.ts:124:7 › Auth: Login Failure › login with empty username shows error (38.0s)
+  ok  80 [Desktop Chromium Fast] › tests\edge-performance.spec.ts:118:7 › Edge Cases: Boundary Conditions › unicode search works (6.3s)
+  ok  81 [Desktop Chromium Fast] › tests\auth-flow.spec.ts:140:7 › Auth: Login Failure › login with empty password shows error (8.8s)
+  ok  82 [Desktop Chromium Fast] › tests\edge-performance.spec.ts:129:7 › Edge Cases: Boundary Conditions › very large restaurant ID does not crash (5.1s)
+  ok  84 [Desktop Chromium Fast] › tests\edge-performance.spec.ts:138:7 › Edge Cases: Boundary Conditions › negative restaurant ID handled (3.4s)
+  ok  83 [Desktop Chromium Fast] › tests\auth-flow.spec.ts:156:7 › Auth: Login Failure › login with special characters in password (3.7s)
+  ok  85 [Desktop Chromium Fast] › tests\edge-performance.spec.ts:154:7 › Performance: Page Load Times › homepage loads within 60 seconds (1.8s)
+  ok  87 [Desktop Chromium Fast] › tests\edge-performance.spec.ts:162:7 › Performance: Page Load Times › login page loads within 30 seconds (1.3s)
+  ok  86 [Desktop Chromium Fast] › tests\auth-flow.spec.ts:172:7 › Auth: Login Failure › login page stays on /Home/Login after failed attempt (3.9s)
+  ok  88 [Desktop Chromium Fast] › tests\edge-performance.spec.ts:170:7 › Performance: Page Load Times › health endpoint responds within 10 seconds (1.1s)
+  ok  90 [Desktop Chromium Fast] › tests\edge-performance.spec.ts:186:7 › Edge Cases: Console Errors › homepage has no critical JS errors (7.4s)
+  ok  91 [Desktop Chromium Fast] › tests\edge-performance.spec.ts:209:7 › Edge Cases: Console Errors › login page has no critical JS errors (5.9s)
+Table headers: ID | Họ tên | Username | Trạng thái | Thao tác
+  ok  73 [Desktop Chromium Fast] › tests\admin-flow.spec.ts:151:7 › Admin: User Management › user table has columns (name, email, role) (1.3m)
+  ok  92 [Desktop Chromium Fast] › tests\restaurant-flow.spec.ts:56:7 › Restaurant: Dashboard › restaurant dashboard loads after login (6.7s)
+  ok  94 [Desktop Chromium Fast] › tests\restaurant-flow.spec.ts:63:7 › Restaurant: Dashboard › dashboard shows KPI cards (6.1s)
+  x   89 [Desktop Chromium Fast] › tests\auth-flow.spec.ts:193:7 › Auth: Logout › logout clears session and redirects to home (28.6s)
+⚠️ Rate limited, sẽ retry sau...
+⏳ Login retry #1 (chờ 52s tránh rate limit)...
+⚠️ Rate limited, sẽ retry sau...
+⏳ Login retry #1 (chờ 49s tránh rate limit)...
+  x   93 [Desktop Chromium Fast] › tests\admin-flow.spec.ts:163:7 › Admin: User Management › search user works (27.8s)
+⚠️ Rate limited, sẽ retry sau...
+⏳ Login retry #1 (chờ 73s tránh rate limit)...
+  x   75 [Desktop Chromium Fast] › tests\customer-flow.spec.ts:199:7 › Customer: Restaurant Detail & Menu › add item to cart shows success (2.0m)
+  ok  95 [Desktop Chromium Fast] › tests\restaurant-flow.spec.ts:71:7 › Restaurant: Dashboard › dashboard sidebar has navigation links (1.0m)
+  x   96 [Desktop Chromium Fast] › tests\auth-flow.spec.ts:213:7 › Auth: Logout › after logout, cart is not accessible (1.4m)
+  x   99 [Desktop Chromium Fast] › tests\restaurant-flow.spec.ts:80:7 › Restaurant: Dashboard › dashboard has order list link (33.0s)
+Cart items after adding qty 3: 1
+  ok  98 [Desktop Chromium Fast] › tests\customer-flow.spec.ts:212:7 › Customer: Restaurant Detail & Menu › add multiple quantities of same item (58.7s)
+Review section visible: true
+  ok 102 [Desktop Chromium Fast] › tests\customer-flow.spec.ts:229:7 › Customer: Restaurant Detail & Menu › review section is displayed (3.4s)
+  ok 101 [Desktop Chromium Fast] › tests\restaurant-flow.spec.ts:96:7 › Restaurant: Dashboard › dashboard shows restaurant name (6.5s)
+  ok 104 [Desktop Chromium Fast] › tests\restaurant-flow.spec.ts:108:7 › Restaurant: Dashboard › unauthenticated user redirected from restaurant dashboard (3.8s)
+  x  100 [Desktop Chromium Fast] › tests\auth-flow.spec.ts:233:7 › Auth: Logout › after logout, restaurant dashboard not accessible (28.8s)
+  x   97 [Desktop Chromium Fast] › tests\admin-flow.spec.ts:175:7 › Admin: User Management › search for non-existent user shows empty (1.7m)
+⚠️ Rate limited, sẽ retry sau...
+⏳ Login retry #1 (chờ 51s tránh rate limit)...
+Add user button visible: false
+Fallback action button visible: true
+  ok 107 [Desktop Chromium Fast] › tests\admin-flow.spec.ts:188:7 › Admin: User Management › user management has create/add button (8.0s)
+⚠️ Rate limited, sẽ retry sau...
+⏳ Login retry #1 (chờ 59s tránh rate limit)...
+⚠️ Rate limited, sẽ retry sau...
+⏳ Login retry #1 (chờ 61s tránh rate limit)...
+Cart items: 1
+  ok 103 [Desktop Chromium Fast] › tests\customer-flow.spec.ts:244:7 › Customer: Cart Management › cart page shows items after adding (58.7s)
+  ok 105 [Desktop Chromium Fast] › tests\restaurant-flow.spec.ts:119:7 › Restaurant: Order List › order list page loads (1.3m)
+  ok 110 [Desktop Chromium Fast] › tests\restaurant-flow.spec.ts:126:7 › Restaurant: Order List › order table is displayed (6.1s)
+⚠️ Rate limited, sẽ retry sau...
+⏳ Login retry #1 (chờ 67s tránh rate limit)...
+⚠️ Rate limited, sẽ retry sau...
+⏳ Login retry #2 (chờ 47s tránh rate limit)...
+⚠️ Rate limited, sẽ retry sau...
+⏳ Login retry #2 (chờ 53s tránh rate limit)...
+Cart item names: ["Trà tắc"]
+  ok 109 [Desktop Chromium Fast] › tests\customer-flow.spec.ts:262:7 › Customer: Cart Management › cart shows correct item names (59.1s)
+  x  106 [Desktop Chromium Fast] › tests\auth-flow.spec.ts:255:7 › Auth: Logout › logout link appears in user dropdown (2.0m)
+⚠️ Rate limited, sẽ retry sau...
+⏳ Login retry #3 (chờ 65s tránh rate limit)...
+  x  108 [Desktop Chromium Fast] › tests\admin-flow.spec.ts:203:7 › Admin: User Management › user management has edit actions (2.0m)
+⚠️ Rate limited, sẽ retry sau...
+⏳ Login retry #1 (chờ 59s tránh rate limit)...
+⚠️ Rate limited, sẽ retry sau...
+⏳ Login retry #1 (chờ 70s tránh rate limit)...
+  ok 111 [Desktop Chromium Fast] › tests\restaurant-flow.spec.ts:136:7 › Restaurant: Order List › order table has rows or empty state (1.3m)
+Total before increase: 10,000 đ
+Total after increase: 20,000 đ
+  ok 112 [Desktop Chromium Fast] › tests\customer-flow.spec.ts:283:7 › Customer: Cart Management › cart increase quantity updates total (1.1m)
+  ok 115 [Desktop Chromium Fast] › tests\restaurant-flow.spec.ts:145:7 › Restaurant: Order List › order rows show status column (12.2s)
+  ok 117 [Desktop Chromium Fast] › tests\restaurant-flow.spec.ts:157:7 › Restaurant: Order List › order rows show action buttons (10.5s)
+  ok 118 [Desktop Chromium Fast] › tests\restaurant-flow.spec.ts:173:7 › Restaurant: Order List › accept button exists for pending orders (6.4s)
+⚠️ goto timeout, retrying...
+⚠️ Rate limited, sẽ retry sau...
+⏳ Login retry #2 (chờ 67s tránh rate limit)...
+⚠️ Rate limited, sẽ retry sau...
+⏳ Login retry #1 (chờ 75s tránh rate limit)...
+⚠️ Rate limited, sẽ retry sau...
+⏳ Login retry #1 (chờ 50s tránh rate limit)...
+  ok 113 [Desktop Chromium Fast] › tests\auth-flow.spec.ts:268:7 › Auth: Logout › double logout does not cause error (1.8m)
+  ok 120 [Desktop Chromium Fast] › tests\auth-flow.spec.ts:297:7 › Auth: Registration › signup page loads with role selection (4.8s)
+  ok 121 [Desktop Chromium Fast] › tests\auth-flow.spec.ts:311:7 › Auth: Registration › register link on login page navigates to signup (4.1s)
+  ok 122 [Desktop Chromium Fast] › tests\auth-flow.spec.ts:322:7 › Auth: Registration › forgot password link exists on login page (1.0s)
+  ok 123 [Desktop Chromium Fast] › tests\auth-flow.spec.ts:329:7 › Auth: Registration › google login button exists on login page (1.3s)
+  ok 124 [Desktop Chromium Fast] › tests\auth-flow.spec.ts:336:7 › Auth: Registration › google partner link exists (1.4s)
+  ok 125 [Desktop Chromium Fast] › tests\auth-flow.spec.ts:343:7 › Auth: Registration › signup form has username field (3.8s)
+  ok 126 [Desktop Chromium Fast] › tests\auth-flow.spec.ts:354:7 › Auth: Registration › signup form has password field (3.3s)
+  x  127 [Desktop Chromium Fast] › tests\auth-flow.spec.ts:377:7 › Auth: Role-Based Access Control › customer cannot access /Restaurant (8.3s)
+  x  114 [Desktop Chromium Fast] › tests\admin-flow.spec.ts:224:7 › Admin: Order Management › order management page loads (2.0m)
+  ok 119 [Desktop Chromium Fast] › tests\restaurant-flow.spec.ts:182:7 › Restaurant: Order List › cancel button exists for orders (1.3m)
+⚠️ Rate limited, sẽ retry sau...
+⏳ Login retry #1 (chờ 59s tránh rate limit)...
+  ok 130 [Desktop Chromium Fast] › tests\restaurant-flow.spec.ts:196:7 › Restaurant: Order Actions › accept order changes status (8.8s)
+  ok 131 [Desktop Chromium Fast] › tests\restaurant-flow.spec.ts:209:7 › Restaurant: Order Actions › mark as ready button exists (8.2s)
+  ok 132 [Desktop Chromium Fast] › tests\restaurant-flow.spec.ts:218:7 › Restaurant: Order Actions › cancel order button exists (8.8s)
+  x  116 [Desktop Chromium Fast] › tests\customer-flow.spec.ts:308:7 › Customer: Cart Management › cart decrease quantity updates total (2.0m)
+  x  129 [Desktop Chromium Fast] › tests\auth-flow.spec.ts:387:7 › Auth: Role-Based Access Control › customer cannot access /Shipper (30.2s)
+  ok 133 [Desktop Chromium Fast] › tests\restaurant-flow.spec.ts:227:7 › Restaurant: Order Actions › order detail link exists (11.8s)
+⚠️ Rate limited, sẽ retry sau...
+⏳ Login retry #1 (chờ 60s tránh rate limit)...
+⚠️ Rate limited, sẽ retry sau...
+⏳ Login retry #1 (chờ 68s tránh rate limit)...
+  ok 128 [Desktop Chromium Fast] › tests\admin-flow.spec.ts:233:7 › Admin: Order Management › order table is displayed (1.2m)
+Cart items before delete: 1, after: 1
+  ok 134 [Desktop Chromium Fast] › tests\customer-flow.spec.ts:333:7 › Customer: Cart Management › cart delete item removes it (1.1m)
+Order rows: 30, empty state: true
+  ok 137 [Desktop Chromium Fast] › tests\admin-flow.spec.ts:247:7 › Admin: Order Management › order table has rows or empty state (27.9s)
+Order ID links found: 60
+First order cell: "#90
+                                        Koneko Pizza"
+  ok 139 [Desktop Chromium Fast] › tests\admin-flow.spec.ts:258:7 › Admin: Order Management › order table shows order IDs (8.8s)
+  x  136 [Desktop Chromium Fast] › tests\restaurant-flow.spec.ts:236:7 › Restaurant: Order Actions › order status updates after accept (1.2m)
+⚠️ Rate limited, sẽ retry sau...
+⏳ Login retry #1 (chờ 46s tránh rate limit)...
+⚠️ Rate limited, sẽ retry sau...
+⏳ Login retry #1 (chờ 49s tránh rate limit)...
+  x  135 [Desktop Chromium Fast] › tests\auth-flow.spec.ts:397:7 › Auth: Role-Based Access Control › customer cannot access /Admin (1.6m)
+  x  142 [Desktop Chromium Fast] › tests\auth-flow.spec.ts:407:7 › Auth: Role-Based Access Control › restaurant cannot access /Admin (7.1s)
+  x  143 [Desktop Chromium Fast] › tests\auth-flow.spec.ts:417:7 › Auth: Role-Based Access Control › restaurant cannot access /Shipper (6.8s)
+Cart total visible: true
+Cart total text: 10,000 đ
+  ok 138 [Desktop Chromium Fast] › tests\customer-flow.spec.ts:356:7 › Customer: Cart Management › cart total is displayed (60.0s)
+  x  144 [Desktop Chromium Fast] › tests\auth-flow.spec.ts:427:7 › Auth: Role-Based Access Control › shipper cannot access /Admin (6.2s)
+⚠️ Rate limited, sẽ retry sau...
+⏳ Login retry #1 (chờ 74s tránh rate limit)...
+⚠️ Rate limited, sẽ retry sau...
+⏳ Login retry #2 (chờ 69s tránh rate limit)...
+⚠️ Rate limited, sẽ retry sau...
+⏳ Login retry #1 (chờ 63s tránh rate limit)...
+⚠️ Rate limited, sẽ retry sau...
+⏳ Login retry #2 (chờ 55s tránh rate limit)...
+  ok 141 [Desktop Chromium Fast] › tests\restaurant-flow.spec.ts:257:7 › Restaurant: Order Actions › multiple orders can be managed (1.9m)
+  x  140 [Desktop Chromium Fast] › tests\admin-flow.spec.ts:272:7 › Admin: Order Management › order table shows status column (2.0m)
+  ok 147 [Desktop Chromium Fast] › tests\restaurant-flow.spec.ts:271:7 › Restaurant: Menu Management › restaurant can view own menu items (10.7s)
+Order table headers: Đơn hàng | Ngày | Khách hàng | Trạng thái | Tổng tiền | 
+Has amount column: true
+  ok 148 [Desktop Chromium Fast] › tests\admin-flow.spec.ts:283:7 › Admin: Order Management › order table shows total amount (9.5s)
+  ok 149 [Desktop Chromium Fast] › tests\restaurant-flow.spec.ts:280:7 › Restaurant: Menu Management › restaurant detail shows menu items (5.5s)
+  x  146 [Desktop Chromium Fast] › tests\auth-flow.spec.ts:437:7 › Auth: Role-Based Access Control › shipper cannot access /Restaurant (1.3m)
+Order search input visible: false
+  ok 150 [Desktop Chromium Fast] › tests\admin-flow.spec.ts:294:7 › Admin: Order Management › order management has search/filter (14.3s)
+  x  151 [Desktop Chromium Fast] › tests\restaurant-flow.spec.ts:287:7 › Restaurant: Menu Management › menu items have edit capability (11.9s)
+  ok 154 [Desktop Chromium Fast] › tests\restaurant-flow.spec.ts:299:7 › Restaurant: Menu Management › menu item prices are displayed (3.3s)
+  ok 153 [Desktop Chromium Fast] › tests\admin-flow.spec.ts:309:7 › Admin: Category Management › category management page loads (8.5s)
+  ok 155 [Desktop Chromium Fast] › tests\restaurant-flow.spec.ts:305:7 › Restaurant: Menu Management › restaurant menu has category filter (4.1s)
+  ok 156 [Desktop Chromium Fast] › tests\admin-flow.spec.ts:318:7 › Admin: Category Management › category table is displayed (8.3s)
+  ok 152 [Desktop Chromium Fast] › tests\auth-flow.spec.ts:447:7 › Auth: Role-Based Access Control › admin can access /Admin (26.3s)
+  x  145 [Desktop Chromium Fast] › tests\customer-flow.spec.ts:378:7 › Customer: Cart Management › checkout button navigates to checkout (2.0m)
+  ok 159 [Desktop Chromium Fast] › tests\auth-flow.spec.ts:467:7 › Auth: Session Management › session persists across page navigations (12.8s)
+Cart empty: true
+  ok 160 [Desktop Chromium Fast] › tests\customer-flow.spec.ts:404:7 › Customer: Cart Management › empty cart shows message (13.2s)
+  ok 157 [Desktop Chromium Fast] › tests\restaurant-flow.spec.ts:317:7 › Restaurant: Wallet & Earnings › restaurant wallet page loads (29.8s)
+  x  161 [Desktop Chromium Fast] › tests\auth-flow.spec.ts:484:7 › Auth: Session Management › unauthenticated user sees login button, not user dropdown (6.1s)
+  ok 158 [Desktop Chromium Fast] › tests\admin-flow.spec.ts:327:7 › Admin: Category Management › category table has rows (28.8s)
+  ok 164 [Desktop Chromium Fast] › tests\auth-flow.spec.ts:496:7 › Auth: Session Management › concurrent logins from different browsers (8.6s)
+First category row: "#1
+                        Đồ ăn
+                        
+                      "
+  ok 165 [Desktop Chromium Fast] › tests\admin-flow.spec.ts:335:7 › Admin: Category Management › category names are displayed (9.3s)
+  ok 166 [Desktop Chromium Fast] › tests\auth-flow.spec.ts:507:7 › Auth: Session Management › login form has password toggle visibility (1.6s)
+Add category button visible: true
+  ok 167 [Desktop Chromium Fast] › tests\admin-flow.spec.ts:344:7 › Admin: Category Management › category management has add button (8.3s)
+  ok 168 [Desktop Chromium Fast] › tests\shipper-flow.spec.ts:28:7 › Shipper: Dashboard › shipper dashboard loads after login (7.6s)
+  ok 163 [Desktop Chromium Fast] › tests\restaurant-flow.spec.ts:332:7 › Restaurant: Wallet & Earnings › wallet shows balance or zero (28.6s)
+Dashboard: table=0, freepickTab=0, orderTab=2
+  ok 170 [Desktop Chromium Fast] › tests\shipper-flow.spec.ts:37:7 › Shipper: Dashboard › dashboard shows order table or tabs (7.8s)
+  ok 171 [Desktop Chromium Fast] › tests\restaurant-flow.spec.ts:352:7 › Restaurant: Wallet & Earnings › cancelled orders excluded from earnings (6.6s)
+Sidebar elements: 2
+  ok 172 [Desktop Chromium Fast] › tests\shipper-flow.spec.ts:52:7 › Shipper: Dashboard › dashboard sidebar is visible (7.1s)
+FREE-PICK tab: count=0, text match=true
+  ok 174 [Desktop Chromium Fast] › tests\shipper-flow.spec.ts:65:7 › Shipper: Dashboard › dashboard has FREE-PICK tab (6.9s)
+Unauthenticated URL: https://fastship-web.onrender.com/Home/Login
+  ok 175 [Desktop Chromium Fast] › tests\shipper-flow.spec.ts:79:7 › Shipper: Dashboard › unauthenticated user redirected from shipper dashboard (3.8s)
+Edit category button visible: true
+  ok 169 [Desktop Chromium Fast] › tests\admin-flow.spec.ts:353:7 › Admin: Category Management › category management has edit actions (27.1s)
+Delete category button visible: true
+  ok 177 [Desktop Chromium Fast] › tests\admin-flow.spec.ts:367:7 › Admin: Category Management › category management has delete actions (8.2s)
+  x  173 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:68:7 › 📝 NHÓM 1: ĐĂNG KÝ (Signup) › 1.1 Signup form hiển thị đủ 8 field (25.3s)
+Name input visible: false
+  ok 162 [Desktop Chromium Fast] › tests\customer-flow.spec.ts:424:7 › Customer: Checkout Flow › checkout page loads with address form (1.1m)
+  ok 179 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:94:7 › 📝 NHÓM 1: ĐĂNG KÝ (Signup) › 1.2 Signup Customer thành công → auto-login + redirect Home (10.7s)
+ℹ️ Tab FREE-PICK không tồn tại (selector không match)
+FREE-PICK orders: 0
+  ok 176 [Desktop Chromium Fast] › tests\shipper-flow.spec.ts:91:7 › Shipper: Order Management › FREE-PICK tab shows available orders (30.2s)
+  ok 181 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:131:7 › 📝 NHÓM 1: ĐĂNG KÝ (Signup) › 1.3 Username trùng → lỗi "tồn tại" (11.2s)
+Canvas elements: 0
+No canvas on dashboard
+  ok 178 [Desktop Chromium Fast] › tests\admin-flow.spec.ts:382:7 › Admin: Dashboard Charts › revenue chart canvas renders (29.9s)
+⚠️ goto timeout, retrying...
+Order status section visible: true
+  ok 184 [Desktop Chromium Fast] › tests\admin-flow.spec.ts:399:7 › Admin: Dashboard Charts › dashboard has order status section (9.0s)
+⚠️ Rate limited, sẽ retry sau...
+⏳ Login retry #1 (chờ 53s tránh rate limit)...
+⚠️ goto timeout, retrying...
+⚠️ Rate limited, sẽ retry sau...
+⏳ Login retry #1 (chờ 63s tránh rate limit)...
+  x  183 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:157:7 › 📝 NHÓM 1: ĐĂNG KÝ (Signup) › 1.4 Mật khẩu yếu (thiếu uppercase) → lỗi strength (30.7s)
+  ok 186 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:174:7 › 📝 NHÓM 1: ĐĂNG KÝ (Signup) › 1.5 Mật khẩu < 8 ký tự → lỗi (8.3s)
+  ok 187 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:199:7 › 📝 NHÓM 1: ĐĂNG KÝ (Signup) › 1.6 Mật khẩu confirm không khớp → lỗi (26.9s)
+⚠️ Rate limited, sẽ retry sau...
+⏳ Login retry #2 (chờ 45s tránh rate limit)...
+Checkout form not loaded — skip fill check
+  ok 180 [Desktop Chromium Fast] › tests\customer-flow.spec.ts:441:7 › Customer: Checkout Flow › fill shipping info updates form (1.8m)
+⚠️ Rate limited, sẽ retry sau...
+⏳ Login retry #1 (chờ 60s tránh rate limit)...
+  ok 188 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:224:7 › 📝 NHÓM 1: ĐĂNG KÝ (Signup) › 1.7 Họ tên trống → lỗi validation (23.6s)
+⚠️ Rate limited, sẽ retry sau...
+⏳ Login retry #2 (chờ 48s tránh rate limit)...
+  ok 190 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:236:7 › 📝 NHÓM 1: ĐĂNG KÝ (Signup) › 1.8 SĐT sai format → lỗi (8.3s)
+  ok 191 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:261:7 › 📝 NHÓM 1: ĐĂNG KÝ (Signup) › 1.9 Email sai format → lỗi (4.2s)
+  ok 192 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:276:7 › 📝 NHÓM 1: ĐĂNG KÝ (Signup) › 1.10 Quán ăn không có địa chỉ → lỗi (4.0s)
+  x  182 [Desktop Chromium Fast] › tests\shipper-flow.spec.ts:106:7 › Shipper: Order Management › order tab shows claimed orders (2.0m)
+  ok 193 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:286:7 › 📝 NHÓM 1: ĐĂNG KÝ (Signup) › 1.11 Mật khẩu thiếu special character → lỗi strength (8.3s)
+Recent orders section visible: false
+  ok 185 [Desktop Chromium Fast] › tests\admin-flow.spec.ts:409:7 › Admin: Dashboard Charts › dashboard shows recent orders (1.9m)
+Order rows: 0
+No order rows to inspect
+  ok 195 [Desktop Chromium Fast] › tests\shipper-flow.spec.ts:121:7 › Shipper: Order Management › order rows show order details (12.1s)
+Top restaurants section visible: true
+  ok 196 [Desktop Chromium Fast] › tests\admin-flow.spec.ts:418:7 › Admin: Dashboard Charts › dashboard top restaurants section exists (10.8s)
+Refresh button: true
+  ok 197 [Desktop Chromium Fast] › tests\shipper-flow.spec.ts:141:7 › Shipper: Order Management › refresh button exists (8.9s)
+  ok 194 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:311:7 › 📝 NHÓM 1: ĐĂNG KÝ (Signup) › 1.12 Signup page có link về Login (23.9s)
+⚠️ Rate limited, sẽ retry sau...
+⏳ Login retry #1 (chờ 53s tránh rate limit)...
+⚠️ Rate limited, sẽ retry sau...
+⏳ Login retry #1 (chờ 48s tránh rate limit)...
+  ok 200 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:319:7 › 📝 NHÓM 1: ĐĂNG KÝ (Signup) › 1.13 Signup page có link về trang chủ (3.9s)
+  ok 201 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:328:7 › 📝 NHÓM 1: ĐĂNG KÝ (Signup) › 1.14 Signup form có CSRF token (4.6s)
+⚠️ Rate limited, sẽ retry sau...
+⏳ Login retry #2 (chờ 46s tránh rate limit)...
+  ok 202 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:339:7 › 📝 NHÓM 1: ĐĂNG KÝ (Signup) › 1.15 Signup page responsive trên mobile (375px) (3.7s)
+⚠️ Rate limited, sẽ retry sau...
+⏳ Login retry #1 (chờ 63s tránh rate limit)...
+Detail links: 26
+  ok 199 [Desktop Chromium Fast] › tests\shipper-flow.spec.ts:154:7 › Shipper: Order Management › detail link exists for orders (58.7s)
+Mobile horizontal overflow: false
+  ok 198 [Desktop Chromium Fast] › tests\admin-flow.spec.ts:427:7 › Admin: Dashboard Charts › dashboard is responsive on mobile (1.1m)
+  x  189 [Desktop Chromium Fast] › tests\customer-flow.spec.ts:469:7 › Customer: Checkout Flow › payment options are displayed (2.0m)
+Order count: 0
+  ok 204 [Desktop Chromium Fast] › tests\shipper-flow.spec.ts:170:7 › Shipper: Order Management › order count is numeric (9.1s)
+User Management: navigated to https://fastship-web.onrender.com/Admin/QuanLyKhachHang
+Order Management: navigated to https://fastship-web.onrender.com/Admin/Order
+Order detail URL: https://fastship-web.onrender.com/Shipper/OrderDetail/90
+Category Management: navigated to https://fastship-web.onrender.com/Admin/Category
+  ok 206 [Desktop Chromium Fast] › tests\shipper-flow.spec.ts:186:7 › Shipper: Order Claiming › order detail page loads with order info (16.1s)
+  ok 205 [Desktop Chromium Fast] › tests\admin-flow.spec.ts:446:7 › Admin: Navigation & Sidebar › sidebar links navigate correctly (23.0s)
+  ok 203 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:357:7 › 🔐 NHÓM 2: ĐĂNG NHẬP (Login) › 2.1 Login Customer đúng → redirect Home (1.3m)
+Claim button: 1, text match: true
+  ok 209 [Desktop Chromium Fast] › tests\admin-flow.spec.ts:477:7 › Admin: Navigation & Sidebar › dashboard link returns to main dashboard (13.2s)
+  ok 208 [Desktop Chromium Fast] › tests\shipper-flow.spec.ts:207:7 › Shipper: Order Claiming › claim order button exists on detail page (16.1s)
+Mobile sidebar toggle visible: true
+ℹ️ Tab ĐƠN HÀNG không clickable, skip
+Orders in tab: 0
+  ok 212 [Desktop Chromium Fast] › tests\shipper-flow.spec.ts:232:7 › Shipper: Order Claiming › claimed order appears in order tab (13.0s)
+⚠️ goto timeout, retrying...
+ℹ️ Tab ĐƠN HÀNG không clickable, skip
+No status update buttons visible - may need claimed orders first
+  ok 213 [Desktop Chromium Fast] › tests\shipper-flow.spec.ts:247:7 › Shipper: Order Claiming › shipper can update delivery status (9.8s)
+  ok 210 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:362:7 › 🔐 NHÓM 2: ĐĂNG NHẬP (Login) › 2.2 Login Restaurant đúng → redirect /Restaurant (35.8s)
+  ok 215 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:367:7 › 🔐 NHÓM 2: ĐĂNG NHẬP (Login) › 2.3 Login Shipper đúng → redirect /Shipper (5.0s)
+  x  211 [Desktop Chromium Fast] › tests\admin-flow.spec.ts:503:7 › Admin: Navigation & Sidebar › sidebar is collapsible on mobile (28.8s)
+  ok 216 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:372:7 › 🔐 NHÓM 2: ĐĂNG NHẬP (Login) › 2.4 Login Admin đúng → redirect /Admin (5.0s)
+  ok 218 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:377:7 › 🔐 NHÓM 2: ĐĂNG NHẬP (Login) › 2.5 Sai mật khẩu → lỗi (5.3s)
+Logged out via dropdown, URL: https://fastship-web.onrender.com/
+  ok 219 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:393:7 › 🔐 NHÓM 2: ĐĂNG NHẬP (Login) › 2.6 Tài khoản không tồn tại → lỗi (không enumeration) (5.5s)
+  ok 217 [Desktop Chromium Fast] › tests\admin-flow.spec.ts:519:7 › Admin: Navigation & Sidebar › admin can logout (12.4s)
+Wallet URL: https://fastship-web.onrender.com/Shipper/ViTien
+  ok 214 [Desktop Chromium Fast] › tests\shipper-flow.spec.ts:280:7 › Shipper: Wallet & Income › wallet page loads (27.6s)
+  ok 220 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:409:7 › 🔐 NHÓM 2: ĐĂNG NHẬP (Login) › 2.7 Trống username → validation (8.6s)
+User edit link href: /Admin/PostTaiKhoan?id=2
+Edit page URL: https://fastship-web.onrender.com/Admin/QuanLyKhachHang
+  ok 221 [Desktop Chromium Fast] › tests\admin-flow.spec.ts:559:7 › Admin: CRUD Operations › user edit page loads for existing user (9.5s)
+  ok 223 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:423:7 › 🔐 NHÓM 2: ĐĂNG NHẬP (Login) › 2.8 Trống password → validation (8.3s)
+Category edit link href: /Admin/EditCategory/1
+COD option not clickable
+  ok 207 [Desktop Chromium Fast] › tests\customer-flow.spec.ts:493:7 › Customer: Checkout Flow › COD payment option can be selected (1.6m)
+Category edit page URL: https://fastship-web.onrender.com/Admin/EditCategory/1
+  ok 224 [Desktop Chromium Fast] › tests\admin-flow.spec.ts:579:7 › Admin: CRUD Operations › category edit page loads for existing category (10.3s)
+  ok 225 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:436:7 › 🔐 NHÓM 2: ĐĂNG NHẬP (Login) › 2.9 Login bằng SĐT (format 0xxx) → thành công (6.7s)
+⚠️ Rate limited, sẽ retry sau...
+⏳ Login retry #1 (chờ 74s tránh rate limit)...
+⚠️ Rate limited, sẽ retry sau...
+⏳ Login retry #1 (chờ 55s tránh rate limit)...
+Order detail link href: /Admin/OrderDetail/90
+Order detail page URL: https://fastship-web.onrender.com/Admin/OrderDetail/90
+  ok 227 [Desktop Chromium Fast] › tests\admin-flow.spec.ts:600:7 › Admin: CRUD Operations › order detail page loads for existing order (11.0s)
+⚠️ Rate limited, sẽ retry sau...
+⏳ Login retry #1 (chờ 72s tránh rate limit)...
+⚠️ goto timeout, retrying...
+⚠️ Rate limited, sẽ retry sau...
+⏳ Login retry #1 (chờ 68s tránh rate limit)...
+Income URL: https://fastship-web.onrender.com/Shipper/ThuNhap
+  ok 222 [Desktop Chromium Fast] › tests\shipper-flow.spec.ts:292:7 › Shipper: Wallet & Income › income page loads (1.4m)
+Wallet balance: 16,000đ
+  ok 230 [Desktop Chromium Fast] › tests\shipper-flow.spec.ts:304:7 › Shipper: Wallet & Income › wallet shows balance or zero (7.3s)
+  ok 228 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:453:7 › 🔐 NHÓM 2: ĐĂNG NHẬP (Login) › 2.10 Session cookie tồn tại sau login (1.4m)
+History URL: https://fastship-web.onrender.com/Shipper/LichSu
+  ok 231 [Desktop Chromium Fast] › tests\shipper-flow.spec.ts:321:7 › Shipper: History › history page loads (7.0s)
+⚠️ Rate limited, sẽ retry sau...
+⏳ Login retry #1 (chờ 54s tránh rate limit)...
+⚠️ Rate limited, sẽ retry sau...
+⏳ Login retry #2 (chờ 68s tránh rate limit)...
+  ok 232 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:462:7 › 🔐 NHÓM 2: ĐĂNG NHẬP (Login) › 2.11 User name hiển thị trong navbar dropdown (11.1s)
+  ok 234 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:475:7 › 🔐 NHÓM 2: ĐĂNG NHẬP (Login) › 2.12 Password toggle (hiện/ẩn) hoạt động (1.4s)
+  ok 235 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:506:7 › 🔐 NHÓM 2: ĐĂNG NHẬP (Login) › 2.13 Login page có Google OAuth button (1.4s)
+  ok 236 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:514:7 › 🔐 NHÓM 2: ĐĂNG NHẬP (Login) › 2.14 Login page có link Quên mật khẩu (1.6s)
+  ok 237 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:528:7 › 🚪 NHÓM 3: ĐĂNG XUẤT (Logout) › 3.1 Logout Customer → session clear + redirect Home (13.9s)
+  x  226 [Desktop Chromium Fast] › tests\customer-flow.spec.ts:514:7 › Customer: Checkout Flow › coupon input is available (2.0m)
+  ok 238 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:542:7 › 🚪 NHÓM 3: ĐĂNG XUẤT (Logout) › 3.2 Sau logout, truy cập /Cart → redirect (15.0s)
+  x  229 [Desktop Chromium Fast] › tests\admin-flow.spec.ts:627:7 › Admin: CRUD Operations › admin dashboard data updates after navigation (2.0m)
+⚠️ Rate limited, sẽ retry sau...
+⏳ Login retry #2 (chờ 62s tránh rate limit)...
+⚠️ Rate limited, sẽ retry sau...
+⏳ Login retry #1 (chờ 54s tránh rate limit)...
+  ok 241 [Desktop Chromium Fast] › tests\visual-design.spec.ts:21:7 › Visual: Design System Tokens › CSS custom properties are defined on :root (20.9s)
+  ok 242 [Desktop Chromium Fast] › tests\visual-design.spec.ts:31:7 › Visual: Design System Tokens › primary color is #3CB815 (20.7s)
+  ok 243 [Desktop Chromium Fast] › tests\visual-design.spec.ts:40:7 › Visual: Design System Tokens › secondary color is #F65005 (3.7s)
+  ok 244 [Desktop Chromium Fast] › tests\visual-design.spec.ts:49:7 › Visual: Design System Tokens › font family includes Inter (3.4s)
+  ok 245 [Desktop Chromium Fast] › tests\visual-design.spec.ts:58:7 › Visual: Design System Tokens › border-radius variable is set (2.3s)
+  ok 246 [Desktop Chromium Fast] › tests\visual-design.spec.ts:72:7 › Visual: Navbar Consistency › navbar has FastShip logo (2.4s)
+  ok 247 [Desktop Chromium Fast] › tests\visual-design.spec.ts:78:7 › Visual: Navbar Consistency › navbar has search input on desktop (3.1s)
+Coupon input not available
+  ok 239 [Desktop Chromium Fast] › tests\customer-flow.spec.ts:531:7 › Customer: Checkout Flow › apply invalid coupon shows error (1.2m)
+  x  233 [Desktop Chromium Fast] › tests\shipper-flow.spec.ts:333:7 › Shipper: History › history shows table or empty state (2.0m)
+  ok 240 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:559:7 › 🚪 NHÓM 3: ĐĂNG XUẤT (Logout) › 3.3 Sau logout, /Restaurant → redirect (1.6m)
+  x  248 [Desktop Chromium Fast] › tests\visual-design.spec.ts:85:7 › Visual: Navbar Consistency › navbar has cart button (36.7s)
+  ok 251 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:574:7 › 🚪 NHÓM 3: ĐĂNG XUẤT (Logout) › 3.4 Link logout có trong navbar dropdown (7.1s)
+History rows: 50
+  ok 250 [Desktop Chromium Fast] › tests\shipper-flow.spec.ts:348:7 › Shipper: History › history has order records or empty (26.1s)
+  ok 253 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:584:7 › 🚪 NHÓM 3: ĐĂNG XUẤT (Logout) › 3.5 Double logout không crash (15.9s)
+  x  252 [Desktop Chromium Fast] › tests\visual-design.spec.ts:91:7 › Visual: Navbar Consistency › navbar has login button when not authenticated (36.0s)
+Confirm checkbox not found
+  ok 249 [Desktop Chromium Fast] › tests\customer-flow.spec.ts:554:7 › Customer: Checkout Flow › confirm checkbox can be checked (1.2m)
+  ok 255 [Desktop Chromium Fast] › tests\visual-design.spec.ts:97:7 › Visual: Navbar Consistency › navbar is fixed/sticky on scroll (5.5s)
+  ok 254 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:607:7 › 🔑 NHÓM 4: QUÊN MẬT KHẨU › 4.1 Trang Forgot Password load thành công (23.3s)
+  ok 258 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:616:7 › 🔑 NHÓM 4: QUÊN MẬT KHẨU › 4.2 Link "Quên mật khẩu" có trên trang Login (1.7s)
+  ok 257 [Desktop Chromium Fast] › tests\visual-design.spec.ts:110:7 › Visual: Navbar Consistency › mobile hamburger menu exists (2.3s)
+⚠️ BUG: Forgot Password có form nhưng KHÔNG có POST handler
+  ok 259 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:623:7 › 🔑 NHÓM 4: QUÊN MẬT KHẨU › 4.3 [BUG] Forgot Password không có POST handler —功能 incomplete (4.2s)
+  ok 260 [Desktop Chromium Fast] › tests\visual-design.spec.ts:123:7 › Visual: Homepage Layout › hero carousel is present (8.1s)
+  ok 261 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:660:7 › 🛡️ NHÓM 5: ROLE-BASED ACCESS CONTROL › 5.1 Customer không truy cập /Restaurant (9.3s)
+  ok 263 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:666:7 › 🛡️ NHÓM 5: ROLE-BASED ACCESS CONTROL › 5.2 Customer không truy cập /Shipper (11.0s)
+  ok 264 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:672:7 › 🛡️ NHÓM 5: ROLE-BASED ACCESS CONTROL › 5.3 Customer không truy cập /Admin (10.4s)
+  ok 265 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:678:7 › 🛡️ NHÓM 5: ROLE-BASED ACCESS CONTROL › 5.4 Restaurant không truy cập /Admin (7.6s)
+  x  262 [Desktop Chromium Fast] › tests\visual-design.spec.ts:129:7 › Visual: Homepage Layout › category pills row is present (36.8s)
+  ok 266 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:684:7 › 🛡️ NHÓM 5: ROLE-BASED ACCESS CONTROL › 5.5 Restaurant không truy cập /Shipper (10.9s)
+Submit button visible: false
+  x  256 [Desktop Chromium Fast] › tests\customer-flow.spec.ts:578:7 › Customer: Checkout Flow › submit button exists (1.1m)
+  ok 267 [Desktop Chromium Fast] › tests\visual-design.spec.ts:136:7 › Visual: Homepage Layout › restaurant grid has cards (7.5s)
+  ok 268 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:690:7 › 🛡️ NHÓM 5: ROLE-BASED ACCESS CONTROL › 5.6 Shipper không truy cập /Admin (9.1s)
+  ok 270 [Desktop Chromium Fast] › tests\visual-design.spec.ts:145:7 › Visual: Homepage Layout › restaurant cards have image, title, rating (8.3s)
+  ok 271 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:696:7 › 🛡️ NHÓM 5: ROLE-BASED ACCESS CONTROL › 5.7 Shipper không truy cập /Restaurant (8.9s)
+Order history page loaded: true
+  ok 272 [Desktop Chromium Fast] › tests\visual-design.spec.ts:154:7 › Visual: Homepage Layout › stats row displays stats (2.8s)
+  ok 269 [Desktop Chromium Fast] › tests\customer-flow.spec.ts:602:7 › Customer: Order History › order history page loads (12.1s)
+  ok 273 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:702:7 › 🛡️ NHÓM 5: ROLE-BASED ACCESS CONTROL › 5.8 Unauthenticated truy cập /Cart → redirect (4.5s)
+  ok 274 [Desktop Chromium Fast] › tests\visual-design.spec.ts:160:7 › Visual: Homepage Layout › footer is present (3.1s)
+  ok 277 [Desktop Chromium Fast] › tests\visual-design.spec.ts:167:7 › Visual: Homepage Layout › promo band appears or is dismissible (3.6s)
+Table visible: true, Empty state: false
+  ok 275 [Desktop Chromium Fast] › tests\customer-flow.spec.ts:611:7 › Customer: Order History › order history shows table or empty state (12.3s)
+  ok 276 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:718:7 › 👤 NHÓM 6: PROFILE (Customer) › 6.1 Profile page hiển thị thông tin user (11.7s)
+Order links found: 25
+  ok 279 [Desktop Chromium Fast] › tests\customer-flow.spec.ts:621:7 › Customer: Order History › order history has order ID links (11.0s)
+⚠️ goto timeout, retrying...
+⚠️ Rate limited, sẽ retry sau...
+⏳ Login retry #1 (chờ 61s tránh rate limit)...
+  ok 278 [Desktop Chromium Fast] › tests\visual-design.spec.ts:184:7 › Visual: Auth Pages Design › login page has auth-card centered (30.7s)
+  ok 282 [Desktop Chromium Fast] › tests\visual-design.spec.ts:190:7 › Visual: Auth Pages Design › login form has input icons (1.9s)
+  ok 283 [Desktop Chromium Fast] › tests\visual-design.spec.ts:197:7 › Visual: Auth Pages Design › google login button is styled (5.6s)
+⚠️ Rate limited, sẽ retry sau...
+⏳ Login retry #1 (chờ 71s tránh rate limit)...
+  ok 284 [Desktop Chromium Fast] › tests\visual-design.spec.ts:208:7 › Visual: Auth Pages Design › signup page has role selection cards (22.9s)
+  ok 285 [Desktop Chromium Fast] › tests\visual-design.spec.ts:215:7 › Visual: Auth Pages Design › signup page has password strength indicator (4.0s)
+  ok 286 [Desktop Chromium Fast] › tests\visual-design.spec.ts:222:7 › Visual: Auth Pages Design › login page has partner link (1.3s)
+  ok 287 [Desktop Chromium Fast] › tests\visual-design.spec.ts:234:7 › Visual: Restaurant Detail Design › restaurant header displays name (2.8s)
+  ok 288 [Desktop Chromium Fast] › tests\visual-design.spec.ts:240:7 › Visual: Restaurant Detail Design › menu items have price displayed (23.7s)
+  ok 280 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:732:7 › 👤 NHÓM 6: PROFILE (Customer) › 6.2 Profile page có form cập nhật (1.6m)
+  ok 290 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:745:7 › 👤 NHÓM 6: PROFILE (Customer) › 6.3 Profile page có CSRF token (11.8s)
+  x  289 [Desktop Chromium Fast] › tests\visual-design.spec.ts:247:7 › Visual: Restaurant Detail Design › category pills are horizontal scrollable (28.6s)
+Order detail URL: https://fastship-web.onrender.com/Cart/OrderTracking?id=90
+  ok 281 [Desktop Chromium Fast] › tests\customer-flow.spec.ts:630:7 › Customer: Order History › order detail page loads with order info (1.9m)
+  ok 291 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:757:7 › 👤 NHÓM 6: PROFILE (Customer) › 6.4 Profile page có field đổi mật khẩu (17.6s)
+  ok 294 [Desktop Chromium Fast] › tests\visual-design.spec.ts:260:7 › Visual: Restaurant Detail Design › add-to-cart buttons are styled (btn-primary) (10.1s)
+  ok 293 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:769:7 › 👤 NHÓM 6: PROFILE (Customer) › 6.5 Profile page responsive trên mobile (15.0s)
+Order tracking URL: https://fastship-web.onrender.com/Cart/OrderTracking?id=90
+  ok 292 [Desktop Chromium Fast] › tests\customer-flow.spec.ts:645:7 › Customer: Order History › order tracking page loads for valid order (17.9s)
+  ok 296 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:781:7 › 👤 NHÓM 6: PROFILE (Customer) › 6.6 Customer có thể truy cập Profile (16.2s)
+Progress element visible: false
+  ok 297 [Desktop Chromium Fast] › tests\customer-flow.spec.ts:664:7 › Customer: Order History › order tracking shows progress bar (24.9s)
+  ok 295 [Desktop Chromium Fast] › tests\visual-design.spec.ts:273:7 › Visual: Restaurant Detail Design › restaurant images have valid src (28.4s)
+  ok 298 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:793:7 › 👤 NHÓM 6: PROFILE (Customer) › 6.7 Wallet page load thành công (23.7s)
+Product detail URL: https://fastship-web.onrender.com/
+  ok 300 [Desktop Chromium Fast] › tests\visual-design.spec.ts:283:7 › Visual: Restaurant Detail Design › review section exists (15.9s)
+  ok 302 [Desktop Chromium Fast] › tests\visual-design.spec.ts:291:7 › Visual: Restaurant Detail Design › quantity input is properly sized (8.8s)
+  x  299 [Desktop Chromium Fast] › tests\customer-flow.spec.ts:689:7 › Customer: Product Detail Page › chi tiet san pham page loads (18.2s)
+Total: 15, Broken: 0
+  ok 303 [Desktop Chromium Fast] › tests\visual-design.spec.ts:308:7 › Visual: Image Validation › homepage images are not broken (8.6s)
+  ok 301 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:805:7 › 👤 NHÓM 6: PROFILE (Customer) › 6.8 Wallet hiển thị số dư (22.9s)
+Product detail has content: true
+  ok 306 [Desktop Chromium Fast] › tests\customer-flow.spec.ts:699:7 › Customer: Product Detail Page › product detail shows name and price (10.9s)
+  ok 305 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:825:7 › 💰 NHÓM 7: VÍ TIỀN (Wallet) › 7.1 Wallet page có nạp tiền (19.4s)
+Total: 14, Broken: 0
+  ok 304 [Desktop Chromium Fast] › tests\visual-design.spec.ts:317:7 › Visual: Image Validation › restaurant detail images are not broken (30.2s)
+  ok 309 [Desktop Chromium Fast] › tests\visual-design.spec.ts:326:7 › Visual: Image Validation › login page has no broken images (4.3s)
+  ok 308 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:837:7 › 💰 NHÓM 7: VÍ TIỀN (Wallet) › 7.2 Wallet page có rút tiền (19.0s)
+Quantity input visible: false
+  ok 310 [Desktop Chromium Fast] › tests\visual-design.spec.ts:333:7 › Visual: Image Validation › all img tags have alt attributes (10.2s)
+  ok 307 [Desktop Chromium Fast] › tests\customer-flow.spec.ts:710:7 › Customer: Product Detail Page › quantity selector is available (29.4s)
+  ok 312 [Desktop Chromium Fast] › tests\visual-design.spec.ts:342:7 › Visual: Image Validation › no emoji used as navigation icons (11.6s)
+  ok 311 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:849:7 › 💰 NHÓM 7: VÍ TIỀN (Wallet) › 7.3 Wallet có lịch sử giao dịch (24.1s)
+  ok 314 [Desktop Chromium Fast] › tests\visual-design.spec.ts:359:7 › Visual: Image Validation › Font Awesome icons load correctly (12.8s)
+Add to cart button visible: false
+  ok 313 [Desktop Chromium Fast] › tests\customer-flow.spec.ts:720:7 › Customer: Product Detail Page › add to cart button is present (27.4s)
+Variant selector visible: false
+  ok 316 [Desktop Chromium Fast] › tests\customer-flow.spec.ts:730:7 › Customer: Product Detail Page › size/variant selector works (6.5s)
+  ok 315 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:862:7 › 💰 NHÓM 7: VÍ TIỀN (Wallet) › 7.4 Wallet responsive trên mobile (16.6s)
+Back link visible: true
+Back link href: /Home/DetailRestaurant/6
+  ok 317 [Desktop Chromium Fast] › tests\customer-flow.spec.ts:740:7 › Customer: Product Detail Page › back navigation returns to restaurant (5.0s)
+  ok 318 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:881:7 › ⭐ NHÓM 8: ĐÁNH GIÁ (Reviews) › 8.1 Restaurant detail page hiển thị reviews section (5.6s)
+  ok 320 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:891:7 › ⭐ NHÓM 8: ĐÁNH GIÁ (Reviews) › 8.2 API GetReviews trả về JSON (9.7s)
+ℹ️ Không tìm thấy link đến ChiTietSanPham
+  ok 321 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:906:7 › ⭐ NHÓM 8: ĐÁNH GIÁ (Reviews) › 8.3 ChiTietSanPham page hiển thị reviews (5.5s)
+  ok 322 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:928:7 › ⭐ NHÓM 8: ĐÁNH GIÁ (Reviews) › 8.4 Reviews section có pagination "Xem thêm" (5.5s)
+  ok 323 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:947:7 › 🛒 NHÓM 9: GIỎ HÀNG & CHECKOUT › 9.1 Cart page load (empty state khi chưa login) (4.0s)
+Chat page URL: https://fastship-web.onrender.com/Home/NhanTin
+  ok 319 [Desktop Chromium Fast] › tests\customer-flow.spec.ts:760:7 › Customer: Chat Page › chat page loads for authenticated user (29.9s)
+  ok 324 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:957:7 › 🛒 NHÓM 9: GIỎ HÀNG & CHECKOUT › 9.2 ChiTietSanPham page hiển thị nút thêm giỏ hàng (5.2s)
+  ok 326 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:977:7 › 🛒 NHÓM 9: GIỎ HÀNG & CHECKOUT › 9.3 DetailRestaurant hiển thị danh mục sidebar (5.3s)
+Message input visible: true
+  ok 327 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:987:7 › 🛒 NHÓM 9: GIỎ HÀNG & CHECKOUT › 9.4 Checkout page yêu cầu login (4.2s)
+  ok 325 [Desktop Chromium Fast] › tests\customer-flow.spec.ts:770:7 › Customer: Chat Page › chat page shows message input (10.9s)
+  ok 328 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:996:7 › 🛒 NHÓM 9: GIỎ HÀNG & CHECKOUT › 9.5 Giỏ hàng trống hiển thị empty state (9.9s)
+  ok 330 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:1010:7 › 🛒 NHÓM 9: GIỎ HÀNG & CHECKOUT › 9.6 Checkout page có chọn phương thức thanh toán (4.1s)
+  ok 331 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:1028:7 › 🛒 NHÓM 9: GIỎ HÀNG & CHECKOUT › 9.7 API GetAvailableCoupons tồn tại (8.6s)
+Conversation list visible: false
+  ok 329 [Desktop Chromium Fast] › tests\customer-flow.spec.ts:779:7 › Customer: Chat Page › chat page shows conversation list (32.3s)
+  ok 332 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:1040:7 › 🛒 NHÓM 9: GIỎ HÀNG & CHECKOUT › 9.8 Customer có thể xem lịch sử đơn hàng (10.9s)
+  ok 334 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:1059:7 › 🔍 NHÓM 10: TÌM KIẾM & DUYỆT › 10.1 Trang chủ hiển thị danh sách quán ăn (25.2s)
+⚠️ goto timeout, retrying...
+  ok 335 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:1068:7 › 🔍 NHÓM 10: TÌM KIẾM & DUYỆT › 10.2 Search quán ăn theo tên → kết quả đúng (10.6s)
+Send button visible: true
+  ok 333 [Desktop Chromium Fast] › tests\customer-flow.spec.ts:788:7 › Customer: Chat Page › chat page has send button (44.2s)
+  ok 336 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:1081:7 › 🔍 NHÓM 10: TÌM KIẾM & DUYỆT › 10.3 Category pills hiển thị trên trang chủ (7.2s)
+  ok 338 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:1092:7 › 🔍 NHÓM 10: TÌM KIẾM & DUYỆT › 10.4 Click vào quán → DetailRestaurant load (10.2s)
+  ok 339 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:1112:7 › 🔍 NHÓM 10: TÌM KIẾM & DUYỆT › 10.5 Search autocomplete API hoạt động (3.4s)
+  ok 340 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:1128:7 › 📱 NHÓM 11: RESPONSIVE & UX › 11.1 Login page mobile (375px) không overflow (1.0s)
+  ok 341 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:1137:7 › 📱 NHÓM 11: RESPONSIVE & UX › 11.2 Signup page mobile form vừa viewport (3.6s)
+  ok 342 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:1146:7 › 📱 NHÓM 11: RESPONSIVE & UX › 11.3 Form inputs font-size >= 16px (chống iOS zoom) (2.7s)
+Cart without login -> URL: https://fastship-web.onrender.com/Home/Login, redirected to login: true
+  ok 337 [Desktop Chromium Fast] › tests\customer-flow.spec.ts:803:7 › Customer: Edge Cases › accessing cart with invalid session shows login (23.6s)
+  ok 343 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:1156:7 › 📱 NHÓM 11: RESPONSIVE & UX › 11.4 Trang chủ mobile không overflow ngang (6.5s)
+  ok 345 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:1166:7 › 📱 NHÓM 11: RESPONSIVE & UX › 11.5 Auth pages có header/logo Fastship (1.4s)
+  ok 346 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:1176:7 › 📱 NHÓM 11: RESPONSIVE & UX › 11.6 Skeleton loading hoặc loading indicator khi trang load (1.9s)
+  ok 347 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:1187:7 › 📱 NHÓM 11: RESPONSIVE & UX › 11.7 Footer hiển thị trên trang chủ (25.3s)
+  ok 348 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:1198:7 › 📱 NHÓM 11: RESPONSIVE & UX › 11.8 Logo Fastship click về trang chủ (2.2s)
+  ok 349 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:1214:7 › 🔒 NHÓM 12: PERFORMANCE & SECURITY › 12.1 Health endpoint trả 200 OK (1.3s)
+  ok 350 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:1219:7 › 🔒 NHÓM 12: PERFORMANCE & SECURITY › 12.2 CSRF token có trên Login form (2.2s)
+⚠️ goto timeout, retrying...
+  ok 351 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:1228:7 › 🔒 NHÓM 12: PERFORMANCE & SECURITY › 12.3 Session cookie có flag HttpOnly (35.2s)
+⏱️ Trang chủ load: 749ms
+  ok 352 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:1237:7 › 🔒 NHÓM 12: PERFORMANCE & SECURITY › 12.4 Trang chủ load trong 10 giây (1.5s)
+⏱️ Login page load: 460ms
+  ok 353 [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:1246:7 › 🔒 NHÓM 12: PERFORMANCE & SECURITY › 12.5 Login page load trong 10 giây (1.1s)
+Cart items after rapid add: 1
+  ok 344 [Desktop Chromium Fast] › tests\customer-flow.spec.ts:817:7 › Customer: Edge Cases › rapid add-to-cart does not duplicate items (1.8m)
+
+
+  1) [Desktop Chromium Fast] › tests\20-performance.spec.ts:96:7 › 🚫 Console errors › [TC-PERF-07] Cart page — 0 critical JS errors 
+
+    Test timeout of 45000ms exceeded.
+
+    Error: page.waitForTimeout: Test timeout of 45000ms exceeded.
+
+       at ..\pages\LoginPage.ts:69
+
+      67 |
+      68 |       const url = this.page.url();
+    > 69 |       const bodyText = (await this.page.locator('body').textContent().catch(() => '')) || '';
+         |                         ^
+      70 |       const isRateLimited = bodyText.includes('429') || bodyText.includes('quá nhiều') || bodyText.includes('Rate limit') || bodyText.includes('Too Many Requests');
+      71 |       if (isRateLimited) {
+      72 |         console.log(`⚠️ Rate limited, sẽ retry sau...`);
+        at LoginPage.login (C:\Users\MingDuc\Desktop\TMDT\e2e-tests\pages\LoginPage.ts:69:25)
+        at loginAs (C:\Users\MingDuc\Desktop\TMDT\e2e-tests\tests\20-performance.spec.ts:15:3)
+        at C:\Users\MingDuc\Desktop\TMDT\e2e-tests\tests\20-performance.spec.ts:97:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\20-performance-🚫-Console--aa279-page-—-0-critical-JS-errors-Desktop-Chromium-Fast\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\20-performance-🚫-Console--aa279-page-—-0-critical-JS-errors-Desktop-Chromium-Fast\error-context.md
+
+  2) [Desktop Chromium Fast] › tests\20-performance.spec.ts:162:7 › 📡 API response times › [TC-PERF-10] MenuSearch API < 5s 
+
+    Test timeout of 45000ms exceeded.
+
+    Error: page.waitForTimeout: Test timeout of 45000ms exceeded.
+
+       at ..\pages\LoginPage.ts:69
+
+      67 |
+      68 |       const url = this.page.url();
+    > 69 |       const bodyText = (await this.page.locator('body').textContent().catch(() => '')) || '';
+         |                         ^
+      70 |       const isRateLimited = bodyText.includes('429') || bodyText.includes('quá nhiều') || bodyText.includes('Rate limit') || bodyText.includes('Too Many Requests');
+      71 |       if (isRateLimited) {
+      72 |         console.log(`⚠️ Rate limited, sẽ retry sau...`);
+        at LoginPage.login (C:\Users\MingDuc\Desktop\TMDT\e2e-tests\pages\LoginPage.ts:69:25)
+        at loginAs (C:\Users\MingDuc\Desktop\TMDT\e2e-tests\tests\20-performance.spec.ts:15:3)
+        at C:\Users\MingDuc\Desktop\TMDT\e2e-tests\tests\20-performance.spec.ts:163:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\20-performance-📡-API-resp-0a18c-C-PERF-10-MenuSearch-API-5s-Desktop-Chromium-Fast\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\20-performance-📡-API-resp-0a18c-C-PERF-10-MenuSearch-API-5s-Desktop-Chromium-Fast\error-context.md
+
+  3) [Desktop Chromium Fast] › tests\accessibility.spec.ts:110:7 › Accessibility: Images & Alt Text › all images on restaurant detail have alt 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: 0
+    Received: 3
+
+      122 |
+      123 |     console.log(`Restaurant detail images missing alt: ${missingAlt}`);
+    > 124 |     expect(missingAlt).toBe(0);
+          |                        ^
+      125 |   });
+      126 |
+      127 |   test('Font Awesome icons have aria-hidden or aria-label', async ({ page }) => {
+        at C:\Users\MingDuc\Desktop\TMDT\e2e-tests\tests\accessibility.spec.ts:124:24
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\accessibility-Accessibilit-1190b--restaurant-detail-have-alt-Desktop-Chromium-Fast\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\accessibility-Accessibilit-1190b--restaurant-detail-have-alt-Desktop-Chromium-Fast\error-context.md
+
+  4) [Desktop Chromium Fast] › tests\admin-flow.spec.ts:51:7 › Admin: Dashboard › dashboard shows KPI cards 
+
+    Error: expect(received).toBeGreaterThan(expected)
+
+    Expected: > 0
+    Received:   0
+
+      54 |     await page.waitForTimeout(3000);
+      55 |     const count = await page.locator('.stat-card').count();
+    > 56 |     expect(count).toBeGreaterThan(0);
+         |                   ^
+      57 |   });
+      58 |
+      59 |   test('dashboard has revenue chart canvas', async ({ page }) => {
+        at C:\Users\MingDuc\Desktop\TMDT\e2e-tests\tests\admin-flow.spec.ts:56:19
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\admin-flow-Admin-Dashboard-dashboard-shows-KPI-cards-Desktop-Chromium-Fast\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\admin-flow-Admin-Dashboard-dashboard-shows-KPI-cards-Desktop-Chromium-Fast\error-context.md
+
+  5) [Desktop Chromium Fast] › tests\admin-flow.spec.ts:163:7 › Admin: User Management › search user works 
+
+    TimeoutError: locator.fill: Timeout 20000ms exceeded.
+    Call log:
+      - waiting for locator('#searchInput').first()
+
+
+       at ..\pages\AdminPage.ts:70
+
+      68 |   async searchUser(keyword: string) {
+      69 |     const searchInput = this.page.locator('#searchInput').first();
+    > 70 |     await searchInput.fill(keyword);
+         |                       ^
+      71 |     await this.page.waitForTimeout(1000);
+      72 |   }
+      73 | }
+        at AdminPage.searchUser (C:\Users\MingDuc\Desktop\TMDT\e2e-tests\pages\AdminPage.ts:70:23)
+        at C:\Users\MingDuc\Desktop\TMDT\e2e-tests\tests\admin-flow.spec.ts:168:17
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\admin-flow-Admin-User-Management-search-user-works-Desktop-Chromium-Fast\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\admin-flow-Admin-User-Management-search-user-works-Desktop-Chromium-Fast\error-context.md
+
+  6) [Desktop Chromium Fast] › tests\admin-flow.spec.ts:175:7 › Admin: User Management › search for non-existent user shows empty 
+
+    TimeoutError: locator.fill: Timeout 20000ms exceeded.
+    Call log:
+      - waiting for locator('#searchInput').first()
+
+
+       at ..\pages\AdminPage.ts:70
+
+      68 |   async searchUser(keyword: string) {
+      69 |     const searchInput = this.page.locator('#searchInput').first();
+    > 70 |     await searchInput.fill(keyword);
+         |                       ^
+      71 |     await this.page.waitForTimeout(1000);
+      72 |   }
+      73 | }
+        at AdminPage.searchUser (C:\Users\MingDuc\Desktop\TMDT\e2e-tests\pages\AdminPage.ts:70:23)
+        at C:\Users\MingDuc\Desktop\TMDT\e2e-tests\tests\admin-flow.spec.ts:180:17
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\admin-flow-Admin-User-Mana-3c2a8-n-existent-user-shows-empty-Desktop-Chromium-Fast\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\admin-flow-Admin-User-Mana-3c2a8-n-existent-user-shows-empty-Desktop-Chromium-Fast\error-context.md
+
+  7) [Desktop Chromium Fast] › tests\admin-flow.spec.ts:203:7 › Admin: User Management › user management has edit actions 
+
+    Test timeout of 120000ms exceeded.
+
+    Error: page.waitForTimeout: Test timeout of 120000ms exceeded.
+
+       at ..\pages\LoginPage.ts:56
+
+      54 |         const jitter = 45_000 + Math.floor(Math.random() * 30_001);
+      55 |         console.log(`⏳ Login retry #${attempt} (chờ ${Math.round(jitter/1000)}s tránh rate limit)...`);
+    > 56 |         await this.page.waitForTimeout(jitter);
+         |                         ^
+      57 |       }
+      58 |       await this.gotoLogin();
+      59 |       await this.usernameInput.fill(username);
+        at LoginPage.login (C:\Users\MingDuc\Desktop\TMDT\e2e-tests\pages\LoginPage.ts:56:25)
+        at loginAsAdmin (C:\Users\MingDuc\Desktop\TMDT\e2e-tests\tests\admin-flow.spec.ts:23:15)
+        at C:\Users\MingDuc\Desktop\TMDT\e2e-tests\tests\admin-flow.spec.ts:204:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\admin-flow-Admin-User-Mana-dee0f-management-has-edit-actions-Desktop-Chromium-Fast\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\admin-flow-Admin-User-Mana-dee0f-management-has-edit-actions-Desktop-Chromium-Fast\error-context.md
+
+  8) [Desktop Chromium Fast] › tests\admin-flow.spec.ts:224:7 › Admin: Order Management › order management page loads 
+
+    Test timeout of 120000ms exceeded.
+
+    Error: page.waitForTimeout: Test timeout of 120000ms exceeded.
+
+       at ..\pages\LoginPage.ts:56
+
+      54 |         const jitter = 45_000 + Math.floor(Math.random() * 30_001);
+      55 |         console.log(`⏳ Login retry #${attempt} (chờ ${Math.round(jitter/1000)}s tránh rate limit)...`);
+    > 56 |         await this.page.waitForTimeout(jitter);
+         |                         ^
+      57 |       }
+      58 |       await this.gotoLogin();
+      59 |       await this.usernameInput.fill(username);
+        at LoginPage.login (C:\Users\MingDuc\Desktop\TMDT\e2e-tests\pages\LoginPage.ts:56:25)
+        at loginAsAdmin (C:\Users\MingDuc\Desktop\TMDT\e2e-tests\tests\admin-flow.spec.ts:23:15)
+        at C:\Users\MingDuc\Desktop\TMDT\e2e-tests\tests\admin-flow.spec.ts:225:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\admin-flow-Admin-Order-Man-751d7-order-management-page-loads-Desktop-Chromium-Fast\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\admin-flow-Admin-Order-Man-751d7-order-management-page-loads-Desktop-Chromium-Fast\error-context.md
+
+  9) [Desktop Chromium Fast] › tests\admin-flow.spec.ts:272:7 › Admin: Order Management › order table shows status column 
+
+    Test timeout of 120000ms exceeded.
+
+    Error: page.waitForTimeout: Test timeout of 120000ms exceeded.
+
+       at ..\pages\LoginPage.ts:56
+
+      54 |         const jitter = 45_000 + Math.floor(Math.random() * 30_001);
+      55 |         console.log(`⏳ Login retry #${attempt} (chờ ${Math.round(jitter/1000)}s tránh rate limit)...`);
+    > 56 |         await this.page.waitForTimeout(jitter);
+         |                         ^
+      57 |       }
+      58 |       await this.gotoLogin();
+      59 |       await this.usernameInput.fill(username);
+        at LoginPage.login (C:\Users\MingDuc\Desktop\TMDT\e2e-tests\pages\LoginPage.ts:56:25)
+        at loginAsAdmin (C:\Users\MingDuc\Desktop\TMDT\e2e-tests\tests\admin-flow.spec.ts:23:15)
+        at C:\Users\MingDuc\Desktop\TMDT\e2e-tests\tests\admin-flow.spec.ts:273:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\admin-flow-Admin-Order-Man-e432d-r-table-shows-status-column-Desktop-Chromium-Fast\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\admin-flow-Admin-Order-Man-e432d-r-table-shows-status-column-Desktop-Chromium-Fast\error-context.md
+
+  10) [Desktop Chromium Fast] › tests\admin-flow.spec.ts:503:7 › Admin: Navigation & Sidebar › sidebar is collapsible on mobile 
+
+    TimeoutError: locator.click: Timeout 20000ms exceeded.
+    Call log:
+      - waiting for locator('.nav-toggler, .sidebar-toggle, [class*="hamburger"], .menu-toggle, button[aria-label*="menu"]').first()
+        - locator resolved to <div class="hamburger">…</div>
+      - attempting click action
+        2 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <div class="header-content">…</div> from <div class="header">…</div> subtree intercepts pointer events
+        - retrying click action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <div class="header-content">…</div> from <div class="header">…</div> subtree intercepts pointer events
+        - retrying click action
+          - waiting 100ms
+        37 × waiting for element to be visible, enabled and stable
+           - element is visible, enabled and stable
+           - scrolling into view if needed
+           - done scrolling
+           - <div class="header-content">…</div> from <div class="header">…</div> subtree intercepts pointer events
+         - retrying click action
+           - waiting 500ms
+
+
+      511 |     console.log(`Mobile sidebar toggle visible: ${visible}`);
+      512 |     if (visible) {
+    > 513 |       await toggle.click();
+          |                    ^
+      514 |       await page.waitForTimeout(500);
+      515 |       console.log('Sidebar toggle clicked');
+      516 |     }
+        at C:\Users\MingDuc\Desktop\TMDT\e2e-tests\tests\admin-flow.spec.ts:513:20
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\admin-flow-Admin-Navigatio-96efb-ar-is-collapsible-on-mobile-Desktop-Chromium-Fast\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\admin-flow-Admin-Navigatio-96efb-ar-is-collapsible-on-mobile-Desktop-Chromium-Fast\error-context.md
+
+  11) [Desktop Chromium Fast] › tests\admin-flow.spec.ts:627:7 › Admin: CRUD Operations › admin dashboard data updates after navigation 
+
+    Test timeout of 120000ms exceeded.
+
+    Error: page.waitForTimeout: Test timeout of 120000ms exceeded.
+
+       at ..\pages\LoginPage.ts:56
+
+      54 |         const jitter = 45_000 + Math.floor(Math.random() * 30_001);
+      55 |         console.log(`⏳ Login retry #${attempt} (chờ ${Math.round(jitter/1000)}s tránh rate limit)...`);
+    > 56 |         await this.page.waitForTimeout(jitter);
+         |                         ^
+      57 |       }
+      58 |       await this.gotoLogin();
+      59 |       await this.usernameInput.fill(username);
+        at LoginPage.login (C:\Users\MingDuc\Desktop\TMDT\e2e-tests\pages\LoginPage.ts:56:25)
+        at loginAsAdmin (C:\Users\MingDuc\Desktop\TMDT\e2e-tests\tests\admin-flow.spec.ts:23:15)
+        at C:\Users\MingDuc\Desktop\TMDT\e2e-tests\tests\admin-flow.spec.ts:628:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\admin-flow-Admin-CRUD-Oper-f54a2-ta-updates-after-navigation-Desktop-Chromium-Fast\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\admin-flow-Admin-CRUD-Oper-f54a2-ta-updates-after-navigation-Desktop-Chromium-Fast\error-context.md
+
+  12) [Desktop Chromium Fast] › tests\auth-flow.spec.ts:58:7 › Auth: Login Success › login shows user name in navbar after success 
+
+    Error: expect(received).toBeTruthy()
+
+    Received: false
+
+      71 |       const nameFound = bodyText.includes(USERS.customer1.name) ||
+      72 |         navbarText.includes(USERS.customer1.name);
+    > 73 |       expect(nameFound).toBeTruthy();
+         |                         ^
+      74 |     }
+      75 |   });
+      76 |
+        at C:\Users\MingDuc\Desktop\TMDT\e2e-tests\tests\auth-flow.spec.ts:73:25
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\auth-flow-Auth-Login-Succe-07b93-ame-in-navbar-after-success-Desktop-Chromium-Fast\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\auth-flow-Auth-Login-Succe-07b93-ame-in-navbar-after-success-Desktop-Chromium-Fast\error-context.md
+
+  13) [Desktop Chromium Fast] › tests\auth-flow.spec.ts:193:7 › Auth: Logout › logout clears session and redirects to home 
+
+    TimeoutError: locator.click: Timeout 20000ms exceeded.
+    Call log:
+      - waiting for locator('a[href*="/Home/Logout"]').first()
+        - locator resolved to <a href="/Home/Logout" onclick="sessionStorage.clear(); localStorage.clear();" class="dropdown-item d-flex align-items-center gap-2 px-3 py-2">…</a>
+      - attempting click action
+        2 × waiting for element to be visible, enabled and stable
+          - element is not visible
+        - retrying click action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and stable
+          - element is not visible
+        - retrying click action
+          - waiting 100ms
+        36 × waiting for element to be visible, enabled and stable
+           - element is not visible
+         - retrying click action
+           - waiting 500ms
+
+
+      200 |
+      201 |     await home.gotoHome();
+    > 202 |     await home.logoutLink.first().click();
+          |                                   ^
+      203 |     await page.waitForLoadState('networkidle');
+      204 |     await page.waitForTimeout(2000);
+      205 |
+        at C:\Users\MingDuc\Desktop\TMDT\e2e-tests\tests\auth-flow.spec.ts:202:35
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\auth-flow-Auth-Logout-logo-a2dbe-ssion-and-redirects-to-home-Desktop-Chromium-Fast\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\auth-flow-Auth-Logout-logo-a2dbe-ssion-and-redirects-to-home-Desktop-Chromium-Fast\error-context.md
+
+  14) [Desktop Chromium Fast] › tests\auth-flow.spec.ts:213:7 › Auth: Logout › after logout, cart is not accessible 
+
+    TimeoutError: locator.click: Timeout 20000ms exceeded.
+    Call log:
+      - waiting for locator('a[href*="/Home/Logout"]').first()
+        - locator resolved to <a href="/Home/Logout" onclick="sessionStorage.clear(); localStorage.clear();" class="dropdown-item d-flex align-items-center gap-2 px-3 py-2">…</a>
+      - attempting click action
+        2 × waiting for element to be visible, enabled and stable
+          - element is not visible
+        - retrying click action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and stable
+          - element is not visible
+        - retrying click action
+          - waiting 100ms
+        33 × waiting for element to be visible, enabled and stable
+           - element is not visible
+         - retrying click action
+           - waiting 500ms
+
+
+      219 |     const home = new HomePage(page);
+      220 |     await home.gotoHome();
+    > 221 |     await home.logoutLink.first().click();
+          |                                   ^
+      222 |     await page.waitForLoadState('networkidle');
+      223 |     await page.waitForTimeout(2000);
+      224 |
+        at C:\Users\MingDuc\Desktop\TMDT\e2e-tests\tests\auth-flow.spec.ts:221:35
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\auth-flow-Auth-Logout-after-logout-cart-is-not-accessible-Desktop-Chromium-Fast\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\auth-flow-Auth-Logout-after-logout-cart-is-not-accessible-Desktop-Chromium-Fast\error-context.md
+
+  15) [Desktop Chromium Fast] › tests\auth-flow.spec.ts:233:7 › Auth: Logout › after logout, restaurant dashboard not accessible 
+
+    TimeoutError: locator.click: Timeout 20000ms exceeded.
+    Call log:
+      - waiting for locator('a[href*="/Home/Logout"]').first()
+        - locator resolved to <a href="/Home/Logout" onclick="sessionStorage.clear(); localStorage.clear();" class="dropdown-item d-flex align-items-center gap-2 px-3 py-2">…</a>
+      - attempting click action
+        2 × waiting for element to be visible, enabled and stable
+          - element is not visible
+        - retrying click action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and stable
+          - element is not visible
+        - retrying click action
+          - waiting 100ms
+        37 × waiting for element to be visible, enabled and stable
+           - element is not visible
+         - retrying click action
+           - waiting 500ms
+
+
+      239 |     const home = new HomePage(page);
+      240 |     await home.gotoHome();
+    > 241 |     await home.logoutLink.first().click();
+          |                                   ^
+      242 |     await page.waitForLoadState('networkidle');
+      243 |     await page.waitForTimeout(2000);
+      244 |
+        at C:\Users\MingDuc\Desktop\TMDT\e2e-tests\tests\auth-flow.spec.ts:241:35
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\auth-flow-Auth-Logout-afte-20a93-nt-dashboard-not-accessible-Desktop-Chromium-Fast\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\auth-flow-Auth-Logout-afte-20a93-nt-dashboard-not-accessible-Desktop-Chromium-Fast\error-context.md
+
+  16) [Desktop Chromium Fast] › tests\auth-flow.spec.ts:255:7 › Auth: Logout › logout link appears in user dropdown 
+
+    Test timeout of 120000ms exceeded.
+
+    Error: page.waitForTimeout: Test timeout of 120000ms exceeded.
+
+       at ..\pages\LoginPage.ts:56
+
+      54 |         const jitter = 45_000 + Math.floor(Math.random() * 30_001);
+      55 |         console.log(`⏳ Login retry #${attempt} (chờ ${Math.round(jitter/1000)}s tránh rate limit)...`);
+    > 56 |         await this.page.waitForTimeout(jitter);
+         |                         ^
+      57 |       }
+      58 |       await this.gotoLogin();
+      59 |       await this.usernameInput.fill(username);
+        at LoginPage.login (C:\Users\MingDuc\Desktop\TMDT\e2e-tests\pages\LoginPage.ts:56:25)
+        at C:\Users\MingDuc\Desktop\TMDT\e2e-tests\tests\auth-flow.spec.ts:259:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\auth-flow-Auth-Logout-logout-link-appears-in-user-dropdown-Desktop-Chromium-Fast\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\auth-flow-Auth-Logout-logout-link-appears-in-user-dropdown-Desktop-Chromium-Fast\error-context.md
+
+  17) [Desktop Chromium Fast] › tests\auth-flow.spec.ts:377:7 › Auth: Role-Based Access Control › customer cannot access /Restaurant 
+
+    Error: expect(received).toBeTruthy()
+
+    Received: false
+
+      382 |     await page.goto(URLS.restaurant, { waitUntil: 'domcontentloaded' });
+      383 |     const redirected = await verifyRedirectedAway(page);
+    > 384 |     expect(redirected).toBeTruthy();
+          |                        ^
+      385 |   });
+      386 |
+      387 |   test('customer cannot access /Shipper', async ({ page }) => {
+        at C:\Users\MingDuc\Desktop\TMDT\e2e-tests\tests\auth-flow.spec.ts:384:24
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\auth-flow-Auth-Role-Based--d8a31-er-cannot-access-Restaurant-Desktop-Chromium-Fast\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\auth-flow-Auth-Role-Based--d8a31-er-cannot-access-Restaurant-Desktop-Chromium-Fast\error-context.md
+
+  18) [Desktop Chromium Fast] › tests\auth-flow.spec.ts:387:7 › Auth: Role-Based Access Control › customer cannot access /Shipper 
+
+    Error: expect(received).toBeTruthy()
+
+    Received: false
+
+      392 |     await page.goto(URLS.shipper, { waitUntil: 'domcontentloaded' });
+      393 |     const redirected = await verifyRedirectedAway(page);
+    > 394 |     expect(redirected).toBeTruthy();
+          |                        ^
+      395 |   });
+      396 |
+      397 |   test('customer cannot access /Admin', async ({ page }) => {
+        at C:\Users\MingDuc\Desktop\TMDT\e2e-tests\tests\auth-flow.spec.ts:394:24
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\auth-flow-Auth-Role-Based--73a8a-tomer-cannot-access-Shipper-Desktop-Chromium-Fast\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\auth-flow-Auth-Role-Based--73a8a-tomer-cannot-access-Shipper-Desktop-Chromium-Fast\error-context.md
+
+  19) [Desktop Chromium Fast] › tests\auth-flow.spec.ts:397:7 › Auth: Role-Based Access Control › customer cannot access /Admin 
+
+    Error: expect(received).toBeTruthy()
+
+    Received: false
+
+      402 |     await page.goto(URLS.admin, { waitUntil: 'domcontentloaded' });
+      403 |     const redirected = await verifyRedirectedAway(page);
+    > 404 |     expect(redirected).toBeTruthy();
+          |                        ^
+      405 |   });
+      406 |
+      407 |   test('restaurant cannot access /Admin', async ({ page }) => {
+        at C:\Users\MingDuc\Desktop\TMDT\e2e-tests\tests\auth-flow.spec.ts:404:24
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\auth-flow-Auth-Role-Based--6e6c9-ustomer-cannot-access-Admin-Desktop-Chromium-Fast\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\auth-flow-Auth-Role-Based--6e6c9-ustomer-cannot-access-Admin-Desktop-Chromium-Fast\error-context.md
+
+  20) [Desktop Chromium Fast] › tests\auth-flow.spec.ts:407:7 › Auth: Role-Based Access Control › restaurant cannot access /Admin 
+
+    Error: expect(received).toBeTruthy()
+
+    Received: false
+
+      412 |     await page.goto(URLS.admin, { waitUntil: 'domcontentloaded' });
+      413 |     const redirected = await verifyRedirectedAway(page);
+    > 414 |     expect(redirected).toBeTruthy();
+          |                        ^
+      415 |   });
+      416 |
+      417 |   test('restaurant cannot access /Shipper', async ({ page }) => {
+        at C:\Users\MingDuc\Desktop\TMDT\e2e-tests\tests\auth-flow.spec.ts:414:24
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\auth-flow-Auth-Role-Based--20674-taurant-cannot-access-Admin-Desktop-Chromium-Fast\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\auth-flow-Auth-Role-Based--20674-taurant-cannot-access-Admin-Desktop-Chromium-Fast\error-context.md
+
+  21) [Desktop Chromium Fast] › tests\auth-flow.spec.ts:417:7 › Auth: Role-Based Access Control › restaurant cannot access /Shipper 
+
+    Error: expect(received).toBeTruthy()
+
+    Received: false
+
+      422 |     await page.goto(URLS.shipper, { waitUntil: 'domcontentloaded' });
+      423 |     const redirected = await verifyRedirectedAway(page);
+    > 424 |     expect(redirected).toBeTruthy();
+          |                        ^
+      425 |   });
+      426 |
+      427 |   test('shipper cannot access /Admin', async ({ page }) => {
+        at C:\Users\MingDuc\Desktop\TMDT\e2e-tests\tests\auth-flow.spec.ts:424:24
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\auth-flow-Auth-Role-Based--e279d-urant-cannot-access-Shipper-Desktop-Chromium-Fast\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\auth-flow-Auth-Role-Based--e279d-urant-cannot-access-Shipper-Desktop-Chromium-Fast\error-context.md
+
+  22) [Desktop Chromium Fast] › tests\auth-flow.spec.ts:427:7 › Auth: Role-Based Access Control › shipper cannot access /Admin 
+
+    Error: expect(received).toBeTruthy()
+
+    Received: false
+
+      432 |     await page.goto(URLS.admin, { waitUntil: 'domcontentloaded' });
+      433 |     const redirected = await verifyRedirectedAway(page);
+    > 434 |     expect(redirected).toBeTruthy();
+          |                        ^
+      435 |   });
+      436 |
+      437 |   test('shipper cannot access /Restaurant', async ({ page }) => {
+        at C:\Users\MingDuc\Desktop\TMDT\e2e-tests\tests\auth-flow.spec.ts:434:24
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\auth-flow-Auth-Role-Based--0aebc-shipper-cannot-access-Admin-Desktop-Chromium-Fast\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\auth-flow-Auth-Role-Based--0aebc-shipper-cannot-access-Admin-Desktop-Chromium-Fast\error-context.md
+
+  23) [Desktop Chromium Fast] › tests\auth-flow.spec.ts:437:7 › Auth: Role-Based Access Control › shipper cannot access /Restaurant 
+
+    Error: expect(received).toBeTruthy()
+
+    Received: false
+
+      442 |     await page.goto(URLS.restaurant, { waitUntil: 'domcontentloaded' });
+      443 |     const redirected = await verifyRedirectedAway(page);
+    > 444 |     expect(redirected).toBeTruthy();
+          |                        ^
+      445 |   });
+      446 |
+      447 |   test('admin can access /Admin', async ({ page }) => {
+        at C:\Users\MingDuc\Desktop\TMDT\e2e-tests\tests\auth-flow.spec.ts:444:24
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\auth-flow-Auth-Role-Based--ae203-er-cannot-access-Restaurant-Desktop-Chromium-Fast\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\auth-flow-Auth-Role-Based--ae203-er-cannot-access-Restaurant-Desktop-Chromium-Fast\error-context.md
+
+  24) [Desktop Chromium Fast] › tests\auth-flow.spec.ts:484:7 › Auth: Session Management › unauthenticated user sees login button, not user dropdown 
+
+    Error: expect(received).toBeTruthy()
+
+    Received: false
+
+      490 |     const dropdownVisible = await home.userDropdown.isVisible().catch(() => false);
+      491 |
+    > 492 |     expect(loginVisible).toBeTruthy();
+          |                          ^
+      493 |     expect(dropdownVisible).toBeFalsy();
+      494 |   });
+      495 |
+        at C:\Users\MingDuc\Desktop\TMDT\e2e-tests\tests\auth-flow.spec.ts:492:26
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\auth-flow-Auth-Session-Man-7d31c-in-button-not-user-dropdown-Desktop-Chromium-Fast\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\auth-flow-Auth-Session-Man-7d31c-in-button-not-user-dropdown-Desktop-Chromium-Fast\error-context.md
+
+  25) [Desktop Chromium Fast] › tests\customer-flow.spec.ts:169:7 › Customer: Restaurant Detail & Menu › search menu filters items 
+
+    TimeoutError: page.waitForResponse: Timeout 20000ms exceeded while waiting for event "response"
+
+       at ..\pages\DetailRestaurantPage.ts:96
+
+      94 |     await this.searchMenuInput.fill(keyword);
+      95 |     await this.searchMenuBtn.click();
+    > 96 |     await this.page.waitForResponse(resp =>
+         |                     ^
+      97 |       resp.url().includes('DetailRestaurant') && resp.status() === 200
+      98 |     );
+      99 |   }
+        at DetailRestaurantPage.searchMenu (C:\Users\MingDuc\Desktop\TMDT\e2e-tests\pages\DetailRestaurantPage.ts:96:21)
+        at C:\Users\MingDuc\Desktop\TMDT\e2e-tests\tests\customer-flow.spec.ts:177:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\customer-flow-Customer-Res-6bd94-u-search-menu-filters-items-Desktop-Chromium-Fast\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\customer-flow-Customer-Res-6bd94-u-search-menu-filters-items-Desktop-Chromium-Fast\error-context.md
+
+  26) [Desktop Chromium Fast] › tests\customer-flow.spec.ts:199:7 › Customer: Restaurant Detail & Menu › add item to cart shows success 
+
+    Test timeout of 120000ms exceeded.
+
+    Error: page.waitForTimeout: Target page, context or browser has been closed
+
+      205 |     if (countBefore > 0) {
+      206 |       await detail.addFirstItemToCart(1);
+    > 207 |       await page.waitForTimeout(2000);
+          |                  ^
+      208 |       console.log('Item added to cart successfully');
+      209 |     }
+      210 |   });
+        at C:\Users\MingDuc\Desktop\TMDT\e2e-tests\tests\customer-flow.spec.ts:207:18
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\customer-flow-Customer-Res-bb440--item-to-cart-shows-success-Desktop-Chromium-Fast\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\customer-flow-Customer-Res-bb440--item-to-cart-shows-success-Desktop-Chromium-Fast\error-context.md
+
+  27) [Desktop Chromium Fast] › tests\customer-flow.spec.ts:308:7 › Customer: Cart Management › cart decrease quantity updates total 
+
+    Test timeout of 120000ms exceeded.
+
+    Error: page.waitForTimeout: Target page, context or browser has been closed
+
+      314 |     if (menuCount > 0) {
+      315 |       await detail.addFirstItemToCart(2);
+    > 316 |       await page.waitForTimeout(2000);
+          |                  ^
+      317 |     }
+      318 |     const cart = new CartPage(page);
+      319 |     await cart.gotoCart();
+        at C:\Users\MingDuc\Desktop\TMDT\e2e-tests\tests\customer-flow.spec.ts:316:18
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\customer-flow-Customer-Car-90df2-ease-quantity-updates-total-Desktop-Chromium-Fast\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\customer-flow-Customer-Car-90df2-ease-quantity-updates-total-Desktop-Chromium-Fast\error-context.md
+
+  28) [Desktop Chromium Fast] › tests\customer-flow.spec.ts:378:7 › Customer: Cart Management › checkout button navigates to checkout 
+
+    Test timeout of 120000ms exceeded.
+
+    Error: page.waitForTimeout: Target page, context or browser has been closed
+
+      384 |     if (menuCount > 0) {
+      385 |       await detail.addFirstItemToCart(1);
+    > 386 |       await page.waitForTimeout(2000);
+          |                  ^
+      387 |     }
+      388 |     const cart = new CartPage(page);
+      389 |     await cart.gotoCart();
+        at C:\Users\MingDuc\Desktop\TMDT\e2e-tests\tests\customer-flow.spec.ts:386:18
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\customer-flow-Customer-Car-1bed4-utton-navigates-to-checkout-Desktop-Chromium-Fast\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\customer-flow-Customer-Car-1bed4-utton-navigates-to-checkout-Desktop-Chromium-Fast\error-context.md
+
+  29) [Desktop Chromium Fast] › tests\customer-flow.spec.ts:469:7 › Customer: Checkout Flow › payment options are displayed 
+
+    Test timeout of 120000ms exceeded.
+
+    Error: page.waitForTimeout: Test timeout of 120000ms exceeded.
+
+       at ..\pages\BasePage.ts:52
+
+      50 |   async waitForPageReady() {
+      51 |     await this.page.waitForLoadState('domcontentloaded');
+    > 52 |     await this.page.waitForTimeout(1000);
+         |                     ^
+      53 |   }
+      54 |
+      55 |   /** Lấy URL hiện tại */
+        at DetailRestaurantPage.waitForPageReady (C:\Users\MingDuc\Desktop\TMDT\e2e-tests\pages\BasePage.ts:52:21)
+        at DetailRestaurantPage.gotoRestaurant (C:\Users\MingDuc\Desktop\TMDT\e2e-tests\pages\DetailRestaurantPage.ts:69:5)
+        at C:\Users\MingDuc\Desktop\TMDT\e2e-tests\tests\customer-flow.spec.ts:472:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\customer-flow-Customer-Che-0d798-yment-options-are-displayed-Desktop-Chromium-Fast\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\customer-flow-Customer-Che-0d798-yment-options-are-displayed-Desktop-Chromium-Fast\error-context.md
+
+  30) [Desktop Chromium Fast] › tests\customer-flow.spec.ts:514:7 › Customer: Checkout Flow › coupon input is available 
+
+    Test timeout of 120000ms exceeded.
+
+    Error: page.waitForTimeout: Target page, context or browser has been closed
+
+      520 |     if (menuCount > 0) {
+      521 |       await detail.addFirstItemToCart(1);
+    > 522 |       await page.waitForTimeout(2000);
+          |                  ^
+      523 |     }
+      524 |     const checkout = new CheckoutPage(page);
+      525 |     await checkout.gotoCheckout();
+        at C:\Users\MingDuc\Desktop\TMDT\e2e-tests\tests\customer-flow.spec.ts:522:18
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\customer-flow-Customer-Che-9da14-w-coupon-input-is-available-Desktop-Chromium-Fast\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\customer-flow-Customer-Che-9da14-w-coupon-input-is-available-Desktop-Chromium-Fast\error-context.md
+
+  31) [Desktop Chromium Fast] › tests\customer-flow.spec.ts:578:7 › Customer: Checkout Flow › submit button exists 
+
+    Error: expect(received).toBeTruthy()
+
+    Received: false
+
+      591 |     const submitVisible = await checkout.submitBtn.isVisible().catch(() => false);
+      592 |     console.log(`Submit button visible: ${submitVisible}`);
+    > 593 |     expect(submitVisible).toBeTruthy();
+          |                           ^
+      594 |   });
+      595 | });
+      596 |
+        at C:\Users\MingDuc\Desktop\TMDT\e2e-tests\tests\customer-flow.spec.ts:593:27
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\customer-flow-Customer-Checkout-Flow-submit-button-exists-Desktop-Chromium-Fast\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\customer-flow-Customer-Checkout-Flow-submit-button-exists-Desktop-Chromium-Fast\error-context.md
+
+  32) [Desktop Chromium Fast] › tests\customer-flow.spec.ts:689:7 › Customer: Product Detail Page › chi tiet san pham page loads 
+
+    Error: expect(received).toContain(expected) // indexOf
+
+    Expected substring: "ChiTietSanPham"
+    Received string:    "https://fastship-web.onrender.com/"
+
+      694 |     const url = page.url();
+      695 |     console.log(`Product detail URL: ${url}`);
+    > 696 |     expect(url).toContain('ChiTietSanPham');
+          |                 ^
+      697 |   });
+      698 |
+      699 |   test('product detail shows name and price', async ({ page }) => {
+        at C:\Users\MingDuc\Desktop\TMDT\e2e-tests\tests\customer-flow.spec.ts:696:17
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\customer-flow-Customer-Pro-e025e-hi-tiet-san-pham-page-loads-Desktop-Chromium-Fast\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\customer-flow-Customer-Pro-e025e-hi-tiet-san-pham-page-loads-Desktop-Chromium-Fast\error-context.md
+
+  33) [Desktop Chromium Fast] › tests\restaurant-flow.spec.ts:80:7 › Restaurant: Dashboard › dashboard has order list link 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator:  locator('a[href*="/Restaurant/OrderList"]').first()
+    Expected: visible
+    Received: hidden
+    Timeout:  8000ms
+
+    Call log:
+      - Expect "toBeVisible" with timeout 8000ms
+      - waiting for locator('a[href*="/Restaurant/OrderList"]').first()
+        19 × locator resolved to <a href="/Restaurant/OrderList" class="dropdown-item d-flex align-items-center gap-2 py-2">…</a>
+           - unexpected value "hidden"
+
+
+      91 |       await page.waitForTimeout(800);
+      92 |     }
+    > 93 |     await expect(restaurant.orderListLink.first()).toBeVisible({ timeout: 8_000 });
+         |                                                    ^
+      94 |   });
+      95 |
+      96 |   test('dashboard shows restaurant name', async ({ page }) => {
+        at C:\Users\MingDuc\Desktop\TMDT\e2e-tests\tests\restaurant-flow.spec.ts:93:52
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\restaurant-flow-Restaurant-02808-shboard-has-order-list-link-Desktop-Chromium-Fast\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\restaurant-flow-Restaurant-02808-shboard-has-order-list-link-Desktop-Chromium-Fast\error-context.md
+
+  34) [Desktop Chromium Fast] › tests\restaurant-flow.spec.ts:236:7 › Restaurant: Order Actions › order status updates after accept 
+
+    Error: expect(received).not.toBe(expected) // Object.is equality
+
+    Expected: not "Chờ shipper lấy hàng"
+
+      249 |         if (orderCountAfter > 0) {
+      250 |           const statusAfter = await restaurant.getFirstOrderStatus();
+    > 251 |           expect(statusAfter).not.toBe(statusBefore);
+          |                                   ^
+      252 |         }
+      253 |       }
+      254 |     }
+        at C:\Users\MingDuc\Desktop\TMDT\e2e-tests\tests\restaurant-flow.spec.ts:251:35
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\restaurant-flow-Restaurant-1d459-status-updates-after-accept-Desktop-Chromium-Fast\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\restaurant-flow-Restaurant-1d459-status-updates-after-accept-Desktop-Chromium-Fast\error-context.md
+
+  35) [Desktop Chromium Fast] › tests\restaurant-flow.spec.ts:287:7 › Restaurant: Menu Management › menu items have edit capability 
+
+    Error: expect(received).toBeTruthy()
+
+    Received: false
+
+      294 |     const deleteCount = await deleteLinks.count();
+      295 |     const hasManagementCapability = editCount + deleteCount > 0;
+    > 296 |     expect(hasManagementCapability).toBeTruthy();
+          |                                     ^
+      297 |   });
+      298 |
+      299 |   test('menu item prices are displayed', async ({ page }) => {
+        at C:\Users\MingDuc\Desktop\TMDT\e2e-tests\tests\restaurant-flow.spec.ts:296:37
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\restaurant-flow-Restaurant-976b2--items-have-edit-capability-Desktop-Chromium-Fast\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\restaurant-flow-Restaurant-976b2--items-have-edit-capability-Desktop-Chromium-Fast\error-context.md
+
+  36) [Desktop Chromium Fast] › tests\shipper-flow.spec.ts:106:7 › Shipper: Order Management › order tab shows claimed orders 
+
+    Test timeout of 120000ms exceeded.
+
+    Error: page.waitForTimeout: Test timeout of 120000ms exceeded.
+
+       at ..\pages\LoginPage.ts:56
+
+      54 |         const jitter = 45_000 + Math.floor(Math.random() * 30_001);
+      55 |         console.log(`⏳ Login retry #${attempt} (chờ ${Math.round(jitter/1000)}s tránh rate limit)...`);
+    > 56 |         await this.page.waitForTimeout(jitter);
+         |                         ^
+      57 |       }
+      58 |       await this.gotoLogin();
+      59 |       await this.usernameInput.fill(username);
+        at LoginPage.login (C:\Users\MingDuc\Desktop\TMDT\e2e-tests\pages\LoginPage.ts:56:25)
+        at loginShipper (C:\Users\MingDuc\Desktop\TMDT\e2e-tests\tests\shipper-flow.spec.ts:12:15)
+        at C:\Users\MingDuc\Desktop\TMDT\e2e-tests\tests\shipper-flow.spec.ts:107:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\shipper-flow-Shipper-Order-6a67f-er-tab-shows-claimed-orders-Desktop-Chromium-Fast\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\shipper-flow-Shipper-Order-6a67f-er-tab-shows-claimed-orders-Desktop-Chromium-Fast\error-context.md
+
+  37) [Desktop Chromium Fast] › tests\shipper-flow.spec.ts:333:7 › Shipper: History › history shows table or empty state 
+
+    Test timeout of 120000ms exceeded.
+
+    Error: page.waitForTimeout: Test timeout of 120000ms exceeded.
+
+       at ..\pages\LoginPage.ts:56
+
+      54 |         const jitter = 45_000 + Math.floor(Math.random() * 30_001);
+      55 |         console.log(`⏳ Login retry #${attempt} (chờ ${Math.round(jitter/1000)}s tránh rate limit)...`);
+    > 56 |         await this.page.waitForTimeout(jitter);
+         |                         ^
+      57 |       }
+      58 |       await this.gotoLogin();
+      59 |       await this.usernameInput.fill(username);
+        at LoginPage.login (C:\Users\MingDuc\Desktop\TMDT\e2e-tests\pages\LoginPage.ts:56:25)
+        at loginShipper (C:\Users\MingDuc\Desktop\TMDT\e2e-tests\tests\shipper-flow.spec.ts:12:15)
+        at C:\Users\MingDuc\Desktop\TMDT\e2e-tests\tests\shipper-flow.spec.ts:334:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\shipper-flow-Shipper-Histo-cc271--shows-table-or-empty-state-Desktop-Chromium-Fast\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\shipper-flow-Shipper-Histo-cc271--shows-table-or-empty-state-Desktop-Chromium-Fast\error-context.md
+
+  38) [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:68:7 › 📝 NHÓM 1: ĐĂNG KÝ (Signup) › 1.1 Signup form hiển thị đủ 8 field 
+
+    TimeoutError: page.goto: Timeout 25000ms exceeded.
+    Call log:
+      - navigating to "https://fastship-web.onrender.com/Home/Signup", waiting until "domcontentloaded"
+
+
+      67 |
+      68 |   test('1.1 Signup form hiển thị đủ 8 field', async ({ page }) => {
+    > 69 |     await page.goto(URLS.signup, { waitUntil: 'domcontentloaded' });
+         |                ^
+      70 |     await waitRender(page, 3000);
+      71 |
+      72 |     const bodyText = await page.locator('body').textContent().catch(() => '');
+        at C:\Users\MingDuc\Desktop\TMDT\e2e-tests\tests\user-comprehensive.spec.ts:69:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\user-comprehensive-📝-NHÓM-e6b41-up-form-hiển-thị-đủ-8-field-Desktop-Chromium-Fast\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\user-comprehensive-📝-NHÓM-e6b41-up-form-hiển-thị-đủ-8-field-Desktop-Chromium-Fast\error-context.md
+
+  39) [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:157:7 › 📝 NHÓM 1: ĐĂNG KÝ (Signup) › 1.4 Mật khẩu yếu (thiếu uppercase) → lỗi strength 
+
+    TimeoutError: page.goto: Timeout 25000ms exceeded.
+    Call log:
+      - navigating to "https://fastship-web.onrender.com/Home/Signup", waiting until "domcontentloaded"
+
+
+      156 |
+      157 |   test('1.4 Mật khẩu yếu (thiếu uppercase) → lỗi strength', async ({ page }) => {
+    > 158 |     await page.goto(URLS.signup, { waitUntil: 'domcontentloaded' });
+          |                ^
+      159 |     await waitRender(page, 3000);
+      160 |
+      161 |     const pwdInput = page.locator('input[name="pwd"], input[name*="MatKhau" i]').first();
+        at C:\Users\MingDuc\Desktop\TMDT\e2e-tests\tests\user-comprehensive.spec.ts:158:16
+
+    Error Context: test-results\user-comprehensive-📝-NHÓM-5b941-ếu-uppercase-→-lỗi-strength-Desktop-Chromium-Fast\error-context.md
+
+  40) [Desktop Chromium Fast] › tests\visual-design.spec.ts:85:7 › Visual: Navbar Consistency › navbar has cart button 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator:  locator('.fs-cart-btn').first()
+    Expected: visible
+    Received: hidden
+    Timeout:  15000ms
+
+    Call log:
+      - Expect "toBeVisible" with timeout 15000ms
+      - waiting for locator('.fs-cart-btn').first()
+        30 × locator resolved to <a href="/Cart" class="fs-cart-btn" aria-label="Giỏ hàng" id="navCartBtnMobile">…</a>
+           - unexpected value "hidden"
+
+
+      86 |     const home = new HomePage(page);
+      87 |     await home.gotoHome();
+    > 88 |     await expect(home.cartButton).toBeVisible({ timeout: 15_000 });
+         |                                   ^
+      89 |   });
+      90 |
+      91 |   test('navbar has login button when not authenticated', async ({ page }) => {
+        at C:\Users\MingDuc\Desktop\TMDT\e2e-tests\tests\visual-design.spec.ts:88:35
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\visual-design-Visual-Navba-b821f-ency-navbar-has-cart-button-Desktop-Chromium-Fast\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\visual-design-Visual-Navba-b821f-ency-navbar-has-cart-button-Desktop-Chromium-Fast\error-context.md
+
+  41) [Desktop Chromium Fast] › tests\visual-design.spec.ts:91:7 › Visual: Navbar Consistency › navbar has login button when not authenticated 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator:  locator('a[href*="/Home/Login"]').first()
+    Expected: visible
+    Received: hidden
+    Timeout:  15000ms
+
+    Call log:
+      - Expect "toBeVisible" with timeout 15000ms
+      - waiting for locator('a[href*="/Home/Login"]').first()
+        32 × locator resolved to <a title="Đăng nhập" href="/Home/Login" aria-label="Đăng nhập" class="fs-mobile-login-btn fs-nav-hover">…</a>
+           - unexpected value "hidden"
+
+
+      92 |     const home = new HomePage(page);
+      93 |     await home.gotoHome();
+    > 94 |     await expect(page.locator('a[href*="/Home/Login"]').first()).toBeVisible({ timeout: 15_000 });
+         |                                                                  ^
+      95 |   });
+      96 |
+      97 |   test('navbar is fixed/sticky on scroll', async ({ page }) => {
+        at C:\Users\MingDuc\Desktop\TMDT\e2e-tests\tests\visual-design.spec.ts:94:66
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\visual-design-Visual-Navba-3c6bd-tton-when-not-authenticated-Desktop-Chromium-Fast\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\visual-design-Visual-Navba-3c6bd-tton-when-not-authenticated-Desktop-Chromium-Fast\error-context.md
+
+  42) [Desktop Chromium Fast] › tests\visual-design.spec.ts:129:7 › Visual: Homepage Layout › category pills row is present 
+
+    TimeoutError: page.waitForSelector: Timeout 15000ms exceeded.
+    Call log:
+      - waiting for locator('#categoryRow')
+
+
+      130 |     const home = new HomePage(page);
+      131 |     await home.gotoHome();
+    > 132 |     await page.waitForSelector('#categoryRow', { state: 'attached', timeout: 15_000 });
+          |                ^
+      133 |     await expect(home.categoryRow).toBeVisible();
+      134 |   });
+      135 |
+        at C:\Users\MingDuc\Desktop\TMDT\e2e-tests\tests\visual-design.spec.ts:132:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\visual-design-Visual-Homep-bb014-tegory-pills-row-is-present-Desktop-Chromium-Fast\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\visual-design-Visual-Homep-bb014-tegory-pills-row-is-present-Desktop-Chromium-Fast\error-context.md
+
+  43) [Desktop Chromium Fast] › tests\visual-design.spec.ts:247:7 › Visual: Restaurant Detail Design › category pills are horizontal scrollable 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: true
+    Received: false
+
+      255 |       return style.overflowX === 'auto' || style.overflowX === 'scroll' || style.display === 'flex';
+      256 |     });
+    > 257 |     expect(scrollable).toBe(true);
+          |                        ^
+      258 |   });
+      259 |
+      260 |   test('add-to-cart buttons are styled (btn-primary)', async ({ page }) => {
+        at C:\Users\MingDuc\Desktop\TMDT\e2e-tests\tests\visual-design.spec.ts:257:24
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\visual-design-Visual-Resta-5c152-s-are-horizontal-scrollable-Desktop-Chromium-Fast\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\visual-design-Visual-Resta-5c152-s-are-horizontal-scrollable-Desktop-Chromium-Fast\error-context.md
+
+  43 failed
+    [Desktop Chromium Fast] › tests\20-performance.spec.ts:96:7 › 🚫 Console errors › [TC-PERF-07] Cart page — 0 critical JS errors 
+    [Desktop Chromium Fast] › tests\20-performance.spec.ts:162:7 › 📡 API response times › [TC-PERF-10] MenuSearch API < 5s 
+    [Desktop Chromium Fast] › tests\accessibility.spec.ts:110:7 › Accessibility: Images & Alt Text › all images on restaurant detail have alt 
+    [Desktop Chromium Fast] › tests\admin-flow.spec.ts:51:7 › Admin: Dashboard › dashboard shows KPI cards 
+    [Desktop Chromium Fast] › tests\admin-flow.spec.ts:163:7 › Admin: User Management › search user works 
+    [Desktop Chromium Fast] › tests\admin-flow.spec.ts:175:7 › Admin: User Management › search for non-existent user shows empty 
+    [Desktop Chromium Fast] › tests\admin-flow.spec.ts:203:7 › Admin: User Management › user management has edit actions 
+    [Desktop Chromium Fast] › tests\admin-flow.spec.ts:224:7 › Admin: Order Management › order management page loads 
+    [Desktop Chromium Fast] › tests\admin-flow.spec.ts:272:7 › Admin: Order Management › order table shows status column 
+    [Desktop Chromium Fast] › tests\admin-flow.spec.ts:503:7 › Admin: Navigation & Sidebar › sidebar is collapsible on mobile 
+    [Desktop Chromium Fast] › tests\admin-flow.spec.ts:627:7 › Admin: CRUD Operations › admin dashboard data updates after navigation 
+    [Desktop Chromium Fast] › tests\auth-flow.spec.ts:58:7 › Auth: Login Success › login shows user name in navbar after success 
+    [Desktop Chromium Fast] › tests\auth-flow.spec.ts:193:7 › Auth: Logout › logout clears session and redirects to home 
+    [Desktop Chromium Fast] › tests\auth-flow.spec.ts:213:7 › Auth: Logout › after logout, cart is not accessible 
+    [Desktop Chromium Fast] › tests\auth-flow.spec.ts:233:7 › Auth: Logout › after logout, restaurant dashboard not accessible 
+    [Desktop Chromium Fast] › tests\auth-flow.spec.ts:255:7 › Auth: Logout › logout link appears in user dropdown 
+    [Desktop Chromium Fast] › tests\auth-flow.spec.ts:377:7 › Auth: Role-Based Access Control › customer cannot access /Restaurant 
+    [Desktop Chromium Fast] › tests\auth-flow.spec.ts:387:7 › Auth: Role-Based Access Control › customer cannot access /Shipper 
+    [Desktop Chromium Fast] › tests\auth-flow.spec.ts:397:7 › Auth: Role-Based Access Control › customer cannot access /Admin 
+    [Desktop Chromium Fast] › tests\auth-flow.spec.ts:407:7 › Auth: Role-Based Access Control › restaurant cannot access /Admin 
+    [Desktop Chromium Fast] › tests\auth-flow.spec.ts:417:7 › Auth: Role-Based Access Control › restaurant cannot access /Shipper 
+    [Desktop Chromium Fast] › tests\auth-flow.spec.ts:427:7 › Auth: Role-Based Access Control › shipper cannot access /Admin 
+    [Desktop Chromium Fast] › tests\auth-flow.spec.ts:437:7 › Auth: Role-Based Access Control › shipper cannot access /Restaurant 
+    [Desktop Chromium Fast] › tests\auth-flow.spec.ts:484:7 › Auth: Session Management › unauthenticated user sees login button, not user dropdown 
+    [Desktop Chromium Fast] › tests\customer-flow.spec.ts:169:7 › Customer: Restaurant Detail & Menu › search menu filters items 
+    [Desktop Chromium Fast] › tests\customer-flow.spec.ts:199:7 › Customer: Restaurant Detail & Menu › add item to cart shows success 
+    [Desktop Chromium Fast] › tests\customer-flow.spec.ts:308:7 › Customer: Cart Management › cart decrease quantity updates total 
+    [Desktop Chromium Fast] › tests\customer-flow.spec.ts:378:7 › Customer: Cart Management › checkout button navigates to checkout 
+    [Desktop Chromium Fast] › tests\customer-flow.spec.ts:469:7 › Customer: Checkout Flow › payment options are displayed 
+    [Desktop Chromium Fast] › tests\customer-flow.spec.ts:514:7 › Customer: Checkout Flow › coupon input is available 
+    [Desktop Chromium Fast] › tests\customer-flow.spec.ts:578:7 › Customer: Checkout Flow › submit button exists 
+    [Desktop Chromium Fast] › tests\customer-flow.spec.ts:689:7 › Customer: Product Detail Page › chi tiet san pham page loads 
+    [Desktop Chromium Fast] › tests\restaurant-flow.spec.ts:80:7 › Restaurant: Dashboard › dashboard has order list link 
+    [Desktop Chromium Fast] › tests\restaurant-flow.spec.ts:236:7 › Restaurant: Order Actions › order status updates after accept 
+    [Desktop Chromium Fast] › tests\restaurant-flow.spec.ts:287:7 › Restaurant: Menu Management › menu items have edit capability 
+    [Desktop Chromium Fast] › tests\shipper-flow.spec.ts:106:7 › Shipper: Order Management › order tab shows claimed orders 
+    [Desktop Chromium Fast] › tests\shipper-flow.spec.ts:333:7 › Shipper: History › history shows table or empty state 
+    [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:68:7 › 📝 NHÓM 1: ĐĂNG KÝ (Signup) › 1.1 Signup form hiển thị đủ 8 field 
+    [Desktop Chromium Fast] › tests\user-comprehensive.spec.ts:157:7 › 📝 NHÓM 1: ĐĂNG KÝ (Signup) › 1.4 Mật khẩu yếu (thiếu uppercase) → lỗi strength 
+    [Desktop Chromium Fast] › tests\visual-design.spec.ts:85:7 › Visual: Navbar Consistency › navbar has cart button 
+    [Desktop Chromium Fast] › tests\visual-design.spec.ts:91:7 › Visual: Navbar Consistency › navbar has login button when not authenticated 
+    [Desktop Chromium Fast] › tests\visual-design.spec.ts:129:7 › Visual: Homepage Layout › category pills row is present 
+    [Desktop Chromium Fast] › tests\visual-design.spec.ts:247:7 › Visual: Restaurant Detail Design › category pills are horizontal scrollable 
+  310 passed (39.4m)

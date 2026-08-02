@@ -1,0 +1,36 @@
+
+Running 1 test using 1 worker
+
+📍 URL sau login: https://fastship-web.onrender.com/Shipper
+❌ JS errors: $(...).DataTable is not a function
+  x  1 [Desktop Chromium] › tests\04-shipper-flow.spec.ts:283:7 › 🖼️ Shipper Visual Checks › [TC-4.14] Console không có JS errors (bỏ qua network 429) (9.7s)
+
+
+  1) [Desktop Chromium] › tests\04-shipper-flow.spec.ts:283:7 › 🖼️ Shipper Visual Checks › [TC-4.14] Console không có JS errors (bỏ qua network 429) 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: 0
+    Received: 1
+
+      291 |       console.log(`❌ JS errors: ${jsErrors.join(' | ')}`);
+      292 |     }
+    > 293 |     expect(jsErrors.length).toBe(0);
+          |                             ^
+      294 |   });
+      295 |
+      296 |   test('[TC-4.15] Desktop layout - không bị overflow', async ({ page }) => {
+        at C:\Users\MingDuc\Desktop\TMDT\e2e-tests\tests\04-shipper-flow.spec.ts:293:29
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\04-shipper-flow-🖼️-Shippe-c342f--errors-bỏ-qua-network-429--Desktop-Chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\04-shipper-flow-🖼️-Shippe-c342f--errors-bỏ-qua-network-429--Desktop-Chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\04-shipper-flow-🖼️-Shippe-c342f--errors-bỏ-qua-network-429--Desktop-Chromium\error-context.md
+
+  1 failed
+    [Desktop Chromium] › tests\04-shipper-flow.spec.ts:283:7 › 🖼️ Shipper Visual Checks › [TC-4.14] Console không có JS errors (bỏ qua network 429) 

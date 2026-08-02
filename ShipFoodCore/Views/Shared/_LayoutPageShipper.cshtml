@@ -227,6 +227,9 @@
 
         <script>
             (function ($) {
+                // ponytail: guard — không Shipper view nào có bảng id="example5", tránh DataTable
+                // ném lỗi "Cannot reinitialise DataTable" trên mọi trang shipper (dead code template)
+                if (!$('#example5').length) return;
                 var table = $('#example5').DataTable({
                     searching: false,
                     paging: true,

@@ -2,147 +2,305 @@
     ViewBag.Title = "ProductList";
     Layout = "~/Views/Shared/_LayoutPageRestaurant.cshtml";
     List<ShipFood.Models.DataAnalytic> datas = ViewBag.datas ?? new List<ShipFood.Models.DataAnalytic>();
+    var total = datas.Count;
+    var conHang = datas.Count(d => d.conhang);
+    var hetHang = total - conHang;
 }
 
+<style>
+    /* ─── ProductList — FastShip Design System (fs-* tokens) ─── */
+    .fs-menu-header { margin-bottom: 1.5rem; }
+    .fs-menu-header h2 { font-size: 1.5rem; font-weight: 700; color: var(--fs-dark); margin: 0; }
+    .fs-menu-header p { margin: 0; font-size: 0.85rem; color: var(--fs-muted); }
+
+    /* Toolbar */
+    .fs-menu-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; }
+    .fs-btn-add {
+        display: inline-flex; align-items: center; gap: 6px;
+        padding: 0.5rem 1.1rem; background: var(--fs-green); color: var(--fs-white);
+        border: none; border-radius: 10px; font-size: 0.85rem; font-weight: 600;
+        cursor: pointer; text-decoration: none; transition: background 0.15s, transform 0.12s;
+        box-shadow: var(--fs-shadow-sm);
+    }
+    .fs-btn-add:hover { background: var(--fs-green-dark); color: var(--fs-white); transform: translateY(-1px); }
+    .fs-btn-add i { font-size: 0.8rem; }
+
+    /* Stats strip */
+    .fs-stats { display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem; }
+    .fs-stat {
+        flex: 1 1 140px; display: flex; align-items: center; gap: 0.75rem;
+        background: var(--fs-white); border: 1px solid var(--fs-border-soft);
+        border-radius: var(--fs-radius); padding: 0.85rem 1.1rem;
+        box-shadow: var(--fs-shadow-sm);
+    }
+    .fs-stat-icon {
+        width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
+        display: flex; align-items: center; justify-content: center; font-size: 1.05rem;
+    }
+    .fs-stat-icon.green { background: var(--fs-green-bg); color: var(--fs-green); }
+    .fs-stat-icon.orange { background: rgba(243,156,18,.12); color: var(--fs-warning); }
+    .fs-stat-icon.red { background: rgba(231,76,60,.1); color: var(--fs-danger); }
+    .fs-stat-num { font-size: 1.15rem; font-weight: 700; color: var(--fs-dark); line-height: 1.1; }
+    .fs-stat-label { font-size: 0.75rem; color: var(--fs-muted); }
+
+    /* Menu cards */
+    .fs-menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1.25rem; }
+    .fs-menu-card {
+        background: var(--fs-white); border: 1px solid var(--fs-border-soft);
+        border-radius: var(--fs-radius-lg); overflow: hidden;
+        box-shadow: var(--fs-shadow-sm); transition: box-shadow 0.2s, transform 0.2s;
+        display: flex; flex-direction: column;
+    }
+    .fs-menu-card:hover { box-shadow: var(--fs-shadow-md); transform: translateY(-2px); }
+    .fs-menu-card-img { position: relative; height: 170px; overflow: hidden; background: var(--fs-light); }
+    .fs-menu-card-img img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.35s; }
+    .fs-menu-card:hover .fs-menu-card-img img { transform: scale(1.05); }
+    .fs-cat-badge {
+        position: absolute; top: 10px; left: 10px;
+        background: rgba(255,255,255,.92); color: var(--fs-green);
+        font-size: 0.7rem; font-weight: 700; padding: 4px 10px; border-radius: 20px;
+        box-shadow: var(--fs-shadow-sm); backdrop-filter: blur(4px);
+    }
+    .fs-soldout-overlay {
+        position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+        background: rgba(26,26,46,.55); color: #fff; font-weight: 700; font-size: 0.85rem;
+        letter-spacing: 1px; text-transform: uppercase;
+    }
+    .fs-menu-card-body { padding: 1.1rem 1.2rem 1.2rem; display: flex; flex-direction: column; gap: 0.6rem; flex: 1; }
+    .fs-menu-name {
+        font-size: 1.02rem; font-weight: 700; color: var(--fs-dark); text-decoration: none;
+        line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .fs-menu-name:hover { color: var(--fs-green); }
+    .fs-menu-meta { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+    .fs-menu-price { font-size: 1.1rem; font-weight: 800; color: var(--fs-green); }
+    .fs-menu-price small { font-size: 0.75rem; font-weight: 600; color: var(--fs-muted); }
+    .fs-rating { display: inline-flex; align-items: center; gap: 4px; font-size: 0.78rem; color: var(--fs-muted); }
+    .fs-rating i { font-size: 0.72rem; }
+    .fs-rating i.on { color: var(--fs-warning); }
+    .fs-rating i.off { color: var(--fs-border); }
+
+    /* Actions row */
+    .fs-menu-actions { display: flex; align-items: center; gap: 0.5rem; margin-top: auto; padding-top: 0.5rem; border-top: 1px dashed var(--fs-border-soft); }
+    .fs-avail {
+        display: inline-flex; align-items: center; gap: 6px; border: none; cursor: pointer;
+        padding: 0.42rem 0.85rem; border-radius: 20px; font-size: 0.78rem; font-weight: 700;
+        transition: all 0.15s; flex-shrink: 0;
+    }
+    .fs-avail.on { background: var(--fs-green-bg); color: var(--fs-green-dark); }
+    .fs-avail.on:hover { background: rgba(60,184,21,.15); }
+    .fs-avail.off { background: rgba(107,114,128,.12); color: var(--fs-muted); }
+    .fs-avail.off:hover { background: rgba(231,76,60,.1); color: var(--fs-danger); }
+    .fs-action-btn {
+        display: inline-flex; align-items: center; gap: 5px; border-radius: 8px;
+        font-size: 0.78rem; font-weight: 600; padding: 0.4rem 0.75rem;
+        border: none; cursor: pointer; text-decoration: none; transition: all 0.13s;
+    }
+    .fs-action-btn.edit { background: var(--fs-light); color: var(--fs-dark); border: 1px solid var(--fs-border); }
+    .fs-action-btn.edit:hover { border-color: var(--fs-green); color: var(--fs-green); }
+    .fs-action-btn.delete { background: transparent; color: var(--fs-danger); border: 1px solid transparent; }
+    .fs-action-btn.delete:hover { background: #ffebee; border-color: #ffcdd2; }
+    .fs-menu-actions .spacer { flex: 1; }
+
+    /* Empty state */
+    .fs-menu-empty {
+        text-align: center; padding: 4rem 1.5rem; color: var(--fs-muted-soft);
+        background: var(--fs-white); border: 1.5px dashed var(--fs-border);
+        border-radius: var(--fs-radius-lg);
+    }
+    .fs-menu-empty i { font-size: 3rem; margin-bottom: 1rem; display: block; color: var(--fs-border); }
+    .fs-menu-empty h5 { color: var(--fs-muted); font-weight: 700; }
+    .fs-menu-empty p { font-size: 0.85rem; }
+
+    /* Toast (design tokens) */
+    .fs-toast {
+        position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+        background: var(--fs-dark); color: #fff; padding: 10px 24px; border-radius: 10px;
+        font-size: 14px; z-index: 99999; box-shadow: var(--fs-shadow-lg);
+    }
+    .fs-toast.success { background: var(--fs-green-dark); }
+    .fs-toast.error { background: var(--fs-danger); }
+
+    /* ponytail: responsive */
+    @@media (max-width: 576px) {
+        .fs-menu-grid { grid-template-columns: 1fr; }
+        .fs-stat { flex: 1 1 100%; }
+    }
+</style>
+
 <div class="container-fluid">
-    <div class="row page-titles mx-0">
-        <div class="col-sm-6 p-md-0">
-            <div class="welcome-text">
-                <h4>Xin chào, chào mừng trở lại!</h4>
-            </div>
+    <!-- Header -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between fs-menu-header">
+        <div>
+            <h2>Danh sách thực đơn</h2>
+            <p>Quản lý món ăn của quán</p>
         </div>
-        <div class="col-sm-6 p-md-0 justify-content-sm-end mt-2 mt-sm-0 d-flex">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="javascript:void(0)">Cửa hàng</a></li>
-                <li class="breadcrumb-item active"><a href="javascript:void(0)">Thực đơn</a></li>
-            </ol>
+        <div class="fs-menu-toolbar">
+            <a href="~/Restaurant/ProductDetail" class="fs-btn-add" aria-label="Thêm món mới">
+                <i class="fas fa-plus"></i> Thêm món
+            </a>
         </div>
     </div>
-    <div class="row">
-        
-        @foreach (var i in datas)
-        {
-            <div class="col-lg-12 col-xl-6">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="row m-b-30">
-                            <div class="col-md-5 col-xxl-12">
-                                <div class="new-arrival-product mb-4 mb-xxl-4 mb-md-0">
-                                    <div class="new-arrivals-img-contnent">
-                                        <img class="img-fluid" src="@TinhToan.HinhAnhUrl(i.hinhAnh)" alt="" />
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-7 col-xxl-12">                                    <div class="new-arrival-content position-relative">
-                                        <a href="~/Restaurant/ProductDetail/@i.maMonAn"><h4>@i.tenMonAn</h4></a>
-                                        <p class="price">@i.giaTien?.ToString("N0") VNĐ</p>
-                                        <p>
-                                            Tình trạng:
-                                            <button class="btn btn-sm toggle-conhang @(i.conhang ? "btn-success" : "btn-secondary")"
-                                                    data-mamon="@i.maMonAn"
-                                                    onclick="toggleConHang(this)"
-                                                    aria-label="Bật/tắt trạng thái còn hàng cho @i.tenMonAn">
-                                                @(i.conhang ? "🔴 Còn hàng" : "⚪ Hết hàng")
-                                            </button>
-                                        </p>
-                                    <p>Mã món: <span class="item">@i.maMonAn</span></p>
-                                    <p>Dạnh mục: <span class="item">@i.tenDanhMuc</span></p>
-                                    <div class="comment-review star-rating text-right">
-                                        <ul>
-                                            @for (int index = 1; index <= (i.diemDanhGia ?? 0); index++)
-                                            {
-                                                <i class="fa fa-star text-orange"></i>
-                                            }
-                                            @for (int index = 1; index <= 5 - (i.diemDanhGia ?? 0); index++)
-                                            {
-                                                <i class="fa fa-star text-gray"></i>
-                                            }
-                                        </ul>
-                                        <span class="review-text">(@i.soDanhGia Đánh giá)</span>
-                                    </div>
-                                </div>
-                                <div style="display:flex">
-                                    <form action="@Url.Action("XoaMonAn", "Restaurant")" method="post" style="margin:auto; display:inline;">
-                                        @Html.AntiForgeryToken()
-                                        <input type="hidden" name="id" value="@i.maMonAn" />
-                                        <button style="width:140px" type="submit" class="btn btn-warning" onclick="return confirm('Bạn có chắc chắn muốn xóa món này?');">Xoá</button>
-                                    </form>
-                                    <a style="margin:auto" href="~/Restaurant/ProductDetail/@i.maMonAn"><button style="width:140px" type="submit" class="btn btn-primary">Chỉnh sửa</button></a>
-                                </div>
-                            </div>
+
+    <!-- Stats strip -->
+    <div class="fs-stats">
+        <div class="fs-stat">
+            <div class="fs-stat-icon green"><i class="fas fa-utensils"></i></div>
+            <div>
+                <div class="fs-stat-num">@total</div>
+                <div class="fs-stat-label">Tổng món</div>
+            </div>
+        </div>
+        <div class="fs-stat">
+            <div class="fs-stat-icon green"><i class="fas fa-check-circle"></i></div>
+            <div>
+                <div class="fs-stat-num">@conHang</div>
+                <div class="fs-stat-label">Còn hàng</div>
+            </div>
+        </div>
+        <div class="fs-stat">
+            <div class="fs-stat-icon red"><i class="fas fa-ban"></i></div>
+            <div>
+                <div class="fs-stat-num">@hetHang</div>
+                <div class="fs-stat-label">Hết hàng</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Menu grid -->
+    @if (!datas.Any())
+    {
+        <div class="fs-menu-empty">
+            <i class="fas fa-utensils"></i>
+            <h5>Chưa có món ăn nào</h5>
+            <p>Bắt đầu thêm món đầu tiên cho quán của bạn</p>
+            <a href="~/Restaurant/ProductDetail" class="fs-btn-add" style="margin-top:0.5rem;">
+                <i class="fas fa-plus"></i> Thêm món
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="fs-menu-grid">
+            @foreach (var i in datas)
+            {
+                <div class="fs-menu-card">
+                    <div class="fs-menu-card-img">
+                        <img class="img-fluid" src="@TinhToan.HinhAnhUrl(i.hinhAnh)" alt="@i.tenMonAn" loading="lazy" onerror="this.src='/Source/Home/img/pizza.jpg'" />
+                        <span class="fs-cat-badge">@i.tenDanhMuc</span>
+                        @if (!i.conhang)
+                        {
+                            <div class="fs-soldout-overlay"><i class="fas fa-ban me-2"></i>Hết hàng</div>
+                        }
+                    </div>
+                    <div class="fs-menu-card-body">
+                        <a href="~/Restaurant/ProductDetail/@i.maMonAn" class="fs-menu-name">@i.tenMonAn</a>
+                        <div class="fs-menu-meta">
+                            <span class="fs-menu-price">@i.giaTien?.ToString("N0") <small>đ</small></span>
+                            <span class="fs-rating">
+                                @for (int s = 1; s <= 5; s++)
+                                {
+                                    if (s <= (i.diemDanhGia ?? 0))
+                                    {
+                                        <i class="fas fa-star on"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="fas fa-star off"></i>
+                                    }
+                                }
+                                <span>(@(i.soDanhGia ?? 0))</span>
+                            </span>
+                        </div>
+                        <div class="fs-menu-actions">
+                            <button class="fs-avail @(i.conhang ? "on" : "off")"
+                                    data-mamon="@i.maMonAn"
+                                    onclick="toggleConHang(this)"
+                                    aria-label="Bật/tắt trạng thái còn hàng cho @i.tenMonAn">
+                                @if (i.conhang)
+                                {
+                                    <i class="fas fa-check-circle"></i><span>Còn hàng</span>
+                                }
+                                else
+                                {
+                                    <i class="fas fa-ban"></i><span>Hết hàng</span>
+                                }
+                            </button>
+                            <span class="spacer"></span>
+                            <a href="~/Restaurant/ProductDetail/@i.maMonAn" class="fs-action-btn edit" title="Chỉnh sửa">
+                                <i class="fas fa-pen"></i> Sửa
+                            </a>
+                            <form action="@Url.Action("XoaMonAn", "Restaurant")" method="post" style="margin:0; display:inline;">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@i.maMonAn" />
+                                <button type="submit" class="fs-action-btn delete"
+                                        onclick="return confirm('Bạn có chắc chắn muốn xóa món @i.tenMonAn?');"
+                                        title="Xóa món" aria-label="Xóa món @i.tenMonAn">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
                         </div>
                     </div>
                 </div>
-            </div>
-        }
-    </div>
+            }
+        </div>
+    }
 </div>
 
 @section scripts {
 <script>
-// ─── Task 2c: AJAX Toggle 1-Click Hết hàng nhanh ───
-// ═══ 4b: Optimistic UI — cập nhật ngay UI trước khi AJAX hoàn tất ═══
+// ─── AJAX Toggle 1-Click Hết hàng nhanh (Optimistic UI) ───
 function toggleConHang(btn) {
     var mamon = $(btn).data('mamon');
     var $btn = $(btn);
-    var wasConHang = $btn.hasClass('btn-success');
+    var wasConHang = $btn.hasClass('on');
     var newStatus = wasConHang ? 'Hết hàng' : 'Còn hàng';
-    
-    // ─── Popover xác nhận trước khi gửi AJAX ───
-    // Tạo tooltip xác nhận gắn liền với nút
-    var $confirm = $('<div class="toggle-confirm" style="position:absolute;top:-52px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:8px 16px;border-radius:8px;font-size:13px;white-space:nowrap;z-index:999;box-shadow:0 4px 12px rgba(0,0,0,.2);display:flex;align-items:center;gap:8px;">' +
+
+    // Popover xác nhận
+    var $confirm = $('<div class="toggle-confirm" style="position:absolute;top:-52px;left:50%;transform:translateX(-50%);background:var(--fs-dark,#1a1a2e);color:#fff;padding:8px 16px;border-radius:10px;font-size:13px;white-space:nowrap;z-index:999;box-shadow:var(--fs-shadow-lg,0 8px 30px rgba(0,0,0,.15));display:flex;align-items:center;gap:8px;">' +
         '<span>Chuyển sang <strong>' + newStatus + '</strong>?</span>' +
-        '<button class="btn btn-sm btn-success" style="padding:3px 10px;border:none;border-radius:4px;font-size:12px;font-weight:600;cursor:pointer;">✓</button>' +
-        '<button class="btn btn-sm btn-secondary" style="padding:3px 10px;border:none;border-radius:4px;font-size:12px;cursor:pointer;">✕</button>' +
+        '<button class="btn btn-sm" style="padding:3px 10px;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;background:var(--fs-green,#3CB815);color:#fff;"><i class="fas fa-check"></i></button>' +
+        '<button class="btn btn-sm" style="padding:3px 10px;border:none;border-radius:6px;font-size:12px;cursor:pointer;background:rgba(255,255,255,.18);color:#fff;"><i class="fas fa-times"></i></button>' +
         '</div>');
-    
-    // Định vị popover
+
     $btn.css('position', 'relative').append($confirm);
-    
-    // Xử lý xác nhận
-    $confirm.find('.btn-success').on('click', function(e) {
+
+    $confirm.find('.btn').first().on('click', function(e) {
         e.stopPropagation();
         $confirm.remove();
-        
-        // Optimistic update
         $btn.prop('disabled', true);
-        if (wasConHang) {
-            $btn.text('⚪ Hết hàng').removeClass('btn-success').addClass('btn-secondary');
-        } else {
-            $btn.text('🔴 Còn hàng').removeClass('btn-secondary').addClass('btn-success');
-        }
-        
+
+        // Optimistic update
+        setAvail($btn, !wasConHang);
+
         $.ajax({
             url: '@Url.Action("ToggleConHang", "Restaurant")',
             type: 'POST',
             data: { mamon: mamon },
             success: function(res) {
                 if (res.success) {
-                    $btn.text(res.conhang ? '🔴 Còn hàng' : '⚪ Hết hàng')
-                        .toggleClass('btn-success btn-secondary');
-                    showToast(res.message);
+                    setAvail($btn, res.conhang);
+                    showToast('success', res.message || 'Đã cập nhật');
                 } else {
-                    rollbackToggle($btn, wasConHang);
-                    showToast('❌ ' + (res.message || 'Lỗi'));
+                    setAvail($btn, wasConHang);
+                    showToast('error', res.message || 'Lỗi');
                 }
             },
             error: function() {
-                rollbackToggle($btn, wasConHang);
-                showToast('❌ Lỗi kết nối');
+                setAvail($btn, wasConHang);
+                showToast('error', 'Lỗi kết nối');
             },
             complete: function() {
                 $btn.prop('disabled', false);
             }
         });
     });
-    
-    // Hủy bỏ
-    $confirm.find('.btn-secondary').on('click', function(e) {
+
+    $confirm.find('.btn').last().on('click', function(e) {
         e.stopPropagation();
         $confirm.remove();
     });
-    
-    // Click outside = hủy
+
     setTimeout(function() {
         $(document).one('click', function(e) {
             if (!$confirm.is(e.target) && !$confirm.has(e.target).length) {
@@ -152,23 +310,17 @@ function toggleConHang(btn) {
     }, 10);
 }
 
-// Rollback về trạng thái cũ khi API thất bại
-function rollbackToggle($btn, wasConHang) {
-    if (wasConHang) {
-        $btn.text('🔴 Còn hàng').removeClass('btn-secondary').addClass('btn-success');
-    } else {
-        $btn.text('⚪ Hết hàng').removeClass('btn-success').addClass('btn-secondary');
-    }
+function setAvail($btn, on) {
+    $btn.removeClass('on off').addClass(on ? 'on' : 'off');
+    $btn.html(on
+        ? '<i class="fas fa-check-circle"></i><span>Còn hàng</span>'
+        : '<i class="fas fa-ban"></i><span>Hết hàng</span>');
 }
 
-function showToast(msg) {
-    var t = $('<div class="toast-notification">').text(msg).css({
-        position:'fixed', bottom:'24px', left:'50%', transform:'translateX(-50%)',
-        background:'#333', color:'#fff', padding:'10px 24px', borderRadius:'8px',
-        zIndex:99999, fontSize:'14px', boxShadow:'0 4px 12px rgba(0,0,0,0.2)'
-    });
-    $('body').append(t);
-    setTimeout(function(){ t.fadeOut(400, function(){ t.remove(); }); }, 2500);
+function showToast(type, msg) {
+    var $t = $('<div class="fs-toast ' + (type || '') + '">').text(msg);
+    $('body').append($t);
+    setTimeout(function(){ $t.fadeOut(400, function(){ $t.remove(); }); }, 2500);
 }
 </script>
 }

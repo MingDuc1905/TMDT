@@ -293,6 +293,21 @@
                 select: false,
                 lengthChange: false,
                 order: [[0, 'desc']],
+                // ponytail: FIX realtime — cột Ngày đặt hiển thị dd/MM/yyyy HH:mm bị DataTable sort
+                // theo CHUỖI ('0' < '3' → "02/08" xếp DƯỚI "30/07") → đơn mới hôm nay bị đẩy xuống
+                // trang cuối, tưởng như "không hiện đơn mới". Render ISO yyyy-MM-ddTHH:mm cho sort/type.
+                columnDefs: [{
+                    targets: 0,
+                    type: 'date',
+                    render: function (data, type) {
+                        if (type === 'sort' || type === 'type') {
+                            var m = data.match(/^(\d{2})\/(\d{2})\/(\d{4}) (\d{2}:\d{2})$/);
+                            // ponytail: fallback ISO xa xua cho o ngay null (hien thi "—") de sort on dinh
+                            return m ? m[3] + '-' + m[2] + '-' + m[1] + 'T' + m[4] : '0000-01-01T00:00';
+                        }
+                        return data;
+                    }
+                }]
             });
 
             // ── SignalR: Real-time đơn hàng ──

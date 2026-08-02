@@ -378,7 +378,28 @@
             searching: true,
             paging: true,
             lengthChange: false,
-            order: [[0, 'desc']],
+            // ponytail: FIX sort — trước đây order theo cột Mã ĐH (chuỗi "#99" > "#110" → sai thứ tự
+            // khi ID vượt 99). Chuyển sang sort theo cột Ngày đặt (index 1) với ISO render để đúng ngày tháng.
+            order: [[1, 'desc']],
+            // ponytail: FIX sort ngày — ô hiển thị dd/MM/yy HH:mm bị DataTable sort theo CHUỖI
+            // ('0' < '3' → "02/08/26" xếp DƯỚI "30/07/26"). Render ISO yyyy-MM-ddTHH:mm cho sort/type.
+            columnDefs: [{
+                targets: 1,
+                type: 'date',
+                render: function (data, type) {
+                    if (type === 'sort' || type === 'type') {
+                        var m = data.match(/^(\d{2})\/(\d{2})\/(\d{2}|\d{4}) (\d{2}:\d{2})$/);
+                        if (m) {
+                            // dd/MM/yy (năm 2 số) → chuyển sang 20yy; dd/MM/yyyy giữ nguyên
+                            var y = m[3].length === 2 ? '20' + m[3] : m[3];
+                            return y + '-' + m[2] + '-' + m[1] + 'T' + m[4];
+                        }
+                        // ponytail: fallback ISO xa xua cho ô ngày null (tránh Date.parse NaN làm sort loạn)
+                        return '0000-01-01T00:00';
+                    }
+                    return data;
+                }
+            }],
             language: {
                 url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/vi.json'
             }

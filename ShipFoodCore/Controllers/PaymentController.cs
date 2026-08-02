@@ -38,6 +38,7 @@ using ShipFood.Hubs;
 using ShipFood.Helpers;
 using ShipFood.Models;
 using ShipFood.Services;
+using ShipFood.Utils; // ponytail: TinhToan.GioVietNam — chuyển UTC → GMT+7 khi hiển thị
 
 namespace ShipFood.Controllers;
 
@@ -143,7 +144,7 @@ public class PaymentController : BaseController
             var recentOrderCount = db.tbDonHang
                 .Where(dh => dh.tbThongTinDatHang != null
                     && dh.tbThongTinDatHang.userid == user!.userid
-                    && dh.ngaydathang >= DateTime.Now.AddSeconds(-30))
+                    && dh.ngaydathang >= DateTime.UtcNow.AddSeconds(-30))
                 .Count();
             if (recentOrderCount > 0)
             {
@@ -161,7 +162,7 @@ public class PaymentController : BaseController
                 .Where(dh => dh.tbThongTinDatHang != null
                     && dh.tbThongTinDatHang.userid == user!.userid
                     && dh.trangthai == "Chờ thanh toán"
-                    && dh.ngaydathang >= DateTime.Now.AddMinutes(-5))
+                    && dh.ngaydathang >= DateTime.UtcNow.AddMinutes(-5))
                 .OrderByDescending(dh => dh.ngaydathang)
                 .FirstOrDefault();
             if (recentPendingOrder != null && recentPendingOrder.madh > 0)
@@ -286,7 +287,9 @@ public class PaymentController : BaseController
                 {
                     maquan    = resId,
                     mattdh    = ttdh.mattdh,
-                    ngaydathang = DateTime.Now,
+                    // ponytail: lưu UTC chuẩn — GioVietNam() chuyển sang GMT+7 khi hiển thị
+                    // (tránh double-shift nếu server không chạy UTC)
+                    ngaydathang = DateTime.UtcNow,
                     trangthai = trangThaiBanDau,
                     tongtien  = resTongCong,
                     hinhthucthanhtoan = pttt,
@@ -328,7 +331,7 @@ public class PaymentController : BaseController
                         customerName = hoten ?? "Khách",
                         totalAmount = resTongCong,
                         status = trangThaiBanDau,
-                        time = DateTime.Now.ToString("HH:mm")
+                        time = TinhToan.GioVietNam(DateTime.UtcNow)?.ToString("HH:mm") ?? ""
                     });
                 }
                 catch { }
@@ -343,7 +346,7 @@ public class PaymentController : BaseController
                     {
                         userid = user!.userid,
                         makm = appliedCouponId.Value,
-                        ngaydung = DateTime.Now,
+                        ngaydung = DateTime.UtcNow,
                         madh = createdOrders.First()
                     });
                     db.SaveChanges();
@@ -627,7 +630,7 @@ public class PaymentController : BaseController
             {
                 // Thanh toán thành công
                 donHang.trangthai = "Đã đặt";
-                donHang.ngaythanhtoan = DateTime.Now;
+                donHang.ngaythanhtoan = DateTime.UtcNow; // ponytail: lưu UTC chuẩn
                 donHang.momo_trans_id = transactionNo; // Tái sử dụng cột momo_trans_id để lưu VNPAY transactionNo
                 await db.SaveChangesAsync();
 
@@ -639,7 +642,7 @@ public class PaymentController : BaseController
 
                 // SignalR: thông báo real-time
                 try { await _hubContext.Clients.Group($"order_{madh}").SendAsync("paymentConfirmed", madh, donHang.tongtien); } catch { }
-                try { await _hubContext.Clients.Group($"order_{madh}").SendAsync("orderStatusChanged", madh, "Đã đặt", DateTime.Now.ToString("HH:mm")); } catch { }
+                try { await _hubContext.Clients.Group($"order_{madh}").SendAsync("orderStatusChanged", madh, "Đã đặt", TinhToan.GioVietNam(DateTime.UtcNow)?.ToString("HH:mm") ?? ""); } catch { }
 
                 if (donHang.maquan != null)
                 {
@@ -649,7 +652,7 @@ public class PaymentController : BaseController
                         {
                             orderId = donHang.madh,
                             status = "Đã đặt",
-                            time = DateTime.Now.ToString("HH:mm")
+                            time = TinhToan.GioVietNam(DateTime.UtcNow)?.ToString("HH:mm") ?? ""
                         });
                     }
                     catch { }
@@ -1013,7 +1016,7 @@ public class PaymentController : BaseController
                 }
 
                 donHang.trangthai = "Đã đặt";
-                donHang.ngaythanhtoan = DateTime.Now;
+                donHang.ngaythanhtoan = DateTime.UtcNow; // ponytail: lưu UTC chuẩn
                 await db.SaveChangesAsync();
 
                 try { await _eDelivery.GenerateEInvoice(madh); }
@@ -1022,7 +1025,7 @@ public class PaymentController : BaseController
                 _logger.LogInformation("BankWebhook: Order #{OrderId} approved via bank transfer (was cancelled: {WasCancelled})", madh, wasCancelled);
 
                 try { await _hubContext.Clients.Group($"order_{madh}").SendAsync("paymentConfirmed", madh, donHang.tongtien); } catch { }
-                try { await _hubContext.Clients.Group($"order_{madh}").SendAsync("orderStatusChanged", madh, "Đã đặt", DateTime.Now.ToString("HH:mm")); } catch { }
+                try { await _hubContext.Clients.Group($"order_{madh}").SendAsync("orderStatusChanged", madh, "Đã đặt", TinhToan.GioVietNam(DateTime.UtcNow)?.ToString("HH:mm") ?? ""); } catch { }
 
                 if (donHang.maquan != null)
                 {
@@ -1032,7 +1035,7 @@ public class PaymentController : BaseController
                         {
                             orderId = donHang.madh,
                             status = "Đã đặt",
-                            time = DateTime.Now.ToString("HH:mm")
+                            time = TinhToan.GioVietNam(DateTime.UtcNow)?.ToString("HH:mm") ?? ""
                         });
                     }
                     catch { }

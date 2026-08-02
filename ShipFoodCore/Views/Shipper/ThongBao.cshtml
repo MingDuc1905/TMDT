@@ -133,7 +133,7 @@
                             }
                         </p>
                         <p class="notif-time">
-                            <i class="far fa-clock"></i> @item.ngaydathang?.ToString("dd/MM/yyyy HH:mm")
+                            <i class="far fa-clock"></i> @TinhToan.GioVietNam(item.ngaydathang)?.ToString("dd/MM/yyyy HH:mm")
                         </p>
                         @if (item.trangthai == "Chờ shipper lấy hàng")
                         {

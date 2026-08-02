@@ -203,7 +203,7 @@
                                         else { <text><i class="fas fa-hourglass-half" style="margin-right:4px;" aria-hidden="true"></i>@item.trangthai</text> }
                                     </span>
                                 </td>
-                                <td data-label="Ngày" style="color:#6b7280;font-size:12px;">@item.ngaydathang?.ToString("dd/MM HH:mm")</td>
+                                <td data-label="Ngày" style="color:#6b7280;font-size:12px;">@TinhToan.GioVietNam(item.ngaydathang)?.ToString("dd/MM HH:mm")</td>
                                 <td data-label="Thao tác" style="text-align:center;">
                                     @if (isScannable || item.trangthai == "Đã lấy" || item.trangthai == "Đang giao")
                                     {

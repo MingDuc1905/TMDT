@@ -49,7 +49,8 @@ public class AutoCancelPendingOrdersService : BackgroundService
                 var db = scope.ServiceProvider.GetRequiredService<dbFoodyEntities>();
 
                 // ponytail: 30 phút timeout thay vì 15 — bank webhook có thể chậm do ngân hàng xử lý
-                var cutoff = DateTime.Now.AddMinutes(-30);
+                // ponytail: so sánh UTC — ngaydathang lưu UTC (PaymentController), tránh lệch 7h
+                var cutoff = DateTime.UtcNow.AddMinutes(-30);
                 var expiredOrders = await db.tbDonHangs
                     .Where(dh => dh.trangthai == "Chờ thanh toán" && dh.ngaydathang < cutoff)
                     .ToListAsync(stoppingToken);

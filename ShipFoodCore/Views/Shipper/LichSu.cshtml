@@ -53,7 +53,7 @@
                                                 by @item.tbThongTinDatHang.tennguoinhan
                                             </a>
                                         </td>
-                                        <td class="py-2">@item.ngaydathang.Value.ToString("dd/MM/yyyy")</td>
+                                        <td class="py-2">@(TinhToan.GioVietNam(item.ngaydathang)?.ToString("dd/MM/yyyy") ?? "")</td>
                                         <td class="py-2">
 
                                             <p class="mb-0 text-500">@item.tbThongTinDatHang.diachi</p>

@@ -118,7 +118,7 @@
                                 var itemNames = i.tbChiTietDonHangs?.Select(ct => ct.tbMonAn?.tenmon).Where(n => n != null).ToList() ?? new List<string?>();
                                 <tr>
                                     <td><strong>#@i.madh</strong></td>
-                                    <td>@i.ngaydathang?.ToString("dd/MM/yy HH:mm")</td>
+                                    <td>@TinhToan.GioVietNam(i.ngaydathang)?.ToString("dd/MM/yy HH:mm")</td>
                                     <td>@(i.tbQuanAn?.tenquanan ?? "N/A")</td>
                                     <td>
                                         <div class="order-items-list">

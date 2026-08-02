@@ -73,7 +73,7 @@
                                         <strong style="color:#1a1a2e;">#@item.madh</strong>
                                         <br /><small style="color:#6b7280;">@(item.tbQuanAn?.tenquanan ?? "N/A")</small>
                                     </td>
-                                    <td data-label="Ngày">@(item.ngaydathang?.ToString("dd/MM/yyyy HH:mm") ?? "N/A")</td>
+                                    <td data-label="Ngày">@(TinhToan.GioVietNam(item.ngaydathang)?.ToString("dd/MM/yyyy HH:mm") ?? "N/A")</td>
                                     <td data-label="Khách hàng">
                                         <strong>@(item.tbThongTinDatHang?.tennguoinhan ?? "N/A")</strong>
                                         <br /><small style="color:#6b7280;">Shipper: @(item.tbShipper?.tenshipper ?? "Trống")</small>

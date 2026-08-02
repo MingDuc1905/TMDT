@@ -222,7 +222,7 @@
                             _ => "pending"
                         };
                         <tr>
-                            <td data-label="Ngày đặt">@(i.ngaydathang?.ToString("dd/MM/yyyy HH:mm") ?? "—")</td>
+                            <td data-label="Ngày đặt">@(TinhToan.GioVietNam(i.ngaydathang)?.ToString("dd/MM/yyyy HH:mm") ?? "—")</td>
                             <td data-label="Khách hàng">@(i.tbThongTinDatHang?.tennguoinhan ?? "Khách")</td>
                             <td data-label="Tổng tiền"><strong>@i.tongtien?.ToString("N0") đ</strong></td>
                             <td data-label="Trạng thái">

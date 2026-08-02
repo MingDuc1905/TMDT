@@ -223,7 +223,7 @@
                         </div>
                         <div class="order-details">
                             <div><i class="fas fa-store me-2" style="color:#3CB815;width:16px;"></i> <strong>@(order.tbQuanAn?.tenquanan ?? "N/A")</strong></div>
-                            <div><i class="fas fa-calendar me-2" style="color:#6b7280;width:16px;"></i> @order.ngaythanhtoan?.ToString("dd/MM HH:mm")</div>
+                            <div><i class="fas fa-calendar me-2" style="color:#6b7280;width:16px;"></i> @TinhToan.GioVietNam(order.ngaythanhtoan)?.ToString("dd/MM HH:mm")</div>
                             <div><i class="fas fa-money-bill-wave me-2" style="color:#f59e0b;width:16px;"></i> Ship: <strong>@order.phiship?.ToString("N0")đ</strong></div>
                         </div>
                     </div>

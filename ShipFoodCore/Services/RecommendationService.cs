@@ -608,7 +608,7 @@ public class RecommendationService
     /// </summary>
     public async Task<List<tbMonAn>> GetTrendingItems(int take = 6)
     {
-        var twoDaysAgo = DateTime.Now.AddDays(-2);
+        var twoDaysAgo = DateTime.UtcNow.AddDays(-2); // ponytail: ngaydathang lưu UTC
 
         var trending = await _db.tbChiTietDonHang
             .Where(ct => ct.tbDonHang!.ngaydathang >= twoDaysAgo)

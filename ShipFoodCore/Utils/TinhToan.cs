@@ -66,6 +66,17 @@ public class TinhToan
         return "/Source/Restaurant/images/avatar/" + hinhanh;
     }
 
+    /// <summary>
+    /// Chuyển giờ lưu trong DB (UTC — server Render chạy UTC) sang giờ Việt Nam (GMT+7)
+    /// để hiển thị đúng cho người dùng.
+    /// Việt Nam cố định UTC+7 quanh năm (không DST) nên cộng 7h là đủ và đơn giản nhất.
+    /// Trả về null nếu input null.
+    /// </summary>
+    public static DateTime? GioVietNam(DateTime? utc)
+    {
+        return utc?.AddHours(7);
+    }
+
     public static (double Lat, double Lng) TryParseToado(string? toado)
     {
         if (string.IsNullOrWhiteSpace(toado))

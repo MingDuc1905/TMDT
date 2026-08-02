@@ -158,7 +158,7 @@
                     <div class="tx-left">
                         <div class="tx-info">
                             <p class="tx-title">Đơn hàng #@i.madh</p>
-                            <p class="tx-sub">@i.ngaydathang?.ToString("dd/MM/yyyy HH:mm")</p>
+                            <p class="tx-sub">@TinhToan.GioVietNam(i.ngaydathang)?.ToString("dd/MM/yyyy HH:mm")</p>
                         </div>
                     </div>
                     <div class="tx-amount">+@(i.tongtien?.ToString("N0") ?? "0")đ</div>

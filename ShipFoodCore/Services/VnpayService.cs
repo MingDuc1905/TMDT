@@ -16,6 +16,7 @@
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
+using ShipFood.Utils; // ponytail: TinhToan.GioVietNam — vnp_CreateDate phải theo giờ VN, không phải UTC server
 
 namespace ShipFood.Services;
 
@@ -68,7 +69,8 @@ public class VnpayService
         {
             { "vnp_Amount", (amount * 100).ToString() },
             { "vnp_Command", "pay" },
-            { "vnp_CreateDate", DateTime.Now.ToString("yyyyMMddHHmmss") },
+            // ponytail: VNPAY validate theo giờ VN — gửi UTC sẽ lệch 7h khiến giao dịch tưởng đã hết hạn
+            { "vnp_CreateDate", TinhToan.GioVietNam(DateTime.UtcNow)?.ToString("yyyyMMddHHmmss") ?? DateTime.UtcNow.AddHours(7).ToString("yyyyMMddHHmmss") },
             { "vnp_CurrCode", "VND" },
             { "vnp_IpAddr", ipAddress },
             { "vnp_Locale", "vn" },

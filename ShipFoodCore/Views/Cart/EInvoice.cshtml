@@ -22,7 +22,7 @@
                         </div>
                         <div class="text-end">
                             <small class="d-block opacity-75">Ngày xuất</small>
-                            <strong>@Model.ngayxuat.ToString("dd/MM/yyyy HH:mm")</strong>
+                            <strong>@(TinhToan.GioVietNam(Model.ngayxuat)?.ToString("dd/MM/yyyy HH:mm") ?? "")</strong>
                         </div>
                     </div>
                 </div>

@@ -27,6 +27,15 @@ namespace ShipFood.Services;
 
 public class OpenAIService
 {
+    // ════════════════════════════════════════════════════════════
+    // 🤖 KHỐI CẤU HÌNH AI (OpenAI-compatible / ZenMux)
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: openai, zenmux, api key, model, base url, httpclient
+    // → FILE: ChatbotController.cs (SendMessage) — gọi SendMessageAsync
+    // → ENV: OPENAI_API_KEY, OPENAI_API_BASE, OPENAI_MODEL
+    // → IsConfigured = false khi thiếu API key → chatbot fallback
+    //   sang hướng dẫn dùng lệnh (#123, gợi ý...)
+
     private readonly HttpClient _httpClient;
     private readonly ILogger<OpenAIService> _logger;
     private readonly string? _apiKey;
@@ -123,10 +132,15 @@ QUY TẮC:
     public bool IsConfigured => _httpClient != null;
 
     /// <summary>
-    /// G?i OpenAI-compatible API b?ng HttpClient, parse JSON response.
-    /// Tr? v? null n?u chua c?u hình ho?c l?i nghiêm tr?ng.
-    /// history: user + bot xen k? (user, bot, user, bot...)
+    /// Gọi OpenAI-compatible API bằng HttpClient, parse JSON response.
+    /// Trả về null nếu chưa cấu hình hoặc lỗi nghiêm trọng.
+    /// history: user + bot xen kẽ (user, bot, user, bot...)
     /// </summary>
+    // KEYWORDS: send message, chat completions, http post, parse json, error handling
+    // → FILE: ChatbotController.cs — xây dựng messages array (system prompt
+    //   + history + user message), gửi lên endpoint /chat/completions
+    // → XỬ LÝ LỖI: 429 (quá tải), 400/401/403/404 (cấu hình sai),
+    //   5xx (server lỗi), timeout 60s — mỗi lỗi trả message thân thiện
     public async Task<string?> SendMessageAsync(string message, List<string>? history = null)
     {
         if (!IsConfigured) return null;

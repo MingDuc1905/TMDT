@@ -27,6 +27,14 @@ namespace ShipFood.Services;
 
 public class PayPalService
 {
+    // ════════════════════════════════════════════════════════════
+    // 🅿️ KHỐI CẤU HÌNH PayPal (OAuth2 client_credentials)
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: paypal, oauth2, client id, sandbox, capture
+    // → FILE: PaymentController.cs (PayPalCreate, PayPalReturn)
+    // → ENV: PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET, PAYPAL_MODE
+    // → LƯU Ý: PayPal không hỗ trợ VND trực tiếp → quy đổi USD (25000đ/USD)
+
     private readonly ILogger<PayPalService> _logger;
     private readonly HttpClient _httpClient;
     private readonly string _baseUrl;
@@ -62,8 +70,10 @@ public class PayPalService
     }
 
     /// <summary>
-    /// L?y Access Token t? PayPal (OAuth2 client_credentials)
+    /// Lấy Access Token từ PayPal (OAuth2 client_credentials)
     /// </summary>
+    // KEYWORDS: access token, oauth2, basic auth
+    // → GỌI BỞI: CreateOrderAsync + CaptureOrderAsync (mỗi lần gọi API)
     private async Task<string?> GetAccessTokenAsync()
     {
         try
@@ -92,9 +102,11 @@ public class PayPalService
     }
 
     /// <summary>
-    /// T?o Order tr�n PayPal (intent=CAPTURE)
-    /// Tr? v? approve link cho frontend chuy?n h??ng
+    /// Tạo Order trên PayPal (intent=CAPTURE)
+    /// Trả về approve link cho frontend chuyển hướng
     /// </summary>
+    // KEYWORDS: create order, capture, approve link, purchase units
+    // → FILE: PaymentController.PayPalCreate — lấy approve link redirect browser
     public async Task<PayPalCreateOrderResult> CreateOrderAsync(string orderId, decimal amountVnd, string returnUrl, string cancelUrl)
     {
         try
@@ -178,8 +190,11 @@ public class PayPalService
     }
 
     /// <summary>
-    /// Capture (thu ti?n) t? PayPal Order sau khi kh�ch duy?t
+    /// Capture (thu tiền) từ PayPal Order sau khi khách duyệt
     /// </summary>
+    // KEYWORDS: capture, thu tiền, completed
+    // → FILE: PaymentController.PayPalReturn — sau khi khách duyệt trên PayPal
+    // → STATUS == "COMPLETED" → cập nhật đơn thành công
     public async Task<PayPalCaptureResult> CaptureOrderAsync(string paypalOrderId)
     {
         try

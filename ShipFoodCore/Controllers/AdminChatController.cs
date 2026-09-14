@@ -45,6 +45,15 @@ public class AdminChatController : BaseController
     // ponytail: security fix — helper t?p trung cho generic error response gi? l?i n?i b?
     private string SafeErrorMessage(string context) => "Hệ thống đang gặp lỗi. Vui lòng thử lại sau.";
 
+    // ════════════════════════════════════════════════════════════
+    // 💬 KHỐI DANH SÁCH HỘI THOẠI (Index/GetConversations/GetCustomerMessages)
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: chat, hoi thoai, conversation, admin chat, unread
+    // → VIEW: Views/AdminChat/Index.cshtml + _ChatWidget.cshtml (floating)
+    // → FILE: tbTinNhan (lưu tin), tbDonHang (list đơn để chat theo đơn)
+    // → GetConversations: Admin xem tất cả; Shipper chỉ xem hội thoại mình
+    // → UNREAD: hasUnread = tin mới từ khách (mashipper null, không [ADMIN])
+
     /// <summary>
     /// Trang chat admin - danh sách các cuộc hội thoại
     /// </summary>
@@ -77,6 +86,16 @@ public class AdminChatController : BaseController
             return View(new List<tbDonHang>());
         }
     }
+
+    // ════════════════════════════════════════════════════════════
+    // ✉️ KHỐI GỬI TIN NHẮN (SendMessage/CustomerSendMessage/SendMessageToCustomer)
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: gui tin, send message, signalr, cross role, auto lock
+    // → FILE: Chats Hub (adminMessage/customerMessage/directMessage/orderMessage)
+    // → AUTO-DETECT ROLE: Khách hàng/Shipper/Quán ăn/Admin → broadcast
+    //   đến group phù hợp (customer_{id}/shipper_{id}/admins/order_{id})
+    // → AUTO-LOCK: đơn Hoàn thành/Hủy > 30 phút → chặn gửi tin
+    // → SECURITY: customer chỉ dùng userid của mình, không nhận targetUserId
 
     /// <summary>
     /// API: Gửi tin nhắn từ admin đến khách hàng
@@ -114,6 +133,13 @@ public class AdminChatController : BaseController
             return Json(new { success = false, error = SafeErrorMessage("SendMessage") });
         }
     }
+
+    // ════════════════════════════════════════════════════════════
+    // 📜 KHỐI LỊCH SỬ TIN & UNREAD (GetMessages/GetMyMessages/GetUnreadCount)
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: lich su tin, get messages, unread count, sender
+    // → FILE: tbTinNhan (matn ASC); sender tự nhận diện:
+    //   [SYSTEM] → Hệ thống, [ADMIN] → Admin, mashipper → Shipper, makh → Khách
 
     /// <summary>
     /// API: Lấy lịch sử tin nhắn của một đơn hàng

@@ -29,6 +29,15 @@ namespace ShipFood.Middleware;
 
 public class RoleGuardMiddleware
 {
+    // ════════════════════════════════════════════════════════════
+    // 🛡️ KHỐI CẤU HÌNH — danh sách route cần bảo vệ & bỏ qua
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: role guard, bypass paths, route map, json api, middleware config
+    // → FILE: được đăng ký trong Program.cs (app.UseMiddleware<RoleGuardMiddleware>())
+    // → RouteRoleMap: /admin → Admin, /restaurant → Quán ăn, /shipper → Shipper
+    // → BypassPaths: trang công khai (login, signup, error, health, SignalR hub)
+    // → JsonApiPrefixes: endpoint AJAX cần trả JSON 401/403 thay vì redirect
+
     private readonly RequestDelegate _next;
     private readonly ILogger<RoleGuardMiddleware> _logger;
 
@@ -107,6 +116,11 @@ public class RoleGuardMiddleware
         { "/shipper", "Shipper" },
     };
 
+    // ════════════════════════════════════════════════════════════
+    // 🔍 KHỐI PHÂN LOẠI ROUTE
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: customer route, route classification, chitietdonhang, einvoice
+
     /// <summary>
     /// Xác định route thuộc về Khách hàng (user view).
     /// ponytail: /Cart/ChiTietDonHang + /Cart/EInvoice là trang DÙNG CHUNG
@@ -147,6 +161,17 @@ public class RoleGuardMiddleware
         _next = next;
         _logger = logger;
     }
+
+    // ════════════════════════════════════════════════════════════
+    // 🚦 KHỐI XỬ LÝ CHÍNH (InvokeAsync) — chạy cho MỌI request
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: invoke, main logic, redirect, 401, 403, reverse guard
+    // → BƯỚC 1: BypassPaths → next() ngay (trang công khai)
+    // → BƯỚC 2: RouteRoleMap → xác định role bắt buộc cho route
+    // → BƯỚC 3: REVERSE GUARD — chặn role khác vào trang Khách hàng
+    //   (ví dụ Quán ăn bấm Back/URL /Home → redirect về /Restaurant)
+    // → BƯỚC 4: Sai role → redirect về dashboard của role đúng
+    // → FILE: redirect tới HomeController (Login/Logout), các dashboard
 
     public async Task InvokeAsync(HttpContext context, dbFoodyEntities db)
     {

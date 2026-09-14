@@ -13,6 +13,16 @@ namespace ShipFood.Models;
 [Table("tbDonHang")]
 public partial class tbDonHang
 {
+    // ════════════════════════════════════════════════════════════
+    // 📦 KHỐI THÔNG TIN ĐƠN (Order) — cột bảng tbDonHang
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: order fields, madh, trangthai, tongtien, phiship
+    // → TẠO BỞI: PaymentController.ProcessPayment (ngaydathang = UtcNow)
+    // → ĐỌC BỞI: RestaurantController (OrderList), ShipperController
+    //   (FREE-PICK), AdminController (Order), CartController (lịch sử)
+    // → NAVIGATION: tbQuanAn (quán), tbThongTinDatHang (khách+địa chỉ),
+    //   tbShipper (người giao), tbLoaiHinhThanhToan, tbKhuyenMai
+
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int madh { get; set; }

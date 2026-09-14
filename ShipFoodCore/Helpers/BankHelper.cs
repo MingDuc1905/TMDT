@@ -9,6 +9,15 @@ namespace ShipFood.Helpers;
 
 public static class BankHelper
 {
+    // ════════════════════════════════════════════════════════════
+    // 🏦 KHỐI MAP NGÂN HÀNG → BIN CODE (VietQR API)
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: bank, bin code, vietqr, ngân hàng, qr
+    // → FILE: CartController (Checkout — tạo QR chuyển khoản),
+    //   HomeController (NapTien — QR nạp ví), ShipperController (NapTien),
+    //   PaymentController (BankWebhook backward compat)
+    // → GetVietQrBinCode: tên ngân hàng → BIN 6 số (VD "Vietcombank" → 970436)
+
     // Map từ tên ngân hàng (BANK_ID env var) → BIN code cho VietQR API
     private static readonly Dictionary<string, string> BankBinMap = new(StringComparer.OrdinalIgnoreCase)
     {

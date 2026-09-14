@@ -96,6 +96,14 @@ public class HomeController : BaseController
         return stringBuilder.ToString().Normalize(NormalizationForm.FormC);
     }
 
+    // ════════════════════════════════════════════════════════════
+    // 🏠 KHỐI TRANG CHỦ (Index) — tìm kiếm quán/món + stats
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: trang chủ, home, tim kiem, danh muc, apriori, stats
+    // → VIEW: Views/Home/Index.cshtml
+    // → FILE: RecommendationService (GetPopularPairs — combo AI),
+    //   tbQuanAn/tbMonAn (query), tbDanhMuc (danh sách lọc)
+    // → LỌC: chỉ hiển thị quán tbUser.trangthai == 1 (đang hoạt động)
     public async Task<ActionResult> Index(string? txtSearch, int? idDM)
     {
         // ponytail: chỉ hiển thị quán có tbUser.trangthai == 1 (đang hoạt động)
@@ -183,6 +191,14 @@ public class HomeController : BaseController
         return View();
     }
 
+    // ════════════════════════════════════════════════════════════
+    // 🏪 KHỐI CHI TIẾT QUÁN (DetailRestaurant) — menu + giảm giá + gợi ý
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: chi tiet quan, menu, thuc don, khuyen mai, mua kem
+    // → VIEW: Views/Home/DetailRestaurant.cshtml
+    // → FILE: tbMonAnKhuyenMai (KM giảm giá), RecommendationService
+    //   (GetAprioriRecommendations — mua kèm, GetTimeBasedRecommendations)
+    // → ĐÃ MUA: tính danh sách món user từng mua (Đã mua badge)
     public async Task<ActionResult> DetailRestaurant(int id, int? idDM, string? searchKey)
     {
         try
@@ -278,6 +294,17 @@ public class HomeController : BaseController
             return RedirectToAction("Error", "Home", new { traceId = HttpContext.TraceIdentifier });
         }
     }
+
+    // ════════════════════════════════════════════════════════════
+    // 🔐 KHỐI ĐĂNG NHẬP (Login) — username/SĐT/email + role redirect
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: login, dang nhap, password, remember me, role redirect
+    // → VIEW: Views/Home/Login.cshtml
+    // → FILE: BaseController (SetSessionAndCookieAsync, SetCart)
+    // → NHẬN DIỆN: bắt đầu bằng 0 + 10-11 số → SĐT; chứa @ → email;
+    //   ngược lại → username. Plain-text password (pwd == pwd)
+    // → REDIRECT theo loaitaikhoan: Khách hàng→/Home, Shipper→/Shipper,
+    //   Quán ăn→/Restaurant, Admin→/Admin (khớp RouteRoleMap RoleGuard)
 
     [HttpGet]
     public ActionResult Login()
@@ -754,6 +781,16 @@ public class HomeController : BaseController
             }
         }
 
+        // ════════════════════════════════════════════════════════════
+        // 🔑 KHỐI GOOGLE/FACEBOOK OAUTH — auto-create tài khoản
+        // ════════════════════════════════════════════════════════════
+        // KEYWORDS: oauth, google login, facebook login, auto create, role select
+        // → FILE: GoogleLogin/GoogleResponse/SelectRoleGoogle/CompleteGoogleRegistration
+        //   + FacebookLogin/FacebookResponse (Views/Home/*)
+        // → LẦN ĐẦU: tạo tbUser + tbKhachHang (mặc định Khách hàng); partner
+        //   mode (google_partner_mode) → chọn role qua SelectRoleGoogle
+        // → BẢO MẬT: validate role hợp lệ, SĐT regex, không leak exception
+
         // ─── GOOGLE OAUTH: Trang chọn vai trò khi đăng nhập lần đầu ───
         [HttpGet]
         public ActionResult SelectRoleGoogle()
@@ -909,6 +946,16 @@ public class HomeController : BaseController
                 return RedirectToAction("SelectRoleGoogle");
             }
         }
+
+    // ════════════════════════════════════════════════════════════
+    // 📝 KHỐI ĐĂNG KÝ (Signup) — validate + auto-login theo role
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: signup, dang ky, register, validate, auto login
+    // → VIEW: Views/Home/Signup.cshtml
+    // → FILE: tạo tbUser + tbKhachHang/tbQuanAn/tbShipper theo loaitaikhoan
+    // → VALIDATE: mật khẩu mạnh (ValidatePasswordStrength), SĐT regex,
+    //   email hợp lệ, trùng username/email/SĐT
+    // → FIX PK: PostgreSQL sequence out-of-sync sau seed (reset setval 23505)
 
     public ActionResult Signup()
     {
@@ -1149,6 +1196,15 @@ public class HomeController : BaseController
         return HttpContext.Request.Headers["X-Requested-With"] == "XMLHttpRequest";
     }
 
+    // ════════════════════════════════════════════════════════════
+    // 👤 KHỐI HỒ SƠ & VÍ TIỀN (Profile/Wallet) — khách hàng
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: profile, ho so, wallet, vi tien, nap tien, rut tien
+    // → VIEW: Views/Home/Profile.cshtml, Views/Home/Wallet.cshtml
+    // → FILE: BankHelper (QR VietQR — NapTien), VnpayService
+    //   (NapTienVnpay — nạp qua VNPAY), tbTinNhan (log DEPOSIT_PENDING)
+    // → SE-PAY: nạp tiền qua QR → webhook PaymentController cập nhật ví
+
     // ─── CUSTOMER PROFILE: H? so ca? nhân ───
     public ActionResult Profile()
     {
@@ -1289,6 +1345,13 @@ public class HomeController : BaseController
         return View(dsmonan);
     }
 
+    // ════════════════════════════════════════════════════════════
+    // 🍕 KHỐI CHI TIẾT MÓN & DANH MỤC (SanPham/ChiTietSanPham)
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: san pham, mon an, chi tiet, danh muc, cross sell
+    // → VIEW: Views/Home/ChiTietSanPham.cshtml
+    // → FILE: tbMonAnKhuyenMai (KM cho món), món tương tự cùng quán
+    // → ĐÃ MUA: tính DaMuaMonAnIds để hiển thị badge đã từng đặt
     public ActionResult ChiTietSanPham(int id)
     {
         var ctmonan = db.tbMonAn

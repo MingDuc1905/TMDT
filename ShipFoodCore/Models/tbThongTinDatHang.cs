@@ -1,3 +1,17 @@
+// ============================================================
+// 📍 tbThongTinDatHang — Thông tin giao hàng của đơn
+// ============================================================
+// Ý nghĩa: Địa chỉ + SĐT + tọa độ + người nhận cho 1 đơn hàng
+// Chức năng: Được Checkout lưu/dùng lại (dedupe theo sdt+diachi+tennguoinhan),
+//         map.js dùng toado để vẽ điểm giao hàng
+// KEYWORDS: thong tin dat hang, dia chi giao, shipping address, toa do, sdt
+// ============================================================
+// 🔗 LUỒNG TƯƠNG TÁC (FLOW):
+//   → FILE: tbDonHang (FK mattdh), tbKhachHang (FK userid),
+//     CartController.Checkout (dedupe GROUP BY), map.js (tọa độ),
+//     Views Checkout/OrderTracking (hiển thị địa chỉ)
+//   → toado: chuỗi "lat,lng" — parse bằng TinhToan.TryParseToado
+// ============================================================
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 

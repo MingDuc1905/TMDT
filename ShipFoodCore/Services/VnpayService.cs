@@ -22,6 +22,16 @@ namespace ShipFood.Services;
 
 public class VnpayService
 {
+    // ════════════════════════════════════════════════════════════
+    // 💳 KHỐI CẤU HÌNH VNPAY (credentials)
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: vnpay, tmn code, hash secret, sandbox, credentials
+    // → FILE: PaymentController.cs (ProcessPayment — tạo URL VNPAY cho đơn)
+    //         HomeController.cs (NapTienVnpay — nạp tiền ví)
+    // → ENV: VNPAY_TMN_CODE, VNPAY_HASH_SECRET, VNPAY_API_URL
+    // → MÚI GIỜ: vnp_CreateDate dùng TinhToan.GioVietNam() — VNPAY validate
+    //   theo giờ VN, gửi UTC sẽ bị tưởng hết hạn (lệch 7h)
+
     private readonly ILogger<VnpayService> _logger;
 
     private readonly string _baseUrl = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
@@ -57,6 +67,12 @@ public class VnpayService
         }
     }
 
+    /// <summary>
+    /// Tạo URL thanh toán VNPAY: build sorted params → HMAC SHA512 sign → trả URL
+    /// </summary>
+    // KEYWORDS: create payment url, hmac sha512, signature, build params
+    // → FILE: PaymentController.ProcessPayment + HomeController.NapTienVnpay
+    // → TRẢ VỀ: chuỗi URL ("") nếu chưa cấu hình TMN_CODE → caller báo lỗi
     public string CreatePaymentUrl(int orderId, long amount, string orderInfo, string ipAddress, string returnUrl)
     {
         if (string.IsNullOrEmpty(_tmnCode))
@@ -104,6 +120,12 @@ public class VnpayService
         return paymentUrl;
     }
 
+    /// <summary>
+    /// Xác thực chữ ký từ callback VNPAY (IPN + Return URL) — HMAC SHA512
+    /// </summary>
+    // KEYWORDS: verify signature, hmac, callback, ipn, secure hash
+    // → FILE: PaymentController.VnpayIPN + VnpayReturn gọi để chắc chắn
+    //   callback thật từ VNPAY (không bị giả mạo)
     public virtual bool VerifySignature(IDictionary<string, string> vnpParams)
     {
         if (!vnpParams.TryGetValue("vnp_SecureHash", out var receivedHash))

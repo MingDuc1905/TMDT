@@ -13,6 +13,17 @@ namespace ShipFood.Models;
 [Table("tbQuanAn")]
 public partial class tbQuanAn
 {
+    // ════════════════════════════════════════════════════════════
+    // 🏪 KHỐI THÔNG TIN QUÁN ĂN (Restaurant)
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: quan an, tenquanan, diachi, diemdanhgia, trangthai
+    // → userid = PK (1:1 với tbUser — role "Quán ăn")
+    // → TẠO BỞI: HomeController.Signup (loaitaikhoan="Quán ăn"),
+    //   AdminController.PostTaiKhoan
+    // → TRANGTHAI: "Đang mở cửa"/"Đóng cửa" (OrderStatus)
+    // → NAVIGATION: tbUser (tài khoản), tbMonAns (thực đơn),
+    //   tbDonHangs (đơn hàng của quán)
+
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.None)]
     public int userid { get; set; }

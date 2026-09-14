@@ -53,6 +53,10 @@ public class EDeliveryController : BaseController
     // ════════════════════════════════════════════════════════════════
     // 1. GENERATE QR CODE (PNG) — GET /edelivery/qr/{orderId}
     // ════════════════════════════════════════════════════════════════
+    // KEYWORDS: generate qr, qrcoder, png, token hmac
+    // → VIEW: Shipper/QRDelivery.cshtml gọi <img src="/edelivery/qr/{id}">
+    // → FILE: GenerateSecureToken (HMAC SHA256) — token có timestamp + hash
+    // → QR chứa URL scan: {baseUrl}/edelivery/scan/{token}
     public IActionResult GenerateQR(int orderId)
     {
         try
@@ -81,6 +85,9 @@ public class EDeliveryController : BaseController
     // ════════════════════════════════════════════════════════════════
     // 2. SCAN LANDING PAGE — GET /edelivery/scan/{token}
     // ════════════════════════════════════════════════════════════════
+    // KEYWORDS: scan qr, landing, validate token, expire 24h
+    // → VIEW: Views/EDelivery/ScanResult.cshtml
+    // → FILE: ValidateToken (HMAC SHA256 + expire 24h) — chặn QR giả/hết hạn
     public async Task<IActionResult> ScanQR(string token)
     {
         var orderId = ValidateToken(token);
@@ -109,6 +116,11 @@ public class EDeliveryController : BaseController
     // ════════════════════════════════════════════════════════════════
     // 3. CONFIRM SCAN — POST /edelivery/confirm-scan
     // ════════════════════════════════════════════════════════════════
+    // KEYWORDS: confirm scan, quet qr, Đã lấy, e-invoice
+    // → FILE: EDeliveryService.GenerateEInvoice (sinh hóa đơn ngay khi lấy),
+    //   Chats Hub (orderDeliveryScanned → order/shippers/admins groups)
+    // → VALIDATE: token hợp lệ + đơn ở trạng thái quét được (Đã xác nhận/
+    //   Chờ shipper lấy hàng) → chuyển "Đã lấy" + ngaygiaohang
     [HttpPost]
     public async Task<JsonResult> ConfirmScan([FromBody] ScanRequest request)
     {
@@ -173,6 +185,11 @@ public class EDeliveryController : BaseController
     // ════════════════════════════════════════════════════════════════
     // 4. BYPASS — Admin ép trạng thái — POST /edelivery/bypass
     // ════════════════════════════════════════════════════════════════
+    // KEYWORDS: bypass, admin, ep trang thai, manual override
+    // → VIEW: Views/Admin/DeliveryLogs.cshtml (Bypass modal)
+    // → FILE: Chats Hub (deliveryBypassed → order + admins groups)
+    // → CHỈ ADMIN: ép đơn sang trạng thái tùy chọn (vd Hoàn thành) để
+    //   xử lý thủ công khi quét QR gặp sự cố
     [HttpPost]
     public async Task<JsonResult> Bypass([FromBody] BypassRequest request)
     {
@@ -223,6 +240,8 @@ public class EDeliveryController : BaseController
     // ════════════════════════════════════════════════════════════════
     // 5. DELIVERY LOGS — Admin — GET /edelivery/delivery-logs
     // ════════════════════════════════════════════════════════════════
+    // KEYWORDS: delivery logs, nhat ky giao, admin
+    // → VIEW: Views/Admin/DeliveryLogs.cshtml (50 đơn gần nhất + nút Bypass)
     [HttpGet]
     public async Task<ActionResult> DeliveryLogs()
     {
@@ -246,6 +265,9 @@ public class EDeliveryController : BaseController
     // ════════════════════════════════════════════════════════════════
     // 6. MERCHANT SCANNER — GET /edelivery/merchant-scan
     // ════════════════════════════════════════════════════════════════
+    // KEYWORDS: merchant scan, quet ma, quan an, camera
+    // → VIEW: Views/Restaurant/Scanner.cshtml (quán dùng camera quét QR)
+    // → QUYỀN: Quán ăn hoặc Admin
     [HttpGet]
     public ActionResult MerchantScan()
     {

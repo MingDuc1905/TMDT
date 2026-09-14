@@ -1,3 +1,16 @@
+// ============================================================
+// 🧾 tbEInvoice — Hóa đơn / Vận đơn điện tử (E-Invoice & E-Waybill)
+// ============================================================
+// Ý nghĩa: Chứng từ điện tử sinh tự động khi đơn được thanh toán/lấy hàng
+// Chức năng: Số hóa đơn, tổng tiền, QR data, trạng thái ký số, loại chứng từ
+// KEYWORDS: e-invoice, hoa don dien tu, e-waybill, van don, qr, chung tu
+// ============================================================
+// 🔗 LUỒNG TƯƠNG TÁC (FLOW):
+//   → FILE: EDeliveryService.GenerateEInvoice (sinh hóa đơn khi lấy hàng),
+//     CartController.EInvoice (xem chứng từ — quyền chủ đơn/quán/shipper/admin)
+//   → VIEW: Views/Cart/EInvoice.cshtml
+//   → loaichungtu: "EInvoice" (đã thanh toán) | "EWaybill" (đang vận chuyển)
+// ============================================================
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 

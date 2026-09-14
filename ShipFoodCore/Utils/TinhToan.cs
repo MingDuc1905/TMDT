@@ -11,6 +11,15 @@ namespace ShipFood.Utils;
 
 public class TinhToan
 {
+    // ════════════════════════════════════════════════════════════
+    // 🧮 KHỐI HẰNG SỐ + TÍNH TIỀN
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: tinh tien, phi ship, tong tien, helper
+    // → FILE: được gọi từ Views (Razor) + Controllers khắp nơi —
+    //   TinhTienShip/TinhTongTien ít dùng (phí ship cố định SHIP_FEE)
+    //   HinhAnhUrl/AvatarUrl → dùng trong Views để render ảnh món/quán
+    //   GioVietNam → dùng trong MỌI view hiển thị thời gian (fix UTC)
+
     /// <summary>
     /// Tọa độ mặc định trung tâm TP.HCM (nếu không parse được)
     /// </summary>
@@ -32,11 +41,6 @@ public class TinhToan
         return sum;
     }
 
-    /// <summary>
-    /// Parse tọa độ từ chuỗi VARCHAR(100) dạng "lat,lng"
-    /// Nếu chuỗi rỗng, NULL hoặc sai định dạng → trả về tọa độ mặc định (trung tâm TP.HCM)
-    /// Không crash dù dữ liệu đầu vào có vấn đề
-    /// </summary>
     /// <summary>
     /// Trả về URL hình ảnh hoàn chỉnh cho món ăn.
     /// Nếu hinhanh là full URL (http:// hoặc https://) → dùng trực tiếp.
@@ -72,11 +76,21 @@ public class TinhToan
     /// Việt Nam cố định UTC+7 quanh năm (không DST) nên cộng 7h là đủ và đơn giản nhất.
     /// Trả về null nếu input null.
     /// </summary>
+    // KEYWORDS: gio viet nam, gmt+7, utc, timezone, giờ hiển thị
+    // → FILE: 13 view (OrderList, LichSuDatHang, OrderTracking, EInvoice,
+    //   Admin×3, Wallet×2, Shipper×5, QRDelivery) + PaymentController
+    //   (SignalR broadcast) + VnpayService (vnp_CreateDate)
+    // → TEST: tests/ShipFoodCore.Tests/Utils/TinhToanTests.cs (4 test)
     public static DateTime? GioVietNam(DateTime? utc)
     {
         return utc?.AddHours(7);
     }
 
+    /// <summary>
+    /// Parse tọa độ "lat,lng" từ chuỗi — an toàn, không crash, có bounds check
+    /// </summary>
+    // KEYWORDS: parse toa do, coordinate, lat, lng, map
+    // → FILE: map.js + Views dùng để hiển thị quán/shipper trên bản đồ
     public static (double Lat, double Lng) TryParseToado(string? toado)
     {
         if (string.IsNullOrWhiteSpace(toado))

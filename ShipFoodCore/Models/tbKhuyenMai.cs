@@ -1,3 +1,16 @@
+// ============================================================
+// 🎫 tbKhuyenMai — Bảng mã khuyến mãi / giảm giá
+// ============================================================
+// Ý nghĩa: Khai báo các mã KM (%, điều kiện áp dụng, hiệu lực)
+// Chức năng: CartController.CheckCoupon validate mã, VoucherService gợi ý
+// KEYWORDS: khuyen mai, coupon, voucher, ma giam gia, discount, phan tram
+// ============================================================
+// 🔗 LUỒNG TƯƠNG TÁC (FLOW):
+//   → FILE: CartController (CheckCoupon/Checkout/GetTopCoupons),
+//     VoucherService (gợi ý theo giờ), tbLichSuSuDungKhuyenMai
+//     (đếm lượt dùng — mỗi mã 1 lần/user), tbMonAnKhuyenMai (áp cho món)
+//   → dieukien: chuỗi "Đơn từ 200.000đ" — parse số trong CartController
+// ============================================================
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 

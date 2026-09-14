@@ -11,6 +11,16 @@ namespace ShipFood.Models;
 
 public partial class dbFoodyEntities : DbContext
 {
+    // ════════════════════════════════════════════════════════════
+    // 🗄️ KHỐI DbSet — ÁNH XẠ 18 BẢNG DATABASE
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: dbset, entity, bảng, table, dbcontext
+    // → FILE: mọi Controller/Service inject dbFoodyEntities (DI từ Program.cs)
+    // → DonHangDangLam: DbSet đặc biệt cho raw SQL (ShipperController dùng
+    //   LINQ Join thay FromSqlRaw để tránh PostgreSQL mapping lỗi)
+    // → Singular aliases (tbMonAn, tbDonHang...) = backward-compat —
+    //   code cũ dùng tên số ít, DbSet thật là số nhiều (tbMonAns)
+
     // DbSet for raw SQL queries (used by ShipperController)
     public virtual DbSet<DonHangDangLam> DonHangDangLam { get; set; } = null!;
     public dbFoodyEntities(DbContextOptions<dbFoodyEntities> options) : base(options)
@@ -54,6 +64,16 @@ public partial class dbFoodyEntities : DbContext
     public DbSet<tbDanhGia> tbDanhGia => tbDanhGias;
     public DbSet<tbLichSuSuDungKhuyenMai> tbLichSuSuDungKhuyenMai => tbLichSuSuDungKhuyenMais;
     public DbSet<tbEInvoice> tbEInvoice => tbEInvoices;
+
+    // ════════════════════════════════════════════════════════════
+    // 🔗 KHỐI QUAN HỆ (OnModelCreating) — FK + Delete Behavior
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: relationship, foreign key, cascade, restrict, delete behavior
+    // → tbUser 1:1 với tbAdmin/tbKhachHang/tbQuanAn/tbShipper (4 roles)
+    // → tbQuanAn 1:N tbMonAn — RESTRICT (soft-delete, không xóa cứng)
+    // → tbDonHang 1:N tbChiTietDonHang — CASCADE (xóa đơn = xóa chi tiết)
+    // → tbChiTietDonHang.mamon → tbBienTheMonAn.id (KHÔNG phải tbMonAn.mamon!)
+    // → Quan trọng: xem Models/RecommendationService.cs về bridge này
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -60,6 +60,13 @@ public class RecommendationService
 {
     private readonly dbFoodyEntities _db;
 
+    // ════════════════════════════════════════════════════════════
+    // 🧠 KHỐI GỢI Ý CÁ NHÂN HÓA (Personalized)
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: personalized, lịch sử mua, similar user, gợi ý cá nhân
+    // → FILE: HomeController.Index gọi để hiển thị món gợi ý riêng
+    // → CẦU NỐI QUAN TRỌNG: ct.mamon (tbChiTietDonHang) = FK→tbBienTheMonAn.id
+    //   KHÔNG phải tbMonAn.mamon → mọi method phải bridge qua tbBienTheMonAn
     public RecommendationService(dbFoodyEntities db)
     {
         _db = db;
@@ -555,6 +562,15 @@ public class RecommendationService
             PairCount = r.PairCount
         }).ToList();
     }
+
+    // ════════════════════════════════════════════════════════════
+    // 🧠 KHỐI APRIORI (KHAI THÁC LUẬT KẾT HỢP)
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: apriori, association, mua kèm, combo, support, confidence
+    // → FILE: HomeController (trang chủ combo AI), DetailRestaurant (mua kèm),
+    //   RestaurantController.Dashboard (insights), AdminController.Dashboard
+    // → THUẬT TOÁN: Support = co-occurrence/total, Confidence = co-occurrence/input
+    //   minSupport = 0.02, minConfidence = 0.50
 
     /// <summary>
     /// Gợi ý "Thường được mua kèm" (giữ lại vì tương thích ngược)

@@ -48,6 +48,18 @@ public class ChatbotController : BaseController
         _logger = logger;
     }
 
+    // ════════════════════════════════════════════════════════════
+    // 🤖 KHỐI CHAT AI CHÍNH (SendMessage) — DB query + OpenAI + fallback
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: chatbot, send message, openai, tra cuu, quick replies
+    // → GỌI BỞI: Views/Shared/_ChatWidget.cshtml (AJAX POST /Chatbot/SendMessage)
+    // → FILE: OpenAIService (SendMessageAsync), EDeliveryService
+    //   (GetDocumentsByOrder — tra chứng từ), tbDonHang/tbMonAn (DB context)
+    // → FLOW: 1. Rate limit + length check → 2. HandleDatabaseQueries (#123,
+    //   hóa đơn) → 3. OpenAI với history + DB context → 4. Fallback hướng dẫn
+    // → SECURITY: bắt buộc đăng nhập khi hỏi #madh/hóa đơn; IgnoreAntiforgery
+    //   vì widget gọi qua fetch JSON (không dùng form token)
+
     [HttpPost]
     [IgnoreAntiforgeryToken]
     public async Task<JsonResult> SendMessage(string message)
@@ -202,6 +214,15 @@ public class ChatbotController : BaseController
             return new List<string>();
         return JsonSerializer.Deserialize<List<string>>(json) ?? new List<string>();
     }
+
+    // ════════════════════════════════════════════════════════════
+    // 🔍 KHỐI TRA CỨU DB (HandleDatabaseQueries/HandleOrderLookup/HandleInvoiceLookup)
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: tra cuu don, order lookup, hoa don, invoice, pattern
+    // → FILE: tbDonHang (tra #madh — chỉ đơn của user đang đăng nhập),
+    //   EDeliveryService.GetDocumentsByOrder (tra hóa đơn/vận đơn điện tử)
+    // → QUY TẮC: chỉ bắt pattern rõ ràng (#123, "mã 123", "hóa đơn #123")
+    //   — không intercept hội thoại tự nhiên (AI xử lý phần đó)
 
     /// <summary>
     /// X? lý các truy v?n database — ch? pattern rõ ràng, không intercept h?i tho?i t? nhiên
@@ -409,6 +430,15 @@ public class ChatbotController : BaseController
     private static string? _cachedDbContext;
     private static DateTime _lastDbContextRefresh = DateTime.MinValue;
     private static readonly object _dbCacheLock = new();
+
+    // ════════════════════════════════════════════════════════════
+    // 📊 KHỐI DB CONTEXT CHO AI (GetDBContextSummary) — cache 5 phút
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: db context, ai prompt, cache, thong ke cho AI
+    // → FILE: tbQuanAn/tbMonAn/tbDonHang/tbChiTietDonHang — tổng hợp
+    //   thông tin hệ thống (số quán/món/đơn, top bán chạy, phí ship)
+    //   để AI trả lời chính xác theo dữ liệu THẬT của FastShip
+    // → CACHE 5 phút + lock: tránh query N+1 mỗi tin nhắn
 
     /// <summary>
     /// Tóm t?t DB context d? inject vào AI prompt — cache 5 phút

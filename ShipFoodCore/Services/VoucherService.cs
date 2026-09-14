@@ -28,6 +28,16 @@ public class VoucherService
 {
     private readonly dbFoodyEntities _db;
 
+    // ════════════════════════════════════════════════════════════
+    // 🎫 KHỐI GỢI Ý VOUCHER THEO KHUNG GIỜ
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: voucher, khung gio, time slot, sáng/trưa/xế/tối/khuya
+    // → FILE: HomeController.Index (banner voucher trang chủ)
+    // → FILE: CartController.Checkout (gợi ý voucher khi thanh toán)
+    // → FILE: tbKhuyenMai.cs (model voucher) — query theo tenkm
+    // → LƯU Ý: GetTimeSlotVoucher dùng DateTime.Now.Hour — giờ local
+    //   server; nếu deploy server không phải GMT+7 cần xem lại.
+
     public VoucherService(dbFoodyEntities db)
     {
         _db = db;

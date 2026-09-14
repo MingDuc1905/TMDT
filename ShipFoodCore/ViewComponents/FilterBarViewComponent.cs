@@ -12,6 +12,17 @@ public class FilterBarViewComponent : ViewComponent
 {
     private readonly dbFoodyEntities _db;
 
+    // ════════════════════════════════════════════════════════════
+    // 🎛️ KHỐI VIEW COMPONENT — THANH LỌC MÓN ĂN (Grab-style)
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: filter, viewcomponent, danh mục, sort, promo, bestseller
+    // → FILE: Views/Home/Index.cshtml gọi @await Component.InvokeAsync(
+    //   "FilterBar", new { categoryId, sortBy, isPromo... })
+    // → FILE: Views/Shared/Components/FilterBar/Default.cshtml — render
+    //   horizontal scroll chip bar + bottom sheet
+    // → TRẢ VỀ: ViewBag (Categories, SortBy, IsPromo...) cho view hiển thị
+    //   trạng thái active của từng filter
+
     public FilterBarViewComponent(dbFoodyEntities db)
     {
         _db = db;

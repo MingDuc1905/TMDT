@@ -53,6 +53,15 @@ public class ShipperController : BaseController
         return user != null && user.loaitaikhoan == "Shipper";
     }
 
+    // ════════════════════════════════════════════════════════════
+    // 🚚 KHỐI DASHBOARD SHIPPER (Index) — FREE-PICK + đơn của mình
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: shipper dashboard, free pick, danh sach don, thu nhap hôm nay
+    // → VIEW: Views/Shipper/Index.cshtml
+    // → FILE: DonHangDangLam (Models) — LINQ Join tbDonHang + tbThongTinDatHang
+    //   + tbQuanAn (tránh PostgreSQL column mapping lỗi của FromSqlRaw)
+    // → FREE-PICK: đơn "Chờ shipper lấy hàng" chưa có mashipper
+    // → TODAY: đếm đơn hôm nay + thu nhập (phiship) đơn Hoàn thành
     public ActionResult Index()
     {
         var sh = GetCurrentUser();
@@ -116,6 +125,14 @@ public class ShipperController : BaseController
         return View(listdh);
     }
 
+    // ════════════════════════════════════════════════════════════
+    // 💰 KHỐI THU NHẬP & VÍ (ThuNhap/ViTien/NapTien/RutTien)
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: thu nhap, vi tien, nap tien, rut tien, phiship
+    // → VIEW: Views/Shipper/ThuNhap.cshtml, ViTien.cshtml
+    // → FILE: BankHelper (QR VietQR nạp tiền), tbTinNhan (log rút tiền),
+    //   SePay webhook (xác nhận nạp)
+    // → ThuNhap: 1 query 30 ngày → filter trong RAM cho hôm nay (tiết kiệm)
     public ActionResult ThuNhap()
     {
         var sh = GetCurrentUser();
@@ -171,6 +188,13 @@ public class ShipperController : BaseController
         return View();
     }
 
+    // ════════════════════════════════════════════════════════════
+    // 📄 KHỐI LỊCH SỬ & THÔNG BÁO (LichSu/ThongBao/CaiDat)
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: lich su, thong bao, cai dat, pagination
+    // → VIEW: Views/Shipper/LichSu.cshtml, ThongBao.cshtml, CaiDat.cshtml
+    // → LichSu: pagination qua querystring ?page (50/page)
+    // → CaiDat: sửa SĐT + mật khẩu (plain-text, chỉ sửa khi có nhập mới)
     public ActionResult LichSu()
     {
         var sh = GetCurrentUser();
@@ -307,6 +331,16 @@ public class ShipperController : BaseController
         return RedirectToAction("ViTien");
     }
 
+    // ════════════════════════════════════════════════════════════
+    // 📦 KHỐI CHI TIẾT & NHẬN ĐƠN (OrderDetail/ClaimOrder)
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: order detail, claim, nhan don, atomic sql, race condition
+    // → VIEW: Views/Shipper/OrderDetail.cshtml
+    // → FILE: OrderStatus (AutoMessages — [SYSTEM] Shipper đã nhận đơn),
+    //   Chats Hub (orderAccepted → các shipper khác)
+    // → ClaimOrder: UPDATE ... WHERE mashipper IS NULL (atomic) → chỉ 1
+    //   shipper claim thành công (chống race condition double-claim)
+
     /// <summary>
     /// ═══ FIX 1: OrderDetail CHỈ HIỂN THỊ — không claim đơn ═══
     /// Shipper muốn nhận đơn phải bấm nút "Nhận đơn" riêng (POST ClaimOrder)
@@ -427,6 +461,18 @@ public class ShipperController : BaseController
     }
 
     public ActionResult NhanTin() => View();
+
+    // ════════════════════════════════════════════════════════════
+    // 🚀 KHỐI CẬP NHẬT TRẠNG THÁI (UpdateDonHang) — lấy/giao/hoàn thành
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: update don, lấy hàng, dang giao, hoàn thành, transition
+    // → FILE: OrderStatus.IsValidTransition (chặn chuyển sai),
+    //   Chats Hub (orderStatusChanged → customer; kpiRefresh → quán),
+    //   EDeliveryService (GenerateEWaybill khi Hoàn thành)
+    // → HOÀN THÀNH: transaction chống double-credit (cộng phiship vào
+    //   ví shipper 1 lần), auto-sinh [SYSTEM] tin nhắn
+    // → FIX realtime: báo quán qua group restaurant_{maquan} khi shipper
+    //   đổi trạng thái (OrderList cập nhật realtime)
 
     [HttpPost]
     [ValidateAntiForgeryToken]

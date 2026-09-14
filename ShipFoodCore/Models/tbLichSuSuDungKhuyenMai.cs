@@ -1,3 +1,15 @@
+// ============================================================
+// 📋 tbLichSuSuDungKhuyenMai — Lịch sử dùng mã giảm giá của user
+// ============================================================
+// Ý nghĩa: Ghi lại mỗi lần user áp dụng mã KM (chống dùng lặp)
+// Chức năng: CartController CheckCoupon đếm số lần → chặn dùng lại
+// KEYWORDS: lich su khuyen mai, coupon history, su dung ma, chong lap
+// ============================================================
+// 🔗 LUỒNG TƯƠNG TÁC (FLOW):
+//   → FILE: tbUser (FK userid), tbKhuyenMai (FK makm), tbDonHang (FK madh)
+//   → LOGIC: 1 user chỉ được dùng 1 mã 1 lần — check count > 0 → từ chối
+//   → GHI: PaymentController lưu ngaydung = UtcNow khi đặt đơn có mã
+// ============================================================
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 

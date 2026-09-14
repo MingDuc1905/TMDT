@@ -13,6 +13,16 @@ namespace ShipFood.Models;
 [Table("tbMonAn")]
 public partial class tbMonAn
 {
+    // ════════════════════════════════════════════════════════════
+    // 🍕 KHỐI THÔNG TIN MÓN ĂN (Food) — cột bảng tbMonAn
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: mon an, tenmon, hinhanh, conhang, isDeleted, giatien
+    // → CRUD BỞI: RestaurantController (PostMonAn/XoaMonAn/ToggleConHang)
+    // → CONHANG: trạng thái còn hàng (toggle 1-click từ ProductList)
+    // → ISDELETED: soft-delete — bảo toàn lịch sử hóa đơn
+    // → GIATIEN: NotMapped — fallback về giá biến thể đầu tiên
+    // → NAVIGATION: tbQuanAn (quán), tbDanhMuc, tbBienTheMonAns (size+giá)
+
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int mamon { get; set; }

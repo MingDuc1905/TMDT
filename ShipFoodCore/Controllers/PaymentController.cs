@@ -68,6 +68,19 @@ public class PaymentController : BaseController
     private string BankAccountName => _configuration["BANK_ACCOUNT_NAME"] ?? "FASTSHIP CO., LTD";
     private string BankWebhookToken => _configuration["BANK_WEBHOOK_TOKEN"] ?? "";
 
+    // ════════════════════════════════════════════════════════════
+    // 💳 KHỐI TẠO ĐƠN HÀNG (ProcessPayment) — TRUNG TÂM FLOW MUA HÀNG
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: tao don, process payment, order, cod, vnpay, idempotency
+    // → GỌI BỞI: Cart/Checkout.cshtml (AJAX POST)
+    // → CÁC BƯỚC: 1. Validate input → 2. Kiểm tra giỏ → 3. Idempotency
+    //   lock (30s) + 1 đơn "Chờ thanh toán"/user → 4. Re-read giá DB →
+    //   5. Atomic transaction (tách đơn theo quán) → 6. SignalR newOrder
+    //   → 7. Xóa giỏ → 8. VNPAY URL (nếu chọn VNPAY) / COD thành công
+    // → FILE: VnpayService (CreatePaymentUrl), Chats Hub (newOrder),
+    //   tbDonHang/tbChiTietDonHang/tbThongTinDatHang (Models)
+    // → LƯU Ý: ngaydathang = DateTime.UtcNow (chuẩn UTC — GioVietNam hiển thị)
+
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<JsonResult> ProcessPayment(int? mattdh, string? hoten, string? quan, string? diachicuthe,

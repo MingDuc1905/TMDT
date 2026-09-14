@@ -1,3 +1,18 @@
+// ============================================================
+// 🛒 Cart — Giỏ hàng phiên làm việc (Session Cart) | Cart Session Model
+// ============================================================
+// Ý nghĩa: Model lưu giỏ hàng TRONG SESSION (không phải bảng DB) —
+//         chứa danh sách CartItem + tổng tiền + mã KM + hỗ trợ multi-restaurant
+// Chức năng: themMon (giới hạn 20 phần/món), xoaMon, giamMon, RestaurantIds
+// KEYWORDS: cart, gio hang, cart item, session, multi-restaurant, tong tien
+// ============================================================
+// 🔗 LUỒNG TƯƠNG TÁC (FLOW):
+//   → FILE: CartController (GetCart/SetCart lưu Session), cart-local.js
+//     (localStorage fallback), Views/Cart/*.cshtml render giỏ hàng
+//   → NOT MAPPED: class này KHÔNG có bảng DB tương ứng — chỉ tồn tại trong
+//     Session/JSON. Dữ liệu giỏ được "chốt" thành tbDonHang khi thanh toán
+//   → RESTORE: CartController.RestoreFromLocal khôi phục từ localStorage
+// ============================================================
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ShipFood.Models;

@@ -45,6 +45,15 @@ public class AdminController : BaseController
         _recommendationService = recommendationService;
     }
 
+    // ════════════════════════════════════════════════════════════
+    // 👑 KHỐI DASHBOARD & QUẢN LÝ ĐƠN (Index/Order/OrderDetail/EditOrder)
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: admin, dashboard, quan ly don, order, pagination, filter
+    // → VIEW: Views/Admin/Index.cshtml, Order.cshtml, EditOrder.cshtml
+    // → FILE: RecommendationService.GetCategoryAprioriInsights (dashboard)
+    // → Order: pagination (50/page) + filter ngày (tuNgay/denNgay);
+    //   EditOrder: admin sửa trạng thái + gán shipper
+
     public ActionResult Index()
     {
         if (!checkLogin())
@@ -112,6 +121,7 @@ public class AdminController : BaseController
     }
 
     // ─── Task: Admin sửa đơn hàng ───
+    // KEYWORDS: edit order, sua don, gan shipper, doi trang thai
     public ActionResult EditOrder(int? id)
     {
         if (!checkLogin())
@@ -166,6 +176,15 @@ public class AdminController : BaseController
         TempData["AdminSuccess"] = $"✅ Đã cập nhật đơn hàng #{madh}";
         return RedirectToAction("Order");
     }
+
+    // ════════════════════════════════════════════════════════════
+    // 🗂️ KHỐI DANH MỤC (Category/CreateCategory/EditCategory/DeleteCategory)
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: danh muc, category, CRUD, upload image
+    // → VIEW: Views/Admin/Category.cshtml + partial _ListCategory.cshtml
+    // → FILE: tbDanhMuc — upload ảnh (Source/images/Danhmuc), chống xóa
+    //   danh mục còn món (FK restrict)
+    // → EditCategory: SetValues ghi đè → restore hinhanh sau khi lưu ảnh
 
     public ActionResult Category()
     {
@@ -298,6 +317,16 @@ public class AdminController : BaseController
         var listdm = list.ToList();
         return PartialView("_ListCategory", listdm);
     }
+
+    // ════════════════════════════════════════════════════════════
+    // 👥 KHỐI QUẢN LÝ TÀI KHOẢN 4 ROLE (QuanLy*/PostTaiKhoan/Duyet/Huy/LockOrUnLock)
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: quan ly user, tai khoan, khoa, duyet, 4 roles
+    // → VIEW: Views/Admin/QuanLyQuanAn.cshtml, QuanLyKhachHang.cshtml,
+    //   QuanLyShipper.cshtml, QuanLyQuanTriVien.cshtml, PostTaiKhoan.cshtml
+    // → FILE: tbUser + tbQuanAn/tbShipper/tbKhachHang/tbAdmin (1:1 theo role)
+    // → LockOrUnLock: trangthai 1↔2; không khóa Admin cuối cùng
+    // → Duyet/Huy: shipper/quán chờ duyệt (trangthai 0→1 hoặc →3)
 
     public ActionResult QuanLyQuanAn()
     {
@@ -588,6 +617,16 @@ public class AdminController : BaseController
             _ => RedirectToAction("Index")
         };
     }
+
+    // ════════════════════════════════════════════════════════════
+    // 📊 KHỐI API THỐNG KÊ (Dashboard/GetDashboardStats/GetRevenueChart/...)
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: thong ke, dashboard stats, revenue, chart, top quan, pie
+    // → VIEW: Views/Admin/Dashboard.cshtml gọi các JSON API này bằng
+    //   fetch() với date filter (fromDate/toDate)
+    // → FILE: tbDonHang/tbChiTietDonHang/tbQuanAn/tbUser (query thống kê),
+    //   RecommendationService.GetCategoryAprioriInsights (dashboard)
+    // → GetSystemStats: batch Count có điều kiện trong 1 query (tối ưu)
 
     // ===== DASHBOARD ANALYTICS API =====
 
@@ -895,6 +934,14 @@ public class AdminController : BaseController
         return Json(fullHourly);
     }
 
+    // ════════════════════════════════════════════════════════════
+    // 🎫 KHỐI QUẢN LÝ KHUYẾN MÃI & XUẤT BÁO CÁO (VoucherManager/ExportCsv)
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: khuyen mai, voucher, export csv, bao cao doanh thu
+    // → VIEW: Views/Admin/VoucherManager.cshtml
+    // → FILE: tbKhuyenMai CRUD; ExportCsv → CSV doanh thu đơn Hoàn thành
+    //   (ExportExcel là alias backward-compat cho test)
+
     // ─── Task: Admin quản lý khuyến mãi tùy chỉnh ───
     public ActionResult VoucherManager()
     {
@@ -1007,6 +1054,15 @@ public class AdminController : BaseController
         var bytes = Encoding.UTF8.GetBytes(sb.ToString());
         return File(bytes, "text/csv", $"bao-cao-doanh-thu-{DateTime.Now:yyyyMMdd}.csv");
     }
+
+    // ════════════════════════════════════════════════════════════
+    // ⚡ KHỐI MOCK PAYMENT & VÍ USER (MockPaymentWebhook/CongTien/WalletManager)
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: mock payment, xac nhan tien, cong tien, wallet manager
+    // → VIEW: Views/Admin/WalletManager.cshtml
+    // → FILE: Chats Hub — paymentConfirmed → order group; dashboardStatsRefresh
+    //   → admins group; tbTinNhan (log giao dịch cộng tiền)
+    // → MockPaymentWebhook: dev/test — xác nhận đơn thanh toán thủ công
 
     // ─── Task 3a: SignalR Payment Confirmation (Mock Webhook) ───
     /// <summary>

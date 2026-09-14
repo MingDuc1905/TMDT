@@ -44,6 +44,16 @@ public class CartController : BaseController
         _configuration = configuration;
     }
 
+    // ════════════════════════════════════════════════════════════
+    // 🛒 KHỐI GIỎ HÀNG (Index/Checkout) — thêm món, áp mã, thanh toán
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: cart, gio hang, checkout, thanh toan, coupon, voucher
+    // → VIEW: Views/Cart/Index.cshtml, Checkout.cshtml
+    // → FILE: VoucherService (GetRecommendedVouchers — gợi ý theo giờ),
+    //   RecommendationService (AprioriCartSuggestions — mua kèm),
+    //   BankHelper (QR chuyển khoản — VietQR BIN code)
+    // → MULTI-RESTAURANT: cho thêm món nhiều quán, Checkout tách đơn riêng
+
     // ─── Bank transfer config ───
     // BankId = tên ngân hàng (hi?n th?), BankVietQrBinCode = BIN code (cho VietQR API)
     private string BankId => _configuration["BANK_ID"] ?? "Vietcombank";
@@ -186,6 +196,14 @@ public class CartController : BaseController
         return Json(new { success = true });
     }
 
+
+    // ════════════════════════════════════════════════════════════
+    // 🎫 KHỐI MÃ GIẢM GIÁ (CheckCoupon/RemoveCoupon/GetTopCoupons)
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: coupon, ma giam gia, khuyen mai, discount, dieukien
+    // → FILE: tbKhuyenMai.cs, tbLichSuSuDungKhuyenMai.cs (1 mã/1 user)
+    // → VALIDATE: hết hạn, chưa đến ngày, điều kiện đơn tối thiểu
+    //   (parse "Đơn từ 200.000đ"), đã sử dụng chưa
 
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -546,6 +564,14 @@ public class CartController : BaseController
         });
     }
 
+    // ════════════════════════════════════════════════════════════
+    // 📦 KHỐI LỊCH SỬ ĐƠN & THEO DÕI (LichSuDatHang/ChiTietDonHang/OrderTracking)
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: lich su don, order history, tracking, map, qr
+    // → VIEW: Views/Cart/LichSuDatHang.cshtml, ChiTietDonHang.cshtml,
+    //   OrderTracking.cshtml (Leaflet map + QR chuyển khoản nếu Chờ thanh toán)
+    // → FILE: tbDonHang + Include (tbChiTietDonHang→tbBienTheMonAn→tbMonAn)
+
     public ActionResult LichSuDatHang()
     {
         if (!CheckLogin())
@@ -601,8 +627,13 @@ public class CartController : BaseController
     }
 
     // ═══════════════════════════════════════════════════════════════
-    // ⭐ ĐÁNH GIÁ MÓN ĂN — Review items from completed orders
+    // ⭐ KHỐI ĐÁNH GIÁ MÓN ĂN (GetReviewableItems/SubmitReview)
     // ═══════════════════════════════════════════════════════════════
+    // KEYWORDS: danh gia, review, rating, sao, phan hoi
+    // → FILE: tbDanhGia.cs — lưu điểm + nhận xét; cập nhật diemdanhgia
+    //   trung bình + soluotdanhgia của quán sau khi đánh giá
+    // → CHỈ cho phép: chủ đơn (mactdh thuộc user), đơn "Hoàn thành",
+    //   mỗi món đánh giá 1 lần
 
     /// <summary>
     /// API: Lấy danh sách món có thể đánh giá từ đơn hàng đã hoàn thành
@@ -836,6 +867,14 @@ public class CartController : BaseController
 
         return View();
     }
+
+    // ════════════════════════════════════════════════════════════
+    // 💾 KHỐI PHỤC HỒI GIỎ & HỦY ĐƠN (RestoreFromLocal/HuyDon)
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: restore cart, localStorage, huy don, cancel order
+    // → FILE: cart-local.js (frontend localStorage → POST RestoreFromLocal)
+    // → HuyDon: chỉ hủy khi trạng thái "Chờ thanh toán" hoặc "Đã đặt"
+    //   (quán chưa nhận đơn) — chủ đơn mới được hủy (check userid)
 
     // ─── Phase 2a: Restore cart from localStorage ───
     [HttpPost]

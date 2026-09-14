@@ -13,6 +13,16 @@ namespace ShipFood.Models;
 [Table("tbKhachHang")]
 public partial class tbKhachHang
 {
+    // ════════════════════════════════════════════════════════════
+    // 👤 KHỐI THÔNG TIN KHÁCH HÀNG (Customer)
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: khach hang, tenkh, hinhanh, customer
+    // → userid = PK (1:1 với tbUser — role "Khách hàng")
+    // → TẠO BỞI: HomeController.Signup (loaitaikhoan="Khách hàng"),
+    //   Google/Facebook OAuth auto-create
+    // → NAVIGATION: tbUser (tài khoản), tbThongTinDatHangs (địa chỉ đặt),
+    //   tbTinNhans (chat với admin/shipper/quán)
+
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.None)]
     public int userid { get; set; }

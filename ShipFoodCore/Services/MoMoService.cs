@@ -38,6 +38,15 @@ public class MoMoService
     private readonly string _accessKey;
     private readonly string _secretKey;
 
+    // ════════════════════════════════════════════════════════════
+    // 💳 KHỐI CẤU HÌNH MoMo (credentials từ env var)
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: momo, partner code, access key, secret key, sandbox
+    // → FILE: PaymentController.cs (MomoReturn, MomoIpn, MockPaymentWebhook)
+    // → FILE: AdminController.cs (MockPaymentWebhook — dev test)
+    // → ENV: MOMO_ENDPOINT, MOMO_PARTNER_CODE, MOMO_ACCESS_KEY, MOMO_SECRET_KEY
+    // → ⚠️ Hiện tại thanh toán chính là VNPAY — MoMo giữ lại tương thích
+
     public MoMoService(IConfiguration configuration, ILogger<MoMoService> logger, HttpClient httpClient)
     {
         _configuration = configuration;
@@ -89,8 +98,11 @@ public class MoMoService
     }
 
     /// <summary>
-    /// Tạo yêu cầu thanh toán MoMo
+    /// Tạo yêu cầu thanh toán MoMo (HMAC SHA256 signature + POST API)
     /// </summary>
+    // KEYWORDS: create payment, hmac sha256, requestId, payurl
+    // → FILE: PaymentController.cs — gọi để lấy PayUrl chuyển hướng user
+    // → requestId: orderId + timestamp + GUID → đảm bảo unique tuyệt đối
     public async Task<MoMoCreatePaymentResponse> CreatePaymentAsync(MoMoCreatePaymentRequest request)
     {
         try
@@ -156,8 +168,11 @@ public class MoMoService
     }
 
     /// <summary>
-    /// Kiểm tra trạng thái giao dịch MoMo
+    /// Kiểm tra trạng thái giao dịch MoMo (query endpoint)
     /// </summary>
+    // KEYWORDS: check transaction, query, trạng thái giao dịch
+    // → FILE: PaymentController.MomoReturn — xác nhận đơn sau khi
+    //   MoMo redirect trình duyệt về app
     public async Task<MoMoTransactionStatusResponse> CheckTransactionAsync(string orderId)
     {
         try
@@ -204,6 +219,8 @@ public class MoMoService
     /// Hoàn tiền MoMo (Refund) — gọi API refund của MoMo Sandbox
     /// Được sử dụng khi hủy đơn hàng đã thanh toán qua MoMo
     /// </summary>
+    // KEYWORDS: refund, hoàn tiền, hủy đơn
+    // → FILE: RestaurantController.huydon() — hoàn tiền nếu đơn đã thanh toán
     public async Task<MoMoCreatePaymentResponse> RefundAsync(string orderId, long amount, string description = "", long? transId = null)
     {
         try
@@ -261,8 +278,10 @@ public class MoMoService
     }
 
     /// <summary>
-    /// Xác thực signature từ MoMo IPN callback
+    /// Xác thực signature từ MoMo IPN callback (HMAC SHA256)
     /// </summary>
+    // KEYWORDS: verify signature, ipn, hmac, callback security
+    // → FILE: PaymentController.MomoIpn — chắc chắn callback thật từ MoMo
     // ponytail: virtual cho phép Moq mock trong unit test
     public virtual bool VerifyIpnSignature(Dictionary<string, string> ipnParams)
     {

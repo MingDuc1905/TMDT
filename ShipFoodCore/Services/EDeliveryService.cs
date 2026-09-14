@@ -30,6 +30,16 @@ public class EDeliveryService
     private readonly dbFoodyEntities _db;
     private readonly ILogger<EDeliveryService> _logger;
 
+    // ════════════════════════════════════════════════════════════
+    // 📄 KHỐI SINH CHỨNG TỪ ĐIỆN TỬ (E-Invoice & E-Waybill)
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: invoice, waybill, chứng từ, QR, idempotent
+    // → FILE: PaymentController.cs (sau thanh toán → GenerateEInvoice)
+    // → FILE: ShipperController.cs (hoàn thành đơn → GenerateEWaybill)
+    // → FILE: tbEInvoice.cs (Models) — bảng lưu chứng từ
+    // → TÍNH IDEMPOTENT: kiểm tra tồn tại trước khi tạo → tránh trùng
+    //   số hóa đơn nếu gọi lại nhiều lần (webhook retry, double click)
+
     public EDeliveryService(dbFoodyEntities db, ILogger<EDeliveryService> logger)
     {
         _db = db;
@@ -157,6 +167,9 @@ public class EDeliveryService
     /// <summary>
     /// Lấy thông tin hóa đơn/vận đơn theo mã đơn hàng
     /// </summary>
+    // KEYWORDS: get documents, tra cứu, by order
+    // → FILE: ChatbotController.cs (tra cứu chứng từ qua AI)
+    // → FILE: Views/Cart/EInvoice.cshtml + Admin/DeliveryLogs.cshtml
     public async Task<List<tbEInvoice>> GetDocumentsByOrder(int orderId)
     {
         return await _db.tbEInvoices

@@ -1,3 +1,16 @@
+// ============================================================
+// 🏙️ City — Thành phố + danh sách quận/huyện (dữ liệu tĩnh)
+// ============================================================
+// Ý nghĩa: Model tĩnh (không phải bảng DB) mô tả TP.HCM kèm danh sách quận
+// Chức năng: Constructor tự sinh 13 quận/huyện mặc định cho form chọn địa chỉ
+// KEYWORDS: city, thanh pho, quan, huyen, dia chi, address, district
+// ============================================================
+// 🔗 LUỒNG TƯƠNG TÁC (FLOW):
+//   → FILE: District.cs (District — 1 quận), HomeController
+//     (ViewBag/City dùng cho dropdown chọn địa chỉ giao hàng),
+//     Views Checkout/Đăng ký (dropdown quận/huyện)
+//   → LƯU Ý: dữ liệu CỨNG trong code — muốn thêm quận phải sửa file này
+// ============================================================
 namespace ShipFood.Models;
 
 public class City

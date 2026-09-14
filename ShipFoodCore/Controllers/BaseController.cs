@@ -33,12 +33,33 @@ namespace ShipFood.Controllers;
 
 public abstract class BaseController : Controller
 {
+    // ════════════════════════════════════════════════════════════
+    // 📦 KHỐI KHỞI TẠO (FIELDS) — cấu hình chung cho mọi controller con
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: db, dbcontext, json options, ignore cycles, base controller
+    // → FILE: mọi controller con (Home, Cart, Payment, Restaurant,
+    //         Shipper, Admin, AdminChat, Chatbot, EDelivery) kế thừa
+    //         và tự gán `db` trong constructor.
+    // db: DbContext dùng chung (Models/DbContext.cs) — được DI inject
+    //     ở từng controller con qua `dbFoodyEntities context`.
+    // _jsonOptions: cấu hình JSON serialize — bỏ qua vòng lặp tham
+    //     chiếu (ReferenceHandler.IgnoreCycles) khi lưu Cart/user
+    //     vào Session (tránh lỗi cyclic reference khi model có navigation).
     protected dbFoodyEntities db = null!;
 
     private static readonly JsonSerializerOptions _jsonOptions = new()
     {
         ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles
     };
+
+    // ════════════════════════════════════════════════════════════
+    // 🔐 KHỐI XÁC THỰC (AUTH) — kiểm tra đăng nhập & phục hồi session
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: auth, login check, session, cookie, restore session
+    // → GỌI BỞI: CheckLogin()/GetCurrentUser() được gọi từ MỌI action
+    //   của mọi controller con trước khi xử lý nghiệp vụ.
+    // → FILE: RoleGuardMiddleware.cs cũng có logic phục hồi session
+    //   tương tự (RestoreSessionFromCookieAsync) ở tầng middleware.
 
     /// <summary>
     /// Kiểm tra đăng nhập: ưu tiên Session, fallback Cookie Auth.
@@ -86,6 +107,9 @@ public abstract class BaseController : Controller
     /// ponytail: sync method, callers (CheckLogin, GetCurrentUser) không async được.
     /// Session auto-commit ở cuối request, CommitAsync chỉ là safety.
     /// </summary>
+    // KEYWORDS: restore, claims, cookie auth, session recovery
+    // → FILE: đọc tbUser (Models/tbUser.cs) từ DB theo userId claim.
+    // → CHỈ chấp nhận user còn hoạt động (trangthai == 1).
     private void RestoreSessionFromClaims()
     {
         var userIdClaim = HttpContext.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -116,6 +140,11 @@ public abstract class BaseController : Controller
     /// Set session user + tạo auth cookie (dùng cho cả manual + OAuth login).
     /// Cookie có thời hạn 30 ngày, sliding expiration → tồn tại qua restart.
     /// </summary>
+    // KEYWORDS: set session, auth cookie, signin, remember me, claims
+    // → FILE: gọi từ HomeController (Login, Facebook/Google OAuth, Signup)
+    // → TẠO Claims: NameIdentifier, Name, Role, loaitaikhoan → dùng bởi
+    //   RoleGuardMiddleware.cs và Chats.cs (GetCallerUserIdAsync) để
+    //   xác định role/quyền của user hiện tại.
     protected async Task SetSessionAndCookieAsync(tbUser user, bool rememberMe = false)
     {
         // 1. Set session
@@ -150,6 +179,14 @@ public abstract class BaseController : Controller
         await HttpContext.Session.CommitAsync();
     }
 
+    // ════════════════════════════════════════════════════════════
+    // 🛒 KHỐI GIỎ HÀNG (CART SESSION) — lưu trữ giỏ hàng trong Session
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: cart, gio hang, session cart, get cart, set cart
+    // → FILE: CartController.cs + HomeController.cs dùng để thêm/sửa
+    //   món, checkout; PaymentController.cs đọc giỏ để tạo đơn.
+    // → MODELS: Cart.cs (Models/Cart.cs) — đối tượng JSON lưu trong
+    //   Session key "cart".
     protected void SetSessionUser(tbUser user)
     {
         var userJson = JsonSerializer.Serialize(user, _jsonOptions);
@@ -173,6 +210,12 @@ public abstract class BaseController : Controller
     /// Kiểm tra quyền truy cập cho JSON API endpoints.
     /// Nếu không đăng nhập hoặc sai role → trả về JsonResult 403 Forbidden
     /// </summary>
+    // KEYWORDS: role check, authorization, json api, 403, quyen truy cap
+    // → GỌI BỞI: các action JSON trả về dữ liệu (vd CartController.CheckCoupon,
+    //   RestaurantController.ToggleConHang, ShipperController...) trước khi
+    //   xử lý để đảm bảo chỉ role đúng mới được gọi API.
+    // → KHÁC RoleGuardMiddleware: CheckRoleJson kiểm tra theo role STRING
+    //   cụ thể, còn middleware kiểm tra theo ROUTE prefix.
     protected JsonResult? CheckRoleJson(string requiredRole)
     {
         var user = GetCurrentUser();

@@ -58,6 +58,14 @@ try
 
 var builder = WebApplication.CreateBuilder(args);
 
+// ════════════════════════════════════════════════════════════════
+// 🚀 PHẦN 1: CẤU HÌNH (CONFIGURATION & LOGGING)
+// ════════════════════════════════════════════════════════════════
+// KEYWORDS: builder, configuration, serilog, logging, appsettings
+// → FILE: appsettings.json / appsettings.{env}.json / env vars (Render)
+// → Serilog: Console + optional Seq sink (SEQ_URL) — log toàn hệ thống
+//   được định dạng đồng nhất để dễ grep trên Render.
+
 // ─── FIX: Disable config file watching (inotify) to avoid Render free tier limit (128) ───
 builder.Configuration.Sources.Clear();
 var envName = builder.Environment.EnvironmentName;
@@ -76,6 +84,18 @@ if (!builder.Environment.IsDevelopment())
     var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
     builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 }
+
+// ════════════════════════════════════════════════════════════════
+// ⚙️ PHẦN 2: ĐĂNG KÝ SERVICES (DI CONTAINER)
+// ════════════════════════════════════════════════════════════════
+// KEYWORDS: dependency injection, services, addscoped, addsingleton, addhostedservice
+// → FILE: Mỗi service đăng ký ở đây được inject vào Controller qua constructor
+//   - RecommendationService → HomeController, RestaurantController, AdminController
+//   - VoucherService → CartController, HomeController
+//   - VnpayService → PaymentController, HomeController
+//   - AutoCancelPendingOrdersService → background (không inject, tự chạy)
+//   - OpenAIService → ChatbotController
+//   - EDeliveryService → PaymentController, ShipperController, ChatbotController
 
 // Add services to the container.
 builder.Services.AddControllersWithViews()
@@ -182,6 +202,14 @@ builder.Services.AddRateLimiter(options =>
         await context.HttpContext.Response.WriteAsync(response, cancellationToken);
     };
 });
+
+// ════════════════════════════════════════════════════════════════
+// 🗄️ PHẦN 3: KẾT NỐI DATABASE (PostgreSQL + EF Core)
+// ════════════════════════════════════════════════════════════════
+// KEYWORDS: postgresql, npgsql, connection string, DATABASE_URL, ef core
+// → FILE: Models/DbContext.cs (dbFoodyEntities) — DbContext chính
+// → Ưu tiên: appsettings → DATABASE_URL (Render) → env vars (PGHOST...)
+// → ParsePgConnectionString: chuyển postgres:// URI sang key-value Npgsql.
 
 // ─── Helper: Convert postgres:// URI to Npgsql key-value format ───
 static string? ParsePgConnectionString(string? connStr)
@@ -408,6 +436,20 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
     options.KnownNetworks.Clear();
     options.KnownProxies.Clear();
 });
+
+// ════════════════════════════════════════════════════════════════
+// 🛡️ PHẦN 4: PIPELINE XỬ LÝ REQUEST (MIDDLEWARE ORDER)
+// ════════════════════════════════════════════════════════════════
+// KEYWORDS: middleware, pipeline, useforwardedheaders, usesession, useauthentication,
+//           roleguard, useauthorization, mapcontrollerroute
+// → THỨ TỰ QUAN TRỌNG (đổi thứ tự = hỏng login/auth):
+//   1. UseForwardedHeaders — Render proxy HTTPS → HTTP
+//   2. UseStaticFiles — CSS/JS/ảnh (cache + ETag)
+//   3. UseSession — đọc session cookie
+//   4. UseAuthentication — xây context.User từ auth cookie
+//   5. RoleGuardMiddleware — CHẶN CHÉO ROLE (Controllers/Middleware/RoleGuardMiddleware.cs)
+//   6. UseAuthorization + MapControllerRoute
+// → FILE: Controllers/Middleware/RoleGuardMiddleware.cs
 
 var app = builder.Build();
 

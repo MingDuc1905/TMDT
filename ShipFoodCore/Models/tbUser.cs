@@ -13,6 +13,18 @@ namespace ShipFood.Models;
 [Table("tbUser")]
 public partial class tbUser
 {
+    // ════════════════════════════════════════════════════════════
+    // 👤 KHỐI TÀI KHOẢN USER — cột bảng tbUser (4 roles)
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: user, username, pwd, loaitaikhoan, vitien, trangthai
+    // → TẠO BỞI: HomeController (Signup, Google/Facebook OAuth),
+    //   AdminController (PostTaiKhoan)
+    // → ROLE: loaitaikhoan = "Khách hàng"|"Quán ăn"|"Shipper"|"Admin"
+    //   (khớp RouteRoleMap trong RoleGuardMiddleware.cs)
+    // → TRANGTHAI: 1 = hoạt động, 2 = khóa, 0/3 = chờ duyệt/bị hủy
+    // → PWD: plain-text (lưu ý bảo mật — dự án chưa hash mật khẩu)
+    // → NAVIGATION 1:1: tbKhachHang/tbQuanAn/tbShipper/tbAdmin theo role
+
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int userid { get; set; }

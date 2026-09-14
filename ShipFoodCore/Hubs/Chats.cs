@@ -42,6 +42,18 @@ public class Chats : Hub
     private readonly IDistributedCache _cache;
     private readonly ILogger<Chats> _logger;
 
+    // ════════════════════════════════════════════════════════════
+    // 🔑 KHỐI KẾT NỐI & THEO DÕI USER (Connection Tracking)
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: connection, redis, cache, online, user tracking
+    // → FILE: OnConnectedAsync/OnDisconnectedAsync (cuối file) quản lý
+    //   mapping user ↔ connectionId trong IDistributedCache (Redis)
+    //   - UserConnection:{connectionId} → userId (tra ngược)
+    //   - UserConn:{userId} → connectionId (check online, lấy connection)
+    // → FILE: PaymentController, RestaurantController, ShipperController,
+    //   AdminController, AdminChatController, EDeliveryController gọi
+    //   IHubContext<Chats> để broadcast tới các group.
+
     private const string CONN_KEY_PREFIX = "UserConnection:";
     private const string USER_KEY_PREFIX = "UserConn:";
 
@@ -93,6 +105,9 @@ public class Chats : Hub
     /// ═══ CROSS-ROLE CHAT: Gửi tin nhắn từ bất kỳ role nào đến group order ═══
     /// Dùng chung cho: Shipper→Order, Customer→Order, Admin→Order, Restaurant→Order
     /// </summary>
+    // KEYWORDS: send message, cross role, order group, chat
+    // → GỌI BỞI: JS client trong _ChatWidget.cshtml + AdminChat/Index.cshtml
+    // → EVENT: "orderMessage" — client trong group order_{orderId} nhận
     public async Task SendToOrderGroup(string message, int orderId, string senderName, string senderRole)
     {
         await Clients.Group($"order_{orderId}").SendAsync("orderMessage", message, orderId, senderName, senderRole, Context.ConnectionId);
@@ -112,6 +127,9 @@ public class Chats : Hub
     /// <summary>
     /// ═══ JOIN: Shipper tham gia group shipper + shipper_{userId} ═══
     /// </summary>
+    // KEYWORDS: join group, shipper group, FREE-PICK
+    // → FILE: Shipper/Index.cshtml gọi để nhận newPickupOrder (đơn mới
+    //   từ Restaurant) + orderAccepted (đơn đã bị shipper khác nhận)
     public async Task JoinShipperGroup(int userId)
     {
         await Groups.AddToGroupAsync(Context.ConnectionId, "shippers");
@@ -121,6 +139,9 @@ public class Chats : Hub
     /// <summary>
     /// ═══ JOIN: Customer tham gia group customer_{userId} ═══
     /// </summary>
+    // KEYWORDS: join group, customer group, support
+    // → FILE: Home layout (_LayoutPageHome) + _ChatWidget.cshtml gọi để
+    //   nhận adminMessage/directMessage từ Admin/Shipper/Quán ăn
     public async Task JoinCustomerSupportGroup(int userId)
     {
         await Groups.AddToGroupAsync(Context.ConnectionId, $"customer_{userId}");
@@ -129,6 +150,9 @@ public class Chats : Hub
     /// <summary>
     /// ═══ JOIN: Admin tham gia group admin + customer_{userId} (để nhận tin từ customer) ═══
     /// </summary>
+    // KEYWORDS: join group, admin group, dashboard refresh
+    // → FILE: Admin/Index.cshtml + AdminChat/Index.cshtml gọi để nhận
+    //   dashboardStatsRefresh (đơn mới) + customerMessage (khách nhắn)
     public async Task JoinAdminGroup(int userId)
     {
         await Groups.AddToGroupAsync(Context.ConnectionId, "admins");
@@ -138,6 +162,9 @@ public class Chats : Hub
     /// <summary>
     /// ═══ JOIN: Restaurant tham gia group restaurant_{id} + quản lý đơn hàng ═══
     /// </summary>
+    // KEYWORDS: join group, restaurant group, new order
+    // → FILE: Restaurant/_LayoutPageRestaurant.cshtml gọi để nhận
+    //   newOrder (đơn mới từ PaymentController) + kpiRefresh (đổi KPI)
     public async Task JoinRestaurantGroup(int restaurantId)
     {
         await Groups.AddToGroupAsync(Context.ConnectionId, $"restaurant_{restaurantId}");
@@ -146,6 +173,9 @@ public class Chats : Hub
     /// <summary>
     /// ═══ JOIN: Tham gia group đơn hàng (để nhận tin nhắn real-time) ═══
     /// </summary>
+    // KEYWORDS: join group, order group, orderStatusChanged
+    // → FILE: Cart/OrderTracking.cshtml + _ChatWidget.cshtml gọi để nhận
+    //   orderStatusChanged (đổi trạng thái đơn) + orderMessage (chat)
     public async Task JoinOrderGroup(int orderId)
     {
         await Groups.AddToGroupAsync(Context.ConnectionId, $"order_{orderId}");
@@ -154,6 +184,9 @@ public class Chats : Hub
     /// <summary>
     /// Restaurant báo 'Chuẩn bị xong' → broadcast đến tất cả Shipper
     /// </summary>
+    // KEYWORDS: notify shipper, new pickup order, FREE-PICK
+    // → FILE: RestaurantController.hoantatdon() gọi → shipper dashboard
+    //   nhận "newPickupOrder" để hiển thị đơn mới cần nhận
     public async Task NotifyShippersNewPickup(int orderId, string restaurantName, string pickupAddress)
     {
         await Clients.Group("shippers").SendAsync("newPickupOrder", new
@@ -167,6 +200,9 @@ public class Chats : Hub
     /// <summary>
     /// Thông báo cho tất cả shipper rằng đơn hàng đã được shipper khác nhận
     /// </summary>
+    // KEYWORDS: order accepted, claim, shipper broadcast
+    // → FILE: ShipperController.ClaimOrder() gọi → các shipper khác nhận
+    //   "orderAccepted" để xóa đơn khỏi danh sách FREE-PICK
     public async Task NotifyOrderAccepted(int orderId, int acceptedShipperId)
     {
         await Clients.Group("shippers").SendAsync("orderAccepted", orderId, acceptedShipperId);
@@ -177,6 +213,10 @@ public class Chats : Hub
     /// ═══ DASHBOARD: Báo hiệu Restaurant Dashboard refresh KPI stats ═══
     /// Gửi đến group restaurant_{restaurantId} để cập nhật KPI realtime
     /// </summary>
+    // KEYWORDS: kpi refresh, dashboard, restaurant
+    // → FILE: RestaurantController (nhandon/huydon/hoantatdon) + ShipperController
+    //   (UpdateDonHang) + AutoCancelPendingOrdersService gọi để dashboard
+    //   quán cập nhật số đơn/doanh thu ngay lập tức
     public async Task NotifyRestaurantKpiRefresh(int restaurantId)
     {
         await Clients.Group($"restaurant_{restaurantId}").SendAsync("kpiRefresh");
@@ -186,6 +226,9 @@ public class Chats : Hub
     /// ═══ DASHBOARD: Báo hiệu Admin Dashboard refresh stats ═══
     /// Gửi đến group admins để cập nhật dashboard realtime
     /// </summary>
+    // KEYWORDS: dashboard refresh, admin
+    // → FILE: PaymentController (sau khi tạo đơn) + AdminController
+    //   (MockPaymentWebhook) gọi → admin dashboard nhận "dashboardStatsRefresh"
     public async Task NotifyAdminDashboardRefresh()
     {
         await Clients.Group("admins").SendAsync("dashboardStatsRefresh");
@@ -194,6 +237,8 @@ public class Chats : Hub
     /// <summary>
     /// Gửi tín hiệu "có tin nhắn mới" đến một user cụ thể
     /// </summary>
+    // KEYWORDS: unread count, badge, new message
+    // → FILE: AdminChatController gọi → client cập nhật badge tin nhắn
     public async Task NotifyNewMessage(int userId, int count)
     {
         await Clients.Group($"customer_{userId}").SendAsync("unreadCountUpdate", count);
@@ -203,6 +248,9 @@ public class Chats : Hub
     /// <summary>
     /// Cập nhật toạ độ shipper real-time khi đang giao hàng
     /// </summary>
+    // KEYWORDS: location, map, tracking, leaflet
+    // → FILE: Shipper/OrderDetail.cshtml + Cart/OrderTracking.cshtml gọi
+    //   (Leaflet map) — client nhận "shipperLocationUpdate"
     public async Task UpdateLocation(int orderId, double lat, double lng)
     {
         await Clients.Group($"order_{orderId}").SendAsync("shipperLocationUpdate", orderId, lat, lng);
@@ -270,6 +318,9 @@ public class Chats : Hub
     /// <summary>
     /// Lấy caller userId từ session — dùng để validate SignalR methods
     /// </summary>
+    // KEYWORDS: caller, validate, security, session user
+    // → FILE: dùng trong mọi method broadcast — chặn user giả mạo
+    //   userId khác (security fix) trước khi gửi tin nhắn
     private async Task<int?> GetCallerUserIdAsync()
     {
         var httpContext = Context.GetHttpContext();

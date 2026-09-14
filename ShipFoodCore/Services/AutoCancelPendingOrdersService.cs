@@ -31,6 +31,15 @@ public class AutoCancelPendingOrdersService : BackgroundService
     private readonly IServiceProvider _services;
     private readonly ILogger<AutoCancelPendingOrdersService> _logger;
 
+    // ════════════════════════════════════════════════════════════
+    // ⏰ KHỐI VÒNG LẶP NỀN (ExecuteAsync) — chạy mỗi 5 phút
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: background, loop, timeout, auto cancel, chờ thanh toán
+    // → FILE: PaymentController.cs (ngaydathang = DateTime.UtcNow) —
+    //   so sánh UTC khớp nhau → không lệch 7h
+    // → FILE: tbDonHang.cs (Models) — cập nhật trangthai
+    // → SignalR: kpiRefresh → group restaurant_{id} → OrderList cập nhật
+
     public AutoCancelPendingOrdersService(IServiceProvider services, ILogger<AutoCancelPendingOrdersService> logger)
     {
         _services = services;

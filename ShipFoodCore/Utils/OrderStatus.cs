@@ -9,6 +9,16 @@ namespace ShipFood.Utils;
 
 public static class OrderStatus
 {
+    // ════════════════════════════════════════════════════════════
+    // 📋 KHỐI HẰNG SỐ TRẠNG THÁI (thay thế magic strings)
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: order status, trạng thái, constants, lifecycle
+    // → FILE: được dùng khắp nơi: RestaurantController (nhandon/huydon),
+    //   ShipperController (UpdateDonHang), PaymentController, AdminController,
+    //   AutoCancelPendingOrdersService, Chats.cs
+    // → QUY TẮC: KHÔNG hardcode chuỗi trạng thái, luôn dùng const này
+    //   để tránh lỗi chính tả (vd "Đã xác nhận" vs "Đã xác nhân")
+
     // ─── Order Lifecycle ───
     public const string ChoThanhToan = "Chờ thanh toán";
     public const string DaDat = "Đã đặt";
@@ -34,6 +44,16 @@ public static class OrderStatus
     public const string RoleQuanAn = "Quán ăn";
     public const string RoleAdmin = "Admin";
     public const string RoleKhachHang = "Khách hàng";
+
+    // ════════════════════════════════════════════════════════════
+    // 🔄 KHỐI TRANSITION MAP & AUTO MESSAGE
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: transition, status flow, auto message, [SYSTEM]
+    // → FILE: ShipperController.UpdateDonHang gọi IsValidTransition để chặn
+    //   chuyển trạng thái không hợp lệ (vd Đã nhận → Đang giao là sai)
+    // → FILE: RestaurantController + ShipperController dùng AutoMessages để
+    //   auto-sinh tin nhắn [SYSTEM] vào tbTinNhan khi đổi trạng thái
+    // → FILE: Views hiển thị StatusFlow để vẽ progress bar đơn hàng
 
     // ─── Valid Transition Map ───
     public static readonly Dictionary<string, string[]> AllowedTransitions = new()

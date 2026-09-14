@@ -9,6 +9,16 @@ namespace ShipFood.Helpers;
 
 public static class FastShipConstants
 {
+    // ════════════════════════════════════════════════════════════
+    // 📏 KHỐI HẰNG SỐ HỆ THỐNG (thay thế magic numbers)
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: constants, phi ship, free ship, deposit, idempotency
+    // → FILE: SHIP_FEE → PaymentController (tính đơn), CartController (hiển
+    //   thị tổng tiền), ChatbotController (phí ship trong AI context)
+    // → FILE: MIN/MAX_DEPOSIT → HomeController/RestaurantController/
+    //   ShipperController (nạp tiền ví) — validate số tiền nạp
+    // → ORDER_IDEMPOTENCY_SECONDS → PaymentController (chống đặt trùng 30s)
+
     /// <summary>Phí ship cố định: 15,000đ / đơn</summary>
     public const decimal SHIP_FEE = 15000m;
 

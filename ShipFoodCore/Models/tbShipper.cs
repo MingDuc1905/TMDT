@@ -13,6 +13,17 @@ namespace ShipFood.Models;
 [Table("tbShipper")]
 public partial class tbShipper
 {
+    // ════════════════════════════════════════════════════════════
+    // 🛵 KHỐI THÔNG TIN SHIPPER (Delivery Driver)
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: shipper, tenshipper, diachi, toado, trangthai
+    // → userid = PK (1:1 với tbUser — role "Shipper")
+    // → TẠO BỞI: HomeController.Signup (loaitaikhoan="Shipper"),
+    //   AdminController.PostTaiKhoan
+    // → TRANGTHAI: "Đang hoạt động"/"Không hoạt động" (OrderStatus)
+    // → NAVIGATION: tbUser (tài khoản), tbDonHangs (đơn đã nhận),
+    //   tbTinNhans (chat)
+
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.None)]
     public int userid { get; set; }

@@ -49,6 +49,14 @@ public class RestaurantController : BaseController
         _cache = cache;
     }
 
+    // ════════════════════════════════════════════════════════════
+    // 🏪 KHỐI DASHBOARD QUÁN (Index) — KPI + Apriori insights
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: dashboard quan, KPI, doanh thu, so don, apriori
+    // → VIEW: Views/Restaurant/Index.cshtml
+    // → FILE: RecommendationService.GetRestaurantAprioriInsights (cặp món
+    //   bán chéo), OrderStatus (đếm trạng thái: Đang chuẩn bị/Hoàn thành/Hủy)
+    // → VIEWBAG: soLuongMonAn, tongDoanhThu, soDonDatHang, soLuongKhachHang
     public async Task<ActionResult> Index()
     {
         if (!checkLogin()) return RedirectToAction("Login", "Home");
@@ -91,6 +99,14 @@ public class RestaurantController : BaseController
         return View();
     }
 
+    // ════════════════════════════════════════════════════════════
+    // 💰 KHỐI VÍ TIỀN QUÁN (Wallet/NapTien/RutTien)
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: wallet quan, vi tien, nap tien, rut tien, qr
+    // → VIEW: Views/Restaurant/Wallet.cshtml
+    // → FILE: tbTinNhan (log DEPOSIT/WITHDRAW — audit trail), BankHelper
+    //   (QR VietQR nạp tiền), SePay webhook xác nhận chuyển khoản
+    // → LƯU Ý: NapTien tạo QR, không tự cộng tiền — chờ webhook
     public ActionResult Wallet()
     {
         if (!checkLogin()) return RedirectToAction("Login", "Home");
@@ -187,6 +203,14 @@ public class RestaurantController : BaseController
         return RedirectToAction("Wallet");
     }
 
+    // ════════════════════════════════════════════════════════════
+    // 📊 KHỐI PHÂN TÍCH (Analytics) — data món + danh mục + doanh thu
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: analytics, phan tich, doanh thu, ban chay, cache
+    // → VIEW: Views/Restaurant/Analytics.cshtml
+    // → FILE: DataAnalytic.cs, DataAnalyticDanhMuc.cs (Models — DTO tính
+    //   trong RAM), IMemoryCache (cache 5 phút để tránh query lại)
+    // → 3 QUERY: món+biến thể+danh mục → chi tiết đơn+đánh giá → doanh thu
     public async Task<ActionResult> Analytics()
     {
         if (!checkLogin()) return RedirectToAction("Login", "Home");
@@ -329,6 +353,14 @@ public class RestaurantController : BaseController
         }
     }
 
+    // ════════════════════════════════════════════════════════════
+    // ⭐ KHỐI ĐÁNH GIÁ & PHẢN HỒI (Review/ReplyReview)
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: danh gia quan, review, phan hoi, reply
+    // → VIEW: Views/Restaurant/Review.cshtml
+    // → FILE: tbDanhGia JOIN tbChiTietDonHang JOIN tbBienTheMonAn
+    //   (PostgreSQL-safe — không dùng navigation chain nullable)
+    // → ReplyReview: quán phản hồi review (phanHoiCuaQuan)
     public ActionResult Review()
     {
         if (!checkLogin()) return RedirectToAction("Login", "Home");
@@ -372,6 +404,13 @@ public class RestaurantController : BaseController
         }
     }
 
+    // ════════════════════════════════════════════════════════════
+    // 🎫 KHỐI KHUYẾN MÃI (Discount) — gán KM cho từng món
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: khuyen mai, discount, giam gia, tbMonAnKhuyenMai
+    // → VIEW: Views/Restaurant/Discount.cshtml
+    // → FILE: tbMonAnKhuyenMai — 1 món nhiều KM, % riêng từng món
+    // → VALIDATE: makm/mamon bắt buộc, % 1-100, trùng lặp bị chặn
     public ActionResult Discount()
     {
         if (!checkLogin()) return RedirectToAction("Login", "Home");
@@ -435,6 +474,15 @@ public class RestaurantController : BaseController
         return RedirectToAction("Discount");
     }
 
+    // ════════════════════════════════════════════════════════════
+    // 📦 KHỐI DANH SÁCH ĐƠN HÀNG (OrderList) — filter server-side
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: order list, danh sach don, filter, date, status, datatable
+    // → VIEW: Views/Restaurant/OrderList.cshtml (DataTable + SignalR realtime)
+    // → FILTER SERVER-SIDE: fromDate/toDate (ngày) + status → SQL WHERE
+    //   (giữ đúng filter sau reload, không lọc client-side như cũ)
+    // → FILE: GioVietNam() hiển thị giờ VN; ngaydathang lưu UTC
+
     // ponytail: Accept FromDate/ToDate + status query params for server-side filtering
     // ponytail: fix — thêm status ? server-side ?? b? l?c còn ?úng sau reload
     public ActionResult OrderList(DateTime? fromDate, DateTime? toDate, string? status)
@@ -468,6 +516,14 @@ public class RestaurantController : BaseController
         return View();
     }
 
+    // ════════════════════════════════════════════════════════════
+    // 🔄 KHỐI XỬ LÝ ĐƠN (nhandon/huydon/hoantatdon) — đổi trạng thái
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: nhan don, huy don, hoan tat don, xac nhan, cho shipper
+    // → FILE: OrderStatus (AutoMessages — auto-sinh [SYSTEM] tin nhắn)
+    // → FILE: Chats Hub — orderStatusChanged → customer; kpiRefresh → quán;
+    //   newPickupOrder → group "shippers" (FREE-PICK nhận đơn)
+    // → nhandon: Đã đặt → Đã xác nhận; hoantatdon: → Chờ shipper lấy hàng
     public async Task<ActionResult> nhandon(int id)
     {
         if (!checkLogin()) return RedirectToAction("Login", "Home");
@@ -640,6 +696,13 @@ public class RestaurantController : BaseController
     }
 
 
+    // ════════════════════════════════════════════════════════════
+    // 👤 KHỐI HỒ SƠ QUÁN (Profile) — thông tin + avatar + đổi mật khẩu
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: profile quan, ho so, avatar, upload, doi mat khau
+    // → VIEW: Views/Restaurant/Profile.cshtml
+    // → FILE: upload avatar (Source/Restaurant/images/avatar — path traversal
+    //   protection qua Path.GetFileName), tbQuanAn + tbUser.pwd (plain-text)
     public ActionResult Profile()
     {
         if (!checkLogin()) return RedirectToAction("Login", "Home");
@@ -712,6 +775,15 @@ public class RestaurantController : BaseController
         return RedirectToAction("Profile");
     }
 
+    // ════════════════════════════════════════════════════════════
+    // 🍕 KHỐI THỰC ĐƠN (ProductList/ProductDetail/PostMonAn/XoaMonAn/ToggleConHang)
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: product list, thuc don, mon an, CRUD, con hang, soft delete
+    // → VIEW: Views/Restaurant/ProductList.cshtml (redesigned fs-* tokens),
+    //   ProductDetail.cshtml
+    // → FILE: tbMonAn/tbBienTheMonAn (size M/L/XL + giá), tbDanhMuc
+    // → XoaMonAn: SOFT DELETE (isDeleted = true) — bảo toàn lịch sử hóa đơn
+    // → ToggleConHang: AJAX 1-click bật/tắt còn hàng (JSON)
     public ActionResult ProductList()
     {
         if (!checkLogin()) return RedirectToAction("Login", "Home");
@@ -955,6 +1027,13 @@ public class RestaurantController : BaseController
         });
     }
 
+    // ════════════════════════════════════════════════════════════
+    // 🧰 KHỐI HELPER (getQuanAn/checkLogin/updateStatus)
+    // ════════════════════════════════════════════════════════════
+    // KEYWORDS: helper, getQuanAn, check login, update status, mo cua
+    // → getQuanAn: load tbQuanAn + tbUser + món + đơn của user hiện tại
+    //   (KHÔNG load chi tiết đơn→đánh giá qua chain — quá nặng)
+    // → updateStatus: bật/tắt "Đang mở cửa"/"Đóng cửa" (OrderStatus)
     public tbQuanAn getQuanAn()
     {
         var user = GetCurrentUser();
